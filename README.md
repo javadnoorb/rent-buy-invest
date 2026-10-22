@@ -12,6 +12,13 @@ Results are liquidation net worth: what each household would have after selling 
 
 The whole app is one static page, `index.html`. Open it in a browser or serve it with GitHub Pages.
 
+## Install on your phone
+
+- **iPhone (Safari):** open the link, tap **Share**, then **Add to Home Screen**.
+- **Android (Chrome):** open the link, tap the **⋮** menu, then **Install app** (or **Add to Home screen**).
+
+It then opens full-screen from its own icon, and works offline after the first visit (charts need one online load to cache the charting library).
+
 ## Features
 
 - **Projection:** month-by-month model covering mortgage amortization, PMI, refinancing, property tax (with an optional assessment cap), insurance, maintenance, HOA, the federal itemized-deduction benefit (2026 standard deduction, SALT cap schedule, $750k interest limit) and the Section 121 home-sale exclusion. Portfolios can be taxable or sheltered, with yearly dividend and interest tax and optional leverage.
@@ -35,13 +42,15 @@ The whole app is one static page, `index.html`. Open it in a browser or serve it
 | `data/monthly.json` | Raw monthly series, 1987–2026 |
 | `data/monthly_processed.json` | Monthly returns used by the monthly backtest |
 | `build.py` | Assembles `index.html` from `src/` and `data/` |
+| `manifest.webmanifest`, `sw.js`, `icons/` | Home-screen install and offline support |
+| `make_icons.py` | Draws the app icons |
 | `prep_monthly.py` | Converts `monthly.json` into `monthly_processed.json` |
 
 ## Updating
 
 1. Edit the figures in `data/snapshot.json` (or a metro file), keeping each source URL in step with its value.
 2. If you changed `data/monthly.json`, run `python3 prep_monthly.py`.
-3. Run `python3 build.py` to regenerate `index.html`.
+3. Run `python3 build.py --pwa` to regenerate `index.html`. Without `--pwa` it builds the version that runs inside a Claude artifact.
 4. Commit and push. GitHub Pages serves the new version within a minute or two.
 
 The build uses only the Python standard library. In the browser, the page loads Plotly (charts), MathJax (formulas) and Google Fonts from public CDNs.

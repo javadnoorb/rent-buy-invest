@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Assemble index.html from src/ and data/."""
-import json, glob, os, math
+import json, glob, os, math, sys
+PWA = '--pwa' in sys.argv
 ROOT = os.path.dirname(os.path.abspath(__file__))
 D = lambda *p: os.path.join(ROOT, *p)
 
@@ -112,9 +113,28 @@ window.MathJax={tex:{inlineMath:[['\\\\(','\\\\)']],displayMath:[['\\\\[','\\\\]
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
 '''
+if PWA:
+    head = ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
+            '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
+            '<meta name="description" content="Compare buying a home, renting and investing, with sourced market data, backtests and Monte Carlo.">\n'
+            '<link rel="manifest" href="manifest.webmanifest">\n'
+            '<meta name="theme-color" content="#f3f5f4" media="(prefers-color-scheme: light)">\n'
+            '<meta name="theme-color" content="#0e1312" media="(prefers-color-scheme: dark)">\n'
+            '<meta name="mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-capable" content="yes">\n'
+            '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">\n'
+            '<meta name="apple-mobile-web-app-title" content="Rent·Buy">\n'
+            '<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">\n<link rel="icon" type="image/png" href="icons/favicon-32.png">\n'
+            + head +
+            '<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}'
+            'body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-text-size-adjust:100%}img{max-width:100%}[hidden]{display:none!important}</style>\n'
+            '</head>\n<body>\n')
+    tail = ('<script>if("serviceWorker" in navigator&&location.protocol==="https:"){addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}</script>\n'
+            '</body>\n</html>\n')
+else:
+    tail = ''
 out = (head + '<style>' + css + '</style>\n' + body +
        '\n<!-- SNAPSHOT: current market figures. Weekly refresh edits only this block. -->\n'
        '<script id="snapshot-data" type="application/json">\n' + json.dumps(snap, indent=1) + '\n</script>\n' + mj +
-       '<script>\n' + data_js + model + '\n' + app + '\n</script>\n')
+       '<script>\n' + data_js + model + '\n' + app + '\n</script>\n' + tail)
 open(D('index.html'), 'w').write(out)
 print('built', len(out), 'bytes; metros', len(METROS), '; monthly', bool(MONTHLY))
