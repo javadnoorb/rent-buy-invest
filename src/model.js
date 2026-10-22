@@ -18,6 +18,16 @@ const DM_OBS=YEARS.map(y=>y>MORT0?MORT[y-MORT0]-MORT[y-1-MORT0]:null);
 const DM_FIT=(()=>{const xs=[],ys=[];YEARS.forEach((y,i)=>{if(DM_OBS[i]!=null&&i>0){xs.push(INF[i]-INF[i-1]);ys.push(DM_OBS[i])}});
   const n=xs.length,mx=xs.reduce((a,b)=>a+b)/n,my=ys.reduce((a,b)=>a+b)/n;let sxy=0,sxx=0;for(let k=0;k<n;k++){sxy+=(xs[k]-mx)*(ys[k]-my);sxx+=(xs[k]-mx)**2}
   const b=sxy/sxx,a=my-b*mx;let ss=0;for(let k=0;k<n;k++)ss+=(ys[k]-a-b*xs[k])**2;return {a,b,s:Math.sqrt(ss/(n-2)),n}})();
+/* Mortgage-rate dynamics fitted on 1973–2025 annual averages:
+   Δm_t = α + β·m_{t−1} + γ·Δπ_t + e_t  →  pull-back speed κ = −β; residuals e_t are resampled with their year. */
+const RATE_AR=(()=>{const X=[],Y=[],idx=[];YEARS.forEach((y,i)=>{if(DM_OBS[i]!=null&&i>0){X.push([1,MORT[y-1-MORT0],INF[i]-INF[i-1]]);Y.push(DM_OBS[i]);idx.push(i)}});
+  const k=3,XtX=[...Array(k)].map(()=>Array(k).fill(0)),XtY=Array(k).fill(0);
+  X.forEach((r,n)=>{for(let a=0;a<k;a++){XtY[a]+=r[a]*Y[n];for(let b=0;b<k;b++)XtX[a][b]+=r[a]*r[b]}});
+  const A=XtX.map((r,a)=>r.concat([XtY[a]]));for(let c=0;c<k;c++){let p=c;for(let r=c+1;r<k;r++)if(Math.abs(A[r][c])>Math.abs(A[p][c]))p=r;[A[c],A[p]]=[A[p],A[c]];
+    for(let r=0;r<k;r++)if(r!==c){const f=A[r][c]/A[c][c];for(let q=c;q<=k;q++)A[r][q]-=f*A[c][q]}}
+  const bta=A.map((r,a)=>r[k]/r[a]);const res=Array(YEARS.length).fill(null);let ss=0;
+  X.forEach((r,n)=>{const e=Y[n]-(bta[0]+bta[1]*r[1]+bta[2]*r[2]);res[idx[n]]=e;ss+=e*e});
+  return {alpha:bta[0],kappa:-bta[1],gamma:bta[2],sigma:Math.sqrt(ss/(X.length-k)),mean:-bta[0]/bta[1],res,n:X.length}})();
 const SER={gh:HOME,gr:RENTG,rs:STK,rb:BOND,rc:BILL,inf:INF};
 function geo(a,from,to){const i0=from-Y0,i1=(to||2025)-Y0;let lp=0,n=0;for(let i=i0;i<=i1;i++){if(a[i]==null)continue;lp+=Math.log(1+a[i]/100);n++}return (Math.exp(lp/n)-1)*100}
 const r2=x=>Math.round(x*100)/100;
@@ -176,7 +186,9 @@ function mcCore(p,cfg){
     const idx=[];while(idx.length<N){const st=Math.floor(r()*W);for(let j=0;j<bl&&idx.length<N;j++)idx.push((st+j)%W)}
     const path={};keys.forEach(k=>path[k]=idx.map(j=>Math.exp(LOG[k][j]+SH[k])-1));
     let saleShock=1,saleShock2=1;if(iv>0){if(p.idioMode==='yearly')path.gh=path.gh.map(g=>(1+g)*Math.exp(iv*gauss(r)-iv*iv/2)-1);else{saleShock=Math.exp(iv*gauss(r)-iv*iv/2);saleShock2=Math.exp(iv*gauss(r)-iv*iv/2)}}
-    let m=p.rate;path.mkt=idx.map(j=>{const gi=i0+j;let dm=DM_OBS[gi];if(dm==null){dm=DM_FIT.a+DM_FIT.b*(INF[gi]-(gi>0?INF[gi-1]:INF[gi]))+DM_FIT.s*gauss(r)}m=Math.min(0.2,Math.max(0.02,m+dm/100));return m});
+    let m=p.rate*100;const mbar=(p.rateLR||p.rate)*100,K=Math.min(1,Math.max(0,RATE_AR.kappa));
+    path.mkt=idx.map(j=>{const gi=i0+j,dPi=INF[gi]-(gi>0?INF[gi-1]:INF[gi]);const e=RATE_AR.res[gi]!=null?RATE_AR.res[gi]:RATE_AR.sigma*gauss(r);
+      m=Math.min(20,Math.max(2,m+K*(mbar-m)+RATE_AR.gamma*dPi+e));return m/100});
     const kk=1/(MAINT_CV*MAINT_CV),maintShock=idx.map(()=>gammaS(kk,r)/kk);
     const o=simulate(p,path,{N,saleShock,saleShock2,maintShock});
     res.buy.push(o.buy.map((v,k)=>adj(v,o.cpi[k])));res.inv.push(o.inv.map((v,k)=>adj(v,o.cpi[k])));res.cash.push(o.cash.map((v,k)=>adj(v,o.cpi[k])));

@@ -56,10 +56,11 @@ if not out['acs'].get('rows'):
     for yr in acs['years']:
         got = {}
         for t in acs.get('tables', ['b25103', 'b25077', 'b25031', 'b25064']):
+            pref = ('310M', '0100000US')
             url = base.format(y=yr, t=t)
             try:
                 txt = get(url); lines = txt.splitlines(); hdr = lines[0].split('|')
-                rows = [l.split('|') for l in lines[1:] if l.startswith('310M')]
+                rows = [l.split('|') for l in lines[1:] if l.startswith(pref)]
                 got[t] = {'url': url, 'header': hdr, 'rows': rows}
             except Exception as e:
                 out.setdefault('acs_errors', {})[f'{yr}_{t}'] = str(e)

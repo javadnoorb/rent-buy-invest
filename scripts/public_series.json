@@ -3,13 +3,81 @@
   "start_year": 1986,
   "series": {
    "cpi_all_us": "CUUR0000SA0",
-   "rent_us": "CUUR0000SEHA"
+   "rent_us": "CUUR0000SEHA",
+   "ppi_home_ins": "PCU5241265241262",
+   "rent_boston": "CUURS11ASEHA",
+   "rent_new-york": "CUURS12ASEHA",
+   "rent_philadelphia": "CUURS12BSEHA",
+   "rent_chicago": "CUURS23ASEHA",
+   "rent_detroit": "CUURS23BSEHA",
+   "rent_minneapolis": "CUURS24ASEHA",
+   "rent_washington-dc": "CUURS35ASEHA",
+   "rent_miami": "CUURS35BSEHA",
+   "rent_atlanta": "CUURS35CSEHA",
+   "rent_tampa": "CUURS35DSEHA",
+   "rent_dallas": "CUURS37ASEHA",
+   "rent_phoenix": "CUURS48ASEHA",
+   "rent_denver": "CUURS48BSEHA",
+   "rent_los-angeles": "CUURS49ASEHA",
+   "rent_san-francisco": "CUURS49BSEHA",
+   "rent_seattle": "CUURS49DSEHA",
+   "rent_san-diego": "CUURS49ESEHA",
+   "rent_reg_northeast_A": "CUURS100SEHA",
+   "rent_reg_midwest_A": "CUURS200SEHA",
+   "rent_reg_south_A": "CUURS300SEHA",
+   "rent_reg_west_A": "CUURS400SEHA",
+   "rent_reg_northeast": "CUUR0100SEHA",
+   "rent_reg_midwest": "CUUR0200SEHA",
+   "rent_reg_south": "CUUR0300SEHA",
+   "rent_reg_west": "CUUR0400SEHA"
   },
-  "candidates": {}
+  "candidates": {
+   "rent_legacy_boston": "CUURA103SEHA",
+   "rent_legacy_new-york": "CUURA101SEHA",
+   "rent_legacy_philadelphia": "CUURA102SEHA",
+   "rent_legacy_chicago": "CUURA207SEHA",
+   "rent_legacy_detroit": "CUURA208SEHA",
+   "rent_legacy_minneapolis": "CUURA211SEHA",
+   "rent_legacy_washington-dc": "CUURA311SEHA",
+   "rent_legacy_miami": "CUURA320SEHA",
+   "rent_legacy_atlanta": "CUURA319SEHA",
+   "rent_legacy_tampa": "CUURA321SEHA",
+   "rent_legacy_dallas": "CUURA316SEHA",
+   "rent_legacy_phoenix": "CUURA429SEHA",
+   "rent_legacy_denver": "CUURA433SEHA",
+   "rent_legacy_los-angeles": "CUURA421SEHA",
+   "rent_legacy_san-francisco": "CUURA422SEHA",
+   "rent_legacy_seattle": "CUURA423SEHA",
+   "rent_legacy_san-diego": "CUURA424SEHA",
+   "rent_legacy_cleveland": "CUURA210SEHA",
+   "rent_legacy_portland": "CUURA425SEHA"
+  }
  },
  "acs": {
-  "years": [2025, 2024],
-  "vars": ["NAME", "B25103_001E", "B25077_001E", "B25031_001E", "B25031_002E", "B25031_003E", "B25031_004E", "B25031_005E", "B25031_006E", "B25031_007E", "B25064_001E"]
+  "years": [
+   2025,
+   2024
+  ],
+  "vars": [
+   "NAME",
+   "B25103_001E",
+   "B25077_001E",
+   "B25031_001E",
+   "B25031_002E",
+   "B25031_003E",
+   "B25031_004E",
+   "B25031_005E",
+   "B25031_006E",
+   "B25031_007E",
+   "B25064_001E"
+  ],
+  "tables": [
+   "b25103",
+   "b25077",
+   "b25031",
+   "b25064",
+   "b25042"
+  ]
  },
  "freddie_pmms_csv": "https://www.freddiemac.com/pmms/docs/PMMS_history.csv"
 }
