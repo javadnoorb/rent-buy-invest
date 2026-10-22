@@ -29,6 +29,8 @@ RES = {
     'dy': {'u': res_raw['div_yield']['source_url'], 'h': f'S&amp;P 500 trailing yield {res_raw["div_yield"]["value"]*100:.2f}% ({res_raw["div_yield"]["date"]}, multpl estimate)'},
     'spread': {'u': res_raw['margin_rate']['source_url'], 'h': 'Interactive Brokers Pro margin: benchmark + 1.5% under $100k, + 1.0% to $1M'},
     'mortSpread': {'u': res_raw['mortgage_spread']['source_url']},
+    'rMove': {'u': next((s['url'] for s in (ten.get('sources') or []) if 'census.gov' in s.get('url','')), None),
+              'h': f'Census CPS 2023: {tv.get("cps_renter_mover_rate_2023",0)*100:.1f}% of renters moved (owners {tv.get("cps_owner_mover_rate_2023",0)*100:.1f}%)'},
     'sell': {'u': first_url(res_raw['sell_costs']), 'h': 'commissions ≈ 5–5.5% (Redfin via Opendoor) plus 1–3% other seller costs'},
     'close': {'u': None, 'h': 'buyer closing costs typically 2–5%'},
     'maint': {'u': first_url(res_raw['maintenance']), 'h': 'Census AHS 2021: median upkeep + improvements 0.6–1.5% of value; rule of thumb 1–3%'},
@@ -54,7 +56,7 @@ for k, e in res_raw.items():
         RES['sources'][f'r_{k}'] = {'t': e.get('source_title'), 'u': e.get('source_url')}
 RES['sources'] = {k: v for k, v in RES['sources'].items() if v.get('u') and v.get('t')}
 
-D0 = {'close': 3, 'maint': 1.0, 'sell': 6.5, 'dy': round(res_raw['div_yield']['value'] * 100, 2), 'spread': 1.5,
+D0 = {'rMove': round((tv.get('cps_renter_mover_rate_2023') or 0.162)*100,1), 'close': 3, 'maint': 1.0, 'sell': 6.5, 'dy': round(res_raw['div_yield']['value'] * 100, 2), 'spread': 1.5,
       'hz': round(hz * 100, 1), 'idio': 12}
 
 mort = res_raw['mortgage_annual']['value']

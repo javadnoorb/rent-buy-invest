@@ -46,10 +46,11 @@ function simulate(p,path,opt){
   const L=p.P*(1-p.dp),nTot=p.term*12;let i=rate/12,Mp=pmt(L,i,nTot);
   const f750=L>0?Math.min(1,750000/L):1,excl=p.filing==='mfj'?500000:250000,std0=p.filing==='mfj'?32200:16100;
   const tx=p.taxOn,taxable=tx&&p.acct==='taxable';
-  let H=p.P,A=p.P,bal=L,pB=0,bB=0,pR=p.P*(p.dp+p.close),bR=pR,pC=pR,cpi=1,rent=p.rent0,infIdx=1,refis=0,lastRefi=-999,mE=0;
-  const liq=(V,b)=>taxable?V-p.ltcg*Math.max(0,V-b):V;
+  const ltcgE=p.ltcg+p.niit+p.stRate,muE=p.mu+p.niit+p.stRate,share=p.investShare,mShock=opt.maintShock;
+  let H=p.P,A=p.P,bal=L,pB=0,bB=0,pR=p.P*(p.dp+p.close)+p.moveIn,bR=pR,imp=0,pC=pR,cpi=1,rent=p.rent0,infIdx=1,refis=0,lastRefi=-999,mE=0;
+  const liq=(V,b)=>taxable?V-ltcgE*Math.max(0,V-b):V;
   const shock=opt.saleShock||1;
-  const homeNet=(H,bal,yrs)=>{const sale=H*(yrs>0?shock:1)*(1-p.sell);const gain=sale-p.P*(1+p.close)-(yrs>=2?excl:0);return sale-bal-(tx?p.ltcg*Math.max(0,gain):0)};
+  const homeNet=(H,bal,yrs)=>{const sale=H*(yrs>0?shock:1)*(1-p.sell);const gain=sale-p.P*(1+p.close)-imp-(yrs>=2?excl:0);return sale-bal-(tx?ltcgE*Math.max(0,gain):0)};
   const o={buy:[],inv:[],cash:[],cpi:[],lqB:[],lqR:[],lqC:[],budget:[],refiAt:[],rateAt:[]};
   if(detail){o.eq=[];o.pB=[];o.H=[];o.bal=[];o.flow=[];o.unrec=[]}
   let budgetY=0;
@@ -65,7 +66,9 @@ function simulate(p,path,opt){
     if(M){ghY=1;grY=1;infY=1;for(let m=0;m<12;m++){ghY*=1+path.gh[y*12+m];grY*=1+path.gr[y*12+m];infY*=1+path.inf[y*12+m]}ghY--;grY--;infY--}
     else{ghY=path.gh[y];grY=path.gr[y];infY=path.inf[y]}
     if(y>0){A=p.ptaxCap>0?Math.min(H,A*(1+Math.min(ghPrev,p.ptaxCap))):H}
-    const Hy=H,insM=p.ins*infIdx/12,hoa=p.hoa*infIdx,ptY=p.ptax*A,rentM=rent+p.rins*infIdx/12;
+    const Hy=H,insM=(p.ins+p.floodIns)*infIdx/12,hoa=p.hoa*infIdx,ptY=p.ptax*A;
+    const maintY=p.maint*Hy*(mShock?mShock[y]:1),utilM=p.utilDiff*infIdx;
+    const rentM=rent+p.rins*infIdx/12+p.rMove*(p.rMoveCost*infIdx+p.broker*rent)/12;
     let intY=0,prinY=0,pmiY=0,benefit=0,refiY=0,ownSum=0;const eqStart=H-bal;let Rsum=0;
     for(let m=0;m<12;m++){
       // monthly factors
@@ -80,28 +83,28 @@ function simulate(p,path,opt){
       const balPrev=bal;let pay=0;
       if(bal>0.005){const it=bal*i;const pr=Math.min(Mp-it,bal);pay=it+pr;bal-=pr;intY+=it;prinY+=pr}
       const pmi=(p.dp<0.2&&balPrev>0.78*p.P)?p.pmi*L/12:0;pmiY+=pmi;
-      let own=pay+ptY/12+p.maint*Hy/12+insM+hoa+pmi+refiCost;
+      let own=pay+ptY/12+maintY/12+insM+hoa+utilM+pmi+refiCost;
       if(m===11&&tx){const std=std0*infIdx,cap=saltCapFor(y,p.income*infIdx);
         const dB=Math.max(std,Math.min(cap,p.stTax+ptY)+intY*f750+p.oth),dR=Math.max(std,Math.min(cap,p.stTax)+p.oth);
-        benefit=p.mu*(dB-dR);own-=benefit}
+        benefit=p.mu*(dB-dR)+(p.stDed?p.stRate*(intY*f750+ptY):0);own-=benefit}
       ownSum+=own;
       // portfolio returns
       const g=ws*(fS-1)+wb*(fB-1)+wc*(fC-1);
       const ret=lev*g-(lev-1)*((fC-1)+p.spread/12)-p.fee/12;Rsum+=ret;
       let taxR=0,inc=0;
-      if(taxable){inc=lev*(ws*p.dy/12+wb*(fB-1)+wc*(fC-1));taxR=lev*(ws*p.dy/12*p.ltcg+(wb*(fB-1)+wc*(fC-1))*p.mu)}
+      if(taxable){inc=lev*(ws*p.dy/12+wb*(fB-1)+wc*(fC-1));taxR=lev*(ws*p.dy/12*ltcgE+(wb*(fB-1)+wc*(fC-1))*muE)}
       const grow=(V,b)=>{const V0=V;V=V0*(1+ret)-V0*taxR;if(taxable)b+=V0*(inc-taxR);if(V<0)V=0;return [V,b]};
       [pB,bB]=grow(pB,bB);[pR,bR]=grow(pR,bR);
-      pC*=1+(fC-1)*(tx?1-p.mu:1);
+      pC*=1+(fC-1)*(tx?1-muE:1);
       H*=fH;cpi*=fI;mE++;
       const d=own-rentM;
-      if(d>0){pR+=d;bR+=d;pC+=d}else{pB-=d;bB-=d}
+      if(d>0){const x=d*share;pR+=x;bR+=x;pC+=x}else{const x=-d*share;pB+=x;bB+=x}
     }
-    budgetY=Math.max(ownSum/12,rentM);
+    budgetY=Math.max(ownSum/12,rentM);imp+=p.impShare*maintY;
     if(detail){
-      o.flow.push({interest:intY/12,principal:prinY/12,ptax:ptY/12,ins:insM,maint:p.maint*Hy/12,hoa,pmi:pmiY/12,refi:refiY/12,tax:-benefit/12,rent:rentM,own:ownSum/12,cpi});
+      o.flow.push({interest:intY/12,principal:prinY/12,ptax:ptY/12,ins:insM,maint:maintY/12,hoa,util:utilM,pmi:pmiY/12,refi:refiY/12,tax:-benefit/12,rent:rentM,own:ownSum/12,cpi});
       const opp=eqStart*Rsum;
-      o.unrec.push({own:intY+ptY+p.maint*Hy+insM*12+hoa*12+pmiY+refiY-benefit+opp,opp,rent:rentM*12,cpi});
+      o.unrec.push({own:intY+ptY+maintY+insM*12+hoa*12+utilM*12+pmiY+refiY-benefit+opp,opp,rent:rentM*12,cpi});
     }
     ghPrev=ghY;
     rent*=1+grY;infIdx*=1+infY;

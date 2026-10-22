@@ -51,6 +51,13 @@ const F=[
  ['own','maint','Maintenance (% of value / yr)',D0.maint,0.1,resHint('maint')],
  ['own','hoa','HOA ($ / month)',0,10,''],
  ['own','sell','Selling costs (% of price)',D0.sell,0.1,resHint('sell')],
+ ['other','utilDiff','Extra utilities as owner ($ / month)',100,10,tag+' bigger home, plus water/sewer/trash often included in rent'],
+ ['other','floodIns','Flood / earthquake insurance ($ / yr)',0,50,'separate from homeowners policies; check FEMA flood zone or a quote'],
+ ['other','moveIn','Buyer one-time move-in costs ($)',0,500,'furnishing, mansion or recording taxes; the renter invests this instead'],
+ ['other','impShare','Share of upkeep that is improvements (%)',50,5,tag+' improvements add to the home\'s tax basis'],
+ ['other','rMove','Renter moves per year (%)',D0.rMove,0.5,resHint('rMove')],
+ ['other','rMoveCost','Cost per renter move ($)',2500,100,tag+' movers, applications, overlap rent'],
+ ['other','broker','Broker fee per move (months of rent)',0,0.25,'some cities charge tenants about one month'],
  ['rent','rent0','Rent ($ / month)',V.zori,10,`Zillow typical U.S. rent · ${sl('zillow')} · use a rental comparable to the home`],
  ['rent','rins',"Renter's insurance ($ / yr)",0,10,''],
  ['mkt','gh','Home appreciation (% / yr)',PRESETS.long.gh,0.1,`Case-Shiller National ${V.csYoY>=0?'+':''}${V.csYoY}% YoY ${sl('cs')}`],
@@ -74,7 +81,10 @@ const F=[
  ['tax','mu','Marginal federal rate (%)',24,1,`2026 brackets ${sl('irs26')}`],
  ['tax','stTax','State & local income tax ($ / yr)',8000,500,`counts toward SALT cap $40,400 ${sl('salt')}`],
  ['tax','oth','Other itemized deductions ($ / yr)',0,500,'charity etc.'],
+ ['tax','stRate','State tax on investment income &amp; gains (%)',0,0.5,'add your state rate, e.g. 5 in Massachusetts'],
+ ['tax','stDed','State deducts mortgage interest &amp; property tax',0,null,'some states (e.g. California) allow it, Massachusetts does not','sel',[[0,'No'],[1,'Yes']]],
  ['tax','ltcg','Capital-gains rate (%)',15,1,`home gain exclusion ${sl('irs121')} · interest limit ${sl('irs936')}`],
+ ['life','investShare','Share of monthly savings actually invested (%)',100,5,'100 = every dollar of difference is invested; lower if some would be spent'],
  ['life','hz','Chance of moving each year (%)',D0.hz,0.5,resHint('hazard')],
  ['life','idio','Own-home price risk (% s.d.)',D0.idio,0.5,resHint('idio')],
  ['life','idioMode','Own-home risk model','sale',null,'One-time shock at sale (Giacoletti 2021: idiosyncratic risk does not grow with holding period) or compounding each year (older estimates)','sel',[['sale','One-time at sale'],['yearly','Compounds yearly']]],
@@ -111,6 +121,9 @@ function parseP(raw){
     gh:pc('gh'),gr:pc('gr'),inf:pc('inf'),rs:pc('rs'),rb:pc('rb'),rc:pc('rc'),ws,wb,
     acct:raw.acct||'taxable',dy:pc('dy'),fee:pc('fee'),lev:Math.max(0,n('lev')),spread:pc('spread'),
     taxOn:raw.taxOn==='1'||raw.taxOn===1,filing:raw.filing||'single',income:Math.max(0,n('income')),debt:Math.max(0,n('debt')),muMode:raw.muMode||'auto',mu:(raw.muMode||'auto')==='auto'?marginalRate(Math.max(0,n('income')),raw.filing||'single'):pc('mu'),stTax:n('stTax'),oth:n('oth'),ltcg:pc('ltcg'),
+    utilDiff:n('utilDiff'),floodIns:Math.max(0,n('floodIns')),moveIn:Math.max(0,n('moveIn')),impShare:Math.min(1,Math.max(0,pc('impShare'))),rMove:Math.max(0,pc('rMove')),rMoveCost:Math.max(0,n('rMoveCost')),broker:Math.max(0,n('broker')),
+    investShare:Math.min(1,Math.max(0,pc('investShare'))),stRate:Math.max(0,pc('stRate')),stDed:raw.stDed==='1'||raw.stDed===1,
+    niit:(raw.taxOn==='1'||raw.taxOn===1)&&Math.max(0,n('income'))>((raw.filing||'single')==='mfj'?250000:200000)?0.038:0,
     hz:Math.min(0.99,Math.max(0,pc('hz'))),idio:Math.max(0,pc('idio')),idioMode:raw.idioMode||'sale',gamma:Math.max(0,n('gamma')),
     N:Math.max(1,Math.min(30,parseInt(raw.N)||10)),metro:raw.metro||'us'};
 }
@@ -173,7 +186,7 @@ function summary(){
   const p=P,o=BASE,N=p.N,c=o.cpi[N];
   const b=adj(o.buy[N],c),iv=adj(o.inv[N],c),ca=adj(o.cash[N],c),d=b-iv;
   const L=p.P*(1-p.dp),M=pmt(L,p.rate/12,p.term*12);
-  const own1=M+(p.ptax*p.P+p.maint*p.P+p.ins)/12+p.hoa+(p.dp<0.2?p.pmi*L/12:0);
+  const own1=M+(p.ptax*p.P+p.maint*p.P+p.ins+p.floodIns)/12+p.hoa+p.utilDiff+(p.dp<0.2?p.pmi*L/12:0);
   const beY=breakevenYear(o);
   const beRent=bisect(r=>advAt(p,{rent0:r}),10,Math.max(500,p.rent0*6));
   const beG=bisect(g=>advAt(p,{gh:g}),-0.15,0.25);
@@ -211,7 +224,7 @@ function summary(){
   if(p.income){const fe=own1/(p.income/12),be=(own1+p.debt)/(p.income/12);
     if(fe>0.28||be>0.36)why.push(`Affordability: housing would take ${pct(fe,0)} of gross income${p.debt?` (${pct(be,0)} with other debt)`:''}, above the common 28/36 guideline; most lenders cap total debt near 43% ${linkTo(AFF_URL)}.`)}
   if(o.refis>0)why.push(`The projection refinances ${o.refis} time${o.refis>1?'s':''} as rates move toward ${pct(p.rateLR,2)}.`);
-  const own0=own1,rent0=p.rent0;
+  const own0=own1,rent0=p.rent0+p.rins/12+p.rMove*(p.rMoveCost+p.broker*p.rent0)/12;
   why.push(own0>rent0?`In year 1 owning costs ${fmtFull(own0-rent0)}/mo more than renting, which the renter invests.`:`In year 1 owning costs ${fmtFull(rent0-own0)}/mo less than renting, which the buyer invests.`);
   document.getElementById('why').innerHTML=why.join(' ');
   const ptr=p.P/(p.rent0*12);const m=curMetro();
@@ -236,7 +249,7 @@ function renderProj(){
      shapes:be?[{type:'line',x0:be,x1:be,yref:'paper',y0:0,y1:1,line:{color:t.muted,dash:'dash',width:1}}]:[],
      annotations:be?[{x:be,yref:'paper',y:1,text:'break-even',showarrow:false,yanchor:'bottom',font:{size:11,color:t.muted}}]:[]});
   const yrs=o.flow.map((_,k)=>k+1),fl=o.flow;
-  const comp=[['interest','Interest',t.neg],['principal','Principal',t.buy],['ptax','Property tax',hexA(t.cash,.85)],['ins','Insurance',hexA(t.accent,.55)],['maint','Maintenance',hexA(t.muted,.75)],['hoa','HOA',hexA(t.accent,.3)],['pmi','PMI',hexA(t.neg,.45)],['refi','Refinance cost',hexA(t.ink,.35)],['tax','Tax savings',hexA(t.buy,.35)]];
+  const comp=[['interest','Interest',t.neg],['principal','Principal',t.buy],['ptax','Property tax',hexA(t.cash,.85)],['ins','Insurance',hexA(t.accent,.55)],['maint','Maintenance',hexA(t.muted,.75)],['hoa','HOA',hexA(t.accent,.3)],['util','Extra utilities',hexA(t.cash,.45)],['pmi','PMI',hexA(t.neg,.45)],['refi','Refinance cost',hexA(t.ink,.35)],['tax','Tax savings',hexA(t.buy,.35)]];
   const fdata=comp.filter(([k])=>fl.some(f=>Math.abs(f[k])>0.5)).map(([k,n,c])=>({x:yrs,y:fl.map(f=>adj(f[k],f.cpi)),name:n,type:'bar',marker:{color:c},hovertemplate:'%{y:$,.0f}'}));
   fdata.push({x:yrs,y:fl.map(f=>adj(f.rent,f.cpi)),name:'Rent',mode:'lines+markers',line:{color:t.inv,width:2.5},marker:{size:5},hovertemplate:'%{y:$,.0f}'});
   plot('p-flow',fdata,{barmode:'relative',xaxis:X('Year'),yaxis:Yd('Per month, '+basisLabel())});
@@ -359,6 +372,8 @@ function renderHist(){
 /* ===================== Monte Carlo ===================== */
 function rng(seed){let s=seed>>>0;return()=>{s+=0x6D2B79F5;let t=s;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
 function gauss(r){let u=0;while(u===0)u=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*r())}
+function gammaS(k,r){if(k<1){return gammaS(k+1,r)*Math.pow(r(),1/k)}const d=k-1/3,c=1/Math.sqrt(9*d);for(;;){let x,v;do{x=gauss(r);v=1+c*x}while(v<=0);v=v*v*v;const u=r();if(u<1-0.0331*x**4||Math.log(u)<0.5*x*x+d*(1-v+Math.log(v)))return d*v}}
+const MAINT_CV=1.2;
 function runMC(nOverride){
   const p=P,n=nOverride||Math.max(200,Math.min(10000,parseInt(document.getElementById('mc-n').value)||1500)),bl=Math.max(1,parseInt(document.getElementById('mc-b').value)||5);
   const from=parseInt(document.getElementById('mc-w').value),rc=document.getElementById('mc-rc').checked,iv=p.idio;
@@ -371,7 +386,8 @@ function runMC(nOverride){
     const path={};keys.forEach(k=>path[k]=idx.map(j=>Math.exp(LOG[k][j]+SH[k])-1));
     let saleShock=1;if(iv>0){if(p.idioMode==='yearly')path.gh=path.gh.map(g=>(1+g)*Math.exp(iv*gauss(r)-iv*iv/2)-1);else saleShock=Math.exp(iv*gauss(r)-iv*iv/2)}
     let m=p.rate;path.mkt=idx.map(j=>{const gi=i0+j;let dm=DM_OBS[gi];if(dm==null){dm=DM_FIT.a+DM_FIT.b*(INF[gi]-(gi>0?INF[gi-1]:INF[gi]))+DM_FIT.s*gauss(r)}m=Math.min(0.2,Math.max(0.02,m+dm/100));return m});
-    const o=simulate(p,path,{N,saleShock});
+    const kk=1/(MAINT_CV*MAINT_CV),maintShock=idx.map(()=>gammaS(kk,r)/kk);
+    const o=simulate(p,path,{N,saleShock,maintShock});
     res.buy.push(o.buy.map((v,k)=>adj(v,o.cpi[k])));res.inv.push(o.inv.map((v,k)=>adj(v,o.cpi[k])));res.cash.push(o.cash.map((v,k)=>adj(v,o.cpi[k])));
     const h=Math.min(p.N,N);let lh=0,lp=0;for(let y=0;y<h;y++){lh+=Math.log(1+path.gh[y]);lp+=Math.log(Math.max(0.01,1+p.ws*path.rs[y]+p.wb*path.rb[y]+(1-p.ws-p.wb)*path.rc[y]-p.fee))}
     res.gH.push((Math.exp(lh/h)-1)*100);res.gP.push((Math.exp(lp/h)-1)*100);
@@ -389,7 +405,7 @@ function ce(ws,g,floor){const w=ws.map(v=>Math.max(floor,v));if(Math.abs(g-1)<1e
 function renderMC(){
   if(!MC||MC.real!==REAL||MC.quick||MC.key!==JSON.stringify(getRaw()))runMC();
   const t=theme(),{res,N,n}=MC,h=P.N,x=[...Array(h+1)].map((_,k)=>k);
-  document.getElementById('mc-note').textContent=`Own-home price risk ${pct(P.idio)} (${P.idioMode==='sale'?'one-time at sale':'compounding yearly'}) and moving risk ${pct(P.hz)}/yr are set under Life & risk preferences. Mortgage-rate changes are sampled from the same years (observed 1973–2025; earlier years modeled from inflation changes, slope ${DM_FIT.b.toFixed(2)}, residual s.d. ${DM_FIT.s.toFixed(2)} pts).`;
+  document.getElementById('mc-note').textContent=`Own-home price risk ${pct(P.idio)} (${P.idioMode==='sale'?'one-time at sale':'compounding yearly'}) and moving risk ${pct(P.hz)}/yr are set under Life & risk preferences. Upkeep varies year to year around its average (coefficient of variation ${MAINT_CV}), so big repairs arrive in lumps. Mortgage-rate changes are sampled from the same years (observed 1973–2025; earlier years modeled from inflation changes, slope ${DM_FIT.b.toFixed(2)}, residual s.d. ${DM_FIT.s.toFixed(2)} pts).`;
   const band=(arr,name,col)=>{const cut=f=>x.map(y=>q(arr.map(a=>a[y]),f));const p5=cut(.05),p25=cut(.25),p50=cut(.5),p75=cut(.75),p95=cut(.95);
     return [{x,y:p95,mode:'lines',line:{width:0},showlegend:false,hoverinfo:'skip',legendgroup:name},
      {x,y:p5,mode:'lines',line:{width:0},fill:'tonexty',fillcolor:hexA(col,.12),showlegend:false,legendgroup:name,hoverinfo:'skip'},
@@ -516,6 +532,10 @@ function buildMethod(){
   <h3>Buyer's net worth</h3>
   <p>\\[ W^{buy}_t = H_t(1-s) - B_t - \\kappa\\max\\big(0,\\ H_t(1-s) - P(1+c) - E\\big) + W^{liq}_{buy,t} \\]
   with the Section 121 exclusion \\(E\\) ($250,000 single, $500,000 joint) after two years. Real values divide by cumulative CPI.</p>
+  <h3>Other costs</h3>
+  <p>The owner also pays extra utilities \\(u\\) and any flood or earthquake premium, both growing with inflation. Each year a share \\(\\phi\\) of upkeep is treated as capital improvements and added to the home's tax basis. The renter pays expected moving costs \\(\\eta\\,(c_{move} + b\\,R_y)/12\\) per month, where \\(\\eta\\) is the yearly moving rate and \\(b\\) the broker fee in months of rent. The buyer's one-time move-in costs are invested by the renter instead. Only a share \\(\\sigma\\) of each month's cost difference is invested; the rest is spent. In the Monte Carlo, yearly upkeep is drawn from a gamma distribution with mean \\(m H_y\\) and coefficient of variation ${MAINT_CV}.</p>
+  <h3>NIIT and state tax</h3>
+  <p>When income exceeds $200,000 (single) or $250,000 (joint), the 3.8% net investment income tax is added to rates on dividends, interest, portfolio gains and home gains above the exclusion ${linkTo('https://www.irs.gov/taxtopics/tc559','IRS Topic 559')}. Your state rate is added to the same items. If your state allows it, the buyer also saves \\(t_s(I^{ded}_y + \\tau_pA_y)\\) in state tax.</p>
   <h3>Moving risk</h3>
   <p>With yearly moving probability \\(h\\), the holding period \\(T\\) is geometric and capped at the horizon \\(N\\): \\(\\Pr(T=t)=h(1-h)^{t-1}\\) for \\(t<N\\) and \\(\\Pr(T=N)=(1-h)^{N-1}\\). The expected gap is \\(\\sum_t \\Pr(T=t)\\,(W^{buy}_t - W^{inv}_t)\\).</p>
   <h3>Monte Carlo</h3>
