@@ -23,6 +23,21 @@ const { chromium } = require(process.env.PLAYWRIGHT_PATH || 'playwright');
     const bad = await page.evaluate(t => [...document.querySelectorAll(`#tab-${t} .plot`)].filter(el => !el.querySelector('svg.main-svg') || el.dataset.err).map(el => el.id), tab);
     if (bad.length) failed.push(`${tab}: ${bad.join(', ')}`);
   }
+  // formulas: every \( \) and \[ \] block must render with MathJax, with no TeX errors
+  if (!process.env.STUB_PLOTLY) {
+    await page.click('[data-tab=method]');
+    await page.waitForFunction(() => window.MathJax && MathJax.startup && MathJax.startup.promise, null, { timeout: 30000 });
+    await page.evaluate(() => MathJax.typesetPromise([document.getElementById('tab-method'), document.getElementById('tab-mc')]));
+    const tex = await page.evaluate(() => {
+      const scope = [document.getElementById('tab-method'), document.getElementById('tab-mc')];
+      const errs = scope.flatMap(el => [...el.querySelectorAll('mjx-merror, [data-mjx-error]')].map(e => e.getAttribute('data-mjx-error') || e.textContent));
+      const raw = scope.map(el => el.innerText).join(' ').match(/\\[\(\[]/g) || [];
+      return { errs, unrendered: raw.length, rendered: scope.reduce((n, el) => n + el.querySelectorAll('mjx-container').length, 0) };
+    });
+    if (tex.errs.length) failed.push('TeX errors: ' + tex.errs.slice(0, 5).join(' | '));
+    if (tex.unrendered) failed.push(`${tex.unrendered} formulas left unrendered`);
+    console.log(`formulas rendered: ${tex.rendered}`);
+  }
   await browser.close();
   if (errors.length || failed.length) { console.log('FAIL'); errors.forEach(e => console.log('  ' + e)); failed.forEach(f => console.log('  chart not drawn — ' + f)); process.exit(1); }
   console.log('smoke test passed: all tabs rendered');

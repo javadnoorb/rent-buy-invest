@@ -261,6 +261,12 @@ aside summary{gap:6px}
 .f .hint.open{display:block;-webkit-line-clamp:unset}
 .f[hidden]{display:none!important}
 @media (max-width:700px){.tabs{-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent)}}
+dl.sym{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:4px 12px;margin:2px 0 6px;font-size:13px;max-width:80ch;padding:8px 12px;background:var(--sunk);border-radius:8px}
+dl.sym dt{text-align:right;color:var(--ink)}
+dl.sym dd{margin:0;color:var(--muted)}
+@media (max-width:520px){dl.sym{grid-template-columns:minmax(0,1fr)}dl.sym dt{text-align:left}dl.sym dd{margin-bottom:4px}}
+.method mjx-container[display="true"]{overflow-x:auto;overflow-y:hidden;max-width:100%}
+table.notation td:first-child{white-space:nowrap}
 </style>
 <div class="wrap">
 <header>
@@ -424,7 +430,7 @@ aside summary{gap:6px}
       <div class="takeaway" id="tk-fan"></div>
       <details class="how"><summary>How to read this</summary><dl class="read"><dt>What you see</dt><dd>x: years. y: net worth. Lines are the median simulated future; the dark band holds the middle 50%, the light band the middle 90%.</dd><dt>What to look for</dt><dd>How much the green and blue bands overlap. Heavy overlap means the outcome is uncertain. The buying band is usually wider because the house is bought with borrowed money and is a single, undiversified asset.</dd><dt>Keep in mind</dt><dd>Futures are resampled from history and, when re-centering is on, shifted to match your growth assumptions. The tails reflect real historical extremes.</dd></dl></details></div>
     <div class="card"><h2>Risk-adjusted comparison</h2><p class="cap" id="risk-cap"></p><div class="tablewrap" style="max-height:none"><table class="kv" id="riskT"></table></div>
-      <details class="how"><summary>How to read this</summary><p>The certainty equivalent is the sure amount you would accept instead of the gamble, for a person with constant relative risk aversion \(\gamma\): \(CE = \big(\mathbb{E}[W^{1-\gamma}]\big)^{1/(1-\gamma)}\). With \(\gamma = 0\) it equals the mean; higher \(\gamma\) weights bad outcomes more. Expected shortfall is the average of the worst 5% of outcomes. The liquidity row is the share of paths where liquid assets fell below 3 months of costs at any year-end in the first 5 years.</p></details></div>
+      <details class="how"><summary>How to read this</summary><p>The certainty equivalent is the sure amount you would accept instead of the gamble, computed as \(CE = \big(\mathbb{E}[W^{1-\gamma}]\big)^{1/(1-\gamma)}\), where \(W\) is net worth at your horizon in each simulated future, \(\mathbb{E}\) averages across futures, and \(\gamma\) is your risk aversion (set under Life &amp; risk preferences). With \(\gamma = 0\) it equals the average; higher \(\gamma\) weights bad outcomes more. Expected shortfall is the average of the worst 5% of outcomes. The liquidity row is the share of paths where liquid assets fell below 3 months of costs at any year-end in the first 5 years.</p></details></div>
     <div class="two">
       <div class="card"><h2>Probability buying wins</h2><p class="cap">Share of paths where buying beats each alternative, at each horizon, and with random moving.</p><div class="plot" id="p-prob"></div>
       <div class="takeaway" id="tk-prob"></div>
@@ -682,7 +688,8 @@ const RATE_AR=(()=>{const X=[],Y=[],idx=[];YEARS.forEach((y,i)=>{if(DM_OBS[i]!=n
     for(let r=0;r<k;r++)if(r!==c){const f=A[r][c]/A[c][c];for(let q=c;q<=k;q++)A[r][q]-=f*A[c][q]}}
   const bta=A.map((r,a)=>r[k]/r[a]);const res=Array(YEARS.length).fill(null);let ss=0;
   X.forEach((r,n)=>{const e=Y[n]-(bta[0]+bta[1]*r[1]+bta[2]*r[2]);res[idx[n]]=e;ss+=e*e});
-  return {alpha:bta[0],kappa:-bta[1],gamma:bta[2],sigma:Math.sqrt(ss/(X.length-k)),mean:-bta[0]/bta[1],res,n:X.length}})();
+  const R={alpha:bta[0],kappa:-bta[1],gamma:bta[2],sigma:Math.sqrt(ss/(X.length-k)),mean:-bta[0]/bta[1],res,n:X.length};
+  R.theta=R.kappa.toFixed(3);R.beta=R.gamma.toFixed(3);R.sd=R.sigma.toFixed(2);return R})();
 const SER={gh:HOME,gr:RENTG,rs:STK,rb:BOND,rc:BILL,inf:INF};
 function geo(a,from,to){const i0=from-Y0,i1=(to||2025)-Y0;let lp=0,n=0;for(let i=i0;i<=i1;i++){if(a[i]==null)continue;lp+=Math.log(1+a[i]/100);n++}return (Math.exp(lp/n)-1)*100}
 const r2=x=>Math.round(x*100)/100;
@@ -1559,62 +1566,145 @@ function renderData(){
 function buildMethod(){
   document.getElementById('methodCard').innerHTML=`
   <h2>How the model works</h2>
-  <p>The model runs month by month. Each year \\(y\\) has its own growth rates; with annual data, monthly factors are \\((1+g_y)^{1/12}\\), and with monthly data the actual monthly changes are used. Both households spend the same amount each month: the larger of the owner's cost \\(C^{own}_t\\) and the renter's cost \\(C^{rent}_t\\). The cheaper side invests the difference.</p>
-  <h3>Mortgage and refinancing</h3>
-  <p>Loan \\(L = P(1-d)\\), monthly rate \\(i=r/12\\), \\(n=12T\\) payments:
-  \\[ M = \\frac{L\\,i}{1-(1+i)^{-n}}, \\qquad I_t = B_{t-1}\\,i, \\qquad B_t = B_{t-1} - (M - I_t). \\]
-  When the market rate \\(m_t\\) satisfies \\(r - m_t \\ge \\delta\\) and at least 12 months have passed since the last refinance, the loan is refinanced at \\(m_t\\) over the remaining term, paying \\(c_{refi} B_t\\) in cash. In the projection, \\(m_t\\) moves linearly from today's rate to your expected rate; in the backtest it is the actual Freddie Mac rate; in the Monte Carlo it follows sampled historical year-to-year changes.</p>
-  <h3>Owner's monthly cost</h3>
-  <p>\\[ C^{own}_t = M + \\frac{\\tau_p A_y + m H_y + \\text{Ins}_y}{12} + \\text{HOA}_y + \\text{PMI}_t + \\text{Refi}_t - \\mathbb{1}_{\\text{Dec}}\\,S_y \\]
-  \\(H_y\\) is the home value at the start of year \\(y\\) and \\(A_y\\) the assessed value (equal to \\(H_y\\) unless an assessment cap applies, then \\(A_{y}=\\min(H_y, A_{y-1}(1+\\min(g_{y-1},\\kappa_A)))\\)). PMI of \\(p_{mi}L/12\\) applies while \\(B_t > 0.78P\\) with under 20% down. Rent resets each January: \\(R_y = R_0\\prod_{k<y}(1+g^{rent}_k)\\).</p>
-  <h3>Tax savings</h3>
-  <p>\\[ S_y = \\mu\\Big[\\max\\big(D^{std}_y,\\ \\min(\\text{SALT}_y,\\ T^{state}+\\tau_pA_y) + I^{ded}_y + O\\big) - \\max\\big(D^{std}_y,\\ \\min(\\text{SALT}_y,T^{state}) + O\\big)\\Big] \\]
-  Deductible interest is capped to the share of the original loan under $750,000. The 2026 standard deduction ($16,100 single, $32,200 joint) is indexed to inflation. The SALT cap is $40,400 in 2026, rises 1% a year through 2029, and returns to $10,000 in 2030. Above $505,000 of income (also indexed 1% a year) the cap shrinks by 30% of the excess, to a $10,000 floor; income grows with inflation. In automatic mode the marginal rate \\(\\mu\\) is the 2026 bracket for income minus the standard deduction.</p>
-  <h3>Affordability</h3>
-  <p>Front-end ratio = month-1 owning cost / monthly gross income; back-end adds other debt payments. The common guideline is at most 28% and 36%, with most lenders capping total debt near 43% (${linkTo(AFF_URL,'Bankrate')}).</p>
-  <h3>Portfolios, taxes and leverage</h3>
-  <p>Monthly gross return \\(g_t = w_s r^{stk}_t + w_b r^{bond}_t + w_c r^{bill}_t\\). With leverage \\(\\lambda\\) and borrowing spread \\(s_b\\):
-  \\[ \\rho_t = \\lambda g_t - (\\lambda-1)(r^{bill}_t + s_b/12) - f/12. \\]
-  In a taxable account, dividends (yield \\(q\\), taxed at the capital-gains rate \\(\\kappa\\)) and bond and bill income (taxed at \\(\\mu\\)) are taxed as earned and added to cost basis; price gains are taxed at sale: \\(W^{liq} = V - \\kappa\\max(0, V - \\text{basis})\\). A sheltered account pays no tax. The cash path earns bill yields after ordinary tax. The renter starts with the down payment plus closing costs.</p>
-  <h3>Buyer's net worth</h3>
-  <p>\\[ W^{buy}_t = H_t(1-s) - B_t - \\kappa\\max\\big(0,\\ H_t(1-s) - P(1+c) - E\\big) + W^{liq}_{buy,t} \\]
-  with the Section 121 exclusion \\(E\\) ($250,000 single, $500,000 joint) after two years. Real values divide by cumulative CPI.</p>
-  <h3>Other costs</h3>
-  <p>The owner also pays extra utilities \\(u\\) and any flood or earthquake premium, both growing with inflation. Each year a share \\(\\phi\\) of upkeep is treated as capital improvements and added to the home's tax basis. The renter pays expected moving costs \\(\\eta\\,(c_{move} + b\\,R_y)/12\\) per month, where \\(\\eta\\) is the yearly moving rate and \\(b\\) the broker fee in months of rent. The buyer's one-time move-in costs are invested by the renter instead. Only a share \\(\\sigma\\) of each month's cost difference is invested; the rest is spent. In the Monte Carlo, yearly upkeep is drawn from a gamma distribution with mean \\(m H_y\\) and coefficient of variation ${MAINT_CV}.</p>
-  <h3>NIIT and state tax</h3>
-  <p>When income exceeds $200,000 (single) or $250,000 (joint), the 3.8% net investment income tax is added to rates on dividends, interest, portfolio gains and home gains above the exclusion ${linkTo('https://www.irs.gov/taxtopics/tc559','IRS Topic 559')}. Your state rate is added to the same items. If your state allows it, the buyer also saves \\(t_s(I^{ded}_y + \\tau_pA_y)\\) in state tax.</p>
+  <p>The model runs month by month for each of the three households (and the optional fourth). Both main households spend the same amount each month: the larger of the owner's cost and the renter's cost. Whichever is cheaper that month invests the difference. Every symbol is defined under the equation where it first appears; the full list is in <a href="#notation" class="src">Notation</a> at the end.</p>
+
+  <h3>Time and growth</h3>
+  <p>Months are indexed by \\(t = 1, 2, \\dots\\) and years by \\(y = 0, 1, \\dots, N-1\\). Within year \\(y\\), a yearly growth rate \\(g_y\\) becomes a monthly factor \\((1+g_y)^{1/12}\\); with monthly historical data the actual monthly changes are used instead.</p>
+  <dl class="sym"><dt>\\(N\\)</dt><dd>horizon in years (the slider)</dd><dt>\\(g_y\\)</dt><dd>growth rate of a series (home price, rent, stocks, inflation…) in year \\(y\\), as a decimal</dd></dl>
+
+  <h3>Mortgage</h3>
+  \\[ L = P(1-d), \\qquad i = \\frac{r}{12}, \\qquad M = \\frac{L\\,i}{1-(1+i)^{-n}}, \\qquad I_t = B_{t-1}\\,i, \\qquad B_t = B_{t-1} - (M - I_t),\\ \\ B_0 = L \\]
+  <dl class="sym"><dt>\\(P\\)</dt><dd>purchase price</dd><dt>\\(d\\)</dt><dd>down payment as a share of the price</dd><dt>\\(L\\)</dt><dd>loan amount</dd><dt>\\(r\\)</dt><dd>annual note rate (after any points)</dd><dt>\\(i\\)</dt><dd>monthly rate</dd><dt>\\(n\\)</dt><dd>number of monthly payments (12 × loan term in years)</dd><dt>\\(M\\)</dt><dd>monthly principal-and-interest payment</dd><dt>\\(I_t\\)</dt><dd>interest paid in month \\(t\\)</dd><dt>\\(B_t\\)</dt><dd>loan balance after month \\(t\\)</dd></dl>
+
+  <h3>Refinancing</h3>
+  <p>If the market rate falls far enough below the loan rate, and at least 12 months have passed since the last refinance, the loan is refinanced over its remaining months:</p>
+  \\[ r - m_t \\ge \\Delta_R \\;\\Rightarrow\\; r \\leftarrow m_t,\\quad M \\leftarrow \\frac{B_t\\,(m_t/12)}{1-(1+m_t/12)^{-(n-t)}},\\quad \\text{cost} = c_R\\,B_t \\]
+  <dl class="sym"><dt>\\(m_t\\)</dt><dd>market 30-year fixed rate in month \\(t\\): moves linearly from today's rate to your expected later rate \\(\\bar m\\) in the projection, is the actual Freddie Mac rate in the backtest, and is simulated in the Monte Carlo (below)</dd><dt>\\(\\Delta_R\\)</dt><dd>rate drop that triggers a refinance</dd><dt>\\(c_R\\)</dt><dd>refinance cost as a share of the balance, paid in cash</dd></dl>
+
   <h3>Loan types and points</h3>
-  <p><em>FHA:</em> the 1.75% upfront premium is added to the loan; the annual premium (0.50–0.75% by loan size and LTV, 0.15–0.65% for 15-year loans) is charged monthly on the balance for 11 years if the down payment is at least 10%, otherwise for the whole term; minimum down payment 3.5% ${RES.fha&&RES.fha.u?linkTo(RES.fha.u,'HUD'):''}. <em>ARM:</em> the starting rate holds for 5 or 7 years, then resets every 6 months to index + margin, rounded to 1/8 point, within caps (2/1/5 for 5-year, 5/1/5 for 7-year) and never below the margin. The index is 30-day SOFR in practice; the model uses the T-bill rate in each scenario. <em>Points:</em> each point costs 1% of the loan up front, lowers the rate by your chosen amount, and is deducted in the purchase year if you itemize; the renter invests the same cash. Refinancing an ARM switches it to a fixed rate. A planned move to a new home uses a conventional fixed loan.</p>
+  \\[ \\text{FHA: } L = P(1-d)(1+u_F),\\qquad \\text{MIP}_t = \\frac{\\pi_F\\,B_{t-1}}{12}\\ \\text{ for } t \\le n_F \\]
+  \\[ \\text{ARM reset } k:\\quad r_k = \\min\\!\\Big(r_0 + c_L,\\ \\max\\!\\big(\\chi,\\ \\min(r_{k-1} + c_k,\\ \\max(r_{k-1} - c_k,\\ \\lfloor x + \\chi \\rceil_{1/8}))\\big)\\Big) \\]
+  \\[ \\text{Points: } r = r_{quote} - p_n\\,\\Delta_p,\\qquad \\text{cash cost} = \\frac{p_n}{100}\\,P(1-d) \\]
+  <dl class="sym"><dt>\\(u_F\\)</dt><dd>FHA upfront premium, 1.75%, added to the loan</dd><dt>\\(\\pi_F\\)</dt><dd>FHA annual premium: 0.50–0.75% for 30-year loans (by loan size and LTV), 0.15–0.65% for 15-year</dd><dt>\\(n_F\\)</dt><dd>months the premium is charged: 132 (11 years) with at least 10% down, otherwise the whole term</dd><dt>\\(r_0\\)</dt><dd>ARM starting rate, fixed for 5 or 7 years; resets then happen every 6 months</dd><dt>\\(x\\)</dt><dd>ARM index (30-day SOFR in practice; the model uses the T-bill rate in each scenario)</dd><dt>\\(\\chi\\)</dt><dd>ARM margin over the index (also the rate floor)</dd><dt>\\(c_k\\)</dt><dd>cap on the change at reset \\(k\\): 2 points at the first reset of a 5/6 ARM (5 points for 7/6), then 1 point</dd><dt>\\(c_L\\)</dt><dd>lifetime cap over the starting rate, 5 points</dd><dt>\\(\\lfloor\\cdot\\rceil_{1/8}\\)</dt><dd>rounding to the nearest 1/8 point</dd><dt>\\(r_{quote}\\)</dt><dd>rate before points</dd><dt>\\(p_n\\)</dt><dd>number of discount points</dd><dt>\\(\\Delta_p\\)</dt><dd>rate reduction per point</dd></dl>
+  <p>Refinancing an ARM switches it to a fixed rate. A planned move to a new home uses a conventional fixed loan. Points are deducted in the purchase year if you itemize; the renter invests the same cash.</p>
+
+  <h3>Owner's monthly cost</h3>
+  \\[ C^{own}_t = M + \\text{MIP}_t + \\text{PMI}_t + \\frac{\\tau_p A_y + \\psi H_y \\epsilon_y + \\text{Ins}_y}{12} + \\text{HOA}_y + U_y + \\text{Refi}_t - R^{hh,net}_t - \\mathbb{1}_{\\text{Dec}}\\,S_y \\]
+  <dl class="sym"><dt>\\(H_y\\)</dt><dd>home market value at the start of year \\(y\\)</dd><dt>\\(A_y\\)</dt><dd>assessed value for property tax: equal to \\(H_y\\), or with an assessment cap \\(a\\), \\(A_y = \\min\\big(H_y,\\ A_{y-1}(1+\\min(g^{home}_{y-1}, a))\\big)\\)</dd><dt>\\(\\tau_p\\)</dt><dd>effective property tax rate</dd><dt>\\(\\psi\\)</dt><dd>maintenance as a share of home value per year</dd><dt>\\(\\epsilon_y\\)</dt><dd>upkeep shock: 1 in the projection; in the Monte Carlo a gamma draw with mean 1 and coefficient of variation ${MAINT_CV}, so repairs arrive in lumps</dd><dt>\\(\\text{Ins}_y\\)</dt><dd>homeowners plus flood/earthquake insurance, growing at inflation plus \\(g_{ins}\\) per year</dd><dt>\\(\\text{HOA}_y,\\ U_y\\)</dt><dd>HOA dues and extra owner utilities per month, growing with inflation</dd><dt>\\(\\text{PMI}_t\\)</dt><dd>\\(p_{mi}L/12\\) while \\(B_t > 0.78P\\) and \\(d < 20\\%\\) (conventional loans; \\(p_{mi}\\) is the PMI rate)</dd><dt>\\(\\text{Refi}_t\\)</dt><dd>refinance cost in the month it happens</dd><dt>\\(R^{hh,net}_t\\)</dt><dd>house-hacking rent after vacancy and its tax (below); 0 if none</dd><dt>\\(\\mathbb{1}_{\\text{Dec}}\\)</dt><dd>1 in December, else 0: the year's tax saving is credited once</dd><dt>\\(S_y\\)</dt><dd>tax saving from owning in year \\(y\\) (below)</dd></dl>
+
+  <h3>Renter's monthly cost</h3>
+  \\[ C^{rent}_t = R_y + \\frac{\\text{Ins}^{r}_y}{12} + \\frac{\\eta\\,(c_{mv} + b\\,R^{mkt}_y)}{12} \\]
+  \\[ R^{mkt}_{y+1} = R^{mkt}_y(1+g^{rent}_y), \\qquad R_{y+1} = (1-\\eta)\\,R_y\\,(1+g^{rent}_y-\\delta) + \\eta\\,R^{mkt}_{y+1},\\qquad R_0 = R^{mkt}_0 \\]
+  <dl class="sym"><dt>\\(R_y\\)</dt><dd>the renter's lease rent per month in year \\(y\\)</dd><dt>\\(R^{mkt}_y\\)</dt><dd>market rent for a comparable home (starts at your comparable rent)</dd><dt>\\(g^{rent}_y\\)</dt><dd>market rent growth</dd><dt>\\(\\delta\\)</dt><dd>how much slower renewals grow than market rent (0 = lease tracks market)</dd><dt>\\(\\eta\\)</dt><dd>share of renters who move each year; a move resets the lease to market rent</dd><dt>\\(c_{mv}\\)</dt><dd>cost per move (grows with inflation)</dd><dt>\\(b\\)</dt><dd>broker fee per move, in months of rent</dd><dt>\\(\\text{Ins}^{r}_y\\)</dt><dd>renter's insurance per year</dd></dl>
+
+  <h3>Equal budgets</h3>
+  \\[ \\Delta_t = C^{own}_t - C^{rent}_t,\\qquad \\text{renter invests } a\\max(\\Delta_t,0),\\qquad \\text{buyer invests } a\\max(-\\Delta_t,0) \\]
+  <dl class="sym"><dt>\\(\\Delta_t\\)</dt><dd>how much more owning costs than renting in month \\(t\\)</dd><dt>\\(a\\)</dt><dd>share of the monthly difference actually invested (1 = all of it; the rest is spent)</dd></dl>
+  <p>At the start the renter invests the cash the buyer spends: \\(C_0 = P(d + c) + \\text{move-in costs} + \\text{points cost}\\).</p>
+
+  <h3>Federal and state tax saving</h3>
+  \\[ S_y = \\mu_y\\Big[\\max\\big(D^{std}_y,\\ \\min(\\text{SALT}_y,\\ T^{st}+\\tau_pA_y) + I^{ded}_y + O\\big) - \\max\\big(D^{std}_y,\\ \\min(\\text{SALT}_y,\\ T^{st}) + O\\big)\\Big] + \\mathbb{1}_{st}\\,t_s\\,(I^{ded}_y + \\tau_pA_y) \\]
+  <dl class="sym"><dt>\\(\\mu_y\\)</dt><dd>federal marginal tax rate (from income and 2026 brackets in automatic mode)</dd><dt>\\(D^{std}_y\\)</dt><dd>standard deduction ($16,100 single, $32,200 joint in 2026), indexed to inflation</dd><dt>\\(\\text{SALT}_y\\)</dt><dd>state-and-local-tax deduction cap: $40,400 in 2026, +1% a year through 2029, $10,000 from 2030; above $505,000 of income it shrinks by 30% of the excess, to a $10,000 floor</dd><dt>\\(T^{st}\\)</dt><dd>your state and local income tax per year</dd><dt>\\(I^{ded}_y\\)</dt><dd>deductible mortgage interest: interest paid in year \\(y\\) times \\(\\min(1, \\$750{,}000/L)\\), plus points in the purchase year</dd><dt>\\(O\\)</dt><dd>other itemized deductions</dd><dt>\\(t_s\\)</dt><dd>your state tax rate on investment income</dd><dt>\\(\\mathbb{1}_{st}\\)</dt><dd>1 if your state lets you deduct mortgage interest and property tax, else 0</dd></dl>
+  <p>With house-hacking, only the share \\((1-z)\\) of interest and property tax enters the itemized deductions.</p>
+
+  <h3>Investment returns, taxes and leverage</h3>
+  \\[ g_t = w_s r^{stk}_t + w_b r^{bond}_t + w_c r^{bill}_t,\\qquad \\rho_t = \\lambda g_t - (\\lambda-1)\\Big(r^{bill}_t + \\frac{s_b}{12}\\Big) - \\frac{f}{12} \\]
+  \\[ W^{liq} = V - \\kappa_y \\max(0,\\ V - \\text{basis}) \\]
+  <dl class="sym"><dt>\\(w_s, w_b, w_c\\)</dt><dd>portfolio weights in stocks, bonds and T-bills (sum to 1)</dd><dt>\\(r^{stk}_t, r^{bond}_t, r^{bill}_t\\)</dt><dd>monthly total returns of stocks, bonds and T-bills</dd><dt>\\(g_t\\)</dt><dd>unlevered portfolio return in month \\(t\\)</dd><dt>\\(\\lambda\\)</dt><dd>leverage on the portfolio (1 = none)</dd><dt>\\(s_b\\)</dt><dd>borrowing spread over the T-bill rate, per year</dd><dt>\\(f\\)</dt><dd>fund fees per year</dd><dt>\\(\\rho_t\\)</dt><dd>net portfolio return in month \\(t\\), before tax</dd><dt>\\(V\\)</dt><dd>portfolio value</dd><dt>\\(\\text{basis}\\)</dt><dd>money put in plus income already taxed</dd><dt>\\(\\kappa_y\\)</dt><dd>tax rate on gains and dividends: capital-gains rate + NIIT \\(\\nu_y\\) + state rate \\(t_s\\)</dd><dt>\\(\\nu_y\\)</dt><dd>net investment income tax: 3.8% when income exceeds $200,000 single / $250,000 joint, else 0</dd><dt>\\(W^{liq}\\)</dt><dd>what the portfolio is worth after paying tax on a sale</dd></dl>
+  <p>In a taxable account, dividends (yield \\(q\\)) are taxed each year at \\(\\kappa_y\\) and bond and T-bill income at \\(\\mu_y + \\nu_y + t_s\\); taxed income is added to the basis. A sheltered account pays no tax. The T-bill-only path earns \\(r^{bill}_t\\) after ordinary-income tax.</p>
+
+  <h3>Buyer's net worth</h3>
+  \\[ W^{buy}_t = H_t(1-s)\\,\\xi - B_t - \\kappa_y \\max\\big(0,\\ H_t(1-s)\\,\\xi - P(1+c) - \\Phi - E\\big) + W^{liq}_{buy,t} \\]
+  <dl class="sym"><dt>\\(s\\)</dt><dd>selling costs as a share of the price (commissions, fees and seller transfer taxes)</dd><dt>\\(c\\)</dt><dd>buyer closing costs as a share of the price (including buyer transfer taxes)</dd><dt>\\(\\xi\\)</dt><dd>single-house price shock at sale: 1 in the projection; in the Monte Carlo \\(\\exp(\\sigma_h\\varepsilon - \\sigma_h^2/2)\\)</dd><dt>\\(\\Phi\\)</dt><dd>improvements added to the tax basis: a share \\(\\varphi\\) of each year's upkeep</dd><dt>\\(E\\)</dt><dd>home-sale exclusion: $250,000 single, $500,000 joint, if owned at least 2 years</dd><dt>\\(W^{liq}_{buy,t}\\)</dt><dd>the buyer's own portfolio after tax</dd></dl>
+  <p>The renter's net worth is \\(W^{inv}_t = W^{liq}_{rent,t}\\). Values in today's dollars divide by cumulative inflation \\(\\prod(1+\\pi_y)\\), where \\(\\pi_y\\) is CPI inflation.</p>
+
   <h3>Transfer taxes</h3>
-  <p>Each location carries its state, county and city deed, transfer and mortgage-recording taxes with their structure: a flat rate, a rate set by the bracket the whole price falls in ("mansion" taxes, San Francisco), or marginal brackets (Washington State). Buyer-paid taxes are added to closing costs and seller-paid taxes to selling costs, as a share of price computed at your price and loan amount. Split taxes are divided evenly. First-time-buyer reliefs are not applied.</p>
-  <h3>Local data</h3>
-  <p>Location presets use the Census ACS ${D0&&''}effective property tax (median tax ÷ median value for the metro area), and comparable rent = Zillow's typical rent × the ACS ratio of median rent for the chosen bedroom count to median rent for all units. Backtests and simulations use each metro's BLS rent index (annual average of published months) where it exists, and the regional large-metro index otherwise. Homeowners insurance grows at inflation plus an extra rate, defaulting to the 1998–2025 gap between the BLS homeowners-insurance price index and CPI.</p>
-  <h3>Lease rent vs. market rent</h3>
-  <p>Market rent \\(R^{mkt}_y\\) grows at the rent-growth rate. A sitting tenant renews at that growth minus a gap \\(\\delta\\), and with yearly moving rate \\(\\eta\\) the lease resets to market:
-  \\[ R_{y+1} = (1-\\eta)\\,R_y\\,(1+g^{rent}_y-\\delta) + \\eta\\,R^{mkt}_{y+1}. \\]
-  With \\(\\delta = 0\\) the lease always equals market rent. Comparable rent and house-hack rent are set from market rent.</p>
-  <h3>Income growth</h3>
-  <p>Income grows at \\(g_I\\): \\(I_y = I_0(1+g_I)^y\\). In automatic mode the marginal rate is the bracket for \\(I_y/\\text{CPI}_y\\) (brackets are inflation-indexed); the SALT phase-out and the NIIT threshold (not indexed) use \\(I_y\\). The yearly table shows housing cost as a share of income.</p>
-  <h3>Planned move</h3>
-  <p>At the start of the move year the buyer sells (commission, capital-gains tax with the exclusion if held 2+ years). <em>Sell and buy again:</em> the next home costs what the old one sold for, closing costs are paid again, all remaining equity becomes the down payment, and the new 30-year loan is at the market rate then (PMI if under 20% down; the 2-year exclusion clock restarts). <em>Sell and rent:</em> proceeds go into the buyer's portfolio and the household pays market rent from then on. Both households move, so moving costs common to both are left out; the renter's lease resets to market.</p>
+  \\[ \\text{tax} = \\sum_{\\text{rules}} \\begin{cases} \\tau\\,X & \\text{flat} \\\\ \\tau_j\\,X \\text{ for the bracket } j \\text{ with } a_j \\le X < b_j & \\text{whole-amount brackets} \\\\ \\sum_j \\tau_j \\max\\big(0,\\ \\min(X, b_j) - a_j\\big) & \\text{marginal brackets} \\end{cases} \\]
+  <dl class="sym"><dt>\\(X\\)</dt><dd>the amount taxed: the price \\(P\\), or the loan \\(L\\) for mortgage-recording taxes</dd><dt>\\(\\tau,\\ \\tau_j\\)</dt><dd>tax rate, or the rate for bracket \\(j\\)</dd><dt>\\(a_j, b_j\\)</dt><dd>lower and upper bounds of bracket \\(j\\)</dd></dl>
+  <p>Buyer-paid taxes are added to \\(c\\), seller-paid taxes to \\(s\\); split taxes are divided evenly. First-time-buyer reliefs are not applied.</p>
+
   <h3>House-hacking</h3>
-  <p>Rent from part of the home, \\(R^{hh}_y(1-v)\\), lowers the owner's monthly cost. The rented share \\(s\\) of interest, property tax, insurance, upkeep and utilities is a rental expense; net rental income is taxed at \\(\\mu\\) plus the state rate, and only \\((1-s)\\) of interest and property tax count toward itemizing. Depreciation is not claimed, so no recapture applies at sale ${RES.hhTax&&RES.hhTax.u?linkTo(RES.hhTax.u,'IRS Pub 523'):''}.</p>
+  \\[ R^{hh,net}_t = R^{hh}_y(1-v_h) - \\frac{1}{12}\\big(\\mu_y + t_s\\big)\\max\\!\\Big(0,\\ 12R^{hh}_y(1-v_h) - z\\,(I_y + \\tau_pA_y + \\text{Ins}_y + (1-\\varphi)\\psi H_y + 12U_y)\\Big) \\]
+  <dl class="sym"><dt>\\(R^{hh}_y\\)</dt><dd>monthly rent from the rented part of the home, growing with market rent</dd><dt>\\(v_h\\)</dt><dd>vacancy rate</dd><dt>\\(z\\)</dt><dd>share of the home rented out</dd><dt>\\(I_y\\)</dt><dd>mortgage interest paid in year \\(y\\)</dd></dl>
+  <p>Depreciation is not claimed, so no recapture applies at sale ${RES.hhTax&&RES.hhTax.u?linkTo(RES.hhTax.u,'(IRS Pub 523)'):''}.</p>
+
   <h3>Rent + rental property</h3>
-  <p>A fourth household rents its own home like the renter and uses the same starting cash as the down payment \\(d_R\\) plus closing costs on a rental priced \\(P_R = C_0/(d_R+c)\\). The rental's gross rent is \\(P_R\\) times your gross rent yield \\(12R_0/P\\), growing with market rent, less vacancy and a management fee. Its loan is 30 years at your rate plus an investment-property premium. Each year taxable rental income = collected rent − interest − property tax − insurance − HOA − expensed upkeep − depreciation, with depreciation \\(P_R(1+c)(1-\\ell)/27.5\\) (\\(\\ell\\) = land share). Losses offset up to $25,000 of other income, phasing out between $100,000 and $150,000 of income; the rest is suspended and released at sale. At sale, gain up to accumulated depreciation is taxed at \\(\\min(25\\%,\\mu)\\) plus NIIT and state, the rest at the capital-gains rate ${RES.dep&&RES.dep.u?linkTo(RES.dep.u,'IRS Pub 527'):''}. The household invests the equal-budget surplus plus the rental's cash flow, borrowing at T-bill + 3 points if the portfolio runs negative.</p>
+  \\[ P_R = \\frac{C_0}{d_R + c},\\qquad R^{R}_y = P_R\\,\\frac{12R_0}{P}\\,\\frac{R^{mkt}_y}{R^{mkt}_0}\\,\\frac{1}{12},\\qquad \\text{collected} = R^{R}_y(1-v_R)(1-f_m) \\]
+  \\[ \\text{taxable}_y = 12\\cdot\\text{collected} - I^{R}_y - \\tau_p H^R_y - \\text{Ins}^R_y - 12\\,\\text{HOA}^R_y - (1-\\varphi)\\psi H^R_y - \\frac{P_R(1+c)(1-\\ell)}{27.5} \\]
+  <dl class="sym"><dt>\\(C_0\\)</dt><dd>the same starting cash the renter invests</dd><dt>\\(d_R\\)</dt><dd>down payment on the rental</dd><dt>\\(P_R,\\ H^R_y\\)</dt><dd>rental purchase price and its value in year \\(y\\) (grows like your home)</dd><dt>\\(R^{R}_y\\)</dt><dd>its gross monthly rent, at your price-to-rent ratio</dd><dt>\\(v_R,\\ f_m\\)</dt><dd>rental vacancy and management fee</dd><dt>\\(I^R_y\\)</dt><dd>interest on the rental's 30-year loan at your rate plus the investment-property premium</dd><dt>\\(\\text{Ins}^R_y,\\ \\text{HOA}^R_y\\)</dt><dd>your insurance and HOA scaled by \\(P_R/P\\)</dd><dt>\\(\\ell\\)</dt><dd>land share of the price (not depreciable); buildings depreciate over 27.5 years</dd></dl>
+  <p>Losses offset up to $25,000 of other income, phasing out between $100,000 and $150,000 of income; the rest is suspended and released at sale. At sale, gain up to accumulated depreciation is taxed at \\(\\min(25\\%, \\mu_y) + \\nu_y + t_s\\), the rest at \\(\\kappa_y\\) ${RES.dep&&RES.dep.u?linkTo(RES.dep.u,'(IRS Pub 527)'):''}. This household invests the same monthly surplus as the renter plus the rental's cash flow, borrowing at the T-bill rate + 3 points if its portfolio runs negative.</p>
+
+  <h3>Income growth and affordability</h3>
+  \\[ \\text{Inc}_y = \\text{Inc}_0\\,(1+g_I)^y \\]
+  <dl class="sym"><dt>\\(\\text{Inc}_y\\)</dt><dd>household income in year \\(y\\)</dd><dt>\\(g_I\\)</dt><dd>income growth per year</dd></dl>
+  <p>In automatic mode \\(\\mu_y\\) is the bracket for \\(\\text{Inc}_y / \\prod(1+\\pi)\\) (brackets are inflation-indexed); the SALT phase-out and NIIT threshold use \\(\\text{Inc}_y\\). Affordability: front-end ratio = month-1 owning cost ÷ monthly gross income; back-end adds other debt payments. Guidelines are at most 28% and 36%, with most lenders capping total debt near 43% (${linkTo(AFF_URL,'Bankrate')}).</p>
+
+  <h3>Planned move</h3>
+  <p>At the start of the move year the buyer sells as in the net-worth formula. <em>Sell and buy again:</em> the next home costs what the old one sold for, closing costs are paid again, all remaining equity becomes the down payment, and a new 30-year fixed loan is taken at \\(m_t\\) then (PMI if under 20% down; the 2-year exclusion clock restarts). <em>Sell and rent:</em> proceeds go into the buyer's portfolio and the household pays market rent from then on. Both households move, so moving costs common to both are left out; the renter's lease resets to market.</p>
+
   <h3>Moving risk</h3>
-  <p>With yearly moving probability \\(h\\), the holding period \\(T\\) is geometric and capped at the horizon \\(N\\): \\(\\Pr(T=t)=h(1-h)^{t-1}\\) for \\(t<N\\) and \\(\\Pr(T=N)=(1-h)^{N-1}\\). The expected gap is \\(\\sum_t \\Pr(T=t)\\,(W^{buy}_t - W^{inv}_t)\\). In the Monte Carlo, the yearly chance of moving is multiplied by \\(k\\) in bad years (home prices fell or stocks fell more than 15%), and a move in a bad year sells at a discount \\(\\phi_f\\) to market value, following evidence that forced sales fetch lower prices ${RES.forced&&RES.forced.u?linkTo(RES.forced.u,'Campbell, Giglio &amp; Pathak (2011)'):''}.</p>
+  \\[ \\Pr(T=\\tau) = h(1-h)^{\\tau-1}\\ (\\tau<N),\\qquad \\Pr(T=N) = (1-h)^{N-1},\\qquad \\text{expected gap} = \\sum_{\\tau=1}^{N}\\Pr(T=\\tau)\\,\\big(W^{buy}_{\\tau} - W^{inv}_{\\tau}\\big) \\]
+  <dl class="sym"><dt>\\(T\\)</dt><dd>years until you sell (holding period), capped at \\(N\\)</dd><dt>\\(h\\)</dt><dd>chance of moving in any year</dd><dt>\\(\\tau\\)</dt><dd>a possible holding period, in years</dd><dt>\\(W^{buy}_{\\tau},\\ W^{inv}_{\\tau}\\)</dt><dd>net worth at the end of year \\(\\tau\\)</dd></dl>
+  <p>In the Monte Carlo, \\(h\\) is multiplied by \\(k_s\\) in bad years (home prices fell or stocks fell more than 15%), and a move in a bad year sells at a discount \\(\\phi_f\\) to market value ${RES.forced&&RES.forced.u?linkTo(RES.forced.u,'(Campbell, Giglio &amp; Pathak 2011)'):''}.</p>
+
   <h3>Monte Carlo</h3>
-  <p>Blocks of \\(b\\) consecutive historical years are drawn with replacement (circularly), keeping all series from the same year together. With re-centering, each series \\(x\\) becomes \\(\\exp(\\ln(1+x_j) - \\overline{\\ln(1+x)} + \\ln(1+\\bar g)) - 1\\), so its geometric mean equals your assumption \\(\\bar g\\). Your own home adds independent noise: \\(1+g^{own}_y = (1+g_y)\\exp(\\sigma\\varepsilon - \\sigma^2/2)\\). Mortgage rates follow \\(m_{t+1} = m_t + \\kappa(\\bar m - m_t) + \\gamma\\,\\Delta\\pi_t + e_t\\), fitted on 1973–2025 annual averages (\\(\\kappa\\) = ${RATE_AR.kappa.toFixed(3)}, \\(\\gamma\\) = ${RATE_AR.gamma.toFixed(3)}, residual s.d. ${RATE_AR.sigma.toFixed(2)} pts). \\(\\bar m\\) is your expected later rate; the residual \\(e_t\\) comes from the same sampled year (random for years before 1973). Rates are kept between 2% and 20%.</p>
+  \\[ \\tilde x_j = \\exp\\!\\big(\\ln(1+x_j) - \\overline{\\ln(1+x)} + \\ln(1+\\bar g)\\big) - 1 \\]
+  \\[ m_{y+1} = m_y + \\theta(\\bar m - m_y) + \\beta_\\pi\\,(\\pi_y - \\pi_{y-1}) + e_y \\]
+  <dl class="sym"><dt>\\(J\\)</dt><dd>block length: blocks of \\(J\\) consecutive historical years are drawn with replacement, keeping all series from the same years together</dd><dt>\\(x_j\\)</dt><dd>a series' historical value in sampled year \\(j\\)</dd><dt>\\(\\overline{\\ln(1+x)}\\)</dt><dd>its historical average log growth</dd><dt>\\(\\bar g\\)</dt><dd>your assumption for that series; with re-centering the simulated geometric mean equals it</dd><dt>\\(\\sigma_h,\\ \\varepsilon\\)</dt><dd>single-house price volatility and a standard normal draw (used in \\(\\xi\\), or compounded yearly if you choose that model)</dd><dt>\\(m_y\\)</dt><dd>simulated market mortgage rate, in percentage points, kept within 2–20</dd><dt>\\(\\bar m\\)</dt><dd>your expected later rate</dd><dt>\\(\\theta\\)</dt><dd>pull-back speed toward \\(\\bar m\\), fitted on 1973–2025: ${RATE_AR.theta}</dd><dt>\\(\\beta_\\pi\\)</dt><dd>effect of a change in inflation on the rate: ${RATE_AR.beta}</dd><dt>\\(e_y\\)</dt><dd>residual from the same sampled year (normal with s.d. ${RATE_AR.sd} points for years before 1973)</dd><dt>\\(\\pi_y\\)</dt><dd>CPI inflation in year \\(y\\)</dd></dl>
+
   <h3>Risk adjustment</h3>
-  <p>Certainty equivalent for CRRA utility with risk aversion \\(\\gamma\\): \\(CE = \\big(\\mathbb{E}[W^{1-\\gamma}]\\big)^{1/(1-\\gamma)}\\), or \\(\\exp(\\mathbb{E}\\ln W)\\) at \\(\\gamma=1\\), with wealth floored at 1% of the starting cash. Renter leverage lets you compare at similar risk: a 20%-down buyer holds a home worth 5× their equity.</p>
+  \\[ CE = \\Big(\\mathbb{E}\\big[W^{1-\\gamma}\\big]\\Big)^{\\frac{1}{1-\\gamma}}\\quad (\\gamma \\ne 1),\\qquad CE = \\exp\\big(\\mathbb{E}[\\ln W]\\big)\\quad (\\gamma = 1) \\]
+  <dl class="sym"><dt>\\(CE\\)</dt><dd>certainty equivalent: the sure amount worth as much to you as the uncertain outcome</dd><dt>\\(W\\)</dt><dd>simulated net worth at the horizon, floored at 1% of the starting cash</dd><dt>\\(\\gamma\\)</dt><dd>relative risk aversion (0 = risk-neutral)</dd><dt>\\(\\mathbb{E}\\)</dt><dd>average across simulated futures</dd></dl>
+
+  <h3>Home-price volatility scaling</h3>
+  \\[ g'_y = \\bar g_{loc} + k_v\\,(g_y - \\bar g_{loc}),\\qquad k_v = \\frac{\\sigma_{CS}}{\\sigma_{FHFA}} \\]
+  <dl class="sym"><dt>\\(g_y,\\ g'_y\\)</dt><dd>a location's FHFA yearly price change, before and after scaling</dd><dt>\\(\\bar g_{loc}\\)</dt><dd>its average yearly change</dd><dt>\\(\\sigma_{CS},\\ \\sigma_{FHFA}\\)</dt><dd>standard deviations of yearly changes in the Case-Shiller and FHFA indexes, 1992–2025</dd><dt>\\(k_v\\)</dt><dd>ratio stored per location (median 1.09; San Francisco and Atlanta 1.37)</dd></dl>
+  ${MONTHLY?`<h3>Monthly bond returns</h3>
+  \\[ r^{bond}_t \\approx \\frac{Y_{t-1}}{12} - D_b\\,(Y_t - Y_{t-1}) \\]
+  <dl class="sym"><dt>\\(Y_t\\)</dt><dd>10-year Treasury yield in month \\(t\\) (decimal)</dd><dt>\\(D_b\\)</dt><dd>bond duration, 7.5 years</dd></dl>`:''}
+
   <h3>Limits</h3>
   <ul>
     <li>Rent indexes track existing leases and move more slowly than asking rents (see the Data tab). Pre-1940s rent data are sparse; three missing December values (1934, 1935, 1946) are interpolated.</li>
-    <li>The 1928–1986 national real-estate series is Shiller's reconstruction; 1987 onward is Case-Shiller National, as compiled and published by Damodaran. Metro indexes and the monthly national index are FHFA's purchase-only indexes from 1991, downloaded from FHFA. FHFA covers only homes financed with conforming mortgages, so its swings are smaller than Case-Shiller's in expensive metros; with the volatility setting on, each location's yearly changes are scaled around their mean by \\(k = \\sigma_{CS}/\\sigma_{FHFA}\\), estimated over 1992–2025 (median 1.09; San Francisco and Atlanta 1.37). Only these ratios are stored, not Case-Shiller data.</li>
-    <li>No moving between homes, no rent control, and no value placed on stability, control over the home, or the flexibility of renting. Bond total returns are treated as taxable income in the year earned. Margin interest is not deducted.</li>
-    <li>${MONTHLY?`Monthly bond returns are approximated from 10-year yields: \\(r_t \\approx y_{t-1}/12 - D\\,(y_t - y_{t-1})\\) with duration \\(D=7.5\\).`:''}</li>
+    <li>The 1928–1986 national real-estate series is Shiller's reconstruction; 1987 onward is Case-Shiller National, as compiled and published by Damodaran. Metro and monthly national home prices are FHFA's purchase-only indexes from 1991.</li>
+    <li>No rent control, and no value placed on stability, control over the home, or the flexibility of renting. Bond total returns are taxed as income in the year earned. Margin interest and mortgage-insurance premiums are not deducted.</li>
   </ul>
-  <p class="cap">Inputs marked "assumption" are conventional planning values with no single authoritative source.</p>`;
+  <p class="cap">Inputs marked "assumption" are conventional planning values with no single authoritative source.</p>
+
+  <h3 id="notation">Notation</h3>
+  <div class="tablewrap" style="max-height:none"><table class="kv notation">
+  <thead><tr><th>Symbol</th><th>Meaning</th><th>Setting</th></tr></thead><tbody>
+    <tr><td>\\(t, y, N\\)</td><td>month, year, horizon in years</td><td>Horizon</td></tr>
+  <tr><td>\\(P, d, c, s\\)</td><td>price, down payment share, buyer closing-cost share, selling-cost share</td><td>Home price, Down payment, Closing costs, Selling costs, Transfer taxes</td></tr>
+  <tr><td>\\(L, r, i, n, M\\)</td><td>loan, annual rate, monthly rate, number of payments, monthly payment</td><td>Mortgage rate, Term</td></tr>
+  <tr><td>\\(B_t, I_t\\)</td><td>balance and interest in month t</td><td></td></tr>
+  <tr><td>\\(m_t, \\bar m, \\Delta_R, c_R\\)</td><td>market rate, expected later rate, refinance trigger, refinance cost</td><td>Refinancing</td></tr>
+  <tr><td>\\(u_F, \\pi_F, n_F\\)</td><td>FHA upfront premium, annual premium, months charged</td><td>Loan type</td></tr>
+  <tr><td>\\(r_0, x, \\chi, c_k, c_L\\)</td><td>ARM start rate, index, margin, reset cap, lifetime cap</td><td>ARM fields</td></tr>
+  <tr><td>\\(p_n, \\Delta_p\\)</td><td>points and rate cut per point</td><td>Discount points</td></tr>
+  <tr><td>\\(H_y, A_y, a\\)</td><td>home value, assessed value, assessment cap</td><td>Assessment growth cap</td></tr>
+  <tr><td>\\(\\tau_p, \\psi, \\epsilon_y\\)</td><td>property tax rate, maintenance rate, upkeep shock</td><td>Property tax, Maintenance</td></tr>
+  <tr><td>\\(\\text{Ins}_y, g_{ins}, U_y\\)</td><td>insurance, its extra growth, extra utilities</td><td>Home insurance, Insurance growth, Extra utilities</td></tr>
+  <tr><td>\\(p_{mi}\\)</td><td>PMI rate</td><td>PMI</td></tr>
+  <tr><td>\\(R_y, R^{mkt}_y, g^{rent}_y, \\delta\\)</td><td>lease rent, market rent, rent growth, renewal gap</td><td>Rent, Rent growth, Lease renewals</td></tr>
+  <tr><td>\\(\\eta, c_{mv}, b\\)</td><td>renter move rate, cost per move, broker fee</td><td>Renter moves, Cost per move, Broker fee</td></tr>
+  <tr><td>\\(\\Delta_t, a, C_0\\)</td><td>monthly cost difference, share invested, starting cash</td><td>Share of savings invested</td></tr>
+  <tr><td>\\(\\mu_y, D^{std}_y, \\text{SALT}_y, T^{st}, I^{ded}_y, O\\)</td><td>marginal rate, standard deduction, SALT cap, state income tax, deductible interest, other deductions</td><td>Income &amp; taxes</td></tr>
+  <tr><td>\\(t_s, \\mathbb{1}_{st}, \\nu_y, \\kappa_y\\)</td><td>state rate, state deduction flag, NIIT, tax rate on gains</td><td>State tax, Capital-gains rate</td></tr>
+  <tr><td>\\(w_s, w_b, w_c, \\lambda, s_b, f, q\\)</td><td>portfolio weights, leverage, borrowing spread, fees, dividend yield</td><td>Investing &amp; leverage</td></tr>
+  <tr><td>\\(V, \\text{basis}, W^{liq}\\)</td><td>portfolio value, tax basis, after-tax value</td><td></td></tr>
+  <tr><td>\\(\\xi, \\sigma_h, \\varepsilon\\)</td><td>house price shock at sale, its volatility, normal draw</td><td>Own-home price risk</td></tr>
+  <tr><td>\\(\\Phi, \\varphi, E\\)</td><td>basis from improvements, improvement share, sale exclusion</td><td>Share of upkeep that is improvements</td></tr>
+  <tr><td>\\(R^{hh}_y, v_h, z\\)</td><td>house-hack rent, vacancy, share rented</td><td>House-hack</td></tr>
+  <tr><td>\\(P_R, d_R, v_R, f_m, \\ell\\)</td><td>rental price, down payment, vacancy, management fee, land share</td><td>Other ways to own</td></tr>
+  <tr><td>\\(\\text{Inc}_y, g_I\\)</td><td>income and its growth</td><td>Household income, Income growth</td></tr>
+  <tr><td>\\(T, h, k_s, \\phi_f\\)</td><td>holding period, move probability, bad-year multiplier, forced-sale discount</td><td>Life &amp; risk preferences</td></tr>
+  <tr><td>\\(J, \\bar g, \\theta, \\beta_\\pi, e_y, \\pi_y\\)</td><td>block length, assumed growth, rate pull-back, inflation effect, residual, inflation</td><td>Monte Carlo settings</td></tr>
+  <tr><td>\\(CE, \\gamma\\)</td><td>certainty equivalent, risk aversion</td><td>Risk aversion</td></tr>
+  <tr><td>\\(k_v\\)</td><td>FHFA-to-Case-Shiller volatility ratio</td><td>Scale FHFA price swings</td></tr>
+  </tbody></table></div>
+
+  `;
   document.getElementById('srclist').innerHTML=Object.values(SRC).map(s=>`<li><a target="_blank" rel="noopener" href="${s.u}">${s.t}</a></li>`).join('')+
     METROS.filter(m=>m.slug!=='us').map(m=>`<li>${m.name}: ${['price','rent','ptax','ins','hpi'].map(k=>m.src&&m.src[k]?`<a target="_blank" rel="noopener" href="${m.src[k].u}">${({price:'price',rent:'rent',ptax:'property tax',ins:'insurance',hpi:'home-price index'})[k]}</a>`:null).filter(Boolean).join(' · ')}</li>`).join('');
 }

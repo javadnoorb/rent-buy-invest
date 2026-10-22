@@ -27,7 +27,8 @@ const RATE_AR=(()=>{const X=[],Y=[],idx=[];YEARS.forEach((y,i)=>{if(DM_OBS[i]!=n
     for(let r=0;r<k;r++)if(r!==c){const f=A[r][c]/A[c][c];for(let q=c;q<=k;q++)A[r][q]-=f*A[c][q]}}
   const bta=A.map((r,a)=>r[k]/r[a]);const res=Array(YEARS.length).fill(null);let ss=0;
   X.forEach((r,n)=>{const e=Y[n]-(bta[0]+bta[1]*r[1]+bta[2]*r[2]);res[idx[n]]=e;ss+=e*e});
-  return {alpha:bta[0],kappa:-bta[1],gamma:bta[2],sigma:Math.sqrt(ss/(X.length-k)),mean:-bta[0]/bta[1],res,n:X.length}})();
+  const R={alpha:bta[0],kappa:-bta[1],gamma:bta[2],sigma:Math.sqrt(ss/(X.length-k)),mean:-bta[0]/bta[1],res,n:X.length};
+  R.theta=R.kappa.toFixed(3);R.beta=R.gamma.toFixed(3);R.sd=R.sigma.toFixed(2);return R})();
 const SER={gh:HOME,gr:RENTG,rs:STK,rb:BOND,rc:BILL,inf:INF};
 function geo(a,from,to){const i0=from-Y0,i1=(to||2025)-Y0;let lp=0,n=0;for(let i=i0;i<=i1;i++){if(a[i]==null)continue;lp+=Math.log(1+a[i]/100);n++}return (Math.exp(lp/n)-1)*100}
 const r2=x=>Math.round(x*100)/100;
