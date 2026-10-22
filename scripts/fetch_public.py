@@ -50,6 +50,30 @@ for yr in acs['years']:
         except Exception as e2:
             out['acs_errors'][f'{yr}_probe'] = str(e2)
 
+# ---- Census ACS table-based summary files (no API key needed) ----
+if not out['acs'].get('rows'):
+    base = 'https://www2.census.gov/programs-surveys/acs/summary_file/{y}/table-based-SF/data/1YRData/acsdt1y{y}-{t}.dat'
+    for yr in acs['years']:
+        got = {}
+        for t in acs.get('tables', ['b25103', 'b25077', 'b25031', 'b25064']):
+            url = base.format(y=yr, t=t)
+            try:
+                txt = get(url); lines = txt.splitlines(); hdr = lines[0].split('|')
+                rows = [l.split('|') for l in lines[1:] if l.startswith('310M')]
+                got[t] = {'url': url, 'header': hdr, 'rows': rows}
+            except Exception as e:
+                out.setdefault('acs_errors', {})[f'{yr}_{t}'] = str(e)
+        if got:
+            out['acs_sf'] = {'year': yr, 'tables': got}
+            try:
+                g = get(f'https://www2.census.gov/programs-surveys/acs/summary_file/{yr}/table-based-SF/documentation/Geos{yr}1YR.txt')
+                gl = g.splitlines(); gh = gl[0].split('|')
+                ix, iname = gh.index('GEO_ID'), gh.index('NAME')
+                out['acs_sf']['names'] = {r.split('|')[ix]: r.split('|')[iname] for r in gl[1:] if r.split('|')[ix].startswith('310M')}
+            except Exception as e:
+                out.setdefault('acs_errors', {})[f'{yr}_geos'] = str(e)
+            break
+
 # ---- Freddie Mac PMMS weekly history ----
 try:
     txt = get(CFG['freddie_pmms_csv'])
@@ -59,4 +83,4 @@ except Exception as e:
     out['pmms_error'] = str(e)
 
 json.dump(out, open(sys.argv[1] if len(sys.argv) > 1 else 'public_extract.json', 'w'))
-print('bls series', len(out['bls']), 'errors', len(out['bls_errors']), '| acs rows', len(out['acs'].get('rows', [])), out['acs'].get('year'), '| pmms', bool(out['pmms']))
+print('acs_sf', (out.get('acs_sf') or {}).get('year'), {k: len(v['rows']) for k, v in ((out.get('acs_sf') or {}).get('tables') or {}).items()}, len((out.get('acs_sf') or {}).get('names') or {}));print('bls series', len(out['bls']), 'errors', len(out['bls_errors']), '| acs rows', len(out['acs'].get('rows', [])), out['acs'].get('year'), '| pmms', bool(out['pmms']))
