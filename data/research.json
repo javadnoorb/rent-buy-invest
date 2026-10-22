@@ -250,8 +250,8 @@
    "date": "2026-10-15",
    "value": 7.4
   },
-  "source_title": "PennyCalc U.S. 30-Year Mortgage Rate History (Freddie Mac PMMS via FRED annual averages)",
-  "source_url": "https://pennycalc.com/mortgage-rates/history/",
+  "source_title": "Freddie Mac PMMS, annual average of weekly 30-year fixed rates",
+  "source_url": "https://www.freddiemac.com/pmms",
   "verification_urls": [
    "https://www.freddiemac.com/pmms/archive?year=2025",
    "https://www.freddiemac.com/pmms/archive?year=2024",

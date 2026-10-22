@@ -65,9 +65,11 @@ The build uses only the Python standard library. In the browser, the page loads 
 ## Data sources
 
 - **Annual returns, 1928–2025:** Damodaran, NYU Stern. The real-estate series is Case-Shiller from 1987 and Shiller's reconstruction before that.
-- **CPI and rent CPI:** BLS, via FRED.
-- **Mortgage rates:** Freddie Mac PMMS, via FRED.
-- **Metro home-price indexes:** S&P Cotality Case-Shiller and FHFA, via FRED.
+- **CPI and rent CPI:** BLS (public domain).
+- **Mortgage rates:** Freddie Mac PMMS (used with attribution).
+- **Treasury rates:** Federal Reserve H.15 (public domain).
+- **Home-price indexes:** FHFA purchase-only indexes (public), downloaded from fhfa.gov by `scripts/fetch_fhfa.py` (run by hand via the *Fetch FHFA house price data* workflow). Case-Shiller data are not stored; one volatility ratio per location is.
+- **S&P 500 monthly:** total returns only, computed from Robert Shiller's monthly data (index levels not stored).
 - **Home values and rents:** Zillow market reports.
 - **Property tax:** ATTOM and SmartAsset.
 - **Insurance:** Insurify.
