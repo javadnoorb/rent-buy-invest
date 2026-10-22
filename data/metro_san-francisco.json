@@ -1,0 +1,53 @@
+{
+  "name": "San Francisco",
+  "hpi": {
+    "series_id": "SFXRNSA",
+    "source_title": "S&P Cotality Case-Shiller CA-San Francisco Home Price Index (SFXRNSA), FRED",
+    "source_url": "https://fred.stlouisfed.org/series/SFXRNSA",
+    "data_url": "https://fred.stlouisfed.org/data/SFXRNSA.txt",
+    "basis": "December",
+    "values": {
+      "1987": 52.031668, "1988": 62.197748, "1989": 73.024783, "1990": 71.468337,
+      "1991": 70.051795, "1992": 68.205345, "1993": 66.274361, "1994": 67.934848,
+      "1995": 66.434279, "1996": 68.686845, "1997": 75.808032, "1998": 84.504416,
+      "1999": 98.898515, "2000": 128.57666, "2001": 125.46555, "2002": 142.40219,
+      "2003": 154.62334, "2004": 185.71823, "2005": 215.10663, "2006": 212.12954,
+      "2007": 189.22608, "2008": 130.12428, "2009": 136.39835, "2010": 136.02005,
+      "2011": 128.72449, "2012": 147.23891, "2013": 180.54775, "2014": 197.482008111,
+      "2015": 217.9139493369, "2016": 231.1394007133, "2017": 252.627902884, "2018": 261.2393598358,
+      "2019": 266.6985478218, "2020": 290.7126312707, "2021": 345.3822985956, "2022": 330.7132623567,
+      "2023": 341.5312303123, "2024": 350.9231560611, "2025": 350.5212756206
+    },
+    "latest": {"date": "2026-07", "value": 368.5356880245}
+  },
+  "price": {
+    "value": 1131146,
+    "date": "2026-09",
+    "what": "Zillow typical home value (ZHVI), San Francisco, CA metro",
+    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+  },
+  "rent": {
+    "value": 3445,
+    "date": "2026-09",
+    "what": "Zillow typical rent (ZORI), San Francisco, CA metro, monthly",
+    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+  },
+  "ptax": {
+    "rate_pct": 0.76,
+    "geography": "San Francisco County, CA",
+    "year": null,
+    "source_title": "SmartAsset California Property Tax Calculator",
+    "source_url": "https://smartasset.com/taxes/california-property-tax-calculator"
+  },
+  "ins": {
+    "annual_usd": 2040,
+    "geography": "California",
+    "coverage": "$300,000 dwelling coverage",
+    "year": 2026,
+    "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
+    "source_url": "https://insurify.com/homeowners-insurance/states/"
+  },
+  "notes": "Case-Shiller December values from FRED .txt, 1987-2025 continuous. Prop 13: assessed value increases limited to max 2%/yr (https://www.placer.ca.gov/5882/Proposition-13; also stated on the SmartAsset CA page). SmartAsset gives no data year for the 0.76% rate (CA statewide 0.71%). Zillow 'San Francisco, CA' metro = San Francisco-Oakland-Berkeley MSA; ZHVI $1,131,146 verified verbatim in the report table. A Kalshi market page (https://kalshi.com/markets/kxsfhomeval/san-francisco-typical-home-value-on-date/kxsfhomeval-26mar19) suggested the Feb 2026 SF metro typical value resolved above $1,265,000; it does not name its exact source, so the discrepancy is unresolved. Cross-checks: Apartment List Oct 2026 SF metro median rent $3,017, city $3,878 (https://www.apartmentlist.com/rent-report/ca/san-francisco); Redfin SF city median sale price $1,579,248 Sep 2026."
+}

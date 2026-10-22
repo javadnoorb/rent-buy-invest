@@ -1,0 +1,53 @@
+{
+  "name": "Boston",
+  "hpi": {
+    "series_id": "BOXRNSA",
+    "source_title": "S&P Cotality Case-Shiller MA-Boston Home Price Index (BOXRNSA), FRED",
+    "source_url": "https://fred.stlouisfed.org/series/BOXRNSA",
+    "data_url": "https://fred.stlouisfed.org/data/BOXRNSA.txt",
+    "basis": "December",
+    "values": {
+      "1987": 74.744736, "1988": 74.79129, "1989": 73.015618, "1990": 66.134571,
+      "1991": 63.685711, "1992": 64.285171, "1993": 66.267456, "1994": 68.477157,
+      "1995": 69.92863, "1996": 73.844033, "1997": 78.938596, "1998": 87.449484,
+      "1999": 100.00995, "2000": 116.56369, "2001": 130.0581, "2002": 147.27826,
+      "2003": 158.57825, "2004": 173.42251, "2005": 179.44238, "2006": 170.31375,
+      "2007": 164.58136, "2008": 153.05478, "2009": 153.77919, "2010": 152.51796,
+      "2011": 148.53494, "2012": 153.80684, "2013": 168.65081, "2014": 174.9674386,
+      "2015": 182.7702401, "2016": 194.0637571, "2017": 204.7177331, "2018": 215.2516833,
+      "2019": 224.7667813, "2020": 250.3397927, "2021": 283.7958064, "2022": 298.5256633,
+      "2023": 320.2547093, "2024": 340.5738354, "2025": 344.6665691
+    },
+    "latest": {"date": "2026-07", "value": 362.8240099551}
+  },
+  "price": {
+    "value": 728324,
+    "date": "2026-09",
+    "what": "Zillow typical home value (ZHVI), Boston, MA metro",
+    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+  },
+  "rent": {
+    "value": 2987,
+    "date": "2026-09",
+    "what": "Zillow typical rent (ZORI), Boston, MA metro, monthly",
+    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+  },
+  "ptax": {
+    "rate_pct": 0.66,
+    "geography": "Suffolk County, MA",
+    "year": null,
+    "source_title": "SmartAsset Massachusetts Property Tax Calculator",
+    "source_url": "https://smartasset.com/taxes/massachusetts-property-tax-calculator"
+  },
+  "ins": {
+    "annual_usd": 1956,
+    "geography": "Massachusetts",
+    "coverage": "$300,000 dwelling coverage",
+    "year": 2026,
+    "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
+    "source_url": "https://insurify.com/homeowners-insurance/states/"
+  },
+  "notes": "Case-Shiller values are full-precision from FRED .txt (1987-2025 continuous). SmartAsset page gives no year for the 0.66% Suffolk rate (state rate 1.00% on same page); Suffolk/Boston rate is low because of Boston's residential exemption-heavy structure and high values. Alternative insurance figure: NerdWallet (updated May 6, 2026) MA $1,645/yr at $400,000 dwelling (https://www.nerdwallet.com/article/insurance/average-homeowners-insurance-cost). City-level cross-checks seen: Redfin Boston city median sale price $840,600 Sep 2026; Zillow Boston city ZHVI $760,717 as of Dec 31, 2025."
+}

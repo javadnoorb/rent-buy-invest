@@ -1,0 +1,53 @@
+{
+  "name": "Miami",
+  "hpi": {
+    "series_id": "MIXRNSA",
+    "source_title": "S&P Cotality Case-Shiller FL-Miami Home Price Index (MIXRNSA), FRED",
+    "source_url": "https://fred.stlouisfed.org/series/MIXRNSA",
+    "data_url": "https://fred.stlouisfed.org/data/MIXRNSA.txt",
+    "basis": "December",
+    "values": {
+      "1987": 71.412733, "1988": 76.188887, "1989": 78.742135, "1990": 79.412044,
+      "1991": 79.090609, "1992": 79.986173, "1993": 82.88691, "1994": 87.01265,
+      "1995": 87.691342, "1996": 88.164242, "1997": 90.496224, "1998": 93.751658,
+      "1999": 99.521222, "2000": 108.89294, "2001": 124.01776, "2002": 141.97661,
+      "2003": 162.92928, "2004": 201.37065, "2005": 264.82602, "2006": 280.8672,
+      "2007": 231.70872, "2008": 165.0139, "2009": 148.65701, "2010": 143.10866,
+      "2011": 137.74185, "2012": 152.36538, "2013": 177.56986, "2014": 192.3710230792,
+      "2015": 205.9836565853, "2016": 220.0011966715, "2017": 227.8674337159, "2018": 239.5857118762,
+      "2019": 247.1175448637, "2020": 269.9472762497, "2021": 343.8958046081, "2022": 398.3608710481,
+      "2023": 429.1972699644, "2024": 443.2509380121, "2025": 436.6320220573
+    },
+    "latest": {"date": "2026-07", "value": 453.9706302034}
+  },
+  "price": {
+    "value": 478411,
+    "date": "2026-09",
+    "what": "Zillow typical home value (ZHVI), Miami, FL metro",
+    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+  },
+  "rent": {
+    "value": 2654,
+    "date": "2026-09",
+    "what": "Zillow typical rent (ZORI), Miami, FL metro, monthly",
+    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+  },
+  "ptax": {
+    "rate_pct": 0.76,
+    "geography": "Miami-Dade County, FL",
+    "year": null,
+    "source_title": "SmartAsset Florida Property Tax Calculator",
+    "source_url": "https://smartasset.com/taxes/florida-property-tax-calculator"
+  },
+  "ins": {
+    "annual_usd": 6408,
+    "geography": "Florida",
+    "coverage": "$300,000 dwelling coverage",
+    "year": 2026,
+    "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
+    "source_url": "https://insurify.com/homeowners-insurance/states/"
+  },
+  "notes": "Case-Shiller 1987-2025 continuous, values from FRED .txt. SmartAsset gives no data year for Miami-Dade 0.76% (Florida statewide 0.75%). Insurance is the Florida statewide average; no Miami city figure on Insurify, and Miami-area premiums are likely higher than the state average (hurricane exposure); condo owners pay much less (HO-6) but face HOA/master-policy costs. Cross-checks seen: FRED/Realtor.com median listing price Miami CBSA $490,000 (2026-09, https://fred.stlouisfed.org/data/MEDLISPRI33100.txt); Apartment List Miami metro median rent $1,811 (Oct 2026, https://www.apartmentlist.com/rent-report/fl/miami)."
+}

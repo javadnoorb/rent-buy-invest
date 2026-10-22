@@ -1,0 +1,53 @@
+{
+  "name": "Phoenix",
+  "hpi": {
+    "series_id": "PHXRNSA",
+    "source_title": "S&P Cotality Case-Shiller AZ-Phoenix Home Price Index (PHXRNSA), FRED",
+    "source_url": "https://fred.stlouisfed.org/series/PHXRNSA",
+    "data_url": "https://fred.stlouisfed.org/data/PHXRNSA.txt",
+    "basis": "December",
+    "values": {
+      "1989": 66.406523, "1990": 65.356325, "1991": 65.950079, "1992": 66.5863,
+      "1993": 70.025908, "1994": 74.786949, "1995": 78.735093, "1996": 82.338646,
+      "1997": 86.409202, "1998": 92.042279, "1999": 99.485184, "2000": 105.878,
+      "2001": 111.56955, "2002": 116.70184, "2003": 126.3261, "2004": 152.37747,
+      "2005": 220.74984, "2006": 221.50064, "2007": 187.67234, "2008": 123.93068,
+      "2009": 112.47654, "2010": 103.10382, "2011": 101.91071, "2012": 125.32666,
+      "2013": 144.47524, "2014": 147.900577590494, "2015": 157.119367810171, "2016": 164.571105954571,
+      "2017": 173.712859161891, "2018": 187.419048416024, "2019": 199.526518540856, "2020": 228.256487952561,
+      "2021": 302.333599773191, "2022": 311.160658033387, "2023": 322.909028969907, "2024": 329.553741761246,
+      "2025": 324.4709634113
+    },
+    "latest": {"date": "2026-07", "value": 326.6812626538}
+  },
+  "price": {
+    "value": 440821,
+    "date": "2026-09",
+    "what": "Zillow typical home value (ZHVI), Phoenix, AZ metro",
+    "source_title": "Zillow Group: Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (Oct. 6, 2026)",
+    "source_url": "https://investors.zillowgroup.com/news-and-events/news/news-details/2026/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5/default.aspx"
+  },
+  "rent": {
+    "value": 1720,
+    "date": "2026-09",
+    "what": "Zillow typical rent (ZORI), Phoenix, AZ metro, monthly",
+    "source_title": "Zillow Group: Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (Oct. 6, 2026)",
+    "source_url": "https://investors.zillowgroup.com/news-and-events/news/news-details/2026/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5/default.aspx"
+  },
+  "ptax": {
+    "rate_pct": 0.39,
+    "geography": "Phoenix, AZ metro",
+    "year": 2025,
+    "source_title": "ATTOM: Average Single-Family Home Property Tax Bill Rose 3 Percent in 2025 (Apr. 9, 2026)",
+    "source_url": "https://www.attomdata.com/news/market-trends/home-sales-prices/2025-annual-tax-report"
+  },
+  "ins": {
+    "annual_usd": 2184,
+    "geography": "Arizona",
+    "coverage": "$300,000 dwelling coverage",
+    "year": 2026,
+    "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
+    "source_url": "https://insurify.com/homeowners-insurance/states/"
+  },
+  "notes": "Case-Shiller Phoenix starts 1989; 1989-2025 continuous. ATTOM effective rate = average tax bill / average estimated value, single-family homes, 2025 (Arizona statewide 0.43%). SmartAsset Maricopa County 0.40%, no year (https://smartasset.com/taxes/arizona-property-tax-calculator). Zillow Sep 2026 Phoenix figures independently confirmed by AZ Big Media (Oct 20, 2026): $440,821 and $1,720 (https://azbigmedia.com/real-estate/phoenix-home-values-fall-as-mortgage-rates-squeeze-buyers/). ValuePenguin Arizona $1,993 at $350K dwelling."
+}

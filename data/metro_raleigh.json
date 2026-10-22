@@ -1,0 +1,53 @@
+{
+  "name": "Raleigh",
+  "hpi": {
+    "series_id": "ATNHPIUS39580Q",
+    "source_title": "All-Transactions House Price Index for Raleigh-Cary, NC (MSA) (ATNHPIUS39580Q), FHFA via FRED, Index 1995:Q1=100",
+    "source_url": "https://fred.stlouisfed.org/series/ATNHPIUS39580Q",
+    "data_url": "https://fred.stlouisfed.org/data/ATNHPIUS39580Q.txt",
+    "basis": "Q4",
+    "values": {
+      "1977": 38.82, "1978": 43.81, "1979": 47.73, "1980": 52.44, "1981": 50.17,
+      "1982": 57.58, "1983": 59.17, "1984": 66.67, "1985": 72.69, "1986": 77.42,
+      "1987": 78.31, "1988": 80.67, "1989": 81.52, "1990": 82.93, "1991": 85.05,
+      "1992": 86.78, "1993": 90.16, "1994": 99.41, "1995": 103.55, "1996": 106.73,
+      "1997": 111.98, "1998": 116.02, "1999": 120.62, "2000": 124.52, "2001": 129.44,
+      "2002": 132.39, "2003": 134.84, "2004": 139.67, "2005": 147.28, "2006": 156.75,
+      "2007": 165.03, "2008": 166.13, "2009": 160.29, "2010": 157.71, "2011": 153.54,
+      "2012": 153.3, "2013": 156.12, "2014": 163.77, "2015": 172.73, "2016": 183.13,
+      "2017": 194.94, "2018": 207.27, "2019": 218.7, "2020": 231.89, "2021": 287.71,
+      "2022": 329.52, "2023": 345.51, "2024": 359.1, "2025": 363.12
+    },
+    "latest": {"date": "2026-04-01 (2026 Q2)", "value": 367.16}
+  },
+  "price": {
+    "value": 427969,
+    "date": "2026-09",
+    "what": "Zillow typical home value (ZHVI), Raleigh, NC metro",
+    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+  },
+  "rent": {
+    "value": 1669,
+    "date": "2026-09",
+    "what": "Zillow typical rent (ZORI), Raleigh, NC metro, monthly",
+    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+  },
+  "ptax": {
+    "rate_pct": 0.75,
+    "geography": "Wake County, NC",
+    "year": null,
+    "source_title": "SmartAsset North Carolina Property Tax Calculator",
+    "source_url": "https://smartasset.com/taxes/north-carolina-property-tax-calculator"
+  },
+  "ins": {
+    "annual_usd": 3192,
+    "geography": "North Carolina",
+    "coverage": "$300,000 dwelling coverage",
+    "year": 2026,
+    "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
+    "source_url": "https://insurify.com/homeowners-insurance/states/"
+  },
+  "notes": "FHFA all-transactions index (includes refinance appraisals), Q4 basis, continuous 1977-2025; not directly comparable in level to Case-Shiller. SmartAsset gives no year for the 0.75% Wake rate (NC state 0.73%). NC statewide insurance average is pulled up by coastal counties; Raleigh likely lower. Alternative: NerdWallet (May 6, 2026) NC $3,025/yr at $400,000 dwelling."
+}

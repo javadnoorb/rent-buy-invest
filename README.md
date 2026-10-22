@@ -1,0 +1,60 @@
+# Rent, Buy or Invest
+
+An interactive calculator comparing three paths on the same monthly budget:
+
+- **Buy** a home and invest any monthly surplus.
+- **Rent and invest** the difference in a stock/bond/T-bill portfolio.
+- **Rent and hold T-bills.**
+
+Results are liquidation net worth: what each household would have after selling the house, paying off the mortgage, and cashing out, net of selling costs and taxes.
+
+The whole app is one static page, `index.html`. Open it in a browser or serve it with GitHub Pages.
+
+## Features
+
+- **Projection:** month-by-month model covering mortgage amortization, PMI, refinancing, property tax (with an optional assessment cap), insurance, maintenance, HOA, the federal itemized-deduction benefit (2026 standard deduction, SALT cap schedule, $750k interest limit) and the Section 121 home-sale exclusion. Portfolios can be taxable or sheltered, with yearly dividend and interest tax and optional leverage.
+- **Location presets:** 23 U.S. metros with Zillow home values and rents, property-tax rates, state insurance averages, and metro home-price history from Case-Shiller or FHFA.
+- **Sensitivity:** a tornado chart of the main inputs, a heatmap of home appreciation × portfolio return, and break-even rent curves.
+- **Optimizer:** down payment × horizon for 15- and 30-year loans, plus the break-even value of each key input.
+- **Backtest:** annual data for 1972–2025 and monthly data for 1987–2026, using actual home prices, rents, returns, inflation and mortgage rates (with refinancing).
+- **Monte Carlo:** block bootstrap of joint historical years, optionally re-centered to your assumptions. Includes single-house price risk, sampled mortgage-rate paths, moving risk, certainty equivalents, expected shortfall and liquidity stress.
+- **Scenarios:** save named setups in the browser and compare them.
+- **Sources:** every data point links to its source; the Method tab lists the formulas.
+
+## Repository layout
+
+| Path | Contents |
+|---|---|
+| `index.html` | Built app (generated; do not edit by hand) |
+| `src/` | `body.html`, `style.css`, `model.js` (simulation), `app.js` (UI and charts) |
+| `data/snapshot.json` | Current market figures shown in the header cards and used as defaults |
+| `data/metro_*.json` | Per-metro price, rent, tax, insurance and home-price index, with source URLs |
+| `data/research.json` | Sourced parameters (single-house volatility, tenure, dividend yield, costs, annual mortgage averages) |
+| `data/monthly.json` | Raw monthly series, 1987–2026 |
+| `data/monthly_processed.json` | Monthly returns used by the monthly backtest |
+| `build.py` | Assembles `index.html` from `src/` and `data/` |
+| `prep_monthly.py` | Converts `monthly.json` into `monthly_processed.json` |
+
+## Updating
+
+1. Edit the figures in `data/snapshot.json` (or a metro file), keeping each source URL in step with its value.
+2. If you changed `data/monthly.json`, run `python3 prep_monthly.py`.
+3. Run `python3 build.py` to regenerate `index.html`.
+4. Commit and push. GitHub Pages serves the new version within a minute or two.
+
+The build uses only the Python standard library. In the browser, the page loads Plotly (charts), MathJax (formulas) and Google Fonts from public CDNs.
+
+## Data sources
+
+- **Annual returns, 1928–2025:** Damodaran, NYU Stern. The real-estate series is Case-Shiller from 1987 and Shiller's reconstruction before that.
+- **CPI and rent CPI:** BLS, via FRED.
+- **Mortgage rates:** Freddie Mac PMMS, via FRED.
+- **Metro home-price indexes:** S&P Cotality Case-Shiller and FHFA, via FRED.
+- **Home values and rents:** Zillow market reports.
+- **Property tax:** ATTOM and SmartAsset.
+- **Insurance:** Insurify.
+- **Tax law:** IRS releases.
+
+Full links are inside the app.
+
+Market figures are a snapshot as of the date shown in the header. This tool is for exploring trade-offs, not financial or tax advice.

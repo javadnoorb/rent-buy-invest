@@ -1,0 +1,53 @@
+{
+  "name": "Los Angeles",
+  "hpi": {
+    "series_id": "LXXRNSA",
+    "source_title": "S&P Cotality Case-Shiller CA-Los Angeles Home Price Index (LXXRNSA), FRED",
+    "source_url": "https://fred.stlouisfed.org/series/LXXRNSA",
+    "data_url": "https://fred.stlouisfed.org/data/LXXRNSA.txt",
+    "basis": "December",
+    "values": {
+      "1987": 67.908046, "1988": 85.971545, "1989": 99.880993, "1990": 96.544244,
+      "1991": 93.013898, "1992": 85.596156, "1993": 77.299389, "1994": 76.072805,
+      "1995": 73.596462, "1996": 74.154267, "1997": 79.504489, "1998": 91.2985,
+      "1999": 99.786531, "2000": 110.12042, "2001": 120.64875, "2002": 143.25814,
+      "2003": 173.98178, "2004": 217.33848, "2005": 264.76966, "2006": 270.02539,
+      "2007": 233.02668, "2008": 171.39539, "2009": 171.38477, "2010": 170.99312,
+      "2011": 162.11392, "2012": 178.58757, "2013": 214.8358, "2014": 226.5687980542,
+      "2015": 240.1649651111, "2016": 253.0281677729, "2017": 271.5795933576, "2018": 281.6030806371,
+      "2019": 288.9332746917, "2020": 317.9524997978, "2021": 378.7665879149, "2022": 388.9255522055,
+      "2023": 421.4307590103, "2024": 435.8137815558, "2025": 439.2330395934
+    },
+    "latest": {"date": "2026-07", "value": 451.2487995959}
+  },
+  "price": {
+    "value": 952830,
+    "date": "2026-09",
+    "what": "Zillow typical home value (ZHVI), Los Angeles, CA metro",
+    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+  },
+  "rent": {
+    "value": 2929,
+    "date": "2026-09",
+    "what": "Zillow typical rent (ZORI), Los Angeles, CA metro, monthly",
+    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+  },
+  "ptax": {
+    "rate_pct": 0.68,
+    "geography": "Los Angeles County, CA",
+    "year": null,
+    "source_title": "SmartAsset California Property Tax Calculator",
+    "source_url": "https://smartasset.com/taxes/california-property-tax-calculator"
+  },
+  "ins": {
+    "annual_usd": 2040,
+    "geography": "California",
+    "coverage": "$300,000 dwelling coverage",
+    "year": 2026,
+    "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
+    "source_url": "https://insurify.com/homeowners-insurance/states/"
+  },
+  "notes": "Case-Shiller December values from FRED .txt, 1987-2025 continuous. Prop 13: assessed value increases limited to max 2%/yr (Placer County, 'Limited Assessment rate increases to a maximum of 2% per year', https://www.placer.ca.gov/5882/Proposition-13; also SmartAsset CA page: 'it restricts increases in assessed value to 2% per year'). SmartAsset gives no data year for the 0.68% LA County rate (CA statewide 0.71% on same page). Alternative ptax: Ownwell LA County median effective rate 1.29%, median bill $5,993 (page updated Apr 13, 2026, no data year; https://www.ownwell.com/trends/california/los-angeles-county). Cross-checks: Apartment List Oct 2026 LA metro median rent $2,207 (https://www.apartmentlist.com/rent-report/ca/los-angeles); Redfin LA County median sale price $912,957 Sep 2026 (3-month) and LA city $1,032,508 Sep 2026; Zillow March 2026 LA metro ZHVI $962,935 per Secret Los Angeles."
+}

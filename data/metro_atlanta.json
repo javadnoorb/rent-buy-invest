@@ -1,0 +1,52 @@
+{
+  "name": "Atlanta",
+  "hpi": {
+    "series_id": "ATXRNSA",
+    "source_title": "S&P Cotality Case-Shiller GA-Atlanta Home Price Index (ATXRNSA), FRED",
+    "source_url": "https://fred.stlouisfed.org/series/ATXRNSA",
+    "data_url": "https://fred.stlouisfed.org/data/ATXRNSA.txt",
+    "basis": "December",
+    "values": {
+      "1991": 69.902574, "1992": 71.328203, "1993": 74.27118, "1994": 77.94726,
+      "1995": 80.384369, "1996": 83.33202, "1997": 87.092886, "1998": 92.950853,
+      "1999": 99.757254, "2000": 106.34699, "2001": 111.00552, "2002": 114.90744,
+      "2003": 118.31143, "2004": 123.5268, "2005": 130.21033, "2006": 134.0095,
+      "2007": 129.60931, "2008": 113.00378, "2009": 108.61829, "2010": 100.05954,
+      "2011": 87.301151, "2012": 95.946111, "2013": 113.34818, "2014": 119.105242197948,
+      "2015": 125.598675223189, "2016": 133.294914557005, "2017": 140.511569318985, "2018": 148.758377014248,
+      "2019": 154.847273843614, "2020": 168.644448139804, "2021": 205.329308193465, "2022": 226.630432101944,
+      "2023": 240.903977749677, "2024": 246.409844453611, "2025": 246.6993363776
+    },
+    "latest": {"date": "2026-07", "value": 252.6131630506}
+  },
+  "price": {
+    "value": 376082,
+    "date": "2026-09",
+    "what": "Zillow typical home value (ZHVI), Atlanta, GA metro",
+    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+  },
+  "rent": {
+    "value": 1843,
+    "date": "2026-09",
+    "what": "Zillow typical rent (ZORI), Atlanta, GA metro, monthly",
+    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+  },
+  "ptax": {
+    "rate_pct": 0.86,
+    "geography": "Fulton County, GA",
+    "year": null,
+    "source_title": "SmartAsset Georgia Property Tax Calculator",
+    "source_url": "https://smartasset.com/taxes/georgia-property-tax-calculator"
+  },
+  "ins": {
+    "annual_usd": 2496,
+    "geography": "Georgia",
+    "coverage": "$300,000 dwelling coverage",
+    "year": 2026,
+    "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
+    "source_url": "https://insurify.com/homeowners-insurance/states/"
+  },
+  "notes": "Case-Shiller Atlanta series starts 1991-01; 1991-2025 continuous, values from FRED .txt. SmartAsset gives no data year for the Fulton 0.86% rate (Georgia statewide 0.74% on same page); ATTOM 2025 report (https://www.attomdata.com/news/market-trends/home-sales-prices/2025-annual-tax-report) did not list Atlanta. Insurify city figure for Atlanta: $2,280/yr at $300K dwelling (https://insurify.com/homeowners-insurance/knowledge/average-cost-of-homeowners-insurance/). Cross-checks seen: FRED/Realtor.com median listing price Atlanta CBSA $415,000 (2026-09, https://fred.stlouisfed.org/data/MEDLISPRI12060.txt); Redfin Atlanta city median sale price $424,898 (Sep 2026); Apartment List Atlanta metro median rent $1,457 (Oct 2026, https://www.apartmentlist.com/rent-report/ga/atlanta)."
+}

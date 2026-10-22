@@ -1,0 +1,177 @@
+<div class="wrap">
+<header>
+  <h1>Rent, Buy or Invest</h1>
+  <p class="lede">Three paths, same monthly budget: buy and invest any surplus, rent and invest the difference, or rent and hold T-bills. Results are net worth if you sold everything, after selling costs and taxes. Every figure links to its source.</p>
+</header>
+
+<section class="snap" id="snap" aria-label="Current market data"></section>
+
+<div class="layout">
+<aside id="aside" aria-label="Assumptions">
+  <div class="ahead"><strong>All assumptions</strong><span class="saved" id="saved"></span><button class="close" id="closeSheet" aria-label="Close assumptions">Done</button></div>
+  <div class="sheetlive" id="sheetlive"></div>
+  <details open><summary>Home &amp; mortgage</summary><div class="fields" id="g-home"></div></details>
+  <details><summary>Refinancing</summary><div class="fields" id="g-refi"></div></details>
+  <details open><summary>Owning costs</summary><div class="fields" id="g-own"></div></details>
+  <details open><summary>Renting</summary><div class="fields" id="g-rent"></div></details>
+  <details open><summary>Market assumptions</summary><div class="fields">
+    <div class="presets"><button data-preset="long">1928–2025 avg</button><button data-preset="modern">1972–2025 avg</button><button data-preset="now">Current YoY</button><button data-preset="metro" id="metroPreset" hidden>Metro history</button></div>
+    <div class="hint muted" style="font-size:11px">Presets fill growth rates only. Averages are geometric, computed from the embedded data (<a class="src" target="_blank" rel="noopener" href="https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histretSP.html">Damodaran</a>, <a class="src" target="_blank" rel="noopener" href="https://fred.stlouisfed.org/series/CPIAUCNS">BLS CPI</a>, <a class="src" target="_blank" rel="noopener" href="https://fred.stlouisfed.org/series/CUUR0000SEHA">BLS rent</a>).</div>
+    <div id="g-mkt" style="display:flex;flex-direction:column;gap:9px"></div></div></details>
+  <details><summary>Investing &amp; leverage</summary><div class="fields" id="g-inv"></div></details>
+  <details><summary>Taxes</summary><div class="fields" id="g-tax"></div></details>
+  <details><summary>Life &amp; risk preferences</summary><div class="fields" id="g-life"></div></details>
+  <div style="padding:10px 14px;display:flex;gap:8px;flex-wrap:wrap"><button id="reset">Reset to defaults</button></div>
+</aside>
+
+<main>
+  <section class="verdict">
+    <div class="quick" aria-label="Key inputs">
+      <div class="q loc"><label for="metro">Location</label><select id="metro"></select></div>
+      <div class="q"><label for="q-P">Home price</label><div class="inp"><span class="pre">$</span><input id="q-P" type="number" inputmode="decimal" step="1000"></div></div>
+      <div class="q"><label for="q-rent0">Comparable rent</label><div class="inp"><span class="pre">$</span><input id="q-rent0" type="number" inputmode="decimal" step="10"><span class="suf">/mo</span></div></div>
+      <div class="q"><label for="q-dp">Down payment</label><div class="inp"><input id="q-dp" type="number" inputmode="decimal" step="1"><span class="suf">%</span></div></div>
+      <div class="q"><label for="q-rate">Mortgage rate</label><div class="inp"><input id="q-rate" type="number" inputmode="decimal" step="0.05"><span class="suf">%</span></div></div>
+      <div class="q hz"><div class="row"><label for="N" style="font-size:11.5px;color:var(--muted)">Horizon <strong class="num" id="Nlab" style="color:var(--ink)">10 years</strong></label>
+        <span class="seg" role="group" aria-label="Dollar basis"><button id="realBtn" aria-pressed="true">Today's $</button><button id="nomBtn" aria-pressed="false">Nominal $</button></span></div>
+        <input type="range" id="N" min="1" max="30" value="10" aria-label="Horizon in years"></div>
+    </div>
+    <div class="vhead" id="vhead" aria-live="polite">Computing…</div>
+    <div class="bars" id="bars"></div>
+    <div class="vgrid" id="vgrid"></div>
+    <p class="why" id="why"></p>
+    <div class="cap" id="vnote"></div>
+  </section>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="proj" aria-selected="true">Projection</button>
+    <button role="tab" data-tab="sens" aria-selected="false">Sensitivity</button>
+    <button role="tab" data-tab="opt" aria-selected="false">Optimizer</button>
+    <button role="tab" data-tab="hist" aria-selected="false">Backtest</button>
+    <button role="tab" data-tab="mc" aria-selected="false">Monte Carlo &amp; risk</button>
+    <button role="tab" data-tab="scen" aria-selected="false">Scenarios</button>
+    <button role="tab" data-tab="data" aria-selected="false">Data</button>
+    <button role="tab" data-tab="method" aria-selected="false">Method &amp; sources</button>
+  </nav>
+
+  <!-- PROJECTION -->
+  <section class="panel" id="tab-proj">
+    <div class="card"><h2>Net worth over time</h2><p class="cap">Liquidation value if you sold everything at the end of each year. Dots mark refinancings.</p><div class="plot tall" id="p-nw"></div>
+      <details class="how"><summary>How to read this</summary><p>Each line is what that household would have after selling the house (paying commission and any capital-gains tax), paying off the mortgage, and cashing out its portfolio (paying capital-gains tax). The buyer starts below the renter because buying costs closing fees up front and selling costs at exit. The buyer catches up through principal paydown, appreciation on a leveraged asset, and, once owning gets cheaper than rent, investing the monthly savings. The dashed line marks the year the buyer pulls ahead for good.</p></details></div>
+    <div class="two">
+      <div class="card"><h2>Monthly outlay</h2><p class="cap">Owner's cost by component (stacked) against rent. Whoever pays less each month invests the difference. Tax savings are credited once a year.</p><div class="plot" id="p-flow"></div>
+        <details class="how"><summary>How to read this</summary><p>Bars above zero are what the owner pays each month, averaged over the year; the green bar below zero is the federal tax saving from itemizing. Principal is a cost in cash but builds equity. When the blue rent line rises above the bar stack, the owner starts investing the difference.</p></details></div>
+      <div class="card"><h2>Unrecoverable cost per year</h2><p class="cap">Money that builds no wealth: interest, property tax, insurance, upkeep, HOA, PMI, refinancing, minus tax savings, plus the forgone portfolio return on home equity. Compared with rent.</p><div class="plot" id="p-unrec"></div>
+        <details class="how"><summary>How to read this</summary><p>This is the fairest single-year comparison of owning and renting. Principal is excluded because it stays your money. The forgone return is what your equity would have earned in the portfolio. If the green stack is below the rent line, owning is cheaper that year, before counting appreciation.</p></details></div>
+    </div>
+    <div class="two">
+      <div class="card"><h2>Where the buyer's wealth sits</h2><p class="cap">Home equity net of selling costs and tax, plus the buyer's own portfolio.</p><div class="plot" id="p-comp"></div></div>
+      <div class="card"><h2>Liquidity cushion</h2><p class="cap">Assets you could reach without selling the house, in months of the household budget (the larger of owning and renting costs).</p><div class="plot" id="p-liq"></div>
+        <details class="how"><summary>How to read this</summary><p>The renter keeps everything liquid. The buyer's wealth is locked in the house until owning becomes cheaper than renting and surplus starts accumulating. A buyer with fewer than about 3–6 months of costs in liquid assets is exposed if income drops or a big repair comes up. This chart assumes no separate emergency fund on either side.</p></details></div>
+    </div>
+    <div class="card"><h2>Year-by-year table</h2><p class="cap">Copy as CSV to paste into a spreadsheet.</p>
+      <div class="controls"><button id="copyCsv">Copy CSV</button><span class="sub" id="copyMsg"></span></div>
+      <div class="tablewrap"><table id="ytable"></table></div>
+      <details class="how"><summary>Show raw CSV text</summary><textarea class="csv" id="csvText" readonly></textarea></details>
+    </div>
+  </section>
+
+  <!-- SENSITIVITY -->
+  <section class="panel" id="tab-sens" hidden>
+    <div class="card"><h2>What moves the answer</h2><p class="cap">Change in the final advantage of buying over renting-and-investing when each input moves by the stated amount, all else fixed. Bars right of zero favor buying.</p><div class="plot tall" id="p-tor"></div></div>
+    <div class="card"><h2>Home appreciation × portfolio return</h2><p class="cap">Final advantage of buying (% of today's price) across nominal growth rates. Black contour: break-even. Marker: your assumption.</p><div class="plot tall" id="p-heat"></div>
+      <details class="how"><summary>How to read this</summary><p>Everything above and left of the black line favors renting and investing; below and right favors buying. The slope of the line tells you how many points of extra home appreciation compensate one point of extra stock return. Because the home is bought with leverage, the line is usually flatter than 45°.</p></details></div>
+    <div class="card"><h2>Break-even year vs. rent</h2><p class="cap">Advantage of buying at each horizon for different rents, holding the price fixed.</p><div class="plot" id="p-ptr"></div></div>
+  </section>
+
+  <!-- OPTIMIZER -->
+  <section class="panel" id="tab-opt" hidden>
+    <div class="card"><h2>Best down payment and term</h2>
+      <p class="cap">Buy minus rent-and-invest for every down payment and horizon, with the renter investing the same cash. 15-year loans use the 15-year rate in Home &amp; mortgage.</p>
+      <div class="controls"><span class="seg" role="group" aria-label="Loan term"><button id="opt30" aria-pressed="true">30-year</button><button id="opt15" aria-pressed="false">15-year</button></span></div>
+      <div class="plot tall" id="p-opt"></div>
+      <details class="how"><summary>How to read this</summary><p>Green cells favor buying. The dots mark the down payment that maximizes the buy advantage at each horizon. A larger down payment helps buying when the mortgage rate is above the expected portfolio return after tax, and hurts it when below. Under 20% down, PMI applies.</p></details></div>
+    <div class="card"><h2>What would have to be true for buying to win</h2><p class="cap">Each value is the single input change, all else held at your settings, that makes the two main paths tie at that horizon.</p><div class="tablewrap" style="max-height:none"><table class="kv" id="solveT"></table></div></div>
+  </section>
+
+  <!-- BACKTEST -->
+  <section class="panel" id="tab-hist" hidden>
+    <div class="card">
+      <h2>If you had made this decision in the past</h2>
+      <p class="cap">Your price, rent and cost settings replayed through actual historical sequences of home prices, rents, stock, bond and bill returns, inflation and mortgage rates, including refinancing if enabled.</p>
+      <div class="controls">
+        <label>Data <select id="h-mode"><option value="annual">Annual, 1972–2025</option><option value="monthly">Monthly, 1987–2026</option></select></label>
+        <label>Mortgage rate <select id="h-rate"><option value="hist">Actual rate then</option><option value="now">My rate</option></select></label>
+        <label>Home prices <select id="h-home"><option value="metro">Selected location</option><option value="nat">National</option></select></label>
+        <label>Detail start <input type="number" id="h-year" min="1972" max="2024" value="2000"></label>
+      </div>
+      <p class="sub" id="h-note"></p>
+      <div class="plot tall" id="p-spag"></div>
+    </div>
+    <div class="card"><h2>Advantage by start date and horizon</h2><p class="cap">Buying minus renting-and-investing, real, as % of the starting price. Green favors buying, blue favors renting. Blank cells are beyond the data.</p><div class="plot tall" id="p-hheat"></div></div>
+    <div class="card"><h2>Detail: one start year</h2><p class="cap" id="h-detail-cap"></p><div class="plot" id="p-hdet"></div></div>
+  </section>
+
+  <!-- MONTE CARLO -->
+  <section class="panel" id="tab-mc" hidden>
+    <div class="card">
+      <h2>Monte Carlo from history</h2>
+      <p class="cap">Block bootstrap of joint annual draws (home, rent, stocks, bonds, bills, inflation and mortgage-rate changes from the same years, so their correlations are kept). Re-centering shifts each growth series in log space so its geometric mean equals your assumption while keeping historical volatility and correlation.</p>
+      <div class="controls">
+        <label>Paths <input type="number" id="mc-n" value="1500" min="200" max="10000" step="100"></label>
+        <label>Block (yrs) <input type="number" id="mc-b" value="5" min="1" max="20"></label>
+        <label>Sample <select id="mc-w"><option value="1928">1928–2025</option><option value="1972">1972–2025</option></select></label>
+        <label><input type="checkbox" id="mc-rc" checked> Re-center to my assumptions</label>
+        <button class="primary" id="mc-run">Run</button>
+      </div>
+      <p class="sub" id="mc-note"></p>
+    </div>
+    <div class="card"><h2>Distribution of net worth</h2><p class="cap">Median line, 25–75% band (dark) and 5–95% band (light).</p><div class="plot tall" id="p-fan"></div></div>
+    <div class="card"><h2>Risk-adjusted comparison</h2><p class="cap" id="risk-cap"></p><div class="tablewrap" style="max-height:none"><table class="kv" id="riskT"></table></div>
+      <details class="how"><summary>How to read this</summary><p>The certainty equivalent is the sure amount you would accept instead of the gamble, for a person with constant relative risk aversion \(\gamma\): \(CE = \big(\mathbb{E}[W^{1-\gamma}]\big)^{1/(1-\gamma)}\). With \(\gamma = 0\) it equals the mean; higher \(\gamma\) weights bad outcomes more. Expected shortfall is the average of the worst 5% of outcomes. The liquidity row is the share of paths where liquid assets fell below 3 months of costs at any year-end in the first 5 years.</p></details></div>
+    <div class="two">
+      <div class="card"><h2>Probability buying wins</h2><p class="cap">Share of paths where buying beats each alternative, at each horizon, and with random moving.</p><div class="plot" id="p-prob"></div></div>
+      <div class="card"><h2>Final advantage of buying</h2><p class="cap" id="mc-histcap"></p><div class="plot" id="p-mchist"></div></div>
+    </div>
+    <div class="two">
+      <div class="card"><h2>What drove each outcome</h2><p class="cap">Each dot is a path: annualized own-home appreciation vs. portfolio return over the horizon, colored by the buy advantage.</p><div class="plot tall" id="p-mcsc"></div></div>
+      <div class="card"><h2>Simulated mortgage rates</h2><p class="cap">Market 30-year rate paths that drive refinancing (median and 5–95% band), with refinance frequency.</p><div class="plot tall" id="p-mcrate"></div></div>
+    </div>
+  </section>
+
+  <!-- SCENARIOS -->
+  <section class="panel" id="tab-scen" hidden>
+    <div class="card"><h2>Saved scenarios</h2>
+      <p class="cap">Save the current inputs under a name, then compare them. Saved on this device only.</p>
+      <div class="controls"><input type="text" id="scName" placeholder="e.g. Boston condo, 20% down" aria-label="Scenario name"><button class="primary" id="scSave">Save current</button><span class="sub" id="scMsg"></span></div>
+      <div class="scen" id="scList"></div>
+    </div>
+    <div class="card"><h2>Compare: buy advantage over time</h2><p class="cap">Buy minus rent-and-invest for each saved scenario and the current inputs.</p><div class="plot tall" id="p-scen"></div></div>
+    <div class="card"><h2>Compare: key numbers at each scenario's horizon</h2><div class="tablewrap" style="max-height:none"><table class="kv" id="scT"></table></div></div>
+  </section>
+
+  <!-- DATA -->
+  <section class="panel" id="tab-data" hidden>
+    <div class="card"><h2>Cumulative real growth, 1928–2025</h2><p class="cap">$1 at the end of 1927, deflated by CPI-U, log scale. Stocks include dividends; the home index is price only.</p><div class="plot tall" id="p-cum"></div></div>
+    <div class="card"><h2>Metro home prices</h2><p class="cap" id="metro-cap">Real home-price index for the selected location against the national index, rebased to 100 in the metro's first year.</p><div class="plot" id="p-metro"></div></div>
+    <div class="two">
+      <div class="card"><h2>Rolling 10-year real returns</h2><p class="cap">Annualized, ending in the year shown.</p><div class="plot" id="p-roll"></div></div>
+      <div class="card"><h2>Correlation of annual changes</h2><p class="cap">Pearson correlation, 1928–2025 (mortgage-rate changes 1973–2025).</p><div class="plot" id="p-corr"></div></div>
+    </div>
+    <div class="two">
+      <div class="card"><h2>Mortgage rates vs. inflation</h2><p class="cap">Annual average 30-year fixed rate and December-to-December CPI-U inflation.</p><div class="plot" id="p-mort"></div></div>
+      <div class="card"><h2>Lease rents vs. market rents</h2><p class="cap" id="zori-cap">Annual growth of CPI rent (all existing leases) vs. Zillow's asking-rent index (new leases).</p><div class="plot" id="p-zori"></div></div>
+    </div>
+    <div class="card"><h2>Embedded annual data</h2><p class="cap">Percent changes by calendar year. Sources in the Method tab.</p><div class="tablewrap"><table id="dtable"></table></div></div>
+  </section>
+
+  <!-- METHOD -->
+  <section class="panel method" id="tab-method" hidden>
+    <div class="card" id="methodCard"></div>
+    <div class="card"><h2>Sources</h2><ol class="sources" id="srclist"></ol></div>
+  </section>
+</main>
+</div>
+</div>
+<div class="scrim" id="scrim"></div>
+<button class="fab" id="fab" aria-controls="aside">Edit all assumptions</button>

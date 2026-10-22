@@ -1,0 +1,53 @@
+{
+  "name": "San Diego",
+  "hpi": {
+    "series_id": "SDXRNSA",
+    "source_title": "S&P Cotality Case-Shiller CA-San Diego Home Price Index (SDXRNSA), FRED",
+    "source_url": "https://fred.stlouisfed.org/series/SDXRNSA",
+    "data_url": "https://fred.stlouisfed.org/data/SDXRNSA.txt",
+    "basis": "December",
+    "values": {
+      "1987": 59.400911, "1988": 69.843319, "1989": 83.552315, "1990": 83.931136,
+      "1991": 81.136838, "1992": 77.194551, "1993": 73.74102, "1994": 73.015107,
+      "1995": 71.355959, "1996": 71.744442, "1997": 77.571735, "1998": 88.329613,
+      "1999": 99.47196, "2000": 116.31841, "2001": 129.31336, "2002": 154.42953,
+      "2003": 184.11199, "2004": 233.08084, "2005": 248.55185, "2006": 238.07884,
+      "2007": 202.45019, "2008": 152.16337, "2009": 156.28674, "2010": 158.96869,
+      "2011": 150.41893, "2012": 164.30794, "2013": 193.86813, "2014": 203.3762973467,
+      "2015": 217.6587501763, "2016": 229.3032646122, "2017": 246.2563519166, "2018": 251.6866574881,
+      "2019": 263.3114150197, "2020": 297.6351827001, "2021": 374.4588561927, "2022": 380.0912082662,
+      "2023": 413.0910409298, "2024": 435.0853978257, "2025": 439.0174279631
+    },
+    "latest": {"date": "2026-07", "value": 449.7452239692}
+  },
+  "price": {
+    "value": 929618,
+    "date": "2026-09",
+    "what": "Zillow typical home value (ZHVI), San Diego, CA metro",
+    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+  },
+  "rent": {
+    "value": 2967,
+    "date": "2026-09",
+    "what": "Zillow typical rent (ZORI), San Diego, CA metro, monthly",
+    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+  },
+  "ptax": {
+    "rate_pct": 0.65,
+    "geography": "San Diego County, CA",
+    "year": null,
+    "source_title": "SmartAsset California Property Tax Calculator",
+    "source_url": "https://smartasset.com/taxes/california-property-tax-calculator"
+  },
+  "ins": {
+    "annual_usd": 2040,
+    "geography": "California",
+    "coverage": "$300,000 dwelling coverage",
+    "year": 2026,
+    "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
+    "source_url": "https://insurify.com/homeowners-insurance/states/"
+  },
+  "notes": "Case-Shiller December values from FRED .txt, 1987-2025 continuous. Prop 13: assessed value increases limited to max 2%/yr (https://www.placer.ca.gov/5882/Proposition-13; also stated on the SmartAsset CA page). SmartAsset gives no data year for the 0.65% rate (CA statewide 0.71%). Cross-checks: Apartment List Oct 2026 San Diego metro median rent $2,291 (https://www.apartmentlist.com/rent-report/ca/san-diego). Redfin San Diego County page showed median sale price $912,957 Sep 2026 (3-month), identical to the figure on Redfin's LA County page, so treat with caution; Redfin San Diego city $979,034 Sep 2026."
+}
