@@ -37,6 +37,12 @@ const { chromium } = require(process.env.PLAYWRIGHT_PATH || 'playwright');
     if (tex.errs.length) failed.push('TeX errors: ' + tex.errs.slice(0, 5).join(' | '));
     if (tex.unrendered) failed.push(`${tex.unrendered} formulas left unrendered`);
     console.log(`formulas rendered: ${tex.rendered}`);
+    // phone width: the page itself must never scroll sideways; long equations scroll inside their own box
+    const ov = await page.evaluate(() => ({ page: document.documentElement.scrollWidth - innerWidth,
+      eq: [...document.querySelectorAll('#tab-method mjx-container[display="true"]')].filter(e => e.scrollWidth > e.clientWidth + 2).length }));
+    if (ov.page > 1) failed.push(`page is ${ov.page}px wider than a 390px phone screen`);
+    console.log(`equations needing horizontal scroll at 390px: ${ov.eq}`);
+    if (process.env.GITHUB_ACTIONS) console.log(`::notice::page overflow ${ov.page}px; equations scrolling at 390px: ${ov.eq}`);
     if (process.env.GITHUB_ACTIONS) console.log(`::notice::formulas rendered: ${tex.rendered}, TeX errors: ${tex.errs.length}`);
   }
   await browser.close();

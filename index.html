@@ -267,6 +267,50 @@ dl.sym dd{margin:0;color:var(--muted)}
 @media (max-width:520px){dl.sym{grid-template-columns:minmax(0,1fr)}dl.sym dt{text-align:left}dl.sym dd{margin-bottom:4px}}
 .method mjx-container[display="true"]{overflow-x:auto;overflow-y:hidden;max-width:100%}
 table.notation td:first-child{white-space:nowrap}
+/* equations on small screens: wrap long ones (split with aligned), shrink a little, scroll as a last resort */
+.method mjx-container[display="true"],.how mjx-container[display="true"]{display:block!important;overflow-x:auto;overflow-y:hidden;max-width:100%;padding:6px 0;-webkit-overflow-scrolling:touch}
+.method mjx-container:not([display="true"]){max-width:100%;overflow-x:auto;overflow-y:hidden;vertical-align:middle}
+.method p,.method dd,.method dt,.method li{overflow-wrap:anywhere}
+@media (max-width:600px){.method mjx-container[display="true"]{font-size:86%!important}.method mjx-container{font-size:94%}}
+/* pop-up help */
+.hlp{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;min-height:0!important;min-width:0!important;padding:0!important;margin:0 0 0 4px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);font:600 10.5px/1 system-ui,sans-serif;cursor:pointer;vertical-align:middle;flex:none;position:relative}
+.hlp::after{content:"";position:absolute;inset:-8px}
+.hlp:hover,.hlp:focus-visible{color:var(--accent);border-color:var(--accent);outline:none}
+.hpop{position:fixed;z-index:1000;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:10px 12px;font-size:13px;line-height:1.45;max-height:60vh;overflow:auto}
+.hpop[hidden]{display:none!important}
+.hpop-t{font-weight:650;margin-bottom:4px}
+.hpop-b em{color:var(--muted)}
+.vhelp{display:flex;flex-wrap:wrap;gap:2px 10px;align-items:center;margin-top:6px;font-size:12px}
+.vhelp .hlp{margin:0}
+.card h2 .hlp{font-size:10.5px}
+/* formula page */
+.method .mintro p{margin:4px 0 10px}
+.mtoc{margin:0 0 14px;padding:10px 0 12px;border-bottom:1px solid var(--line)}
+.mtools{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.mtools input{flex:1 1 140px;min-width:0;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:14px}
+.mtools button{padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;font-size:12.5px;cursor:pointer}
+.mchips{display:flex;gap:4px 14px;flex-wrap:wrap;margin-top:8px;font-size:12.5px}
+.mg{display:inline-flex;flex-wrap:wrap;gap:4px;align-items:center}
+.mgl{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-right:2px}
+.mchips a{padding:2px 8px;border-radius:999px;background:var(--sunk);color:var(--ink);text-decoration:none;white-space:nowrap}
+.mchips a:hover{background:var(--accent);color:var(--accent-ink)}
+.mchips a.dim{opacity:.35}
+@media (max-width:700px){.mchips{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;scrollbar-width:none}.mchips::-webkit-scrollbar{display:none}.mg{flex-wrap:nowrap}}
+details.msec{border:1px solid var(--line);border-radius:12px;margin:0 0 10px;background:var(--surface);scroll-margin-top:60px}
+details.msec>summary{list-style:none;cursor:pointer;padding:11px 14px;display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:baseline}
+details.msec>summary::-webkit-details-marker{display:none}
+details.msec>summary{position:relative;padding-left:28px}
+details.msec>summary::before{content:"›";position:absolute;left:12px;top:9px;font-size:19px;line-height:1;color:var(--muted);transition:transform .15s}
+details.msec[open]>summary::before{transform:rotate(90deg)}
+.mst{font-weight:650;font-size:15px}
+.mtag{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:1px 7px}
+.msum{grid-column:1/-1;font-size:12.5px;color:var(--muted)}
+.mbody{padding:0 14px 12px;border-top:1px solid var(--line)}
+.mbody>p{margin:10px 0}
+.method mjx-container[display="true"]{background:var(--sunk);border-left:3px solid var(--accent);border-radius:6px;padding:10px 12px!important;margin:10px 0!important;box-sizing:border-box}
+.method dl.sym{background:transparent;border:1px dashed var(--line);margin-top:-4px}
+.mtop{display:inline-block;margin-top:6px;font-size:12px;color:var(--muted)}
+@media (max-width:600px){.mbody{padding:0 10px 10px}details.msec>summary{padding:10px 10px 10px 28px}.method mjx-container[display="true"]{padding:8px!important}}
 </style>
 <div class="wrap">
 <header>
@@ -1573,64 +1617,64 @@ function buildMethod(){
   <dl class="sym"><dt>\\(N\\)</dt><dd>horizon in years (the slider)</dd><dt>\\(g_y\\)</dt><dd>growth rate of a series (home price, rent, stocks, inflation…) in year \\(y\\), as a decimal</dd></dl>
 
   <h3>Mortgage</h3>
-  \\[ L = P(1-d), \\qquad i = \\frac{r}{12}, \\qquad M = \\frac{L\\,i}{1-(1+i)^{-n}}, \\qquad I_t = B_{t-1}\\,i, \\qquad B_t = B_{t-1} - (M - I_t),\\ \\ B_0 = L \\]
+  \\[ \\begin{aligned} L &= P(1-d), \\qquad i = \\frac{r}{12}, \\qquad M = \\frac{L\\,i}{1-(1+i)^{-n}} \\\\ I_t &= B_{t-1}\\,i, \\qquad B_t = B_{t-1} - (M - I_t), \\qquad B_0 = L \\end{aligned} \\]
   <dl class="sym"><dt>\\(P\\)</dt><dd>purchase price</dd><dt>\\(d\\)</dt><dd>down payment as a share of the price</dd><dt>\\(L\\)</dt><dd>loan amount</dd><dt>\\(r\\)</dt><dd>annual note rate (after any points)</dd><dt>\\(i\\)</dt><dd>monthly rate</dd><dt>\\(n\\)</dt><dd>number of monthly payments (12 × loan term in years)</dd><dt>\\(M\\)</dt><dd>monthly principal-and-interest payment</dd><dt>\\(I_t\\)</dt><dd>interest paid in month \\(t\\)</dd><dt>\\(B_t\\)</dt><dd>loan balance after month \\(t\\)</dd></dl>
 
   <h3>Refinancing</h3>
   <p>If the market rate falls far enough below the loan rate, and at least 12 months have passed since the last refinance, the loan is refinanced over its remaining months:</p>
-  \\[ r - m_t \\ge \\Delta_R \\;\\Rightarrow\\; r \\leftarrow m_t,\\quad M \\leftarrow \\frac{B_t\\,(m_t/12)}{1-(1+m_t/12)^{-(n-t)}},\\quad \\text{cost} = c_R\\,B_t \\]
+  \\[ \\begin{aligned} &\\text{if } r - m_t \\ge \\Delta_R: \\quad r \\leftarrow m_t, \\\\ &M \\leftarrow \\frac{B_t\\,(m_t/12)}{1-(1+m_t/12)^{-(n-t)}}, \\quad \\text{cost} = c_R\\,B_t \\end{aligned} \\]
   <dl class="sym"><dt>\\(m_t\\)</dt><dd>market 30-year fixed rate in month \\(t\\): moves linearly from today's rate to your expected later rate \\(\\bar m\\) in the projection, is the actual Freddie Mac rate in the backtest, and is simulated in the Monte Carlo (below)</dd><dt>\\(\\Delta_R\\)</dt><dd>rate drop that triggers a refinance</dd><dt>\\(c_R\\)</dt><dd>refinance cost as a share of the balance, paid in cash</dd></dl>
 
   <h3>Loan types and points</h3>
   \\[ \\text{FHA: } L = P(1-d)(1+u_F),\\qquad \\text{MIP}_t = \\frac{\\pi_F\\,B_{t-1}}{12}\\ \\text{ for } t \\le n_F \\]
-  \\[ \\text{ARM reset } k:\\quad r_k = \\min\\!\\Big(r_0 + c_L,\\ \\max\\!\\big(\\chi,\\ \\min(r_{k-1} + c_k,\\ \\max(r_{k-1} - c_k,\\ \\lfloor x + \\chi \\rceil_{1/8}))\\big)\\Big) \\]
+  \\[ \\begin{aligned} \\text{ARM target: } \\hat r_k &= \\lfloor x + \\chi \\rceil_{1/8} \\\\ \\text{within the reset cap: } \\bar r_k &= \\min\\!\\big(r_{k-1} + c_k,\\ \\max(r_{k-1} - c_k,\\ \\hat r_k)\\big) \\\\ \\text{within floor and lifetime cap: } r_k &= \\min\\!\\big(r_0 + c_L,\\ \\max(\\chi,\\ \\bar r_k)\\big) \\end{aligned} \\]
   \\[ \\text{Points: } r = r_{quote} - p_n\\,\\Delta_p,\\qquad \\text{cash cost} = \\frac{p_n}{100}\\,P(1-d) \\]
   <dl class="sym"><dt>\\(u_F\\)</dt><dd>FHA upfront premium, 1.75%, added to the loan</dd><dt>\\(\\pi_F\\)</dt><dd>FHA annual premium: 0.50–0.75% for 30-year loans (by loan size and LTV), 0.15–0.65% for 15-year</dd><dt>\\(n_F\\)</dt><dd>months the premium is charged: 132 (11 years) with at least 10% down, otherwise the whole term</dd><dt>\\(r_0\\)</dt><dd>ARM starting rate, fixed for 5 or 7 years; resets then happen every 6 months</dd><dt>\\(x\\)</dt><dd>ARM index (30-day SOFR in practice; the model uses the T-bill rate in each scenario)</dd><dt>\\(\\chi\\)</dt><dd>ARM margin over the index (also the rate floor)</dd><dt>\\(c_k\\)</dt><dd>cap on the change at reset \\(k\\): 2 points at the first reset of a 5/6 ARM (5 points for 7/6), then 1 point</dd><dt>\\(c_L\\)</dt><dd>lifetime cap over the starting rate, 5 points</dd><dt>\\(\\lfloor\\cdot\\rceil_{1/8}\\)</dt><dd>rounding to the nearest 1/8 point</dd><dt>\\(r_{quote}\\)</dt><dd>rate before points</dd><dt>\\(p_n\\)</dt><dd>number of discount points</dd><dt>\\(\\Delta_p\\)</dt><dd>rate reduction per point</dd></dl>
   <p>Refinancing an ARM switches it to a fixed rate. A planned move to a new home uses a conventional fixed loan. Points are deducted in the purchase year if you itemize; the renter invests the same cash.</p>
 
   <h3>Owner's monthly cost</h3>
-  \\[ C^{own}_t = M + \\text{MIP}_t + \\text{PMI}_t + \\frac{\\tau_p A_y + \\psi H_y \\epsilon_y + \\text{Ins}_y}{12} + \\text{HOA}_y + U_y + \\text{Refi}_t - R^{hh,net}_t - \\mathbb{1}_{\\text{Dec}}\\,S_y \\]
-  <dl class="sym"><dt>\\(H_y\\)</dt><dd>home market value at the start of year \\(y\\)</dd><dt>\\(A_y\\)</dt><dd>assessed value for property tax: equal to \\(H_y\\), or with an assessment cap \\(a\\), \\(A_y = \\min\\big(H_y,\\ A_{y-1}(1+\\min(g^{home}_{y-1}, a))\\big)\\)</dd><dt>\\(\\tau_p\\)</dt><dd>effective property tax rate</dd><dt>\\(\\psi\\)</dt><dd>maintenance as a share of home value per year</dd><dt>\\(\\epsilon_y\\)</dt><dd>upkeep shock: 1 in the projection; in the Monte Carlo a gamma draw with mean 1 and coefficient of variation ${MAINT_CV}, so repairs arrive in lumps</dd><dt>\\(\\text{Ins}_y\\)</dt><dd>homeowners plus flood/earthquake insurance, growing at inflation plus \\(g_{ins}\\) per year</dd><dt>\\(\\text{HOA}_y,\\ U_y\\)</dt><dd>HOA dues and extra owner utilities per month, growing with inflation</dd><dt>\\(\\text{PMI}_t\\)</dt><dd>\\(p_{mi}L/12\\) while \\(B_t > 0.78P\\) and \\(d < 20\\%\\) (conventional loans; \\(p_{mi}\\) is the PMI rate)</dd><dt>\\(\\text{Refi}_t\\)</dt><dd>refinance cost in the month it happens</dd><dt>\\(R^{hh,net}_t\\)</dt><dd>house-hacking rent after vacancy and its tax (below); 0 if none</dd><dt>\\(\\mathbb{1}_{\\text{Dec}}\\)</dt><dd>1 in December, else 0: the year's tax saving is credited once</dd><dt>\\(S_y\\)</dt><dd>tax saving from owning in year \\(y\\) (below)</dd></dl>
+  \\[ \\begin{aligned} C^{own}_t = {}& M + \\text{MIP}_t + \\text{PMI}_t + \\frac{\\tau_p A_y + \\psi H_y \\epsilon_y + \\text{Ins}_y}{12} \\\\ &+ \\text{HOA}_y + U_y + \\text{Refi}_t - R^{hh,net}_t - \\mathbb{1}_{\\text{Dec}}\\,S_y \\end{aligned} \\]
+  <dl class="sym"><dt>\\(H_y\\)</dt><dd>home market value at the start of year \\(y\\)</dd><dt>\\(A_y\\)</dt><dd>assessed value for property tax: equal to \\(H_y\\), or with an assessment cap \\(a\\), \\(A_y = \\min\\big(H_y,\\ A_{y-1}(1+\\min(g^{home}_{y-1}, a))\\big)\\)</dd><dt>\\(\\tau_p\\)</dt><dd>effective property tax rate</dd><dt>\\(\\psi\\)</dt><dd>maintenance as a share of home value per year</dd><dt>\\(\\epsilon_y\\)</dt><dd>upkeep shock: 1 in the projection; in the Monte Carlo a gamma draw with mean 1 and coefficient of variation ${MAINT_CV}, so repairs arrive in lumps</dd><dt>\\(\\text{Ins}_y\\)</dt><dd>homeowners plus flood/earthquake insurance, growing at inflation plus \\(g_{ins}\\) per year</dd><dt>\\(\\text{HOA}_y,\\ U_y\\)</dt><dd>HOA dues and extra owner utilities per month, growing with inflation</dd><dt>\\(\\text{PMI}_t\\)</dt><dd>\\(p_{mi}L/12\\) while \\(B_t > 0.78P\\) and \\(d \\lt 20\\%\\) (conventional loans; \\(p_{mi}\\) is the PMI rate)</dd><dt>\\(\\text{Refi}_t\\)</dt><dd>refinance cost in the month it happens</dd><dt>\\(R^{hh,net}_t\\)</dt><dd>house-hacking rent after vacancy and its tax (below); 0 if none</dd><dt>\\(\\mathbb{1}_{\\text{Dec}}\\)</dt><dd>1 in December, else 0: the year's tax saving is credited once</dd><dt>\\(S_y\\)</dt><dd>tax saving from owning in year \\(y\\) (below)</dd></dl>
 
   <h3>Renter's monthly cost</h3>
   \\[ C^{rent}_t = R_y + \\frac{\\text{Ins}^{r}_y}{12} + \\frac{\\eta\\,(c_{mv} + b\\,R^{mkt}_y)}{12} \\]
-  \\[ R^{mkt}_{y+1} = R^{mkt}_y(1+g^{rent}_y), \\qquad R_{y+1} = (1-\\eta)\\,R_y\\,(1+g^{rent}_y-\\delta) + \\eta\\,R^{mkt}_{y+1},\\qquad R_0 = R^{mkt}_0 \\]
+  \\[ \\begin{aligned} R^{mkt}_{y+1} &= R^{mkt}_y(1+g^{rent}_y), \\qquad R_0 = R^{mkt}_0 \\\\ R_{y+1} &= (1-\\eta)\\,R_y\\,(1+g^{rent}_y-\\delta) + \\eta\\,R^{mkt}_{y+1} \\end{aligned} \\]
   <dl class="sym"><dt>\\(R_y\\)</dt><dd>the renter's lease rent per month in year \\(y\\)</dd><dt>\\(R^{mkt}_y\\)</dt><dd>market rent for a comparable home (starts at your comparable rent)</dd><dt>\\(g^{rent}_y\\)</dt><dd>market rent growth</dd><dt>\\(\\delta\\)</dt><dd>how much slower renewals grow than market rent (0 = lease tracks market)</dd><dt>\\(\\eta\\)</dt><dd>share of renters who move each year; a move resets the lease to market rent</dd><dt>\\(c_{mv}\\)</dt><dd>cost per move (grows with inflation)</dd><dt>\\(b\\)</dt><dd>broker fee per move, in months of rent</dd><dt>\\(\\text{Ins}^{r}_y\\)</dt><dd>renter's insurance per year</dd></dl>
 
   <h3>Equal budgets</h3>
-  \\[ \\Delta_t = C^{own}_t - C^{rent}_t,\\qquad \\text{renter invests } a\\max(\\Delta_t,0),\\qquad \\text{buyer invests } a\\max(-\\Delta_t,0) \\]
+  \\[ \\begin{aligned} \\Delta_t &= C^{own}_t - C^{rent}_t \\\\ \\text{renter invests } &a\\max(\\Delta_t,0), \\qquad \\text{buyer invests } a\\max(-\\Delta_t,0) \\end{aligned} \\]
   <dl class="sym"><dt>\\(\\Delta_t\\)</dt><dd>how much more owning costs than renting in month \\(t\\)</dd><dt>\\(a\\)</dt><dd>share of the monthly difference actually invested (1 = all of it; the rest is spent)</dd></dl>
   <p>At the start the renter invests the cash the buyer spends: \\(C_0 = P(d + c) + \\text{move-in costs} + \\text{points cost}\\).</p>
 
   <h3>Federal and state tax saving</h3>
-  \\[ S_y = \\mu_y\\Big[\\max\\big(D^{std}_y,\\ \\min(\\text{SALT}_y,\\ T^{st}+\\tau_pA_y) + I^{ded}_y + O\\big) - \\max\\big(D^{std}_y,\\ \\min(\\text{SALT}_y,\\ T^{st}) + O\\big)\\Big] + \\mathbb{1}_{st}\\,t_s\\,(I^{ded}_y + \\tau_pA_y) \\]
+  \\[ \\begin{aligned} S_y = \\mu_y\\Big[ & \\max\\big(D^{std}_y,\\ \\min(\\text{SALT}_y,\\ T^{st}+\\tau_pA_y) + I^{ded}_y + O\\big) \\\\ & - \\max\\big(D^{std}_y,\\ \\min(\\text{SALT}_y,\\ T^{st}) + O\\big)\\Big] \\\\ & + \\mathbb{1}_{st}\\,t_s\\,(I^{ded}_y + \\tau_pA_y) \\end{aligned} \\]
   <dl class="sym"><dt>\\(\\mu_y\\)</dt><dd>federal marginal tax rate (from income and 2026 brackets in automatic mode)</dd><dt>\\(D^{std}_y\\)</dt><dd>standard deduction ($16,100 single, $32,200 joint in 2026), indexed to inflation</dd><dt>\\(\\text{SALT}_y\\)</dt><dd>state-and-local-tax deduction cap: $40,400 in 2026, +1% a year through 2029, $10,000 from 2030; above $505,000 of income it shrinks by 30% of the excess, to a $10,000 floor</dd><dt>\\(T^{st}\\)</dt><dd>your state and local income tax per year</dd><dt>\\(I^{ded}_y\\)</dt><dd>deductible mortgage interest: interest paid in year \\(y\\) times \\(\\min(1, \\$750{,}000/L)\\), plus points in the purchase year</dd><dt>\\(O\\)</dt><dd>other itemized deductions</dd><dt>\\(t_s\\)</dt><dd>your state tax rate on investment income</dd><dt>\\(\\mathbb{1}_{st}\\)</dt><dd>1 if your state lets you deduct mortgage interest and property tax, else 0</dd></dl>
   <p>With house-hacking, only the share \\((1-z)\\) of interest and property tax enters the itemized deductions.</p>
 
   <h3>Investment returns, taxes and leverage</h3>
-  \\[ g_t = w_s r^{stk}_t + w_b r^{bond}_t + w_c r^{bill}_t,\\qquad \\rho_t = \\lambda g_t - (\\lambda-1)\\Big(r^{bill}_t + \\frac{s_b}{12}\\Big) - \\frac{f}{12} \\]
+  \\[ \\begin{aligned} g_t &= w_s r^{stk}_t + w_b r^{bond}_t + w_c r^{bill}_t \\\\ \\rho_t &= \\lambda g_t - (\\lambda-1)\\Big(r^{bill}_t + \\frac{s_b}{12}\\Big) - \\frac{f}{12} \\end{aligned} \\]
   \\[ W^{liq} = V - \\kappa_y \\max(0,\\ V - \\text{basis}) \\]
   <dl class="sym"><dt>\\(w_s, w_b, w_c\\)</dt><dd>portfolio weights in stocks, bonds and T-bills (sum to 1)</dd><dt>\\(r^{stk}_t, r^{bond}_t, r^{bill}_t\\)</dt><dd>monthly total returns of stocks, bonds and T-bills</dd><dt>\\(g_t\\)</dt><dd>unlevered portfolio return in month \\(t\\)</dd><dt>\\(\\lambda\\)</dt><dd>leverage on the portfolio (1 = none)</dd><dt>\\(s_b\\)</dt><dd>borrowing spread over the T-bill rate, per year</dd><dt>\\(f\\)</dt><dd>fund fees per year</dd><dt>\\(\\rho_t\\)</dt><dd>net portfolio return in month \\(t\\), before tax</dd><dt>\\(V\\)</dt><dd>portfolio value</dd><dt>\\(\\text{basis}\\)</dt><dd>money put in plus income already taxed</dd><dt>\\(\\kappa_y\\)</dt><dd>tax rate on gains and dividends: capital-gains rate + NIIT \\(\\nu_y\\) + state rate \\(t_s\\)</dd><dt>\\(\\nu_y\\)</dt><dd>net investment income tax: 3.8% when income exceeds $200,000 single / $250,000 joint, else 0</dd><dt>\\(W^{liq}\\)</dt><dd>what the portfolio is worth after paying tax on a sale</dd></dl>
   <p>In a taxable account, dividends (yield \\(q\\)) are taxed each year at \\(\\kappa_y\\) and bond and T-bill income at \\(\\mu_y + \\nu_y + t_s\\); taxed income is added to the basis. A sheltered account pays no tax. The T-bill-only path earns \\(r^{bill}_t\\) after ordinary-income tax.</p>
 
   <h3>Buyer's net worth</h3>
-  \\[ W^{buy}_t = H_t(1-s)\\,\\xi - B_t - \\kappa_y \\max\\big(0,\\ H_t(1-s)\\,\\xi - P(1+c) - \\Phi - E\\big) + W^{liq}_{buy,t} \\]
+  \\[ \\begin{aligned} W^{buy}_t = {}& H_t(1-s)\\,\\xi - B_t + W^{liq}_{buy,t} \\\\ & - \\kappa_y \\max\\big(0,\\ H_t(1-s)\\,\\xi - P(1+c) - \\Phi - E\\big) \\end{aligned} \\]
   <dl class="sym"><dt>\\(s\\)</dt><dd>selling costs as a share of the price (commissions, fees and seller transfer taxes)</dd><dt>\\(c\\)</dt><dd>buyer closing costs as a share of the price (including buyer transfer taxes)</dd><dt>\\(\\xi\\)</dt><dd>single-house price shock at sale: 1 in the projection; in the Monte Carlo \\(\\exp(\\sigma_h\\varepsilon - \\sigma_h^2/2)\\)</dd><dt>\\(\\Phi\\)</dt><dd>improvements added to the tax basis: a share \\(\\varphi\\) of each year's upkeep</dd><dt>\\(E\\)</dt><dd>home-sale exclusion: $250,000 single, $500,000 joint, if owned at least 2 years</dd><dt>\\(W^{liq}_{buy,t}\\)</dt><dd>the buyer's own portfolio after tax</dd></dl>
   <p>The renter's net worth is \\(W^{inv}_t = W^{liq}_{rent,t}\\). Values in today's dollars divide by cumulative inflation \\(\\prod(1+\\pi_y)\\), where \\(\\pi_y\\) is CPI inflation.</p>
 
   <h3>Transfer taxes</h3>
-  \\[ \\text{tax} = \\sum_{\\text{rules}} \\begin{cases} \\tau\\,X & \\text{flat} \\\\ \\tau_j\\,X \\text{ for the bracket } j \\text{ with } a_j \\le X < b_j & \\text{whole-amount brackets} \\\\ \\sum_j \\tau_j \\max\\big(0,\\ \\min(X, b_j) - a_j\\big) & \\text{marginal brackets} \\end{cases} \\]
+  \\[ \\begin{aligned} \\text{flat: } & \\tau\\,X \\\\ \\text{whole-amount brackets: } & \\tau_j\\,X, \\ \\text{ where } a_j \\le X \\lt b_j \\\\ \\text{marginal brackets: } & \\textstyle\\sum_j \\tau_j \\max\\big(0,\\ \\min(X, b_j) - a_j\\big) \\end{aligned} \\]
   <dl class="sym"><dt>\\(X\\)</dt><dd>the amount taxed: the price \\(P\\), or the loan \\(L\\) for mortgage-recording taxes</dd><dt>\\(\\tau,\\ \\tau_j\\)</dt><dd>tax rate, or the rate for bracket \\(j\\)</dd><dt>\\(a_j, b_j\\)</dt><dd>lower and upper bounds of bracket \\(j\\)</dd></dl>
   <p>Buyer-paid taxes are added to \\(c\\), seller-paid taxes to \\(s\\); split taxes are divided evenly. First-time-buyer reliefs are not applied.</p>
 
   <h3>House-hacking</h3>
-  \\[ R^{hh,net}_t = R^{hh}_y(1-v_h) - \\frac{1}{12}\\big(\\mu_y + t_s\\big)\\max\\!\\Big(0,\\ 12R^{hh}_y(1-v_h) - z\\,(I_y + \\tau_pA_y + \\text{Ins}_y + (1-\\varphi)\\psi H_y + 12U_y)\\Big) \\]
+  \\[ \\begin{aligned} R^{hh,net}_t = {}& R^{hh}_y(1-v_h) - \\tfrac{1}{12}\\big(\\mu_y + t_s\\big)\\max(0,\\ Q_y) \\\\ Q_y = {}& 12R^{hh}_y(1-v_h) \\\\ & - z\\,\\big(I_y + \\tau_pA_y + \\text{Ins}_y + (1-\\varphi)\\psi H_y + 12U_y\\big) \\end{aligned} \\]
   <dl class="sym"><dt>\\(R^{hh}_y\\)</dt><dd>monthly rent from the rented part of the home, growing with market rent</dd><dt>\\(v_h\\)</dt><dd>vacancy rate</dd><dt>\\(z\\)</dt><dd>share of the home rented out</dd><dt>\\(I_y\\)</dt><dd>mortgage interest paid in year \\(y\\)</dd></dl>
   <p>Depreciation is not claimed, so no recapture applies at sale ${RES.hhTax&&RES.hhTax.u?linkTo(RES.hhTax.u,'(IRS Pub 523)'):''}.</p>
 
   <h3>Rent + rental property</h3>
-  \\[ P_R = \\frac{C_0}{d_R + c},\\qquad R^{R}_y = P_R\\,\\frac{12R_0}{P}\\,\\frac{R^{mkt}_y}{R^{mkt}_0}\\,\\frac{1}{12},\\qquad \\text{collected} = R^{R}_y(1-v_R)(1-f_m) \\]
-  \\[ \\text{taxable}_y = 12\\cdot\\text{collected} - I^{R}_y - \\tau_p H^R_y - \\text{Ins}^R_y - 12\\,\\text{HOA}^R_y - (1-\\varphi)\\psi H^R_y - \\frac{P_R(1+c)(1-\\ell)}{27.5} \\]
+  \\[ \\begin{aligned} P_R &= \\frac{C_0}{d_R + c}, \\qquad R^{R}_y = \\frac{P_R}{P}\\,R_0\\,\\frac{R^{mkt}_y}{R^{mkt}_0} \\\\ \\text{collected}_y &= R^{R}_y(1-v_R)(1-f_m) \\end{aligned} \\]
+  \\[ \\begin{aligned} \\text{taxable}_y = {}& 12\\cdot\\text{collected}_y - I^{R}_y - \\tau_p H^R_y - \\text{Ins}^R_y \\\\ & - 12\\,\\text{HOA}^R_y - (1-\\varphi)\\psi H^R_y - \\frac{P_R(1+c)(1-\\ell)}{27.5} \\end{aligned} \\]
   <dl class="sym"><dt>\\(C_0\\)</dt><dd>the same starting cash the renter invests</dd><dt>\\(d_R\\)</dt><dd>down payment on the rental</dd><dt>\\(P_R,\\ H^R_y\\)</dt><dd>rental purchase price and its value in year \\(y\\) (grows like your home)</dd><dt>\\(R^{R}_y\\)</dt><dd>its gross monthly rent, at your price-to-rent ratio</dd><dt>\\(v_R,\\ f_m\\)</dt><dd>rental vacancy and management fee</dd><dt>\\(I^R_y\\)</dt><dd>interest on the rental's 30-year loan at your rate plus the investment-property premium</dd><dt>\\(\\text{Ins}^R_y,\\ \\text{HOA}^R_y\\)</dt><dd>your insurance and HOA scaled by \\(P_R/P\\)</dd><dt>\\(\\ell\\)</dt><dd>land share of the price (not depreciable); buildings depreciate over 27.5 years</dd></dl>
   <p>Losses offset up to $25,000 of other income, phasing out between $100,000 and $150,000 of income; the rest is suspended and released at sale. At sale, gain up to accumulated depreciation is taxed at \\(\\min(25\\%, \\mu_y) + \\nu_y + t_s\\), the rest at \\(\\kappa_y\\) ${RES.dep&&RES.dep.u?linkTo(RES.dep.u,'(IRS Pub 527)'):''}. This household invests the same monthly surplus as the renter plus the rental's cash flow, borrowing at the T-bill rate + 3 points if its portfolio runs negative.</p>
 
@@ -1643,7 +1687,7 @@ function buildMethod(){
   <p>At the start of the move year the buyer sells as in the net-worth formula. <em>Sell and buy again:</em> the next home costs what the old one sold for, closing costs are paid again, all remaining equity becomes the down payment, and a new 30-year fixed loan is taken at \\(m_t\\) then (PMI if under 20% down; the 2-year exclusion clock restarts). <em>Sell and rent:</em> proceeds go into the buyer's portfolio and the household pays market rent from then on. Both households move, so moving costs common to both are left out; the renter's lease resets to market.</p>
 
   <h3>Moving risk</h3>
-  \\[ \\Pr(T=\\tau) = h(1-h)^{\\tau-1}\\ (\\tau<N),\\qquad \\Pr(T=N) = (1-h)^{N-1},\\qquad \\text{expected gap} = \\sum_{\\tau=1}^{N}\\Pr(T=\\tau)\\,\\big(W^{buy}_{\\tau} - W^{inv}_{\\tau}\\big) \\]
+  \\[ \\begin{aligned} \\Pr(T=\\tau) &= h(1-h)^{\\tau-1} \\ \\ (\\tau \\lt N), \\qquad \\Pr(T=N) = (1-h)^{N-1} \\\\ \\text{expected gap} &= \\sum_{\\tau=1}^{N}\\Pr(T=\\tau)\\,\\big(W^{buy}_{\\tau} - W^{inv}_{\\tau}\\big) \\end{aligned} \\]
   <dl class="sym"><dt>\\(T\\)</dt><dd>years until you sell (holding period), capped at \\(N\\)</dd><dt>\\(h\\)</dt><dd>chance of moving in any year</dd><dt>\\(\\tau\\)</dt><dd>a possible holding period, in years</dd><dt>\\(W^{buy}_{\\tau},\\ W^{inv}_{\\tau}\\)</dt><dd>net worth at the end of year \\(\\tau\\)</dd></dl>
   <p>In the Monte Carlo, \\(h\\) is multiplied by \\(k_s\\) in bad years (home prices fell or stocks fell more than 15%), and a move in a bad year sells at a discount \\(\\phi_f\\) to market value ${RES.forced&&RES.forced.u?linkTo(RES.forced.u,'(Campbell, Giglio &amp; Pathak 2011)'):''}.</p>
 
@@ -1653,7 +1697,7 @@ function buildMethod(){
   <dl class="sym"><dt>\\(J\\)</dt><dd>block length: blocks of \\(J\\) consecutive historical years are drawn with replacement, keeping all series from the same years together</dd><dt>\\(x_j\\)</dt><dd>a series' historical value in sampled year \\(j\\)</dd><dt>\\(\\overline{\\ln(1+x)}\\)</dt><dd>its historical average log growth</dd><dt>\\(\\bar g\\)</dt><dd>your assumption for that series; with re-centering the simulated geometric mean equals it</dd><dt>\\(\\sigma_h,\\ \\varepsilon\\)</dt><dd>single-house price volatility and a standard normal draw (used in \\(\\xi\\), or compounded yearly if you choose that model)</dd><dt>\\(m_y\\)</dt><dd>simulated market mortgage rate, in percentage points, kept within 2–20</dd><dt>\\(\\bar m\\)</dt><dd>your expected later rate</dd><dt>\\(\\theta\\)</dt><dd>pull-back speed toward \\(\\bar m\\), fitted on 1973–2025: ${RATE_AR.theta}</dd><dt>\\(\\beta_\\pi\\)</dt><dd>effect of a change in inflation on the rate: ${RATE_AR.beta}</dd><dt>\\(e_y\\)</dt><dd>residual from the same sampled year (normal with s.d. ${RATE_AR.sd} points for years before 1973)</dd><dt>\\(\\pi_y\\)</dt><dd>CPI inflation in year \\(y\\)</dd></dl>
 
   <h3>Risk adjustment</h3>
-  \\[ CE = \\Big(\\mathbb{E}\\big[W^{1-\\gamma}\\big]\\Big)^{\\frac{1}{1-\\gamma}}\\quad (\\gamma \\ne 1),\\qquad CE = \\exp\\big(\\mathbb{E}[\\ln W]\\big)\\quad (\\gamma = 1) \\]
+  \\[ \\begin{aligned} CE &= \\Big(\\mathbb{E}\\big[W^{1-\\gamma}\\big]\\Big)^{\\frac{1}{1-\\gamma}} \\quad (\\gamma \\ne 1) \\\\ CE &= \\exp\\big(\\mathbb{E}[\\ln W]\\big) \\quad (\\gamma = 1) \\end{aligned} \\]
   <dl class="sym"><dt>\\(CE\\)</dt><dd>certainty equivalent: the sure amount worth as much to you as the uncertain outcome</dd><dt>\\(W\\)</dt><dd>simulated net worth at the horizon, floored at 1% of the starting cash</dd><dt>\\(\\gamma\\)</dt><dd>relative risk aversion (0 = risk-neutral)</dd><dt>\\(\\mathbb{E}\\)</dt><dd>average across simulated futures</dd></dl>
 
   <h3>Home-price volatility scaling</h3>
@@ -1705,11 +1749,60 @@ function buildMethod(){
   </tbody></table></div>
 
   `;
+  structureMethod();
   document.getElementById('srclist').innerHTML=Object.values(SRC).map(s=>`<li><a target="_blank" rel="noopener" href="${s.u}">${s.t}</a></li>`).join('')+
     METROS.filter(m=>m.slug!=='us').map(m=>`<li>${m.name}: ${['price','rent','ptax','ins','hpi'].map(k=>m.src&&m.src[k]?`<a target="_blank" rel="noopener" href="${m.src[k].u}">${({price:'price',rent:'rent',ptax:'property tax',ins:'insurance',hpi:'home-price index'})[k]}</a>`:null).filter(Boolean).join(' · ')}</li>`).join('');
 }
 function typeset(el,tries=0){if(window.MathJax&&MathJax.typesetPromise){MathJax.typesetPromise([el]).catch(()=>{})}else if(tries<40)setTimeout(()=>typeset(el,tries+1),250)}
 
+
+/* Formula page layout: sections become collapsible cards with a one-line summary, a sticky contents bar and a filter. */
+const MSEC={
+ 'Time and growth':['Basics','How yearly rates become monthly steps.'],
+ 'Mortgage':['Owning','Loan size, monthly payment and how the balance falls.'],
+ 'Refinancing':['Owning','When the buyer refinances and what it costs.'],
+ 'Loan types and points':['Owning','FHA premiums, ARM resets and buying down the rate.'],
+ "Owner's monthly cost":['Owning','Everything the owner pays each month.'],
+ "Renter's monthly cost":['Renting','Lease rent, renter\'s insurance and moving costs.'],
+ 'Equal budgets':['Basics','Both households spend the same; the cheaper one invests the difference.'],
+ 'Federal and state tax saving':['Taxes','Itemizing vs. the standard deduction, SALT cap and the home-sale exclusion.'],
+ 'Investment returns, taxes and leverage':['Investing','Portfolio growth, yearly tax drag and borrowing to invest.'],
+ "Buyer's net worth":['Basics','What each household would have if it sold everything.'],
+ 'Transfer taxes':['Taxes','State, county and city taxes when a home changes hands.'],
+ 'House-hacking':['Options','Renting out part of your home.'],
+ 'Rent + rental property':['Options','Renting your home and owning a rental instead.'],
+ 'Income growth and affordability':['Taxes','How income moves your bracket and the debt-to-income ratio.'],
+ 'Planned move':['Options','Selling at a set year, then buying again or renting.'],
+ 'Moving risk':['Risk','Having to sell early, likelier and at a discount in bad years.'],
+ 'Monte Carlo':['Risk','Simulated futures built from blocks of real history.'],
+ 'Risk adjustment':['Risk','Certainty equivalent: valuing uncertain outcomes.'],
+ 'Home-price volatility scaling':['Data','Making FHFA price swings match Case-Shiller\'s size.'],
+ 'Monthly bond returns':['Data','Bond returns from 10-year Treasury yields.'],
+ 'Limits':['Basics','What the model leaves out.'],
+ 'Notation':['Basics','Every symbol, with the setting it comes from.'],
+};
+function structureMethod(){
+  const card=document.getElementById('methodCard');const nodes=[...card.childNodes];const h2=card.querySelector('h2');
+  const intro=document.createElement('div');intro.className='mintro';const secs=[];let cur=null;
+  nodes.forEach(n=>{if(n===h2)return;if(n.nodeType===1&&n.tagName==='H3'){cur={h:n,body:[]};secs.push(cur);return}if(cur)cur.body.push(n);else intro.appendChild(n)});
+  const narrow=matchMedia('(max-width:700px)').matches;
+  const groups=['Basics','Owning','Renting','Taxes','Investing','Options','Risk','Data'];
+  const html=secs.map((sec,i)=>{const title=sec.h.textContent.trim();const id='m-'+title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');return {sec,title,id,meta:MSEC[title]||['Basics','']}});
+  const toc=document.createElement('nav');toc.className='mtoc';toc.setAttribute('aria-label','Formula sections');
+  toc.innerHTML=`<div class="mtools"><input type="search" id="mfind" placeholder="Filter: PMI, ARM, tax…" aria-label="Filter formula sections"><button type="button" id="mopen">Expand all</button><button type="button" id="mclose">Collapse all</button></div>`+
+    `<div class="mchips">${groups.filter(g=>html.some(x=>x.meta[0]===g)).map(g=>`<span class="mg"><span class="mgl">${g}</span>${html.filter(x=>x.meta[0]===g).map(x=>`<a href="#${x.id}" data-sec="${x.id}">${x.title}</a>`).join('')}</span>`).join('')}</div>`;
+  card.innerHTML='';card.appendChild(h2);card.appendChild(intro);card.appendChild(toc);
+  html.forEach(({sec,title,id,meta},i)=>{const d=document.createElement('details');d.className='msec';d.id=id;if(!narrow||i===0)d.open=true;if(title==='Notation')d.id='notation';
+    d.innerHTML=`<summary><span class="mst">${title}</span><span class="mtag">${meta[0]}</span><span class="msum">${meta[1]}</span></summary>`;
+    const b=document.createElement('div');b.className='mbody';sec.body.forEach(n=>b.appendChild(n));b.insertAdjacentHTML('beforeend',`<a href="#methodCard" class="mtop">↑ Contents</a>`);d.appendChild(b);card.appendChild(d)});
+  const all=()=>[...card.querySelectorAll('details.msec')];
+  card.querySelector('#mopen').onclick=()=>all().forEach(d=>d.open=true);
+  card.querySelector('#mclose').onclick=()=>all().forEach(d=>d.open=false);
+  card.querySelector('.mchips').addEventListener('click',e=>{const a=e.target.closest('a[data-sec]');if(!a)return;e.preventDefault();const d=document.getElementById(a.dataset.sec)||document.getElementById('notation');d.hidden=false;d.open=true;d.scrollIntoView({behavior:'smooth',block:'start'})});
+  card.addEventListener('click',e=>{const a=e.target.closest('a[href="#notation"],a.mtop');if(!a)return;e.preventDefault();const t=a.classList.contains('mtop')?card:document.getElementById('notation');if(t.tagName==='DETAILS')t.open=true;t.scrollIntoView({behavior:'smooth',block:'start'})});
+  const find=card.querySelector('#mfind');find.addEventListener('input',()=>{const q=find.value.trim().toLowerCase();all().forEach(d=>{const hit=!q||d.textContent.toLowerCase().includes(q);d.hidden=!hit;if(q&&hit)d.open=true});
+    card.querySelectorAll('.mchips a').forEach(a=>{const d=document.getElementById(a.dataset.sec)||document.getElementById('notation');a.classList.toggle('dim',!!d&&d.hidden)})});
+}
 /* ===================== Snapshot ===================== */
 function buildSnap(){
   document.getElementById('snap').innerHTML=SNAP.items.map(c=>`<div class="chip"><span class="k">${c.k}</span><span class="v">${c.v}</span><span class="s muted">${c.s} · ${sl(c.src)}${c.field?` · <a href="#" class="use" data-f="${c.field}" data-v="${c.val}">use</a>`:''}</span></div>`).join('')+
@@ -1806,6 +1899,222 @@ function wireSettings(){
   if(saved&&saved.length===groups.length)groups.forEach((d,i)=>d.open=saved[i]);
   groups.forEach(d=>d.addEventListener('toggle',()=>{if(GROUP_STATE)return;try{localStorage.setItem('rbi-groups',JSON.stringify(groups.map(x=>x.open)))}catch(e){}}));
 }
+/* ===================== Pop-up help ===================== */
+/* Each entry: [title, body]. Bodies are short, plain-language explanations of what the item is and how it moves the result. */
+const HELP={
+ // ---------- settings ----------
+ P:['Home price','What you would pay for the home. A higher price raises the mortgage, property tax, insurance and upkeep, and the down payment the renter invests instead.'],
+ dp:['Down payment','Share of the price you pay in cash. More down means a smaller loan and less interest, but more money tied up in the house instead of invested. Under 20% adds mortgage insurance (PMI), or FHA premiums for FHA loans.'],
+ rate:['30-year mortgage rate','Annual interest rate on a 30-year fixed loan. Defaults to this week\'s Freddie Mac national average; your quote may differ by credit score, points and lender.'],
+ rate15:['15-year mortgage rate','Used only when the loan term is 15 years. 15-year loans have lower rates but much higher monthly payments.'],
+ term:['Loan term','How many years the mortgage lasts. Shorter terms build equity faster and cost less interest, but raise the monthly payment.'],
+ loanType:['Loan type','Conventional fixed: one rate for the whole loan, PMI if under 20% down. FHA fixed: government-insured, as little as 3.5% down, with an upfront and an annual insurance premium. ARM: a lower starting rate that resets every 6 months after 5 or 7 years.'],
+ armRate:['ARM starting rate','The rate during the fixed period of an adjustable-rate mortgage. Defaults to today\'s fixed rate minus the current gap between ARM and fixed rates in the MBA weekly survey.'],
+ armYears:['ARM fixed period','How long the starting rate lasts before resets begin: 5 or 7 years. After that the rate moves every 6 months with the index, within caps.'],
+ armMargin:['ARM margin','Fixed amount added to the index (SOFR) at each reset. Your new rate = index + margin, limited by the caps. Typical margins are 2–3 points.'],
+ pts:['Discount points','Upfront fees that buy a lower rate. One point costs 1% of the loan. Worth it only if you keep the loan long enough for the lower payments to repay the fee.'],
+ ptsCut:['Rate cut per point','How much one point lowers your rate. It varies by lender and day; 0.25 points per point is a common rough figure. Ask lenders for their pricing.'],
+ close:['Buyer closing costs','Lender fees, title, appraisal, escrow and similar costs paid when you buy, as a share of the price. Transfer taxes paid by the buyer are added separately.'],
+ pmi:['PMI','Private mortgage insurance, charged on conventional loans with under 20% down until the balance falls to 78% of the original price. It protects the lender, not you.'],
+ refiOn:['Refinancing','If on, the buyer refinances whenever market rates fall far enough below the loan rate, paying refinance costs. Lower future rates then help the buyer.'],
+ rateLR:['Expected market rate later','Where you expect 30-year mortgage rates to settle. The projection moves rates from today toward this level; the simulations pull rates toward it at the historical pace.'],
+ glide:['Years to reach that rate','How many years the projection takes to move from today\'s rate to your expected later rate.'],
+ refiTh:['Refinance trigger','How far market rates must fall below your loan rate before refinancing. A common rule of thumb is 0.75 to 1.5 points.'],
+ refiCost:['Refinance cost','Closing costs of a refinance as a share of the remaining balance, paid in cash.'],
+ ptax:['Property tax','Yearly property tax as a share of the home\'s value. Location presets use the metro-wide effective rate from the Census survey (median tax ÷ median value); your town may differ a lot.'],
+ ptaxCap:['Assessment growth cap','Some states limit how fast the taxed value can rise (California: 2% a year). Then your tax grows more slowly than the home\'s value. 0 = no cap.'],
+ ins:['Home insurance','Yearly homeowners insurance premium. Location presets use state averages; coastal and wildfire areas can cost much more.'],
+ maint:['Maintenance','Average yearly upkeep and repairs as a share of home value. The simulations make repairs lumpy (some years much more, some less).'],
+ hoa:['HOA dues','Monthly homeowners-association or condo fees, growing with inflation.'],
+ sell:['Selling costs','Agent commissions and other seller fees when you sell, as a share of the price. Seller-paid transfer taxes are added separately.'],
+ ttAuto:['Transfer and recording taxes','Taxes charged when a home changes hands or a mortgage is recorded. "From location" fills them in from the state, county and city rules for the chosen metro, at your price and loan size.'],
+ ttBuy:['Buyer transfer taxes','Transfer, mansion and mortgage-recording taxes paid by the buyer, as a share of the price. Added to closing costs.'],
+ ttSell:['Seller transfer taxes','Transfer taxes paid by the seller, as a share of the sale price. Added to selling costs.'],
+ insG:['Insurance growth above inflation','How much faster than inflation insurance premiums rise each year. The default is the 1998–2025 gap between the BLS homeowners-insurance price index and CPI.'],
+ utilDiff:['Extra utilities','How much more you would pay for utilities as an owner: bigger homes cost more to heat and cool, and owners often pay water, sewer and trash that rent includes.'],
+ floodIns:['Flood / earthquake insurance','Separate policies that standard homeowners insurance does not cover. Check the FEMA flood map or get a quote if you are in a risk zone.'],
+ moveIn:['Move-in costs','One-time costs of buying beyond closing: furniture for a bigger home, immediate repairs, and so on. The renter invests this money instead.'],
+ impShare:['Improvements share','Part of upkeep that counts as capital improvements (a new roof, a kitchen). It is added to the home\'s tax basis and lowers capital-gains tax when you sell.'],
+ rMove:['Renter moves per year','Share of renters who move each year. Each move costs money and resets rent to the market level.'],
+ rMoveCost:['Cost per move','Movers, application fees, deposits lost to timing and overlapping rent each time a renter moves.'],
+ broker:['Broker fee','Some cities (e.g. New York, Boston) charge tenants about one month of rent per move. 0 elsewhere.'],
+ beds:['Bedrooms','Sets the comparable rent. The rent for this bedroom count = Zillow\'s typical rent for the area × the Census ratio of rents for this size to all rentals. Compare like with like: the rent of a home similar to the one you would buy.'],
+ rent0:['Comparable rent','Monthly rent for a home similar to the one you would buy. This is the single most important input; a real listing is best.'],
+ renewGap:['Lease renewals vs. market','How much slower your rent rises when you renew than market rents. 0 means your rent tracks the market. Lately renewals have risen faster than new leases.'],
+ gh:['Home appreciation','Average yearly rise in the home\'s value. Long-run U.S. average is about 4% a year, roughly inflation plus 1 point. One of the two biggest drivers of the result.'],
+ gr:['Rent growth','Average yearly rise in market rents. Higher rent growth helps buying, because the owner\'s payment is mostly fixed.'],
+ inf:['Inflation','Yearly CPI inflation. Used for today\'s-dollar results and to grow costs like insurance, HOA and utilities.'],
+ rs:['Stock return','Average yearly total return on stocks, dividends included. The other big driver: higher returns help renting and investing.'],
+ rb:['Bond return','Average yearly return on bonds in the portfolio.'],
+ rc:['Cash / T-bill return','Yearly return on Treasury bills. Used for the T-bills path, the cash part of the portfolio, and as the ARM index.'],
+ ws:['Stocks share','Share of the investment portfolio in stocks. The rest goes to bonds and T-bills.'],
+ wb:['Bonds share','Share of the portfolio in bonds; whatever is not in stocks or bonds sits in T-bills.'],
+ acct:['Account type','Taxable: dividends and interest are taxed every year and gains when sold. Tax-sheltered: no tax, like a Roth IRA (contribution limits not modeled).'],
+ dy:['Dividend yield','Part of the stock return paid as dividends, which are taxed each year in a taxable account.'],
+ fee:['Fund fees','Yearly expense ratio of the funds you invest in. Broad index funds charge under 0.1%.'],
+ lev:['Portfolio leverage','1 = no borrowing. Above 1 borrows to invest, to compare the renter at a similar risk to a buyer, whose home is bought mostly with a loan.'],
+ spread:['Borrowing spread','Interest above the T-bill rate paid on money borrowed to invest (only matters with leverage above 1).'],
+ incGrowth:['Income growth','How fast your household income grows each year. It moves your tax bracket and the affordability ratio over time.'],
+ income:['Household income','Gross yearly income before tax. Sets the federal tax bracket, the limit on deducting state and local taxes, the 3.8% investment tax, and the affordability check.'],
+ debt:['Other debt payments','Monthly car, student-loan and card payments. Used for the total debt-to-income ratio lenders check.'],
+ taxOn:['Model taxes','Turn off to compare before taxes. On is more realistic.'],
+ filing:['Filing status','Single or married filing jointly. Changes the standard deduction, brackets, the home-sale exclusion ($250k / $500k) and tax thresholds.'],
+ muMode:['Marginal rate','Automatic picks your federal bracket from income and 2026 tax brackets. Choose manual to enter it yourself.'],
+ mu:['Marginal federal rate','Tax rate on your last dollar of income. Sets the value of mortgage-interest and property-tax deductions and the tax on interest income.'],
+ stTax:['State & local income tax','Yearly state and local income tax. It counts toward the $40,400 cap on deducting state and local taxes, together with property tax.'],
+ oth:['Other itemized deductions','Charitable gifts and other deductions. They help decide whether itemizing beats the standard deduction.'],
+ stRate:['State tax on investments','Your state\'s tax rate on dividends, interest and capital gains (e.g. 5% in Massachusetts, 0 in Texas or Florida).'],
+ stDed:['State deduction for homeowners','Some states let you deduct mortgage interest and property tax on the state return too.'],
+ ltcg:['Capital-gains rate','Federal rate on long-term gains and qualified dividends: 0%, 15% or 20% depending on income. The 3.8% investment tax is added automatically above $200k ($250k joint).'],
+ hhRent:['House-hacking rent','Rent you collect from part of your home (a room, a basement or accessory unit). It lowers your housing cost; the net income is taxed. Choose a bigger home if you plan this.'],
+ hhShare:['Share rented out','Part of the home used by the tenant. That share of interest, tax, insurance and upkeep becomes a rental expense instead of a personal deduction.'],
+ hhVac:['House-hack vacancy','Share of the time the rented part sits empty.'],
+ rentalOn:['Rental-property path','Adds a fourth household that rents its own home and puts the same starting cash into buying a rental property. Compares being a landlord with buying your own home or investing in a portfolio.'],
+ dpR:['Rental down payment','Down payment on the rental property. Lenders require at least 15% (1 unit) or 25% (2–4 units) for investment properties.'],
+ ratePrem:['Investment-property rate premium','Extra interest lenders charge on loans for rentals, typically 0.5–1 point above owner-occupied rates.'],
+ vacR:['Rental vacancy','Share of the year the rental sits empty. The U.S. rental vacancy rate is about 7%.'],
+ mgmt:['Management fee','Share of collected rent paid to a property manager. Set 0 if you manage it yourself (and value your time accordingly).'],
+ landShare:['Land share','Part of the rental\'s price that is land. Land cannot be depreciated for tax, so a higher land share means less tax deduction.'],
+ investShare:['Share actually invested','The model assumes the household paying less each month invests the difference. If you would spend some of it, lower this. This usually helps buying, because a mortgage forces saving.'],
+ moveMode:['Planned move','If you already know you will move: sell at the chosen year and either buy again (paying closing costs again, at that year\'s rates) or rent from then on.'],
+ moveYear:['Move year','The year of the planned move. It must come before the horizon to have an effect.'],
+ volAdj:['Scale price swings','FHFA\'s home-price indexes leave out jumbo loans and swing less than Case-Shiller\'s. On keeps FHFA\'s timing and long-run growth but scales the ups and downs to Case-Shiller\'s size.'],
+ hz:['Chance of moving','Yearly chance you have to sell earlier than planned. The typical owner stays about 12 years, which is roughly 6% a year.'],
+ stressMult:['Moves likelier in bad years','How much more likely an early move is when home prices or stocks just fell (job loss and price drops tend to come together). Used in the simulations only.'],
+ forcedDisc:['Forced-sale discount','How much below market value you would sell if forced to sell in a downturn. Research finds about 3–7% for sales after a bankruptcy or death, 27% for foreclosures.'],
+ idio:['Own-home price risk','A single house\'s price varies around its area\'s index (location, condition, timing). This sets how much, as a standard deviation. Used in the simulations.'],
+ idioMode:['Own-home risk model','One-time at sale: a single random shock when you sell (recent research). Compounds yearly: random each year, so it grows with time (older estimates, more risk).'],
+ gamma:['Risk aversion','How much you dislike uncertainty, for the certainty-equivalent row in the risk table. 0 = you care only about the average; 2–5 is typical; higher weights bad outcomes more.'],
+ // ---------- top card ----------
+ metro:['Location','Fills in local home price, rent, property tax, insurance and transfer taxes, and uses local home-price and rent history in the backtest and simulations. Your own numbers are better when you have them.'],
+ N:['Horizon','How many years until you would sell and compare. Buying has large upfront and exit costs, so it usually needs several years to win.'],
+ basis:['Today\'s vs. nominal dollars','Today\'s dollars remove inflation so future amounts are comparable to money now. Nominal shows the actual future dollar amounts.'],
+ verdict:['What "comes out ahead" means','Each path\'s net worth if you sold everything at the horizon: home sold (after commission, transfer taxes, mortgage payoff and tax) plus investments cashed out after tax. Both households spend the same each month; whoever pays less invests the difference.'],
+ conf:['How sure is the answer?','Share of 600 simulated futures (built from real historical years) in which buying ends ahead at your horizon. Very likely: 80%+ one way. Close call: 45–55%.'],
+ paths:['The three paths','Buy: buy the home and invest any month owning is cheaper than renting. Rent + invest: rent and invest the down payment and any monthly savings in the portfolio. Rent + T-bills: same, but keep the money in Treasury bills (low risk).'],
+ st_pull:['Buying pulls ahead','First year after which buying stays ahead of renting and investing for good, at your growth assumptions.'],
+ st_own1:['Owning, month 1','First month\'s cost of owning: mortgage payment, property tax, insurance, maintenance, HOA, mortgage insurance and extra utilities, before tax savings.'],
+ st_cash:['Cash to buy','Money needed at purchase: down payment, closing costs, buyer transfer taxes and points.'],
+ st_hti:['Housing / income','Month-1 owning cost as a share of gross monthly income, and with other debts added. Guidelines: up to 28% for housing and 36% in total; most lenders cap total debt near 43%.'],
+ st_beRent:['Break-even rent','The monthly rent at which buying and renting-and-investing would tie at your horizon. If comparable rent is above this, buying wins.'],
+ st_beG:['Break-even home growth','The yearly home appreciation at which the two paths tie at your horizon.'],
+ st_exp:['Expected gap with move risk','The buy-minus-rent gap averaged over when you might have to sell early, given your chance of moving each year.'],
+ st_cashpath:['Rent + T-bills','Net worth if you rent and keep all savings in Treasury bills: a low-risk benchmark.'],
+ why:['Biggest drivers','The inputs that change the answer most (from the Sensitivity tab), and how far rent or home growth would have to move to flip the result.'],
+ // ---------- presets & controls ----------
+ presets:['Presets','Each preset fills the growth-rate settings (home prices, rents, stocks, bonds, cash, inflation) at once. <b>1928–2025 avg</b>: long-run U.S. averages, stocks about 10%, homes about 4%, inflation about 3% a year. <b>1972–2025 avg</b>: the era of modern mortgage data and higher inflation. <b>2026 forecasts</b>: the average of 43 investment firms\' 10-year forecasts plus economists\' 5-year home-price expectations (lower stock returns than history). <b>Current YoY</b>: the latest one-year changes, noisy, better as a stress test. <b>Metro history</b>: the chosen location\'s own price history.'],
+ pre_long:['1928–2025 averages','Fills growth rates with long-run U.S. averages: stocks about 10%, homes about 4%, inflation about 3% a year.'],
+ pre_modern:['1972–2025 averages','Averages since 1972, the era of modern mortgage data and higher inflation.'],
+ pre_fcst:['2026 forecasts','Published 10-year forecasts: the average of 43 investment firms for stocks, bonds, cash and inflation, plus economists\' 5-year home-price expectations. Lower stock returns than history.'],
+ pre_now:['Current year-over-year','Uses the latest one-year changes in home prices, rents and inflation. Short-term figures are noisy; better as a stress test than a forecast.'],
+ pre_metro:['Location history','Uses the chosen metro\'s own historical home-price growth.'],
+ aq:['Find a setting','Type part of a setting\'s name or description to show only matching settings.'],
+ nwBand:['Range from simulated paths','Shades where the middle half of simulated futures end up, to show uncertainty around the single projected line.'],
+ copySummary:['Copy summary','Copies a short text summary of the inputs and results to paste into a note or message.'],
+ shareLink:['Copy link','Copies a link that opens the app with your exact inputs. Anyone with the link sees them.'],
+ openWizard:['Quick setup','Three questions (location, the home and your income, how long you\'d stay) that set up a realistic starting point.'],
+ 'mc-n':['Paths','Number of simulated futures. More is smoother but slower; 1,500 is plenty for percentages.'],
+ 'mc-b':['Block length','The simulation strings together runs of this many consecutive historical years, so booms and busts keep their real length.'],
+ 'mc-w':['Sample','Which history to draw years from: all years since 1928, or since 1972.'],
+ 'mc-rc':['Re-center','Shifts each historical series so its average matches your growth assumptions, while keeping its real volatility and how series moved together.'],
+ 'h-mode':['Annual or monthly data','Annual: 1972–2025 with local home and rent history. Monthly: 1991–2026 national data, month by month.'],
+ 'h-rate':['Mortgage rate in the backtest','Actual rate then: each start year uses that year\'s average mortgage rate. My rate: every start year uses today\'s rate.'],
+ 'h-home':['Home prices in the backtest','Selected location: the metro\'s own price history where available. National: U.S. average.'],
+ 'h-year':['Detail start','Start year shown in the detail chart below.'],
+ optTerm:['Loan term','Switches the optimizer between 30- and 15-year loans.'],
+ scName:['Scenario name','Name the current inputs to save them on this device and compare later.'],
+ cmp:['Pick two scenarios','Choose any two saved scenarios (or the current inputs) to compare side by side.'],
+ // ---------- risk table ----------
+ r_mean:['Mean','Average net worth across simulated futures.'],
+ r_med:['Median','The middle outcome: half of futures end higher, half lower.'],
+ r_p5:['5th percentile','A bad case: only 1 in 20 futures ends lower.'],
+ r_p95:['95th percentile','A good case: only 1 in 20 futures ends higher.'],
+ r_es:['Expected shortfall','Average of the worst 5% of futures: how bad the bad cases are, not just where they start.'],
+ r_sd:['Standard deviation','Typical spread of outcomes around the average.'],
+ r_ce:['Certainty equivalent','The sure amount you would value as much as the uncertain outcome, given your risk aversion. Compares paths after accounting for risk.'],
+ r_lq:['Liquidity squeeze','Share of futures where liquid savings fell below 3 months of housing costs in the first 5 years: the risk of being cash-poor.'],
+};
+/* Chart purpose, keyed by plot id (the "How to read this" note under each chart has the details). */
+const CHART_HELP={
+ nw:'How much each household would have each year if it sold everything. The main answer over time.',
+ flow:'Where the owner\'s monthly money goes, compared with rent.',
+ unrec:'Money that builds no wealth each year, for owner and renter: the fairest yearly cost comparison.',
+ comp:'How much of the buyer\'s wealth is in the house vs. invested.',
+ liq:'How many months of costs each household could cover from savings without selling the house.',
+ tor:'Which assumptions change the answer most.',
+ heat:'The result for every combination of home appreciation and portfolio return.',
+ ptr:'How the break-even year depends on rent.',
+ opt:'The best down payment for each length of stay.',
+ spag:'What would have happened if you had made this decision in each past year.',
+ hheat:'Past outcomes for every start year and holding period at once.',
+ hdet:'One historical start year in detail.',
+ fan:'The range of outcomes across simulated futures.',
+ prob:'The chance buying wins, by how long you stay.',
+ mchist:'How the simulated outcomes are spread.',
+ mcsc:'Which combinations of home and stock growth make buying win.',
+ mcrate:'Simulated mortgage-rate paths and how often they trigger a refinance.',
+ scen:'Saved scenarios side by side over time.',
+ cmp:'Two scenarios compared.',
+ cum:'Long-run growth of stocks, bonds, bills, home prices and rent since 1927.',
+ metro:'The location\'s home prices against the national index.',
+ roll:'10-year returns over history, showing how much timing matters.',
+ corr:'How the series moved together historically.',
+ mort:'Mortgage rates and inflation over time.',
+ zori:'Rents on new leases vs. all leases.',
+};
+const CARD_HELP={'30-yr mortgage':'Freddie Mac weekly national average for a 30-year fixed loan.','15-yr mortgage':'Freddie Mac weekly national average for a 15-year fixed loan.',
+ '10-yr Treasury':'Yield on 10-year U.S. government bonds; mortgage rates tend to sit about 1.7 points above it.','Home prices (Case-Shiller)':'Change in U.S. home prices over the past year (S&P Cotality Case-Shiller National Index).',
+ 'Median existing home':'Middle sale price of existing homes sold last month (National Association of Realtors).','Typical home value':'Zillow\'s typical U.S. home value (middle of the market).',
+ 'Typical rent':'Zillow\'s typical U.S. asking rent across all rental sizes.','CPI inflation':'Change in consumer prices over the past year (BLS).','Property tax':'U.S. average effective property tax rate.','Data as of':'When the market figures above were last updated.'};
+
+function helpBtn(key,title){return `<button type="button" class="hlp" data-h="${key}" aria-label="Help: ${(title||'').replace(/"/g,'')}">?</button>`}
+function addHelp(el,key,title,where){if(!el||el.querySelector(':scope > .hlp'))return;el.insertAdjacentHTML(where||'beforeend',helpBtn(key,title))}
+let POP=null,POP_FOR=null;
+function closeHelp(){if(POP){POP.hidden=true;POP_FOR=null}}
+function openHelp(btn){const k=btn.dataset.h;let t,b;
+  if(k.startsWith('chart:')){const id=k.slice(6);t=btn.closest('.card').querySelector('h2').childNodes[0].textContent.trim();b=CHART_HELP[id]+' <em>See "How to read this" below the chart for details.</em>'}
+  else if(k.startsWith('card:')){t=k.slice(5);b=CARD_HELP[t]||''}
+  else{const h=HELP[k];if(!h)return;[t,b]=h}
+  if(!POP){POP=document.createElement('div');POP.className='hpop';POP.setAttribute('role','dialog');POP.setAttribute('aria-live','polite');document.body.appendChild(POP)}
+  if(POP_FOR===btn&&!POP.hidden){closeHelp();return}
+  POP.innerHTML=`<div class="hpop-t">${t}</div><div class="hpop-b">${b}</div>`;POP.hidden=false;POP_FOR=btn;
+  const r=btn.getBoundingClientRect(),vw=document.documentElement.clientWidth,vh=window.innerHeight,w=Math.min(320,vw-24);
+  POP.style.width=w+'px';const left=Math.max(12,Math.min(vw-w-12,r.left+r.width/2-w/2));POP.style.left=left+'px';
+  const ph=POP.offsetHeight;let top=r.bottom+8;if(top+ph>vh-12&&r.top-ph-8>12)top=r.top-ph-8;POP.style.top=Math.max(12,top)+'px'}
+function wireHelp(){
+  // settings
+  F.forEach(f=>{const id=f[1];if(!HELP[id])return;const el=document.getElementById(id);const lab=el&&el.closest('.f')?.querySelector('label');if(!lab)return;const rst=lab.querySelector('.rst');
+    if(rst)rst.insertAdjacentHTML('beforebegin',helpBtn(id,HELP[id][0])+' ');else addHelp(lab,id,HELP[id][0])});
+  // top card
+  [['metro','metro'],['q-P','P'],['q-rent0','rent0'],['q-dp','dp'],['q-rate','rate']].forEach(([el,k])=>{const lab=document.querySelector(`label[for="${el}"]`);addHelp(lab,k,HELP[k][0])});
+  addHelp(document.querySelector('label[for="N"]'),'N',HELP.N[0]);
+  document.querySelector('.seg[aria-label="Dollar basis"]').insertAdjacentHTML('afterend',helpBtn('basis',HELP.basis[0]));
+  document.querySelector('.vtop').insertAdjacentHTML('beforeend',`<div class="vhelp">${helpBtn('verdict','What comes out ahead means')}<span class="sub">what this means</span> ${helpBtn('conf','How sure')}<span class="sub">how sure</span> ${helpBtn('paths','The paths')}<span class="sub">the paths</span></div>`);
+  // presets and controls
+  const pr=document.querySelector('.presets');if(pr)pr.insertAdjacentHTML('beforeend',helpBtn('presets','About presets'));
+  [['copySummary','afterend'],['shareLink','afterend'],['openWizard','afterend'],['scName','afterend']].forEach(([id,w])=>{const el=document.getElementById(id);if(el)el.insertAdjacentHTML(w,helpBtn(id,HELP[id][0]))});
+  ['nwBand','mc-n','mc-b','mc-w','mc-rc','h-mode','h-rate','h-home','h-year'].forEach(id=>{const el=document.getElementById(id);const lab=el&&el.closest('label');if(lab)lab.insertAdjacentHTML('afterend',helpBtn(id,HELP[id][0]))});
+  const ot=document.getElementById('opt30');if(ot)ot.parentElement.insertAdjacentHTML('afterend',helpBtn('optTerm',HELP.optTerm[0]));
+  const ca=document.getElementById('cmpB');if(ca)ca.closest('label').insertAdjacentHTML('afterend',helpBtn('cmp',HELP.cmp[0]));
+  // chart titles
+  document.querySelectorAll('.card .plot').forEach(p=>{const id=p.id.replace(/^p-/,'');const h2=p.closest('.card').querySelector('h2');if(h2&&CHART_HELP[id])addHelp(h2,'chart:'+id,'About this chart')});
+  // re-rendered content
+  const mo=new MutationObserver(()=>decorateHelp());['vgrid','vgrid2','snap','riskT','why'].forEach(id=>{const el=document.getElementById(id);if(el)mo.observe(el,{childList:true})});decorateHelp();
+  // clicks
+  document.addEventListener('click',e=>{const b=e.target.closest('.hlp');if(b){e.preventDefault();e.stopPropagation();openHelp(b);return}if(POP&&!POP.hidden&&!e.target.closest('.hpop'))closeHelp()},true);
+  addEventListener('keydown',e=>{if(e.key==='Escape')closeHelp()});
+  addEventListener('scroll',()=>closeHelp(),{passive:true});addEventListener('resize',()=>closeHelp());
+  document.getElementById('aside').addEventListener('scroll',()=>closeHelp(),{passive:true});
+}
+/* help buttons inside content that is re-rendered (stats, market cards, risk table) */
+const STAT_HELP={'Buying pulls ahead':'st_pull','Owning, month 1':'st_own1','Cash to buy':'st_cash','Housing / income':'st_hti','Break-even rent':'st_beRent','Break-even home growth':'st_beG','Rent + T-bills':'st_cashpath'};
+const RISK_HELP={'Mean':'r_mean','Median':'r_med','5th percentile':'r_p5','95th percentile':'r_p95','Expected shortfall (worst 5%)':'r_es','Standard deviation':'r_sd','Liquid < 3 months of costs (first 5 yrs)':'r_lq'};
+function decorateHelp(){
+  document.querySelectorAll('.stat .k').forEach(k=>{if(k.querySelector('.hlp'))return;const txt=k.textContent.trim();const key=STAT_HELP[txt]||(txt.startsWith('Expected gap')?'st_exp':null);if(key)k.insertAdjacentHTML('beforeend',' '+helpBtn(key,HELP[key][0]))});
+  document.querySelectorAll('.chip .k').forEach(k=>{if(k.querySelector('.hlp'))return;const t=k.textContent.trim();if(CARD_HELP[t])k.insertAdjacentHTML('beforeend',' '+helpBtn('card:'+t,t))});
+  const w=document.getElementById('why');if(w&&w.textContent.trim()&&!w.querySelector('.hlp'))w.insertAdjacentHTML('afterbegin',helpBtn('why',HELP.why[0])+' ');
+  document.querySelectorAll('#riskT tbody tr td:first-child').forEach(td=>{if(td.querySelector('.hlp'))return;const t=td.textContent.trim();const key=RISK_HELP[t]||(t.startsWith('Certainty equivalent')?'r_ce':null);if(key)td.insertAdjacentHTML('beforeend',' '+helpBtn(key,HELP[key][0]))});
+}
 /* ===================== Wiring ===================== */
 const RENDER={proj:renderProj,sens:renderSens,opt:renderOpt,hist:renderHist,mc:()=>{renderMC();typeset(document.getElementById('tab-mc'))},scen:renderScen,data:renderData,method:()=>typeset(document.getElementById('tab-method'))};
 function showTab(k){CUR=k;document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===k));
@@ -1833,7 +2142,7 @@ function copyText(txt,msgEl,okMsg){const done=()=>{msgEl.textContent=okMsg;setTi
 const STANDALONE_SITE=(()=>{try{return window.top===window.self&&/^https?:$/.test(location.protocol)}catch(e){return false}})();
 function setBasis(){document.getElementById('realBtn').setAttribute('aria-pressed',REAL);document.getElementById('nomBtn').setAttribute('aria-pressed',!REAL);update()}
 function init(){
-  buildInputs();buildMetroSelect();buildSnap();buildMethod();const hadSaved=(()=>{try{return !!localStorage.getItem('rbi-inputs')}catch(e){return false}})();restore();wireWizard();wireSettings();
+  buildInputs();buildMetroSelect();buildSnap();buildMethod();const hadSaved=(()=>{try{return !!localStorage.getItem('rbi-inputs')}catch(e){return false}})();restore();wireWizard();wireSettings();wireHelp();
   if(STANDALONE_SITE){const sp=new URLSearchParams(location.search).get('s');const st=sp&&decodeState(sp);if(st){setRaw(st);if(st.REAL===false)REAL=false;const m=METROS.find(x=>x.slug===st.metro);if(m)updateMetroHints(m);history.replaceState(null,'',location.pathname)}}
   const shareBtn=document.getElementById('shareLink');shareBtn.hidden=!STANDALONE_SITE;
   shareBtn.addEventListener('click',()=>copyText(location.origin+location.pathname+'?s='+encodeURIComponent(encodeState()),document.getElementById('actMsg'),'Link copied. Anyone opening it sees these inputs.'));
