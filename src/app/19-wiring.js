@@ -4,17 +4,17 @@ function showTab(k){CUR=k;document.querySelectorAll('.tabs button').forEach(b=>b
   Object.keys(RENDER).forEach(t=>document.getElementById('tab-'+t).hidden=t!==k);try{localStorage.setItem('rbi-tab',k)}catch(e){}
   requestAnimationFrame(()=>RENDER[k]())}
 const QUICK=['P','rent0','dp','rate'];
-function syncQuick(){QUICK.forEach(k=>{const q=document.getElementById('q-'+k),m=document.getElementById(k);if(document.activeElement!==q)q.value=m.value})}
+function syncQuick(){QUICK.forEach(k=>{const q=document.getElementById('q-'+k),m=document.getElementById(k);if(document.activeElement!==q){q.value=unfmt(m.value);if(q.dataset.money!=null)fmtMoneyEl(q)}})}
 function persist(){try{localStorage.setItem('rbi-inputs',JSON.stringify(Object.assign(getRaw(),{REAL,v:4})));document.getElementById('saved').textContent='saved on this device'}catch(e){}}
 function restore(){try{const o=JSON.parse(localStorage.getItem('rbi-inputs')||'null');if(!o||o.v!==4)return;setRaw(o);if(o.REAL===false)REAL=false;const m=METROS.find(x=>x.slug===o.metro);if(m){const ms=metroStart(m),btn=document.getElementById('metroPreset');btn.hidden=!ms;if(ms)btn.textContent=`${m.name} ${ms}–2025 avg`;updateMetroHints(m)}}catch(e){}}
-function validate(){document.querySelectorAll('aside input[type=number]').forEach(el=>el.classList.toggle('bad',el.value===''||!isFinite(parseFloat(el.value))))}
+function validate(){document.querySelectorAll('aside input[type=number],aside input[data-money]').forEach(el=>{const v=unfmt(el.value);el.classList.toggle('bad',v===''||!isFinite(parseFloat(v)))})}
 let timer=null;
 function syncLoanFields(){const t=document.getElementById('loanType').value;
   ['armRate','armYears','armMargin'].forEach(id=>document.getElementById(id).closest('.f').hidden=t!=='arm');
   document.getElementById('pmi').closest('.f').hidden=t==='fha';
   ['ttBuy','ttSell'].forEach(id=>document.getElementById(id).closest('.f').hidden=false)}
 let LAST_KEY='';
-function update(){clearTimeout(timer);timer=setTimeout(()=>{VOLADJ=document.getElementById('volAdj').value!=='0';applyTT();syncLoanFields();const key=JSON.stringify(getRaw())+REAL;if(key===LAST_KEY&&P)return;LAST_KEY=key;validate();syncQuick();persist();P=readP();
+function update(){clearTimeout(timer);timer=setTimeout(()=>{VOLADJ=document.getElementById('volAdj').value!=='0';applyTT();syncLoanFields();formatMoneyAll();markChanged();const key=JSON.stringify(getRaw())+REAL;if(key===LAST_KEY&&P)return;LAST_KEY=key;validate();syncQuick();persist();P=readP();
   {const muEl=document.getElementById('mu');const auto=P.muMode==='auto';muEl.disabled=auto;if(auto)muEl.value=Math.round(P.mu*100);}document.getElementById('Nlab').textContent=P.N+' year'+(P.N>1?'s':'');
   BASE=simulate(P,constPath(P,P.N));MC=null;
   summary();RENDER[CUR]();if(CUR!=='mc')startMC(false)},150)}
@@ -25,7 +25,7 @@ function copyText(txt,msgEl,okMsg){const done=()=>{msgEl.textContent=okMsg;setTi
 const STANDALONE_SITE=(()=>{try{return window.top===window.self&&/^https?:$/.test(location.protocol)}catch(e){return false}})();
 function setBasis(){document.getElementById('realBtn').setAttribute('aria-pressed',REAL);document.getElementById('nomBtn').setAttribute('aria-pressed',!REAL);update()}
 function init(){
-  buildInputs();buildMetroSelect();buildSnap();buildMethod();const hadSaved=(()=>{try{return !!localStorage.getItem('rbi-inputs')}catch(e){return false}})();restore();wireWizard();
+  buildInputs();buildMetroSelect();buildSnap();buildMethod();const hadSaved=(()=>{try{return !!localStorage.getItem('rbi-inputs')}catch(e){return false}})();restore();wireWizard();wireSettings();
   if(STANDALONE_SITE){const sp=new URLSearchParams(location.search).get('s');const st=sp&&decodeState(sp);if(st){setRaw(st);if(st.REAL===false)REAL=false;const m=METROS.find(x=>x.slug===st.metro);if(m)updateMetroHints(m);history.replaceState(null,'',location.pathname)}}
   const shareBtn=document.getElementById('shareLink');shareBtn.hidden=!STANDALONE_SITE;
   shareBtn.addEventListener('click',()=>copyText(location.origin+location.pathname+'?s='+encodeURIComponent(encodeState()),document.getElementById('actMsg'),'Link copied. Anyone opening it sees these inputs.'));
@@ -35,7 +35,9 @@ function init(){
   document.getElementById('h-year').max=2025;
   {const fb=document.getElementById('fcstPreset');fb.hidden=!PRESETS.fcst;if(PRESETS.fcst&&FCST.note){const h=document.createElement('div');h.className='hint muted';h.style.fontSize='11px';h.innerHTML=FCST.note;fb.parentElement.after(h)}}
   if(!MONTHLY){const o=document.querySelector('#h-mode option[value=monthly]');o.disabled=true;o.textContent+=' (unavailable)'}
-  QUICK.forEach(k=>document.getElementById('q-'+k).addEventListener('input',e=>{if(e.target.value==='')return;document.getElementById(k).value=e.target.value;update()}));
+  QUICK.forEach(k=>document.getElementById('q-'+k).addEventListener('input',e=>{if(e.target.value==='')return;document.getElementById(k).value=unfmt(e.target.value);update()}));
+  document.addEventListener('focusin',e=>{if(e.target.dataset&&e.target.dataset.money!=null)e.target.value=unfmt(e.target.value)});
+  document.addEventListener('focusout',e=>{if(e.target.dataset&&e.target.dataset.money!=null)fmtMoneyEl(e.target)});
   document.getElementById('N').addEventListener('input',update);
   document.getElementById('metro').addEventListener('change',e=>{applyMetro(e.target.value);update()});
   document.getElementById('beds').addEventListener('change',()=>{setRentFromBeds();update()});

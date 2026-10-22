@@ -11,22 +11,25 @@ function summary(){
   const beG=bisect(g=>advAt(p,{gh:g}),-0.15,0.25);
   const o30=simulate(Object.assign({},p,{N:Math.max(N,1)}),constPath(p,N),{N});
   const ex=expectedWithMoving(o30,p);
-  document.getElementById('vhead').textContent=d>=0?`After ${N} year${N>1?'s':''}, buying comes out ahead of renting and investing by ${fmt(d)}.`:`After ${N} year${N>1?'s':''}, renting and investing comes out ahead of buying by ${fmt(-d)}.`;
+  document.getElementById('vhead').innerHTML=Math.abs(d)<0.005*p.P?`After ${N} year${N>1?'s':''}, buying and renting end up about even <span class="vamt">(${d>=0?'+':'−'}${fmt(Math.abs(d))} for buying)</span>`:
+    `${d>=0?'<span class="who buy">Buying</span>':'<span class="who inv">Renting and investing</span>'} comes out ahead by <span class="vamt">${fmt(Math.abs(d))}</span> after ${N} year${N>1?'s':''}`;
   const rp=p.rentalOn&&o.rental[N]!=null?adj(o.rental[N],c):null;
   const opts=[['buy','Buy',b],['inv','Rent + invest',iv],['cash','Rent + T-bills',ca]].concat(rp!=null?[['rp','Rent + rental property',rp]]:[]),mx=Math.max(...opts.map(o=>o[2]),1),top=Math.max(...opts.map(o=>o[2]));
   document.getElementById('bars').innerHTML=opts.map(([k,lab,v])=>`<div class="bar ${v===top?'win':''}"><span class="lab">${lab}${v===top?'<span class="pill">best</span>':''}</span><span class="track"><span class="fill" style="display:block;width:${Math.max(0,v/mx*100).toFixed(1)}%;background:var(--${k})"></span></span><span class="val">${fmt(v)}</span></div>`).join('');
   document.getElementById('sheetlive').innerHTML=`Year ${N}: buy ${fmt(b)} · rent+invest ${fmt(iv)} · gap <strong style="color:var(${d>=0?'--buy':'--inv'})">${d>=0?'+':''}${fmt(d)}</strong>`;
-  const g=document.getElementById('vgrid');
-  g.innerHTML=[
-   ['Buy − rent&invest',`<span style="color:var(${d>=0?'--buy':'--inv'})">${d>=0?'+':''}${fmt(d)}</span>`],
-   ['Break-even year',beY?`${beY} yr`:`> ${N} yr`],
-   ['Break-even rent',beRent?fmtFull(beRent)+'/mo':'n/a'],
-   ['Break-even home growth',beG!=null?pct(beG)+'/yr':'n/a'],
-   ['Owning, month 1',fmtFull(own1)+'/mo'],
-   ['Housing cost / income',affCell(own1,p)],
-   ['Cash to buy',fmtFull(p.P*(p.dp+p.close))],
-   [`Expected gap, ${pct(p.hz,0)}/yr move risk`,`<span style="color:var(${ex>=0?'--buy':'--inv'})">${ex>=0?'+':''}${fmt(ex)}</span>`],
-  ].map(([k,v])=>`<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+  const stat=([k,v,h])=>`<div class="stat"${h?` title="${h}"`:''}><div class="k">${k}</div><div class="v">${v}</div></div>`;
+  document.getElementById('vgrid').innerHTML=[
+   ['Buying pulls ahead',beY?`year ${beY}`:`> ${N} yrs`,'first year after which buying stays ahead for good'],
+   ['Owning, month 1',fmtFull(own1)+'/mo','mortgage, tax, insurance, upkeep, HOA, PMI and utilities, before tax savings'],
+   ['Cash to buy',fmtFull(p.P*(p.dp+p.close)+loanSetup(p,p.rate).ptsCost),'down payment, closing costs, transfer taxes and points'],
+   ['Housing / income',affCell(own1,p),'month-1 owning cost as a share of gross income'],
+  ].map(stat).join('');
+  document.getElementById('vgrid2').innerHTML=[
+   ['Break-even rent',beRent?fmtFull(beRent)+'/mo':'n/a','rent at which the two main paths tie at your horizon'],
+   ['Break-even home growth',beG!=null?pct(beG)+'/yr':'n/a','home appreciation at which they tie'],
+   [`Expected gap with ${pct(p.hz,0)}/yr move risk`,`<span style="color:var(${ex>=0?'--buy':'--inv'})">${ex>=0?'+':''}${fmt(ex)}</span>`,'weighted by the chance of selling early'],
+   ['Rent + T-bills',fmt(ca),'renting and keeping savings in T-bills'],
+  ].map(stat).join('');
   const fe=p.income?own1/(p.income/12):0,be=p.income?(own1+p.debt)/(p.income/12):0;
   window._summaryText=`Rent, Buy or Invest — ${curMetro().name}, ${N}-year horizon (${basisLabel()})\n`+
     `Home ${fmtFull(p.P)}, ${pct(p.dp,0)} down, ${pct(p.rate,2)} ${p.term}-yr; rent ${fmtFull(p.rent0)}/mo\n`+

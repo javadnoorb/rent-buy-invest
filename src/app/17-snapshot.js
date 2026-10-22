@@ -1,7 +1,7 @@
 /* ===================== Snapshot ===================== */
 function buildSnap(){
   document.getElementById('snap').innerHTML=SNAP.items.map(c=>`<div class="chip"><span class="k">${c.k}</span><span class="v">${c.v}</span><span class="s muted">${c.s} · ${sl(c.src)}${c.field?` · <a href="#" class="use" data-f="${c.field}" data-v="${c.val}">use</a>`:''}</span></div>`).join('')+
-    `<div class="chip"><span class="k">Data as of</span><span class="v">${SNAP.asOf}</span><span class="s muted">refreshed weekly</span></div>`;
+    `<div class="chip"><span class="k">Data as of</span><span class="v">${SNAP.asOf}</span><span class="s muted">updated periodically</span></div>`;
   document.querySelectorAll('.use').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();document.getElementById(a.dataset.f).value=a.dataset.v;update()}));
 }
 function bedRatio(m,b){if(b==='any')return 1;const k=b==='4'?'4':b;const r=(m&&m.acs&&m.acs.beds&&m.acs.beds[k])||(D0.bedRatio&&D0.bedRatio[k]);return r||1}
@@ -11,7 +11,7 @@ function setRentFromBeds(m){m=m||selMetro();const b=document.getElementById('bed
 function applyTT(){const auto=document.getElementById('ttAuto').value==='auto',eb=document.getElementById('ttBuy'),es=document.getElementById('ttSell');
   eb.disabled=es.disabled=auto;if(!auto)return;const m=selMetro();
   if(!m||!m.tt){eb.value=0;es.value=0;return}
-  const P=parseFloat(document.getElementById('P').value)||0,dp=(parseFloat(document.getElementById('dp').value)||0)/100,L=P*(1-dp);
+  const P=numOf('P')||0,dp=(parseFloat(document.getElementById('dp').value)||0)/100,L=P*(1-dp);
   const t=transferTaxes(m.tt,P,L);eb.value=P?(t.buyer/P*100).toFixed(3):0;es.value=P?(t.seller/P*100).toFixed(3):0}
 function buildMetroSelect(){const sel=document.getElementById('metro');sel.innerHTML=METROS.map(m=>`<option value="${m.slug}">${m.name}</option>`).join('')}
 function applyMetro(slug){const m=METROS.find(x=>x.slug===slug);if(!m)return;

@@ -97,13 +97,17 @@ function buildInputs(){
       if(/of (price|value|loan|balance)/.test(u)){lab+=` <span class="muted">(${u.replace(/^%\s*/,'').replace(/\s*\/\s*yr/,'').trim()})</span>`;suf=u.includes('/ yr')?'%/yr':'%'}
       if(/0 = none/.test(u)){suf='%/yr'}
       if(suf==='$')suf='';
-      ctl=`<div class="inp">${pre?`<span class="pre">$</span>`:''}<input type="number" id="${id}" step="${step}" value="${def}" inputmode="decimal">${suf?`<span class="suf">${suf}</span>`:''}</div>`}
+      ctl=`<div class="inp">${pre?`<span class="pre">$</span>`:''}<input ${pre?'type="text" data-money="1"':`type="number" step="${step}"`} id="${id}" value="${def}" inputmode="decimal" autocomplete="off">${suf?`<span class="suf">${suf}</span>`:''}</div>`}
     d.innerHTML=`<label for="${id}">${lab}</label>${ctl}${hint?`<div class="hint">${hint}</div>`:''}`;
     box.appendChild(d);
     if(kind==='sel')document.getElementById(id).value=String(def);
   });
 }
-function getRaw(){const o={N:document.getElementById('N').value,metro:document.getElementById('metro').value};F.forEach(f=>o[f[1]]=document.getElementById(f[1]).value);return o}
+const unfmt=v=>typeof v==='string'?v.replace(/[,\s$]/g,''):v;
+function numOf(id){return parseFloat(unfmt(document.getElementById(id).value))}
+function getRaw(){const o={N:document.getElementById('N').value,metro:document.getElementById('metro').value};F.forEach(f=>o[f[1]]=unfmt(document.getElementById(f[1]).value));return o}
+function fmtMoneyEl(el){if(document.activeElement===el)return;const v=unfmt(el.value);if(v===''||!isFinite(parseFloat(v)))return;el.value=Number(v).toLocaleString('en-US',{maximumFractionDigits:2})}
+function formatMoneyAll(){document.querySelectorAll('[data-money]').forEach(fmtMoneyEl)}
 function setRaw(o){F.forEach(f=>{if(o[f[1]]!=null)document.getElementById(f[1]).value=o[f[1]]});if(o.N)document.getElementById('N').value=o.N;if(o.metro!=null&&METROS.some(m=>m.slug===o.metro))document.getElementById('metro').value=o.metro}
 function parseP(raw){
   const n=id=>{const x=parseFloat(raw[id]);return isFinite(x)?x:DEF[id]};
