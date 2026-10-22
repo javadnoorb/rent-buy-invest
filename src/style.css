@@ -313,3 +313,17 @@ table.notation td:last-child{color:var(--muted)}
  table.notation td:last-child::before{content:"Setting: "}
  table.notation td:last-child:empty{display:none}
 }
+
+/* Android phones (e.g. Galaxy A52, 412px wide) */
+.chip .k{display:flex;align-items:center;gap:2px;white-space:nowrap}
+.chip .k .hlp{margin-left:auto}
+.hz .row{justify-content:flex-start}
+.hz .row .seg{margin-left:auto}
+.hz .row>.hlp{margin-left:2px}
+a.use{display:inline-block;padding:4px 6px;margin:-4px -6px}
+input[type=checkbox]{width:18px;height:18px;vertical-align:-3px}
+@media (max-width:900px){
+ body{padding-bottom:calc(88px + env(safe-area-inset-bottom,0px))}
+ aside{max-height:82vh;max-height:82dvh}
+ .wz-card{max-height:92dvh}
+}

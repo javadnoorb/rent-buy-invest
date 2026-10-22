@@ -191,7 +191,7 @@ function wireHelp(){
   document.querySelector('.vtop').insertAdjacentHTML('beforeend',`<div class="vhelp">${helpBtn('verdict','What comes out ahead means')}<span class="sub">what this means</span> ${helpBtn('conf','How sure')}<span class="sub">how sure</span> ${helpBtn('paths','The paths')}<span class="sub">the paths</span></div>`);
   // presets and controls
   const pr=document.querySelector('.presets');if(pr)pr.insertAdjacentHTML('beforeend',helpBtn('presets','About presets'));
-  [['copySummary','afterend'],['shareLink','afterend'],['openWizard','afterend'],['scName','afterend']].forEach(([id,w])=>{const el=document.getElementById(id);if(el)el.insertAdjacentHTML(w,helpBtn(id,HELP[id][0]))});
+  [['scName','afterend']].forEach(([id,w])=>{const el=document.getElementById(id);if(el)el.insertAdjacentHTML(w,helpBtn(id,HELP[id][0]))});
   ['nwBand','mc-n','mc-b','mc-w','mc-rc','h-mode','h-rate','h-home','h-year'].forEach(id=>{const el=document.getElementById(id);const lab=el&&el.closest('label');if(lab)lab.insertAdjacentHTML('afterend',helpBtn(id,HELP[id][0]))});
   const ot=document.getElementById('opt30');if(ot)ot.parentElement.insertAdjacentHTML('afterend',helpBtn('optTerm',HELP.optTerm[0]));
   const ca=document.getElementById('cmpB');if(ca)ca.closest('label').insertAdjacentHTML('afterend',helpBtn('cmp',HELP.cmp[0]));

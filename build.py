@@ -166,6 +166,7 @@ if PWA:
             '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
             '<meta name="description" content="Compare buying a home, renting and investing, with sourced market data, backtests and Monte Carlo.">\n'
             '<link rel="manifest" href="manifest.webmanifest">\n'
+            '<meta name="color-scheme" content="light dark">\n'
             '<meta name="theme-color" content="#f3f5f4" media="(prefers-color-scheme: light)">\n'
             '<meta name="theme-color" content="#0e1312" media="(prefers-color-scheme: dark)">\n'
             '<meta name="mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-capable" content="yes">\n'
