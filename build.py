@@ -56,8 +56,20 @@ for k, e in res_raw.items():
         RES['sources'][f'r_{k}'] = {'t': e.get('source_title'), 'u': e.get('source_url')}
 RES['sources'] = {k: v for k, v in RES['sources'].items() if v.get('u') and v.get('t')}
 
+# ---------- realism parameters and forecasts (optional files) ----------
+def load(name):
+    for d in (D('data'), os.path.join(os.path.dirname(ROOT), 'rvb', 'data')):
+        f = os.path.join(d, name)
+        if os.path.exists(f): return json.load(open(f))
+    return None
+REAL = load('realism.json') or {}
+FC = load('forecasts.json')
+exec(open(D('build_params.py')).read()) if os.path.exists(D('build_params.py')) else None
+D0_EXTRA = globals().get('D0_EXTRA', {'renewGap': 0, 'incGrowth': 3.0, 'stressMult': 2, 'forcedDisc': 3, 'vacR': 7, 'dpR': 25, 'ratePrem': 0.6, 'mgmt': 9})
+RES.update(globals().get('RES_EXTRA', {}))
+FCST = globals().get('FCST', None)
 D0 = {'rMove': round((tv.get('cps_renter_mover_rate_2023') or 0.162)*100,1), 'close': 3, 'maint': 1.0, 'sell': 6.5, 'dy': round(res_raw['div_yield']['value'] * 100, 2), 'spread': 1.5,
-      'hz': round(hz * 100, 1), 'idio': 12}
+      'hz': round(hz * 100, 1), 'idio': 12, **D0_EXTRA}
 
 mort = res_raw['mortgage_annual']['value']
 MORT_OVERRIDE = [mort[str(y)] for y in range(1972, 2026)]
@@ -98,7 +110,7 @@ if os.path.exists(mf):
     MONTHLY = json.load(open(mf))
 
 data_js = ("const SNAP=JSON.parse(document.getElementById('snapshot-data').textContent);\n"
-           f"const RES={json.dumps(RES)};\nconst D0={json.dumps(D0)};\n"
+           f"const RES={json.dumps(RES)};\nconst D0={json.dumps(D0)};\nconst FCST={json.dumps(FCST)};\n"
            f"const METROS={json.dumps(METROS, separators=(',', ':'))};\nconst MONTHLY={json.dumps(MONTHLY, separators=(',', ':'))};\n")
 
 css = open(D('src', 'style.css')).read()

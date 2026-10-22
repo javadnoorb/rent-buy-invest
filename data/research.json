@@ -1,118 +1,360 @@
 {
-  "_meta": {"collected": "2026-10-22", "note": "All numbers were read from the fetched pages cited. null means not found."},
-  "idio_vol": {
-    "value": 0.14,
-    "range": [0.10, 0.18],
-    "description": "Annual standard deviation of an individual house's return beyond the metro/national index. Older literature gives about 14-15%/yr total individual-house volatility, against about 4-6%/yr for city indices. Newer resale-based studies estimate an idiosyncratic component of about 9-18% that is roughly flat in holding period: a one-time (transitory) shock, not a random walk.",
-    "estimates": [
-      {"source_title": "Flavin & Yamashita (2002), 'Owner-Occupied Housing and the Composition of the Household Portfolio', American Economic Review 92(1):345-362", "source_url": "https://sites.socsci.uci.edu/~jkbrueck/course%20readings/flavin-yamashita.pdf", "value": 0.14, "definition": "Annual s.d. of individual-house real return (PSID, 1968-1992); Table 1A gives 0.1424. Case-Shiller city indices give 0.042-0.065.", "quote": "the standard deviation of the return to housing, at the level of the individual house, is about 0.14"},
-      {"source_title": "Case & Shiller (1987/1989), 'The Efficiency of the Market for Single-Family Homes', NBER WP 2506 / AER 79(1)", "source_url": "https://www.nber.org/papers/w2506.pdf", "value": 0.15, "definition": "Total annual variability of individual house prices", "quote": "close to 15% a year for individual housing prices"},
-      {"source_title": "Giacoletti (2021), 'Idiosyncratic Risk in Housing Markets', Review of Financial Studies 34(8):3695, doi:10.1093/rfs/hhab033 (job-market-paper version)", "source_url": "https://finance.unibocconi.eu/sites/default/files/files/media/attachments/MarcoGiacolettiJMP20170116082355.pdf", "value": {"LA_2001": 0.1317, "LA_2012": 0.1691, "SanDiego_2001": 0.0960, "SanDiego_2012": 0.1220, "SF_2001": 0.1347, "SF_2012": 0.1782}, "definition": "Volatility of the transitory idiosyncratic shock (Table 8). The persistent random-walk component is small (sigma_v 0.0015-0.036). The term structure is flat, so the shock does not grow with holding period. Idiosyncratic risk is up to 60% of capital-gain volatility at a 1-yr holding period, under 20% at 5 yrs, and about 5-10% at 10 yrs. Metro index annualized volatility is about 4-5%.", "abstract_url": "https://academicnewsletter.sufe.edu.cn/info/352238"},
-      {"source_title": "Gan, Wan & Xu (2024 draft), 'It is Not Easy Being a Flipper' (Hong Kong, 1993-2021)", "source_url": "https://www.efmaefm.org/0EFMAMEETINGS/EFMA%20ANNUAL%20MEETINGS/2024-Lisbon/papers/IdiosyncraticRisk_draft_20240114.pdf", "value": 0.093, "definition": "Mean annualized idiosyncratic s.d.: 9.32% by the Giacoletti method, 9.27% by the Peng-Thibodeau method. It declines about 0.6 pp per extra holding year."},
-      {"source_title": "Sagi (2021), 'Asset-Level Risk and Return in Real Estate Investments', RFS 34(8):3647, doi:10.1093/rfs/hhaa122 (commercial real estate)", "source_url": "https://haas.berkeley.edu/wp-content/uploads/Asset-Level-Risk-and-Return-in-Real-Estate-Investments.pdf", "value": {"random_walk_annual": 0.10, "time_independent_sd": 0.20}, "definition": "Commercial properties. Variance = intercept (about 20% s.d., independent of horizon) + 10%/yr annualized random-walk slope. The paper says the findings are qualitatively similar to residential studies (Case-Shiller 1987, Goetzmann 1993)."},
-      {"source_title": "Unison 2019 Volatility Index (Brodie Gay), industry", "source_url": "https://contentimages.o-prod.unison.com/images/downloads/Volatility_Index_Short_Paper_final.pdf", "value": 0.15, "definition": "Undiversified single-home annualized volatility of 15%/yr versus 4% diversified"}
-    ],
-    "source_title": "Flavin & Yamashita (2002); Case & Shiller (1989); Giacoletti (2021)",
+ "_meta": {
+  "collected": "2026-10-22",
+  "note": "All numbers were read from the fetched pages cited. null means not found."
+ },
+ "idio_vol": {
+  "value": 0.14,
+  "range": [
+   0.1,
+   0.18
+  ],
+  "description": "Annual standard deviation of an individual house's return beyond the metro/national index. Older literature gives about 14-15%/yr total individual-house volatility, against about 4-6%/yr for city indices. Newer resale-based studies estimate an idiosyncratic component of about 9-18% that is roughly flat in holding period: a one-time (transitory) shock, not a random walk.",
+  "estimates": [
+   {
+    "source_title": "Flavin & Yamashita (2002), 'Owner-Occupied Housing and the Composition of the Household Portfolio', American Economic Review 92(1):345-362",
     "source_url": "https://sites.socsci.uci.edu/~jkbrueck/course%20readings/flavin-yamashita.pdf",
-    "notes": "Modeling choice: model the idiosyncratic shock as about 10-15% s.d. realized at sale (horizon-independent, per Giacoletti/Sagi), or as about 14%/yr total volatility if using the older random-walk framing. Peng & Thibodeau was not fetched directly; its value comes only through Gan et al."
-  },
-  "tenure": {
-    "value": {"nar_median_years_seller_tenure_2025": 11, "redfin_median_tenure_2025": 12.0, "redfin_median_tenure_2024": 11.8, "cps_owner_mover_rate_2023": 0.041, "cps_renter_mover_rate_2023": 0.162, "cps_owner_mover_rate_1988": 0.095, "acs_overall_household_mobility_2024": 0.112},
-    "description": "NAR 2025 Profile: sellers' median tenure was 11 years, an all-time high. Redfin: the typical homeowner stayed 12 years in 2025, up from 11.8 in 2024. Census CPS Table A-4: 4.1% of owners moved in 2023, the lowest in the series since 1988; 16.2% of renters moved.",
-    "sources": [
-      {"title": "NAR, Top 10 takeaways from NAR's 2025 Profile of Home Buyers and Sellers", "url": "https://www.nar.realtor/blogs/economists-outlook/top-10-takeaways-from-nars-2025-profile-of-home-buyers-and-sellers"},
-      {"title": "Redfin press release (Business Wire, 2026-03-03)", "url": "https://www.businesswire.com/news/home/20260303313454/en"},
-      {"title": "HomeSnacks, citing Census CPS Historical Geographic Mobility Table A-4", "url": "https://www.homesnacks.com/moving-statistics/"},
-      {"title": "Census CPS Table A-4 (xlsx; could not be parsed directly)", "url": "https://www2.census.gov/programs-surveys/demo/tables/geographic-mobility/time-series/historic/hst_mig_a_4.xlsx"},
-      {"title": "Harvard JCHS, household mobility fell to record low in 2024", "url": "https://www.jchs.harvard.edu/blog/household-mobility-fell-record-low-2024"}
-    ],
-    "source_title": "NAR 2025 Profile of Home Buyers and Sellers; Redfin 2026; Census CPS Table A-4",
-    "source_url": "https://www.nar.realtor/blogs/economists-outlook/top-10-takeaways-from-nars-2025-profile-of-home-buyers-and-sellers",
-    "notes": "The owner mover rate of 4.1% implies a mean stay of about 24 yrs under a constant hazard, which is longer than median seller tenure because tenure is right-censored and heterogeneous. The 4.1% figure comes via HomeSnacks' reading of Census Table A-4; the xlsx itself could not be parsed. JCHS reports owners under 45 at 9.8% in 2024 (ACS)."
-  },
-  "div_yield": {
-    "value": 0.0105,
-    "date": "2026-10-21",
-    "history": {"2020-12-31": 0.0158, "2021-12-31": 0.0129, "2022-12-31": 0.0171, "2023-12-31": 0.0150, "2024-12-31": 0.0124, "2025-12-31": 0.0115},
-    "description": "S&P 500 trailing 12-month dividend yield, multpl.com",
-    "source_title": "multpl.com S&P 500 Dividend Yield",
-    "source_url": "https://www.multpl.com/s-p-500-dividend-yield",
-    "notes": "The 2026-10-21 value is an estimate based on 12-month dividends through June 2026 (S&P). Year-end history is from https://www.multpl.com/s-p-500-dividend-yield/table/by-year. The long-run mean is 4.20%."
-  },
-  "zori": {
-    "description": "Zillow Observed Rent Index, national. Values are January snapshots 2015-2025 (smoothed, all homes plus multifamily), plus December points found in Zillow reports and the latest 2026 figure.",
+    "value": 0.14,
+    "definition": "Annual s.d. of individual-house real return (PSID, 1968-1992); Table 1A gives 0.1424. Case-Shiller city indices give 0.042-0.065.",
+    "quote": "the standard deviation of the return to housing, at the level of the individual house, is about 0.14"
+   },
+   {
+    "source_title": "Case & Shiller (1987/1989), 'The Efficiency of the Market for Single-Family Homes', NBER WP 2506 / AER 79(1)",
+    "source_url": "https://www.nber.org/papers/w2506.pdf",
+    "value": 0.15,
+    "definition": "Total annual variability of individual house prices",
+    "quote": "close to 15% a year for individual housing prices"
+   },
+   {
+    "source_title": "Giacoletti (2021), 'Idiosyncratic Risk in Housing Markets', Review of Financial Studies 34(8):3695, doi:10.1093/rfs/hhab033 (job-market-paper version)",
+    "source_url": "https://finance.unibocconi.eu/sites/default/files/files/media/attachments/MarcoGiacolettiJMP20170116082355.pdf",
     "value": {
-      "january_level": {"2015": 1155, "2016": 1210, "2017": 1252, "2018": 1307, "2019": 1362, "2020": 1416, "2021": 1445, "2022": 1668, "2023": 1775, "2024": 1829, "2025": 1882},
-      "january_yoy": {"2016": 0.048, "2017": 0.035, "2018": 0.044, "2019": 0.042, "2020": 0.040, "2021": 0.020, "2022": 0.154, "2023": 0.064, "2024": 0.030, "2025": 0.029},
-      "december_points": {
-        "2023-12": {"level": 1957, "yoy": null, "url": "https://www.ncscre.nccu.edu.tw/node/7094"},
-        "2024-12": {"level": 1965, "yoy": 0.034, "url": "https://www.ncscre.nccu.edu.tw/node/8204"},
-        "2025-11": {"level": 1925, "yoy": 0.023, "url": "https://calculatedrisk.substack.com/p/asking-rents-decline-year-over-year"},
-        "2025-12": {"level": 1901, "yoy": null, "url": "https://www.ncscre.nccu.edu.tw/node/9171"},
-        "2026-01": {"level": 1895, "yoy": 0.02, "url": "https://zillow.com/research/january-2026-rent-report-36091"}
-      },
-      "latest_2026": {"month": "2026-09", "level": 1932, "yoy": 0.027}
+     "LA_2001": 0.1317,
+     "LA_2012": 0.1691,
+     "SanDiego_2001": 0.096,
+     "SanDiego_2012": 0.122,
+     "SF_2001": 0.1347,
+     "SF_2012": 0.1782
     },
-    "source_title": "keepingupwithinflation.com rent tracker (ZORI, January snapshots); Zillow monthly rent reports; Zillow September 2026 Market Report",
-    "source_url": "https://keepingupwithinflation.com/tracker/rent/",
-    "latest_source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf",
-    "notes": "Full December 2015-2025 series not found: the Zillow CSV (files.zillowstatic.com) could not be read via WebFetch. The January series is from a third-party tracker of the smoothed ZORI, so its levels differ from the December points in the raw/seasonal report series (e.g., Dec-2024 $1,965 vs Jan-2025 $1,882); do not mix them. The YoY rates are the most usable figures. Multiply January-to-January growth 2015-2025: 1882/1155 = 1.629, about 5.0%/yr."
+    "definition": "Volatility of the transitory idiosyncratic shock (Table 8). The persistent random-walk component is small (sigma_v 0.0015-0.036). The term structure is flat, so the shock does not grow with holding period. Idiosyncratic risk is up to 60% of capital-gain volatility at a 1-yr holding period, under 20% at 5 yrs, and about 5-10% at 10 yrs. Metro index annualized volatility is about 4-5%.",
+    "abstract_url": "https://academicnewsletter.sufe.edu.cn/info/352238"
+   },
+   {
+    "source_title": "Gan, Wan & Xu (2024 draft), 'It is Not Easy Being a Flipper' (Hong Kong, 1993-2021)",
+    "source_url": "https://www.efmaefm.org/0EFMAMEETINGS/EFMA%20ANNUAL%20MEETINGS/2024-Lisbon/papers/IdiosyncraticRisk_draft_20240114.pdf",
+    "value": 0.093,
+    "definition": "Mean annualized idiosyncratic s.d.: 9.32% by the Giacoletti method, 9.27% by the Peng-Thibodeau method. It declines about 0.6 pp per extra holding year."
+   },
+   {
+    "source_title": "Sagi (2021), 'Asset-Level Risk and Return in Real Estate Investments', RFS 34(8):3647, doi:10.1093/rfs/hhaa122 (commercial real estate)",
+    "source_url": "https://haas.berkeley.edu/wp-content/uploads/Asset-Level-Risk-and-Return-in-Real-Estate-Investments.pdf",
+    "value": {
+     "random_walk_annual": 0.1,
+     "time_independent_sd": 0.2
+    },
+    "definition": "Commercial properties. Variance = intercept (about 20% s.d., independent of horizon) + 10%/yr annualized random-walk slope. The paper says the findings are qualitatively similar to residential studies (Case-Shiller 1987, Goetzmann 1993)."
+   },
+   {
+    "source_title": "Unison 2019 Volatility Index (Brodie Gay), industry",
+    "source_url": "https://contentimages.o-prod.unison.com/images/downloads/Volatility_Index_Short_Paper_final.pdf",
+    "value": 0.15,
+    "definition": "Undiversified single-home annualized volatility of 15%/yr versus 4% diversified"
+   }
+  ],
+  "source_title": "Flavin & Yamashita (2002); Case & Shiller (1989); Giacoletti (2021)",
+  "source_url": "https://sites.socsci.uci.edu/~jkbrueck/course%20readings/flavin-yamashita.pdf",
+  "notes": "Modeling choice: model the idiosyncratic shock as about 10-15% s.d. realized at sale (horizon-independent, per Giacoletti/Sagi), or as about 14%/yr total volatility if using the older random-walk framing. Peng & Thibodeau was not fetched directly; its value comes only through Gan et al."
+ },
+ "tenure": {
+  "value": {
+   "nar_median_years_seller_tenure_2025": 11,
+   "redfin_median_tenure_2025": 12.0,
+   "redfin_median_tenure_2024": 11.8,
+   "cps_owner_mover_rate_2023": 0.041,
+   "cps_renter_mover_rate_2023": 0.162,
+   "cps_owner_mover_rate_1988": 0.095,
+   "acs_overall_household_mobility_2024": 0.112
   },
-  "mortgage_annual": {
-    "description": "Annual average of the Freddie Mac PMMS 30-year fixed rate (%).",
-    "value": {"1972": 7.38, "1973": 8.04, "1974": 9.19, "1975": 9.05, "1976": 8.87, "1977": 8.85, "1978": 9.64, "1979": 11.20, "1980": 13.74, "1981": 16.63, "1982": 16.04, "1983": 13.24, "1984": 13.88, "1985": 12.43, "1986": 10.19, "1987": 10.21, "1988": 10.34, "1989": 10.32, "1990": 10.13, "1991": 9.25, "1992": 8.39, "1993": 7.31, "1994": 8.38, "1995": 7.93, "1996": 7.81, "1997": 7.60, "1998": 6.94, "1999": 7.44, "2000": 8.05, "2001": 6.97, "2002": 6.54, "2003": 5.83, "2004": 5.84, "2005": 5.87, "2006": 6.41, "2007": 6.34, "2008": 6.03, "2009": 5.04, "2010": 4.69, "2011": 4.45, "2012": 3.66, "2013": 3.98, "2014": 4.17, "2015": 3.85, "2016": 3.65, "2017": 3.99, "2018": 4.54, "2019": 3.94, "2020": 3.11, "2021": 2.96, "2022": 5.34, "2023": 6.81, "2024": 6.72, "2025": 6.60},
-    "ytd_2026": {"value": 6.48, "through": "2026-10-15"},
-    "latest_weekly": {"date": "2026-10-15", "value": 7.40},
-    "source_title": "PennyCalc U.S. 30-Year Mortgage Rate History (Freddie Mac PMMS via FRED annual averages)",
-    "source_url": "https://pennycalc.com/mortgage-rates/history/",
-    "verification_urls": ["https://www.freddiemac.com/pmms/archive?year=2025", "https://www.freddiemac.com/pmms/archive?year=2024", "https://www.freddiemac.com/pmms/archive?year=2023", "https://www.freddiemac.com/pmms/archive?year=2022", "https://www.freddiemac.com/pmms/archive?year=2021", "https://rocketmortgage.com/learn/historical-mortgage-rates-30-year-fixed"],
-    "notes": "I verified 2021-2025 by averaging Freddie Mac's weekly archive values: 2021 = 2.958, 2022 = 5.344, 2023 = 6.807, 2024 = 6.721, 2025 = 6.595 (53 weeks). They match this table. Rocket Mortgage gives the same table for 1972-2024 (1981 = 16.64) but 6.47 for 2025, which is wrong against the Freddie weekly data; use 6.60. A Bankrate table (wlox.com) differs from 1982 onward because it uses Bankrate's own survey, so do not use it. 2026 weekly rates rose from about 6.0% (Feb-Mar) to 7.40% (Oct 8 and 15, 2026)."
+  "description": "NAR 2025 Profile: sellers' median tenure was 11 years, an all-time high. Redfin: the typical homeowner stayed 12 years in 2025, up from 11.8 in 2024. Census CPS Table A-4: 4.1% of owners moved in 2023, the lowest in the series since 1988; 16.2% of renters moved.",
+  "sources": [
+   {
+    "title": "NAR, Top 10 takeaways from NAR's 2025 Profile of Home Buyers and Sellers",
+    "url": "https://www.nar.realtor/blogs/economists-outlook/top-10-takeaways-from-nars-2025-profile-of-home-buyers-and-sellers"
+   },
+   {
+    "title": "Redfin press release (Business Wire, 2026-03-03)",
+    "url": "https://www.businesswire.com/news/home/20260303313454/en"
+   },
+   {
+    "title": "HomeSnacks, citing Census CPS Historical Geographic Mobility Table A-4",
+    "url": "https://www.homesnacks.com/moving-statistics/"
+   },
+   {
+    "title": "Census CPS Table A-4 (xlsx; could not be parsed directly)",
+    "url": "https://www2.census.gov/programs-surveys/demo/tables/geographic-mobility/time-series/historic/hst_mig_a_4.xlsx"
+   },
+   {
+    "title": "Harvard JCHS, household mobility fell to record low in 2024",
+    "url": "https://www.jchs.harvard.edu/blog/household-mobility-fell-record-low-2024"
+   }
+  ],
+  "source_title": "NAR 2025 Profile of Home Buyers and Sellers; Redfin 2026; Census CPS Table A-4",
+  "source_url": "https://www.nar.realtor/blogs/economists-outlook/top-10-takeaways-from-nars-2025-profile-of-home-buyers-and-sellers",
+  "notes": "The owner mover rate of 4.1% implies a mean stay of about 24 yrs under a constant hazard, which is longer than median seller tenure because tenure is right-censored and heterogeneous. The 4.1% figure comes via HomeSnacks' reading of Census Table A-4; the xlsx itself could not be parsed. JCHS reports owners under 45 at 9.8% in 2024 (ACS)."
+ },
+ "div_yield": {
+  "value": 0.0105,
+  "date": "2026-10-21",
+  "history": {
+   "2020-12-31": 0.0158,
+   "2021-12-31": 0.0129,
+   "2022-12-31": 0.0171,
+   "2023-12-31": 0.015,
+   "2024-12-31": 0.0124,
+   "2025-12-31": 0.0115
   },
-  "margin_rate": {
-    "value": {"ibkr_pro_0_100k": 0.0538, "ibkr_pro_100k_1m": 0.0488, "ibkr_pro_1m_50m": 0.0463, "implied_benchmark": 0.0388},
-    "description": "Interactive Brokers Pro USD margin rates: benchmark + 1.5% (up to $100k), + 1.0% ($100k-$1M), + 0.75% ($1M-$50M). The benchmark implied by the tiers is 3.88%.",
-    "source_title": "Interactive Brokers margin rates",
-    "source_url": "https://www.interactivebrokers.com/en/trading/margin-rates.php",
-    "notes": "Fetched 2026-10-22; the page itself carries no date. The benchmark is not named on the page (IBKR's USD benchmark is normally Fed Funds effective). Box-spread rates (about Treasury/SOFR + small spread) were not found as text; the SyntheticFi Q2 2026 chart is an image only. For a calculator, benchmark + 0.5-1.5% is realistic."
-  },
-  "mortgage_spread": {
-    "value": 0.017,
-    "range": [0.017, 0.018],
-    "description": "Long-run average spread of the 30-year fixed mortgage rate over the 10-year Treasury yield",
-    "source_title": "First American, 'Mind the Gap Between Mortgage Rates and the 10-Year Treasury Yield' (Odeta Kushi, 2023-05-24)",
-    "source_url": "https://blog.firstam.com/economics/mind-the-gap-between-mortgage-rates-and-the-10-year-treasury-yield",
-    "secondary_url": "https://www.housingwire.com/30-year-mortgage-vs-10-year-treasury-spread/",
-    "notes": "First American: on average 1.7 pp (170 bp) since the end of the Great Recession. HousingWire FAQ: historically about 1.7-1.8 pp, with spreads above 2% more common in recent years."
-  },
-  "sell_costs": {
-    "value": {"total_seller_typical": 0.07, "commission_total": [0.05, 0.055], "buyer_agent_commission_q1_2025": 0.024, "buyer_agent_commission_q3_2025": 0.0242, "seller_closing_costs_excl_commission": [0.01, 0.03]},
-    "description": "Commission after the NAR settlement is about 5-5.5% combined (Opendoor citing Redfin). Redfin's average buyer-agent commission was 2.40% in Q1 2025 and 2.42% in Q3 2025. Seller closing costs other than commission are 1-3%. Opendoor's all-in figure of 10-15% also includes repairs, staging and moving.",
-    "sources": [
-      {"title": "Opendoor, How Much Does It Cost to Sell a House in 2026?", "url": "https://www.opendoor.com/articles/heres-how-much-it-costs-to-sell-a-house"},
-      {"title": "Redfin, real estate commissions May 2025 (Q1 2025: 2.40% buyer agent)", "url": "https://www.redfin.com/news/real-estate-commissions-may-2025/"},
-      {"title": "MortgagePoint, Redfin Q3 2025 buyer agent commission 2.42% (2025-12-31)", "url": "https://themortgagepoint.com/?p=19327"}
-    ],
-    "source_title": "Opendoor 2026 cost-to-sell guide; Redfin commission reports",
-    "source_url": "https://www.opendoor.com/articles/heres-how-much-it-costs-to-sell-a-house",
-    "notes": "total_seller_typical = 0.07 is a derived suggestion (about 5.5% commission + about 1.5% closing), not a quoted figure; 6-8% is the realistic range. The commission data show that buyer-agent fees are still about 2.4% after the settlement.",
-    "buyer_closing": {
-      "value": [0.02, 0.05],
-      "description": "Buyer closing costs of 2-5% of purchase price. ClosingCorp reports an average of about $6,800 for a single-family home (year not stated).",
-      "source_title": "The Mortgage Reports, Average Closing Costs 2026 (2026-01-16)",
-      "source_url": "https://themortgagereports.com/35800/guide-to-mortgage-closing-costs-what-average-mortgage-costs-are-and-how-to-keep-yours-low",
-      "notes": "$6,800 on a roughly $400k median home is about 1.7%. 2-3% is a reasonable central value including lender fees and prepaid items."
+  "description": "S&P 500 trailing 12-month dividend yield, multpl.com",
+  "source_title": "multpl.com S&P 500 Dividend Yield",
+  "source_url": "https://www.multpl.com/s-p-500-dividend-yield",
+  "notes": "The 2026-10-21 value is an estimate based on 12-month dividends through June 2026 (S&P). Year-end history is from https://www.multpl.com/s-p-500-dividend-yield/table/by-year. The long-run mean is 4.20%."
+ },
+ "zori": {
+  "description": "Zillow Observed Rent Index, national. Values are January snapshots 2015-2025 (smoothed, all homes plus multifamily), plus December points found in Zillow reports and the latest 2026 figure.",
+  "value": {
+   "january_level": {
+    "2015": 1155,
+    "2016": 1210,
+    "2017": 1252,
+    "2018": 1307,
+    "2019": 1362,
+    "2020": 1416,
+    "2021": 1445,
+    "2022": 1668,
+    "2023": 1775,
+    "2024": 1829,
+    "2025": 1882
+   },
+   "january_yoy": {
+    "2016": 0.048,
+    "2017": 0.035,
+    "2018": 0.044,
+    "2019": 0.042,
+    "2020": 0.04,
+    "2021": 0.02,
+    "2022": 0.154,
+    "2023": 0.064,
+    "2024": 0.03,
+    "2025": 0.029
+   },
+   "december_points": {
+    "2023-12": {
+     "level": 1957,
+     "yoy": null,
+     "url": "https://www.ncscre.nccu.edu.tw/node/7094"
+    },
+    "2024-12": {
+     "level": 1965,
+     "yoy": 0.034,
+     "url": "https://www.ncscre.nccu.edu.tw/node/8204"
+    },
+    "2025-11": {
+     "level": 1925,
+     "yoy": 0.023,
+     "url": "https://calculatedrisk.substack.com/p/asking-rents-decline-year-over-year"
+    },
+    "2025-12": {
+     "level": 1901,
+     "yoy": null,
+     "url": "https://www.ncscre.nccu.edu.tw/node/9171"
+    },
+    "2026-01": {
+     "level": 1895,
+     "yoy": 0.02,
+     "url": "https://zillow.com/research/january-2026-rent-report-36091"
     }
+   },
+   "latest_2026": {
+    "month": "2026-09",
+    "level": 1932,
+    "yoy": 0.027
+   }
   },
-  "maintenance": {
-    "value": {"census_ahs_older_homes_new_owners": 0.015, "census_ahs_older_homes_longtime_owners": 0.006, "rule_of_thumb": [0.01, 0.03]},
-    "description": "Census 2021 AHS (homes built before 1950): median spending on improvements plus maintenance was 1.5% of value for new owners (in the home under 2 years) and 0.6% for longtime owners (10+ years). More than half spent under 1%. Routine maintenance alone had a median of about $540/yr. The industry rule of thumb is 1-3% of value per year.",
-    "sources": [
-      {"title": "U.S. Census Bureau, 'Cost of Improving and Maintaining Older Homes Higher for New Owners' (Oct 2023, 2021 AHS)", "url": "https://census.gov/library/stories/2023/10/older-home-costs.html"},
-      {"title": "HomeLight, average home maintenance costs (NAHB $950/yr from 2019 AHS; Angi 2020 $3,192/yr; Porch 2021 $9,820/yr; rule of thumb 1-3%)", "url": "https://www.homelight.com/blog/average-home-maintenance-costs/"},
-      {"title": "PearlScore home maintenance cost report 2026 (Bankrate-based $8,808/yr in 2025)", "url": "https://pearlscore.com/news/home-maintenance-cost-annual-report-2026"}
-    ],
-    "source_title": "U.S. Census Bureau AHS 2021 story",
-    "source_url": "https://census.gov/library/stories/2023/10/older-home-costs.html",
-    "notes": "Estimates vary widely with definition (routine vs including improvements). 1% of value/yr is defensible for maintenance plus repairs; 1.5% if capital replacements are included."
+  "source_title": "keepingupwithinflation.com rent tracker (ZORI, January snapshots); Zillow monthly rent reports; Zillow September 2026 Market Report",
+  "source_url": "https://keepingupwithinflation.com/tracker/rent/",
+  "latest_source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf",
+  "notes": "Full December 2015-2025 series not found: the Zillow CSV (files.zillowstatic.com) could not be read via WebFetch. The January series is from a third-party tracker of the smoothed ZORI, so its levels differ from the December points in the raw/seasonal report series (e.g., Dec-2024 $1,965 vs Jan-2025 $1,882); do not mix them. The YoY rates are the most usable figures. Multiply January-to-January growth 2015-2025: 1882/1155 = 1.629, about 5.0%/yr."
+ },
+ "mortgage_annual": {
+  "description": "Annual average of the Freddie Mac PMMS 30-year fixed rate (%).",
+  "value": {
+   "1972": 7.38,
+   "1973": 8.04,
+   "1974": 9.19,
+   "1975": 9.05,
+   "1976": 8.87,
+   "1977": 8.85,
+   "1978": 9.64,
+   "1979": 11.2,
+   "1980": 13.74,
+   "1981": 16.64,
+   "1982": 16.04,
+   "1983": 13.24,
+   "1984": 13.88,
+   "1985": 12.43,
+   "1986": 10.19,
+   "1987": 10.21,
+   "1988": 10.34,
+   "1989": 10.32,
+   "1990": 10.13,
+   "1991": 9.25,
+   "1992": 8.39,
+   "1993": 7.31,
+   "1994": 8.38,
+   "1995": 7.93,
+   "1996": 7.81,
+   "1997": 7.6,
+   "1998": 6.94,
+   "1999": 7.44,
+   "2000": 8.05,
+   "2001": 6.97,
+   "2002": 6.54,
+   "2003": 5.83,
+   "2004": 5.84,
+   "2005": 5.87,
+   "2006": 6.41,
+   "2007": 6.34,
+   "2008": 6.03,
+   "2009": 5.04,
+   "2010": 4.69,
+   "2011": 4.45,
+   "2012": 3.66,
+   "2013": 3.98,
+   "2014": 4.17,
+   "2015": 3.85,
+   "2016": 3.65,
+   "2017": 3.99,
+   "2018": 4.54,
+   "2019": 3.94,
+   "2020": 3.11,
+   "2021": 2.96,
+   "2022": 5.34,
+   "2023": 6.81,
+   "2024": 6.72,
+   "2025": 6.6
+  },
+  "ytd_2026": {
+   "value": 6.48,
+   "through": "2026-10-15"
+  },
+  "latest_weekly": {
+   "date": "2026-10-15",
+   "value": 7.4
+  },
+  "source_title": "PennyCalc U.S. 30-Year Mortgage Rate History (Freddie Mac PMMS via FRED annual averages)",
+  "source_url": "https://pennycalc.com/mortgage-rates/history/",
+  "verification_urls": [
+   "https://www.freddiemac.com/pmms/archive?year=2025",
+   "https://www.freddiemac.com/pmms/archive?year=2024",
+   "https://www.freddiemac.com/pmms/archive?year=2023",
+   "https://www.freddiemac.com/pmms/archive?year=2022",
+   "https://www.freddiemac.com/pmms/archive?year=2021",
+   "https://rocketmortgage.com/learn/historical-mortgage-rates-30-year-fixed"
+  ],
+  "notes": "I verified 2021-2025 by averaging Freddie Mac's weekly archive values: 2021 = 2.958, 2022 = 5.344, 2023 = 6.807, 2024 = 6.721, 2025 = 6.595 (53 weeks). They match this table. Rocket Mortgage gives the same table for 1972-2024 (1981 = 16.64) but 6.47 for 2025, which is wrong against the Freddie weekly data; use 6.60. A Bankrate table (wlox.com) differs from 1982 onward because it uses Bankrate's own survey, so do not use it. 2026 weekly rates rose from about 6.0% (Feb-Mar) to 7.40% (Oct 8 and 15, 2026). 1981 corrected to 16.64 after independent audit (mean of 53 weekly FRED values = 16.6415)."
+ },
+ "margin_rate": {
+  "value": {
+   "ibkr_pro_0_100k": 0.0538,
+   "ibkr_pro_100k_1m": 0.0488,
+   "ibkr_pro_1m_50m": 0.0463,
+   "implied_benchmark": 0.0388
+  },
+  "description": "Interactive Brokers Pro USD margin rates: benchmark + 1.5% (up to $100k), + 1.0% ($100k-$1M), + 0.75% ($1M-$50M). The benchmark implied by the tiers is 3.88%.",
+  "source_title": "Interactive Brokers margin rates",
+  "source_url": "https://www.interactivebrokers.com/en/trading/margin-rates.php",
+  "notes": "Fetched 2026-10-22; the page itself carries no date. The benchmark is not named on the page (IBKR's USD benchmark is normally Fed Funds effective). Box-spread rates (about Treasury/SOFR + small spread) were not found as text; the SyntheticFi Q2 2026 chart is an image only. For a calculator, benchmark + 0.5-1.5% is realistic."
+ },
+ "mortgage_spread": {
+  "value": 0.017,
+  "range": [
+   0.017,
+   0.018
+  ],
+  "description": "Long-run average spread of the 30-year fixed mortgage rate over the 10-year Treasury yield",
+  "source_title": "First American, 'Mind the Gap Between Mortgage Rates and the 10-Year Treasury Yield' (Odeta Kushi, 2023-05-24)",
+  "source_url": "https://blog.firstam.com/economics/mind-the-gap-between-mortgage-rates-and-the-10-year-treasury-yield",
+  "secondary_url": "https://www.housingwire.com/30-year-mortgage-vs-10-year-treasury-spread/",
+  "notes": "First American: on average 1.7 pp (170 bp) since the end of the Great Recession. HousingWire FAQ: historically about 1.7-1.8 pp, with spreads above 2% more common in recent years."
+ },
+ "sell_costs": {
+  "value": {
+   "total_seller_typical": 0.07,
+   "commission_total": [
+    0.05,
+    0.055
+   ],
+   "buyer_agent_commission_q1_2025": 0.024,
+   "buyer_agent_commission_q3_2025": 0.0242,
+   "seller_closing_costs_excl_commission": [
+    0.01,
+    0.03
+   ]
+  },
+  "description": "Commission after the NAR settlement is about 5-5.5% combined (Opendoor citing Redfin). Redfin's average buyer-agent commission was 2.40% in Q1 2025 and 2.42% in Q3 2025. Seller closing costs other than commission are 1-3%. Opendoor's all-in figure of 10-15% also includes repairs, staging and moving.",
+  "sources": [
+   {
+    "title": "Opendoor, How Much Does It Cost to Sell a House in 2026?",
+    "url": "https://www.opendoor.com/articles/heres-how-much-it-costs-to-sell-a-house"
+   },
+   {
+    "title": "Redfin, real estate commissions May 2025 (Q1 2025: 2.40% buyer agent)",
+    "url": "https://www.redfin.com/news/real-estate-commissions-may-2025/"
+   },
+   {
+    "title": "MortgagePoint, Redfin Q3 2025 buyer agent commission 2.42% (2025-12-31)",
+    "url": "https://themortgagepoint.com/?p=19327"
+   }
+  ],
+  "source_title": "Opendoor 2026 cost-to-sell guide; Redfin commission reports",
+  "source_url": "https://www.opendoor.com/articles/heres-how-much-it-costs-to-sell-a-house",
+  "notes": "total_seller_typical = 0.07 is a derived suggestion (about 5.5% commission + about 1.5% closing), not a quoted figure; 6-8% is the realistic range. The commission data show that buyer-agent fees are still about 2.4% after the settlement.",
+  "buyer_closing": {
+   "value": [
+    0.02,
+    0.05
+   ],
+   "description": "Buyer closing costs of 2-5% of purchase price. ClosingCorp reports an average of about $6,800 for a single-family home (year not stated).",
+   "source_title": "The Mortgage Reports, Average Closing Costs 2026 (2026-01-16)",
+   "source_url": "https://themortgagereports.com/35800/guide-to-mortgage-closing-costs-what-average-mortgage-costs-are-and-how-to-keep-yours-low",
+   "notes": "$6,800 on a roughly $400k median home is about 1.7%. 2-3% is a reasonable central value including lender fees and prepaid items."
   }
+ },
+ "maintenance": {
+  "value": {
+   "census_ahs_older_homes_new_owners": 0.015,
+   "census_ahs_older_homes_longtime_owners": 0.006,
+   "rule_of_thumb": [
+    0.01,
+    0.03
+   ]
+  },
+  "description": "Census 2021 AHS (homes built before 1950): median spending on improvements plus maintenance was 1.5% of value for new owners (in the home under 2 years) and 0.6% for longtime owners (10+ years). More than half spent under 1%. Routine maintenance alone had a median of about $540/yr. The industry rule of thumb is 1-3% of value per year.",
+  "sources": [
+   {
+    "title": "U.S. Census Bureau, 'Cost of Improving and Maintaining Older Homes Higher for New Owners' (Oct 2023, 2021 AHS)",
+    "url": "https://census.gov/library/stories/2023/10/older-home-costs.html"
+   },
+   {
+    "title": "HomeLight, average home maintenance costs (NAHB $950/yr from 2019 AHS; Angi 2020 $3,192/yr; Porch 2021 $9,820/yr; rule of thumb 1-3%)",
+    "url": "https://www.homelight.com/blog/average-home-maintenance-costs/"
+   },
+   {
+    "title": "PearlScore home maintenance cost report 2026 (Bankrate-based $8,808/yr in 2025)",
+    "url": "https://pearlscore.com/news/home-maintenance-cost-annual-report-2026"
+   }
+  ],
+  "source_title": "U.S. Census Bureau AHS 2021 story",
+  "source_url": "https://census.gov/library/stories/2023/10/older-home-costs.html",
+  "notes": "Estimates vary widely with definition (routine vs including improvements). 1% of value/yr is defensible for maintenance plus repairs; 1.5% if capital replacements are included."
+ }
 }
