@@ -1,0 +1,26 @@
+name: Fetch FHFA house price data
+# Runs only when started by hand (Actions tab → Run workflow) or when this file changes. No schedule.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/fetch-fhfa.yml', 'scripts/fetch_fhfa.py']
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: python scripts/fetch_fhfa.py fhfa_extract.json
+      - name: Save extract to the data-fhfa branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan data-fhfa
+          git rm -rq --cached .
+          git add fhfa_extract.json
+          git commit -m "FHFA purchase-only extract $(date -u +%F)"
+          git push -f origin data-fhfa
