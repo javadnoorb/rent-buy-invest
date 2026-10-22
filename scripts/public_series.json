@@ -1,0 +1,15 @@
+{
+ "bls": {
+  "start_year": 1986,
+  "series": {
+   "cpi_all_us": "CUUR0000SA0",
+   "rent_us": "CUUR0000SEHA"
+  },
+  "candidates": {}
+ },
+ "acs": {
+  "years": [2025, 2024],
+  "vars": ["NAME", "B25103_001E", "B25077_001E", "B25031_001E", "B25031_002E", "B25031_003E", "B25031_004E", "B25031_005E", "B25031_006E", "B25031_007E", "B25064_001E"]
+ },
+ "freddie_pmms_csv": "https://www.freddiemac.com/pmms/docs/PMMS_history.csv"
+}
