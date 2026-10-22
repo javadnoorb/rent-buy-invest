@@ -60,6 +60,7 @@
     <button role="tab" data-tab="opt" aria-selected="false">Optimizer</button>
     <button role="tab" data-tab="hist" aria-selected="false">Backtest</button>
     <button role="tab" data-tab="mc" aria-selected="false">Monte Carlo &amp; risk</button>
+    <button role="tab" data-tab="loc" aria-selected="false">Locations</button>
     <button role="tab" data-tab="scen" aria-selected="false">Scenarios</button>
     <button role="tab" data-tab="data" aria-selected="false">Data</button>
     <button role="tab" data-tab="method" aria-selected="false">Method &amp; sources</button>
@@ -177,6 +178,24 @@
       <div class="takeaway" id="tk-mcrate"></div>
       <details class="how"><summary>How to read this</summary><dl class="read"><dt>What you see</dt><dd>x: years. y: the simulated market 30-year rate; median line and 5–95% band.</dd><dt>What to look for</dt><dd>How often rates fall far enough below yours to refinance. Lower future rates help the buyer.</dd><dt>Keep in mind</dt><dd>Rate moves are resampled from history starting at today's rate, and kept between 2% and 20%.</dd></dl></details></div>
     </div>
+  </section>
+
+  <!-- LOCATIONS -->
+  <section class="panel" id="tab-loc" hidden>
+    <div class="card"><h2>Compare locations</h2>
+      <p class="cap" id="loc-cap"></p>
+      <div class="controls"><span class="sub">Home &amp; rent growth:</span><span class="seg" role="group" aria-label="Growth by location" id="locMode"><button data-m="same" aria-pressed="true">Same</button><button data-m="adj" aria-pressed="false">Yours + local</button><button data-m="hist" aria-pressed="false">Local history</button></span></div>
+      <div class="takeaway" id="tk-loc"></div>
+      <div class="tablewrap" style="max-height:none"><table class="kv loct" id="locT"></table></div>
+      <p class="sub">Tap a column to sort. Tick up to 6 locations for the chart below. <span id="locMsg"></span></p>
+      <details class="how"><summary>How to read this</summary><dl class="read">
+        <dt>The table</dt><dd>Each row runs the full model for one location with your household. The last column is the headline answer there: positive (green) means buying ends ahead of renting and investing after your horizon. <em>Price ÷ yearly rent</em> is the classic rule of thumb: above about 20 renting tends to win, below about 15 buying does.</dd>
+        <dt>Growth modes</dt><dd><b>Same</b>: your home and rent growth for every location, so differences come only from today's prices, rents and local costs. <b>Yours + local</b>: your growth plus how much faster or slower each location grew than the U.S. over the same years (FHFA home prices since about 1991, BLS rents). <b>Local history</b>: each location's own historical averages. Past local booms need not repeat, so treat the last two as what-ifs.</dd>
+        <dt>Housing ÷ income</dt><dd>Month-1 owning cost over your gross monthly income. Green up to 28%, amber to 36%, red above: the same household may not qualify for a mortgage everywhere.</dd>
+        <dt>Not modeled</dt><dd>Local pay differences, state income tax (kept at your setting) and local homestead exemptions.</dd></dl></details>
+    </div>
+    <div class="card"><h2>Buy advantage over time, by location</h2><p class="cap">Buy minus rent-and-invest each year for the ticked locations; the thicker line is your current location.</p><div class="plot tall" id="p-loc"></div></div>
+    <div class="card"><h2>Price-to-rent ratio vs. the answer</h2><p class="cap">Each dot is a location: how expensive homes are relative to rent, against the buy advantage at your horizon. Green dots: buying wins.</p><div class="plot" id="p-locsc"></div></div>
   </section>
 
   <!-- SCENARIOS -->

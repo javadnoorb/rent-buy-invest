@@ -327,3 +327,16 @@ input[type=checkbox]{width:18px;height:18px;vertical-align:-3px}
  aside{max-height:82vh;max-height:82dvh}
  .wz-card{max-height:92dvh}
 }
+/* locations */
+table.loct td,table.loct th{white-space:nowrap}
+table.loct th{padding:0}
+table.loct .srt{border:0;background:none;color:var(--muted);font:500 12px var(--body);padding:6px 8px;cursor:pointer;width:100%;text-align:inherit;min-height:0}
+table.loct .srt.on{color:var(--ink);font-weight:650}
+table.loct tr.cur td{background:var(--sunk)}
+table.loct td:first-child{min-width:150px}
+.lsel{display:flex;align-items:center;gap:6px;cursor:pointer}
+.gapc{position:relative}
+.gbar{display:inline-block;width:46px;height:8px;margin-right:6px;border-radius:4px;background:linear-gradient(to right,var(--c) var(--w),var(--sunk) var(--w))}
+#locMode{flex-wrap:nowrap}
+@media (max-width:600px){#locMode button{padding:6px 9px;font-size:12.5px;white-space:nowrap}table.loct td:first-child{min-width:128px;max-width:140px;white-space:normal}}
+.stale{margin:0 0 10px;padding:9px 12px;border-radius:10px;border:1px solid var(--cash);background:color-mix(in srgb,var(--cash) 12%,var(--surface));font-size:13px;line-height:1.45}

@@ -350,6 +350,19 @@ input[type=checkbox]{width:18px;height:18px;vertical-align:-3px}
  aside{max-height:82vh;max-height:82dvh}
  .wz-card{max-height:92dvh}
 }
+/* locations */
+table.loct td,table.loct th{white-space:nowrap}
+table.loct th{padding:0}
+table.loct .srt{border:0;background:none;color:var(--muted);font:500 12px var(--body);padding:6px 8px;cursor:pointer;width:100%;text-align:inherit;min-height:0}
+table.loct .srt.on{color:var(--ink);font-weight:650}
+table.loct tr.cur td{background:var(--sunk)}
+table.loct td:first-child{min-width:150px}
+.lsel{display:flex;align-items:center;gap:6px;cursor:pointer}
+.gapc{position:relative}
+.gbar{display:inline-block;width:46px;height:8px;margin-right:6px;border-radius:4px;background:linear-gradient(to right,var(--c) var(--w),var(--sunk) var(--w))}
+#locMode{flex-wrap:nowrap}
+@media (max-width:600px){#locMode button{padding:6px 9px;font-size:12.5px;white-space:nowrap}table.loct td:first-child{min-width:128px;max-width:140px;white-space:normal}}
+.stale{margin:0 0 10px;padding:9px 12px;border-radius:10px;border:1px solid var(--cash);background:color-mix(in srgb,var(--cash) 12%,var(--surface));font-size:13px;line-height:1.45}
 </style>
 <div class="wrap">
 <header>
@@ -413,6 +426,7 @@ input[type=checkbox]{width:18px;height:18px;vertical-align:-3px}
     <button role="tab" data-tab="opt" aria-selected="false">Optimizer</button>
     <button role="tab" data-tab="hist" aria-selected="false">Backtest</button>
     <button role="tab" data-tab="mc" aria-selected="false">Monte Carlo &amp; risk</button>
+    <button role="tab" data-tab="loc" aria-selected="false">Locations</button>
     <button role="tab" data-tab="scen" aria-selected="false">Scenarios</button>
     <button role="tab" data-tab="data" aria-selected="false">Data</button>
     <button role="tab" data-tab="method" aria-selected="false">Method &amp; sources</button>
@@ -530,6 +544,24 @@ input[type=checkbox]{width:18px;height:18px;vertical-align:-3px}
       <div class="takeaway" id="tk-mcrate"></div>
       <details class="how"><summary>How to read this</summary><dl class="read"><dt>What you see</dt><dd>x: years. y: the simulated market 30-year rate; median line and 5–95% band.</dd><dt>What to look for</dt><dd>How often rates fall far enough below yours to refinance. Lower future rates help the buyer.</dd><dt>Keep in mind</dt><dd>Rate moves are resampled from history starting at today's rate, and kept between 2% and 20%.</dd></dl></details></div>
     </div>
+  </section>
+
+  <!-- LOCATIONS -->
+  <section class="panel" id="tab-loc" hidden>
+    <div class="card"><h2>Compare locations</h2>
+      <p class="cap" id="loc-cap"></p>
+      <div class="controls"><span class="sub">Home &amp; rent growth:</span><span class="seg" role="group" aria-label="Growth by location" id="locMode"><button data-m="same" aria-pressed="true">Same</button><button data-m="adj" aria-pressed="false">Yours + local</button><button data-m="hist" aria-pressed="false">Local history</button></span></div>
+      <div class="takeaway" id="tk-loc"></div>
+      <div class="tablewrap" style="max-height:none"><table class="kv loct" id="locT"></table></div>
+      <p class="sub">Tap a column to sort. Tick up to 6 locations for the chart below. <span id="locMsg"></span></p>
+      <details class="how"><summary>How to read this</summary><dl class="read">
+        <dt>The table</dt><dd>Each row runs the full model for one location with your household. The last column is the headline answer there: positive (green) means buying ends ahead of renting and investing after your horizon. <em>Price ÷ yearly rent</em> is the classic rule of thumb: above about 20 renting tends to win, below about 15 buying does.</dd>
+        <dt>Growth modes</dt><dd><b>Same</b>: your home and rent growth for every location, so differences come only from today's prices, rents and local costs. <b>Yours + local</b>: your growth plus how much faster or slower each location grew than the U.S. over the same years (FHFA home prices since about 1991, BLS rents). <b>Local history</b>: each location's own historical averages. Past local booms need not repeat, so treat the last two as what-ifs.</dd>
+        <dt>Housing ÷ income</dt><dd>Month-1 owning cost over your gross monthly income. Green up to 28%, amber to 36%, red above: the same household may not qualify for a mortgage everywhere.</dd>
+        <dt>Not modeled</dt><dd>Local pay differences, state income tax (kept at your setting) and local homestead exemptions.</dd></dl></details>
+    </div>
+    <div class="card"><h2>Buy advantage over time, by location</h2><p class="cap">Buy minus rent-and-invest each year for the ticked locations; the thicker line is your current location.</p><div class="plot tall" id="p-loc"></div></div>
+    <div class="card"><h2>Price-to-rent ratio vs. the answer</h2><p class="cap">Each dot is a location: how expensive homes are relative to rent, against the buy advantage at your horizon. Green dots: buying wins.</p><div class="plot" id="p-locsc"></div></div>
   </section>
 
   <!-- SCENARIOS -->
@@ -1645,6 +1677,64 @@ function renderData(){
     document.getElementById('dtable').innerHTML='<thead>'+head+'</thead><tbody>'+rows+'</tbody>';dataDone=true}
 }
 
+/* ===================== Compare locations ===================== */
+let LOC_MODE='same',LOC_SORT='gap',LOC_DIR=-1,LOC_SEL=null;
+function locGrowth(m){
+  // geometric-mean home and rent growth since the metro's data begins, and the national average over the same years
+  const a=metroAnnual(m,true);const ms=metroStart(m);if(!a||!ms)return null;
+  const from=Math.max(ms,1988),to=2025;
+  const natRent=RENTL.map((v,i)=>i&&RENTL[i-1]?(v/RENTL[i-1]-1)*100:null);
+  const locRent=HOME.map((_,i)=>{const v=m.rentG&&m.rentG[String(Y0+i)];return v==null?null:+v});
+  const has=locRent.slice(from-Y0,to-Y0+1).filter(v=>v!=null).length>=10;
+  return {from,gh:geo(a,from,to)/100,ghN:geo(HOME,from,to)/100,gr:has?geo(locRent,from,to)/100:null,grN:geo(natRent,from,to)/100}}
+function locParams(base,m){
+  const raw=getRaw();const q=Object.assign({},base);
+  q.P=m.P||base.P;q.rent0=m.rent?Math.round(m.rent*bedRatio(m,raw.beds||'3')/10)*10:base.rent0;
+  const pt=m.acs&&m.acs.rate!=null?m.acs.rate:m.ptax;if(pt!=null&&isFinite(pt))q.ptax=pt/100;
+  if(m.ins!=null&&isFinite(m.ins))q.ins=m.ins;q.ptaxCap=(m.ptaxCap||0)/100;
+  if(raw.ttAuto==='auto'){const t=m.tt?transferTaxes(m.tt,q.P,q.P*(1-q.dp)):{buyer:0,seller:0};q.ttBuy=t.buyer/q.P;q.ttSell=t.seller/q.P;q.close=q.closeBase+q.ttBuy;q.sell=q.sellBase+q.ttSell}
+  q.metro=m.slug;
+  const g=LOC_MODE==='same'?null:locGrowth(m);
+  if(g){if(LOC_MODE==='hist'){q.gh=g.gh;if(g.gr!=null)q.gr=g.gr}else{q.gh=base.gh+(g.gh-g.ghN);if(g.gr!=null)q.gr=base.gr+(g.gr-g.grN)}}
+  return {q,g}}
+function locRows(){
+  const N=P.N;
+  return METROS.map(m=>{const {q,g}=locParams(P,m);const o=simulate(q,constPath(q,N));const c=o.cpi[N];
+    const b=adj(o.buy[N],c),iv=adj(o.inv[N],c),own1=month1Cost(q);
+    return {m,q,o,g,gap:b-iv,buy:b,inv:iv,own1,rent:q.rent0,ptr:q.P/(12*q.rent0),cash:q.P*(q.dp+q.close)+loanSetup(q,q.rate).ptsCost,
+      hti:q.income?own1/(q.income/12):null,beY:breakevenYear(o),diff:own1-q.rent0}})}
+function renderLoc(){
+  if(!LOC_SEL){let s=null;try{s=JSON.parse(localStorage.getItem('rbi-loc')||'null')}catch(e){}LOC_SEL=Array.isArray(s)&&s.length?s:[...new Set([P.metro,'boston','raleigh','austin','minneapolis'])].slice(0,4)}
+  const rows=locRows(),t=theme(),N=P.N;
+  const key={name:r=>r.m.name,P:r=>r.q.P,rent:r=>r.rent,ptr:r=>r.ptr,own1:r=>r.own1,cash:r=>r.cash,hti:r=>r.hti??9,beY:r=>r.beY??99,gap:r=>r.gap}[LOC_SORT];
+  rows.sort((a,b)=>{const x=key(a),y=key(b);return (typeof x==='string'?x.localeCompare(y):x-y)*LOC_DIR});
+  const cols=[['name','Location'],['gap',`Buy − rent+invest, yr ${N}`],['beY','Buying pulls ahead'],['own1','Owning, month 1'],['hti','Housing ÷ income'],['P','Home price'],['rent','Rent'],['ptr','Price ÷ yearly rent'],['cash','Cash to buy']];
+  const th=cols.map(([k,l])=>`<th><button type="button" class="srt${LOC_SORT===k?' on':''}" data-k="${k}" aria-label="Sort by ${l}">${l}${LOC_SORT===k?(LOC_DIR<0?' ▾':' ▴'):''}</button></th>`).join('');
+  const mx=Math.max(...rows.map(r=>Math.abs(r.gap)),1);
+  const body=rows.map(r=>{const on=LOC_SEL.includes(r.m.slug),cur=r.m.slug===P.metro;
+    const hc=r.hti==null?'':r.hti<=0.28?'--buy':r.hti<=0.36?'--cash':'--neg';
+    return `<tr class="${cur?'cur':''}"><td><label class="lsel"><input type="checkbox" data-s="${r.m.slug}" ${on?'checked':''}> ${r.m.name}${cur?' <span class="pill">yours</span>':''}</label></td>
+    <td class="gapc"><span class="gbar" style="--w:${(Math.abs(r.gap)/mx*100).toFixed(1)}%;--c:var(${r.gap>=0?'--buy':'--inv'})"></span><span style="color:var(${r.gap>=0?'--buy':'--inv'})">${r.gap>=0?'+':'−'}${fmt(Math.abs(r.gap))}</span></td>
+    <td>${r.beY?'year '+r.beY:'> '+N+' yrs'}</td><td>${fmtFull(r.own1)}</td><td>${r.hti==null?'—':`<span style="color:var(${hc})">${pct(r.hti,0)}</span>`}</td>
+    <td>${fmt(r.q.P)}</td><td>${fmtFull(r.rent)}</td><td>${r.ptr.toFixed(1)}</td><td>${fmt(r.cash)}</td></tr>`}).join('');
+  document.getElementById('locT').innerHTML=`<thead><tr>${th}</tr></thead><tbody>${body}</tbody>`;
+  document.querySelectorAll('#locT .srt').forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(LOC_SORT===k)LOC_DIR=-LOC_DIR;else{LOC_SORT=k;LOC_DIR=k==='name'?1:-1}renderLoc()});
+  document.querySelectorAll('#locT input[data-s]').forEach(c=>c.onchange=()=>{const s=c.dataset.s;if(c.checked){if(LOC_SEL.length>=6){c.checked=false;document.getElementById('locMsg').textContent='Up to 6 locations in the chart.';return}LOC_SEL.push(s)}else LOC_SEL=LOC_SEL.filter(x=>x!==s);
+    document.getElementById('locMsg').textContent='';try{localStorage.setItem('rbi-loc',JSON.stringify(LOC_SEL))}catch(e){}drawLoc(rows)});
+  const g=rows.filter(r=>r.gap>=0).length,best=[...rows].sort((a,b)=>b.gap-a.gap)[0],worst=[...rows].sort((a,b)=>a.gap-b.gap)[0];
+  const corr=(()=>{const x=rows.map(r=>r.ptr),y=rows.map(r=>r.gap),mx=x.reduce((a,b)=>a+b)/x.length,my=y.reduce((a,b)=>a+b)/y.length;let sxy=0,sx=0,sy=0;x.forEach((v,i)=>{sxy+=(v-mx)*(y[i]-my);sx+=(v-mx)**2;sy+=(y[i]-my)**2});return sxy/Math.sqrt(sx*sy)})();
+  document.getElementById('loc-cap').innerHTML=`Same household in every location: your income, savings rate, down payment share, loan, tax settings and horizon (${N} years). What changes: home price, comparable ${P.beds==='any'?'':P.beds+'-bedroom '}rent, property tax, insurance${getRaw().ttAuto==='auto'?', transfer taxes':''}${LOC_MODE==='same'?'':', and home and rent growth'}. State income tax stays at your setting.`;
+  document.getElementById('tk-loc').innerHTML=`<strong>Buying comes out ahead in ${g} of ${rows.length} locations</strong> at ${N} years. Best for buying: ${best.m.name} (${best.gap>=0?'+':'−'}${fmt(Math.abs(best.gap))}); best for renting: ${worst.m.name} (${worst.gap>=0?'+':'−'}${fmt(Math.abs(worst.gap))}). `+
+    (isFinite(corr)?`Across locations the price-to-rent ratio and the buy advantage correlate at ${corr.toFixed(2)}: ${corr<-0.5?'where homes are expensive relative to rent, renting tends to win':'the ratio alone does not decide it here'}.`:'');
+  drawLoc(rows)}
+function drawLoc(rows){
+  const t=theme(),N=P.N,sel=rows.filter(r=>LOC_SEL.includes(r.m.slug)),pal=[t.buy,t.inv,t.cash,t.rp,t.neg,t.ink];
+  plot('p-loc',sel.map((r,i)=>({x:r.o.buy.map((_,k)=>k),y:r.o.buy.map((b,k)=>adj(b-r.o.inv[k],r.o.cpi[k])),mode:'lines',name:r.m.name,line:{color:pal[i%pal.length],width:r.m.slug===P.metro?3:2,dash:i>=3?'dot':'solid'},hovertemplate:'%{y:$,.0f}<extra>'+r.m.name+'</extra>'})),
+    Object.assign(layout({hovermode:'x unified'}),{xaxis:X('Years'),yaxis:Yd('Buy − rent+invest ('+basisLabel()+')'),shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:t.muted,width:1}}]}));
+  plot('p-locsc',[{x:rows.map(r=>r.ptr),y:rows.map(r=>r.gap),text:rows.map(r=>r.m.name),mode:'markers+text',textposition:'top center',textfont:{size:9,color:t.muted},
+    marker:{size:rows.map(r=>r.m.slug===P.metro?12:8),color:rows.map(r=>r.gap>=0?t.buy:t.inv),line:{width:rows.map(r=>LOC_SEL.includes(r.m.slug)?1.5:0),color:t.ink}},hovertemplate:'%{text}<br>price ÷ yearly rent %{x:.1f}<br>buy − rent+invest %{y:$,.0f}<extra></extra>'}],
+    Object.assign(layout(),{xaxis:X('Price ÷ yearly rent'),yaxis:Yd(`Buy − rent+invest at year ${N}`),showlegend:false,shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:t.muted,width:1}}]}))}
+function wireLoc(){document.querySelectorAll('#locMode button').forEach(b=>b.addEventListener('click',()=>{LOC_MODE=b.dataset.m;document.querySelectorAll('#locMode button').forEach(x=>x.setAttribute('aria-pressed',x===b));renderLoc()}))}
 /* ===================== Method ===================== */
 function buildMethod(){
   document.getElementById('methodCard').innerHTML=`
@@ -1845,7 +1935,8 @@ function structureMethod(){
 /* ===================== Snapshot ===================== */
 function buildSnap(){
   document.getElementById('snap').innerHTML=SNAP.items.map(c=>`<div class="chip"><span class="k">${c.k}</span><span class="v">${c.v}</span><span class="s muted">${c.s} · ${sl(c.src)}${c.field?` · <a href="#" class="use" data-f="${c.field}" data-v="${c.val}">use</a>`:''}</span></div>`).join('')+
-    `<div class="chip"><span class="k">Data as of</span><span class="v">${SNAP.asOf}</span><span class="s muted">updated periodically</span></div>`;
+    `<div class="chip"><span class="k">Data as of</span><span class="v">${SNAP.asOf}</span><span class="s muted">${dataAgeText()}</span></div>`;
+  staleNotice();
   document.querySelectorAll('.use').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();document.getElementById(a.dataset.f).value=a.dataset.v;update()}));
 }
 function bedRatio(m,b){if(b==='any')return 1;const k=b==='4'?'4':b;const r=(m&&m.acs&&m.acs.beds&&m.acs.beds[k])||(D0.bedRatio&&D0.bedRatio[k]);return r||1}
@@ -1877,6 +1968,17 @@ function updateMetroHints(m){
   const tts=document.getElementById('ttBuy').closest('.f').querySelector('.hint');if(tts)tts.innerHTML=m.ttSrc&&m.ttSrc.length?`${m.name}: `+m.ttSrc.map(x=>`${x.t} ${linkTo(x.u)}`).join(' · '):'no transfer taxes found for this location';
 }
 
+
+function dataAgeDays(){const d=new Date(SNAP.asOf+'T12:00:00');return isFinite(d)?Math.floor((Date.now()-d)/864e5):0}
+function dataAgeText(){const n=dataAgeDays();return n<=1?'updated today':n<14?`${n} days ago`:n<60?`${Math.round(n/7)} weeks ago`:`${Math.round(n/30)} months ago`}
+function staleNotice(){const n=dataAgeDays();let el=document.getElementById('stale');
+  const off=typeof navigator!=='undefined'&&navigator.onLine===false;
+  if(n<21&&!off){if(el)el.remove();return}
+  if(!el){el=document.createElement('div');el.id='stale';el.className='stale';el.setAttribute('role','status');document.getElementById('snap').insertAdjacentElement('beforebegin',el)}
+  const when=new Date(SNAP.asOf+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  el.innerHTML=(n>=21?`<strong>Market data is from ${when}</strong>, ${dataAgeText()}. Mortgage rates and prices may have moved since; check today's rate with a lender or the linked sources and enter it in the settings.`:'')+
+    (off?`${n>=21?' ':''}<strong>Offline</strong>: using the data saved with the app.`:'')}
+addEventListener('online',()=>{try{staleNotice()}catch(e){}});addEventListener('offline',()=>{try{staleNotice()}catch(e){}});
 /* ===================== Guided start ===================== */
 let WZ=0;
 function openWizard(){const w=document.getElementById('wizard');WZ=0;
@@ -2061,6 +2163,7 @@ const HELP={
  'h-home':['Home prices in the backtest','Selected location: the metro\'s own price history where available. National: U.S. average.'],
  'h-year':['Detail start','Start year shown in the detail chart below.'],
  optTerm:['Loan term','Switches the optimizer between 30- and 15-year loans.'],
+ locMode:['Growth by location','Same: your growth rates in every location. Yours + local: your rates plus each location\'s historical gap to the U.S. average. Local history: each location\'s own past averages.'],
  scName:['Scenario name','Name the current inputs to save them on this device and compare later.'],
  cmp:['Pick two scenarios','Choose any two saved scenarios (or the current inputs) to compare side by side.'],
  // ---------- risk table ----------
@@ -2093,6 +2196,8 @@ const CHART_HELP={
  mcsc:'Which combinations of home and stock growth make buying win.',
  mcrate:'Simulated mortgage-rate paths and how often they trigger a refinance.',
  scen:'Saved scenarios side by side over time.',
+ loc:'The buy-vs-rent gap over time in each ticked location.',
+ locsc:'Whether expensive-relative-to-rent places favor renting.',
  cmp:'Two scenarios compared.',
  cum:'Long-run growth of stocks, bonds, bills, home prices and rent since 1927.',
  metro:'The location\'s home prices against the national index.',
@@ -2131,7 +2236,7 @@ function wireHelp(){
   document.querySelector('.vtop').insertAdjacentHTML('beforeend',`<div class="vhelp">${helpBtn('verdict','What comes out ahead means')}<span class="sub">what this means</span> ${helpBtn('conf','How sure')}<span class="sub">how sure</span> ${helpBtn('paths','The paths')}<span class="sub">the paths</span></div>`);
   // presets and controls
   const pr=document.querySelector('.presets');if(pr)pr.insertAdjacentHTML('beforeend',helpBtn('presets','About presets'));
-  [['scName','afterend']].forEach(([id,w])=>{const el=document.getElementById(id);if(el)el.insertAdjacentHTML(w,helpBtn(id,HELP[id][0]))});
+  [['scName','afterend'],['locMode','afterend']].forEach(([id,w])=>{const el=document.getElementById(id);if(el)el.insertAdjacentHTML(w,helpBtn(id,HELP[id][0]))});
   ['nwBand','mc-n','mc-b','mc-w','mc-rc','h-mode','h-rate','h-home','h-year'].forEach(id=>{const el=document.getElementById(id);const lab=el&&el.closest('label');if(lab)lab.insertAdjacentHTML('afterend',helpBtn(id,HELP[id][0]))});
   const ot=document.getElementById('opt30');if(ot)ot.parentElement.insertAdjacentHTML('afterend',helpBtn('optTerm',HELP.optTerm[0]));
   const ca=document.getElementById('cmpB');if(ca)ca.closest('label').insertAdjacentHTML('afterend',helpBtn('cmp',HELP.cmp[0]));
@@ -2155,7 +2260,7 @@ function decorateHelp(){
   document.querySelectorAll('#riskT tbody tr td:first-child').forEach(td=>{if(td.querySelector('.hlp'))return;const t=td.textContent.trim();const key=RISK_HELP[t]||(t.startsWith('Certainty equivalent')?'r_ce':null);if(key)td.insertAdjacentHTML('beforeend',' '+helpBtn(key,HELP[key][0]))});
 }
 /* ===================== Wiring ===================== */
-const RENDER={proj:renderProj,sens:renderSens,opt:renderOpt,hist:renderHist,mc:()=>{renderMC();typeset(document.getElementById('tab-mc'))},scen:renderScen,data:renderData,method:()=>typeset(document.getElementById('tab-method'))};
+const RENDER={proj:renderProj,sens:renderSens,opt:renderOpt,hist:renderHist,mc:()=>{renderMC();typeset(document.getElementById('tab-mc'))},loc:renderLoc,scen:renderScen,data:renderData,method:()=>typeset(document.getElementById('tab-method'))};
 function showTab(k){CUR=k;document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===k));
   Object.keys(RENDER).forEach(t=>document.getElementById('tab-'+t).hidden=t!==k);try{localStorage.setItem('rbi-tab',k)}catch(e){}
   requestAnimationFrame(()=>RENDER[k]())}
@@ -2181,7 +2286,7 @@ function copyText(txt,msgEl,okMsg){const done=()=>{msgEl.textContent=okMsg;setTi
 const STANDALONE_SITE=(()=>{try{return window.top===window.self&&/^https?:$/.test(location.protocol)}catch(e){return false}})();
 function setBasis(){document.getElementById('realBtn').setAttribute('aria-pressed',REAL);document.getElementById('nomBtn').setAttribute('aria-pressed',!REAL);update()}
 function init(){
-  buildInputs();buildMetroSelect();buildSnap();buildMethod();const hadSaved=(()=>{try{return !!localStorage.getItem('rbi-inputs')}catch(e){return false}})();restore();wireWizard();wireSettings();wireHelp();
+  buildInputs();buildMetroSelect();buildSnap();buildMethod();const hadSaved=(()=>{try{return !!localStorage.getItem('rbi-inputs')}catch(e){return false}})();restore();wireWizard();wireSettings();wireLoc();wireHelp();
   if(STANDALONE_SITE){const sp=new URLSearchParams(location.search).get('s');const st=sp&&decodeState(sp);if(st){setRaw(st);if(st.REAL===false)REAL=false;const m=METROS.find(x=>x.slug===st.metro);if(m)updateMetroHints(m);history.replaceState(null,'',location.pathname)}}
   const shareBtn=document.getElementById('shareLink');shareBtn.hidden=!STANDALONE_SITE;
   shareBtn.addEventListener('click',()=>copyText(location.origin+location.pathname+'?s='+encodeURIComponent(encodeState()),document.getElementById('actMsg'),'Link copied. Anyone opening it sees these inputs.'));

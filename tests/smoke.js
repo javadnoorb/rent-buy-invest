@@ -17,7 +17,7 @@ const { chromium } = require(process.env.PLAYWRIGHT_PATH || 'playwright');
   const set = async (id, v) => { await page.evaluate(([id, v]) => { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event(e.tagName === 'SELECT' ? 'change' : 'input', { bubbles: true })); }, [id, v]); await page.waitForTimeout(400); };
   await set('metro', 'boston'); await set('loanType', 'arm'); await set('rentalOn', '1'); await set('moveMode', 'buy');
   const failed = [];
-  for (const tab of ['proj', 'sens', 'opt', 'hist', 'mc', 'scen', 'data', 'method']) {
+  for (const tab of ['proj', 'sens', 'opt', 'hist', 'mc', 'loc', 'scen', 'data', 'method']) {
     await page.click(`[data-tab=${tab}]`);
     await page.waitForTimeout(tab === 'mc' ? 6000 : 1500);
     const bad = await page.evaluate(t => [...document.querySelectorAll(`#tab-${t} .plot`)].filter(el => !el.querySelector('svg.main-svg') || el.dataset.err).map(el => el.id), tab);
@@ -43,6 +43,10 @@ const { chromium } = require(process.env.PLAYWRIGHT_PATH || 'playwright');
     if (ov.note > 1) failed.push(`notation table is ${ov.note}px wider than a 390px phone screen`);
     if (ov.page > 1) failed.push(`page is ${ov.page}px wider than a 390px phone screen`);
     console.log(`equations needing horizontal scroll at 390px: ${ov.eq}`);
+    const wide = await page.evaluate(() => MathJax.startup.document.getMathItemsWithin(document.getElementById('tab-method'))
+      .filter(m => m.display && m.typesetRoot && m.typesetRoot.scrollWidth > m.typesetRoot.clientWidth + 2)
+      .map(m => `${m.typesetRoot.closest('details') ? m.typesetRoot.closest('details').id : '?'} ${m.typesetRoot.scrollWidth}/${m.typesetRoot.clientWidth}px: ${m.math.replace(/\s+/g, ' ').slice(0, 90)}`));
+    wide.forEach(w => console.log((process.env.GITHUB_ACTIONS ? '::notice::wide equation ' : '  wide: ') + w));
     if (process.env.GITHUB_ACTIONS) console.log(`::notice::page overflow ${ov.page}px; equations scrolling at 390px: ${ov.eq}`);
     if (process.env.GITHUB_ACTIONS) console.log(`::notice::formulas rendered: ${tex.rendered}, TeX errors: ${tex.errs.length}`);
   }

@@ -1,7 +1,8 @@
 /* ===================== Snapshot ===================== */
 function buildSnap(){
   document.getElementById('snap').innerHTML=SNAP.items.map(c=>`<div class="chip"><span class="k">${c.k}</span><span class="v">${c.v}</span><span class="s muted">${c.s} · ${sl(c.src)}${c.field?` · <a href="#" class="use" data-f="${c.field}" data-v="${c.val}">use</a>`:''}</span></div>`).join('')+
-    `<div class="chip"><span class="k">Data as of</span><span class="v">${SNAP.asOf}</span><span class="s muted">updated periodically</span></div>`;
+    `<div class="chip"><span class="k">Data as of</span><span class="v">${SNAP.asOf}</span><span class="s muted">${dataAgeText()}</span></div>`;
+  staleNotice();
   document.querySelectorAll('.use').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();document.getElementById(a.dataset.f).value=a.dataset.v;update()}));
 }
 function bedRatio(m,b){if(b==='any')return 1;const k=b==='4'?'4':b;const r=(m&&m.acs&&m.acs.beds&&m.acs.beds[k])||(D0.bedRatio&&D0.bedRatio[k]);return r||1}
@@ -33,3 +34,14 @@ function updateMetroHints(m){
   const tts=document.getElementById('ttBuy').closest('.f').querySelector('.hint');if(tts)tts.innerHTML=m.ttSrc&&m.ttSrc.length?`${m.name}: `+m.ttSrc.map(x=>`${x.t} ${linkTo(x.u)}`).join(' · '):'no transfer taxes found for this location';
 }
 
+
+function dataAgeDays(){const d=new Date(SNAP.asOf+'T12:00:00');return isFinite(d)?Math.floor((Date.now()-d)/864e5):0}
+function dataAgeText(){const n=dataAgeDays();return n<=1?'updated today':n<14?`${n} days ago`:n<60?`${Math.round(n/7)} weeks ago`:`${Math.round(n/30)} months ago`}
+function staleNotice(){const n=dataAgeDays();let el=document.getElementById('stale');
+  const off=typeof navigator!=='undefined'&&navigator.onLine===false;
+  if(n<21&&!off){if(el)el.remove();return}
+  if(!el){el=document.createElement('div');el.id='stale';el.className='stale';el.setAttribute('role','status');document.getElementById('snap').insertAdjacentElement('beforebegin',el)}
+  const when=new Date(SNAP.asOf+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  el.innerHTML=(n>=21?`<strong>Market data is from ${when}</strong>, ${dataAgeText()}. Mortgage rates and prices may have moved since; check today's rate with a lender or the linked sources and enter it in the settings.`:'')+
+    (off?`${n>=21?' ':''}<strong>Offline</strong>: using the data saved with the app.`:'')}
+addEventListener('online',()=>{try{staleNotice()}catch(e){}});addEventListener('offline',()=>{try{staleNotice()}catch(e){}});

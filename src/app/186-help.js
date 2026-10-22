@@ -121,6 +121,7 @@ const HELP={
  'h-home':['Home prices in the backtest','Selected location: the metro\'s own price history where available. National: U.S. average.'],
  'h-year':['Detail start','Start year shown in the detail chart below.'],
  optTerm:['Loan term','Switches the optimizer between 30- and 15-year loans.'],
+ locMode:['Growth by location','Same: your growth rates in every location. Yours + local: your rates plus each location\'s historical gap to the U.S. average. Local history: each location\'s own past averages.'],
  scName:['Scenario name','Name the current inputs to save them on this device and compare later.'],
  cmp:['Pick two scenarios','Choose any two saved scenarios (or the current inputs) to compare side by side.'],
  // ---------- risk table ----------
@@ -153,6 +154,8 @@ const CHART_HELP={
  mcsc:'Which combinations of home and stock growth make buying win.',
  mcrate:'Simulated mortgage-rate paths and how often they trigger a refinance.',
  scen:'Saved scenarios side by side over time.',
+ loc:'The buy-vs-rent gap over time in each ticked location.',
+ locsc:'Whether expensive-relative-to-rent places favor renting.',
  cmp:'Two scenarios compared.',
  cum:'Long-run growth of stocks, bonds, bills, home prices and rent since 1927.',
  metro:'The location\'s home prices against the national index.',
@@ -191,7 +194,7 @@ function wireHelp(){
   document.querySelector('.vtop').insertAdjacentHTML('beforeend',`<div class="vhelp">${helpBtn('verdict','What comes out ahead means')}<span class="sub">what this means</span> ${helpBtn('conf','How sure')}<span class="sub">how sure</span> ${helpBtn('paths','The paths')}<span class="sub">the paths</span></div>`);
   // presets and controls
   const pr=document.querySelector('.presets');if(pr)pr.insertAdjacentHTML('beforeend',helpBtn('presets','About presets'));
-  [['scName','afterend']].forEach(([id,w])=>{const el=document.getElementById(id);if(el)el.insertAdjacentHTML(w,helpBtn(id,HELP[id][0]))});
+  [['scName','afterend'],['locMode','afterend']].forEach(([id,w])=>{const el=document.getElementById(id);if(el)el.insertAdjacentHTML(w,helpBtn(id,HELP[id][0]))});
   ['nwBand','mc-n','mc-b','mc-w','mc-rc','h-mode','h-rate','h-home','h-year'].forEach(id=>{const el=document.getElementById(id);const lab=el&&el.closest('label');if(lab)lab.insertAdjacentHTML('afterend',helpBtn(id,HELP[id][0]))});
   const ot=document.getElementById('opt30');if(ot)ot.parentElement.insertAdjacentHTML('afterend',helpBtn('optTerm',HELP.optTerm[0]));
   const ca=document.getElementById('cmpB');if(ca)ca.closest('label').insertAdjacentHTML('afterend',helpBtn('cmp',HELP.cmp[0]));
