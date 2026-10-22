@@ -27,6 +27,9 @@ It then opens full-screen from its own icon, and works offline after the first v
 - **Optimizer:** down payment × horizon for 15- and 30-year loans, plus the break-even value of each key input.
 - **Backtest:** annual data for 1972–2025 and monthly data for 1987–2026, using actual home prices, rents, returns, inflation and mortgage rates (with refinancing).
 - **Monte Carlo:** block bootstrap of joint historical years, optionally re-centered to your assumptions. Includes single-house price risk, sampled mortgage-rate paths, moving risk, certainty equivalents, expected shortfall and liquidity stress.
+- **Other ways to own:** house-hacking income (renting part of your home) and an optional fourth path: rent your home and buy a rental property (vacancy, management, depreciation, passive-loss limits, recapture).
+- **Realism:** lease renewals vs. market rent with resets on moves, income growth with per-year tax brackets, a planned move (sell and rebuy, or sell and rent), and moves that are likelier in downturns with a forced-sale discount.
+- **Presets:** 1928–2025 and 1972–2025 historical averages, current year-over-year figures, and 2026 published forecasts (Horizon Actuarial survey of 43 firms; Pulsenomics home-price expectations).
 - **Scenarios:** save named setups in the browser and compare them.
 - **Sources:** every data point links to its source; the Method tab lists the formulas.
 
@@ -54,6 +57,10 @@ It then opens full-screen from its own icon, and works offline after the first v
 4. Commit and push. GitHub Pages serves the new version within a minute or two.
 
 The build uses only the Python standard library. In the browser, the page loads Plotly (charts), MathJax (formulas) and Google Fonts from public CDNs.
+
+## Tests
+
+`node tests/run.js` checks the model math (mortgage amortization against the closed form, tax brackets, SALT cap, home-sale exclusion, PMI, refinancing, annual vs. monthly paths, directional sanity checks, and each realism feature). Run it after any change to `src/model.js`.
 
 ## Data sources
 

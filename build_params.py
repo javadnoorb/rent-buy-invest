@@ -44,3 +44,29 @@ for k, e in REAL.items():
         u = s.get('source_url') or s.get('url'); t = s.get('source_title') or s.get('title')
         if u and t: RES['sources'][f'rz_{k}_{len(RES["sources"])}'] = {'t': t, 'u': u}
     if e.get('source_url') and e.get('source_title'): RES['sources'][f'rz_{k}'] = {'t': e['source_title'], 'u': e['source_url']}
+
+# ---------- 2026 forecast preset ----------
+if FC:
+    def _pick(lst, word):
+        for e in lst or []:
+            if word.lower() in (e.get('source') or '').lower(): return e
+    hz_ = lambda k: _pick(FC.get(k), 'horizon actuarial')
+    eq, bd, ch, inf_ = hz_('equity_us'), hz_('bonds_us'), hz_('cash'), hz_('inflation')
+    hp = next((e for e in FC.get('home_price') or [] if '5y' in (e.get('horizon') or '')), None)
+    rents = sorted(e['value'] for e in FC.get('rent') or [] if e.get('value') is not None)
+    rent_med = rents[len(rents) // 2] if rents else None
+    if eq and bd and ch and inf_:
+        FCST = {'preset': {'rs': round(eq['value'] * 100, 2), 'rb': round(bd['value'] * 100, 2), 'rc': round(ch['value'] * 100, 2), 'inf': round(inf_['value'] * 100, 2)},
+                'sources': {}, 'note': ''}
+        if hp: FCST['preset']['gh'] = round(hp['value'] * 100, 2)
+        if rent_med is not None: FCST['preset']['gr'] = round(rent_med * 100, 2)
+        eqs = sorted(e['value'] for e in FC['equity_us'] if e.get('value') is not None)
+        FCST['note'] = ('2026 forecasts: stocks {rs}%, bonds {rb}%, cash {rc}%, inflation {inf}% = 10-year averages across 43 firms '
+                        '(<a class="src" target="_blank" rel="noopener" href="{u1}">Horizon Actuarial 2026 survey</a>); '
+                        'other firms range {lo:.1f}–{hi:.1f}% for U.S. stocks. ').format(u1=eq['url'], lo=eqs[0] * 100, hi=eqs[-1] * 100, **FCST['preset'])
+        if hp: FCST['note'] += 'Homes {gh}% = 5-year expectation (<a class="src" target="_blank" rel="noopener" href="{u}">Pulsenomics Q3 2026</a>). '.format(u=hp['url'], **FCST['preset'])
+        if rent_med is not None: FCST['note'] += f'Rent {FCST["preset"]["gr"]}% = median of near-term rent forecasts. '
+        FCST['note'] += 'Historical averages are higher for stocks (about 10%).'
+        for k in ('equity_us', 'bonds_us', 'cash', 'inflation', 'home_price', 'rent'):
+            for e in FC.get(k) or []:
+                if e.get('url') and e.get('source'): FCST['sources'][f'fc_{k}_{len(FCST["sources"])}'] = {'t': f"{e['source']} ({k.replace('_', ' ')}, {e.get('horizon')})", 'u': e['url']}
