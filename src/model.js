@@ -33,6 +33,12 @@ function metroStart(m){const a=metroAnnual(m);if(!a)return null;const i=a.findIn
        or monthly arrays with path.monthly=true (monthly decimal returns; mkt monthly)
 */
 function saltCap(y){const cy=2026+y;if(cy>=2030)return 10000;return 40400*Math.pow(1.01,cy-2026)}
+/* SALT cap with the high-income phase-out: cap falls by 30% of MAGI above the threshold, floor $10,000; cap and threshold rise 1%/yr through 2029 */
+function saltCapFor(y,magi){const cy=2026+y;if(cy>=2030)return 10000;const g=Math.pow(1.01,cy-2026);return Math.max(10000,40400*g-0.3*Math.max(0,(magi||0)-505000*g))}
+/* 2026 federal brackets (IRS IR-2025-103): marginal rate on taxable income */
+const BRACKETS={single:[[12400,.10],[50400,.12],[105700,.22],[201775,.24],[256225,.32],[640600,.35],[Infinity,.37]],
+  mfj:[[24800,.10],[100800,.12],[211400,.22],[403550,.24],[512450,.32],[768700,.35],[Infinity,.37]]};
+function marginalRate(income,filing){const std=filing==='mfj'?32200:16100,ti=Math.max(0,income-std);for(const [top,r] of BRACKETS[filing==='mfj'?'mfj':'single'])if(ti<=top)return r;return .37}
 function pmt(B,i,n){if(B<=0||n<=0)return 0;return i>0?B*i/(1-Math.pow(1+i,-n)):B/n}
 function simulate(p,path,opt){
   opt=opt||{};const N=opt.N||p.N,detail=!!opt.detail,M=!!path.monthly;
@@ -75,7 +81,7 @@ function simulate(p,path,opt){
       if(bal>0.005){const it=bal*i;const pr=Math.min(Mp-it,bal);pay=it+pr;bal-=pr;intY+=it;prinY+=pr}
       const pmi=(p.dp<0.2&&balPrev>0.78*p.P)?p.pmi*L/12:0;pmiY+=pmi;
       let own=pay+ptY/12+p.maint*Hy/12+insM+hoa+pmi+refiCost;
-      if(m===11&&tx){const std=std0*infIdx,cap=saltCap(y);
+      if(m===11&&tx){const std=std0*infIdx,cap=saltCapFor(y,p.income*infIdx);
         const dB=Math.max(std,Math.min(cap,p.stTax+ptY)+intY*f750+p.oth),dR=Math.max(std,Math.min(cap,p.stTax)+p.oth);
         benefit=p.mu*(dB-dR);own-=benefit}
       ownSum+=own;

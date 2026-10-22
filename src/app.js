@@ -15,6 +15,7 @@ const SRC=Object.assign({
   mSp:{t:"multpl.com: S&P 500 monthly price and dividend yield (monthly backtest)",u:"https://www.multpl.com/s-p-500-historical-prices/table/by-month"},
   irs936:{t:"IRS Publication 936: Home mortgage interest deduction ($750k limit)",u:"https://www.irs.gov/publications/p936"},
 },SNAP.sources,RES.sources||{});
+const AFF_URL='https://www.bankrate.com/mortgages/what-percent-of-income-should-go-to-mortgage/';
 const linkTo=(u,txt)=>`<a class="src" target="_blank" rel="noopener" href="${u}">${txt||'source'}</a>`;
 const sl=(k,txt)=>SRC[k]?linkTo(SRC[k].u,txt):'';
 const srcObj=o=>o&&o.u?linkTo(o.u):'';
@@ -65,8 +66,11 @@ const F=[
  ['inv','fee','Fund fees (% / yr)',0.05,0.01,tag+' broad index fund'],
  ['inv','lev','Leverage on portfolio (×)',1,0.1,'1 = none. Above 1 borrows to invest, to match the buyer\'s leverage.'],
  ['inv','spread','Borrowing spread over T-bills (pts)',D0.spread,0.1,resHint('spread')],
+ ['tax','income','Household income ($ / yr)',150000,1000,'gross; sets the tax bracket, SALT phase-out and affordability check. Example value, enter yours.'],
+ ['tax','debt','Other debt payments ($ / month)',0,50,'car, student loans, cards; for the back-end debt ratio'],
  ['tax','taxOn','Model taxes',1,null,'','sel',[[1,'Yes'],[0,'No']]],
  ['tax','filing','Filing status','single',null,`2026 standard deduction $16,100 / $32,200 ${sl('irs26')}`,'sel',[['single','Single'],['mfj','Married joint']]],
+ ['tax','muMode','Marginal rate','auto',null,'','sel',[['auto','From income (2026 brackets)'],['manual','Enter manually']]],
  ['tax','mu','Marginal federal rate (%)',24,1,`2026 brackets ${sl('irs26')}`],
  ['tax','stTax','State & local income tax ($ / yr)',8000,500,`counts toward SALT cap $40,400 ${sl('salt')}`],
  ['tax','oth','Other itemized deductions ($ / yr)',0,500,'charity etc.'],
@@ -106,7 +110,7 @@ function parseP(raw){
     ptax:pc('ptax'),ptaxCap:Math.max(0,pc('ptaxCap')),ins:n('ins'),maint:pc('maint'),hoa:n('hoa'),sell:pc('sell'),rent0:Math.max(0,n('rent0')),rins:n('rins'),
     gh:pc('gh'),gr:pc('gr'),inf:pc('inf'),rs:pc('rs'),rb:pc('rb'),rc:pc('rc'),ws,wb,
     acct:raw.acct||'taxable',dy:pc('dy'),fee:pc('fee'),lev:Math.max(0,n('lev')),spread:pc('spread'),
-    taxOn:raw.taxOn==='1'||raw.taxOn===1,filing:raw.filing||'single',mu:pc('mu'),stTax:n('stTax'),oth:n('oth'),ltcg:pc('ltcg'),
+    taxOn:raw.taxOn==='1'||raw.taxOn===1,filing:raw.filing||'single',income:Math.max(0,n('income')),debt:Math.max(0,n('debt')),muMode:raw.muMode||'auto',mu:(raw.muMode||'auto')==='auto'?marginalRate(Math.max(0,n('income')),raw.filing||'single'):pc('mu'),stTax:n('stTax'),oth:n('oth'),ltcg:pc('ltcg'),
     hz:Math.min(0.99,Math.max(0,pc('hz'))),idio:Math.max(0,pc('idio')),idioMode:raw.idioMode||'sale',gamma:Math.max(0,n('gamma')),
     N:Math.max(1,Math.min(30,parseInt(raw.N)||10)),metro:raw.metro||'us'};
 }
@@ -162,6 +166,9 @@ function tornado(p){const base=advAt(p,{});return {base,rows:TORNADO.map(([lab,k
   return {lab,k,lo:advAt(p,ov(lo))-base,hi:advAt(p,ov(hi))-base}}).sort((a,b)=>Math.max(Math.abs(a.lo),Math.abs(a.hi))-Math.max(Math.abs(b.lo),Math.abs(b.hi)))}}
 
 /* ===================== Summary ===================== */
+function affCell(own1,p){if(!p.income)return 'n/a';const fe=own1/(p.income/12),be=(own1+p.debt)/(p.income/12);
+  const col=fe<=0.28&&be<=0.36?'--buy':(be<=0.43?'--cash':'--neg');
+  return `<span style="color:var(${col})">${pct(fe,0)}</span><span class="sub" style="font-family:var(--body)"> · all debt ${pct(be,0)}</span>`}
 function summary(){
   const p=P,o=BASE,N=p.N,c=o.cpi[N];
   const b=adj(o.buy[N],c),iv=adj(o.inv[N],c),ca=adj(o.cash[N],c),d=b-iv;
@@ -183,8 +190,17 @@ function summary(){
    ['Break-even rent',beRent?fmtFull(beRent)+'/mo':'n/a'],
    ['Break-even home growth',beG!=null?pct(beG)+'/yr':'n/a'],
    ['Owning, month 1',fmtFull(own1)+'/mo'],
+   ['Housing cost / income',affCell(own1,p)],
+   ['Cash to buy',fmtFull(p.P*(p.dp+p.close))],
    [`Expected gap, ${pct(p.hz,0)}/yr move risk`,`<span style="color:var(${ex>=0?'--buy':'--inv'})">${ex>=0?'+':''}${fmt(ex)}</span>`],
   ].map(([k,v])=>`<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+  const fe=p.income?own1/(p.income/12):0,be=p.income?(own1+p.debt)/(p.income/12):0;
+  window._summaryText=`Rent, Buy or Invest — ${curMetro().name}, ${N}-year horizon (${basisLabel()})\n`+
+    `Home ${fmtFull(p.P)}, ${pct(p.dp,0)} down, ${pct(p.rate,2)} ${p.term}-yr; rent ${fmtFull(p.rent0)}/mo\n`+
+    `Growth: home ${pct(p.gh)}, rent ${pct(p.gr)}, stocks ${pct(p.rs)}, inflation ${pct(p.inf)}\n`+
+    `Net worth at year ${N}: buy ${fmtFull(b)}, rent+invest ${fmtFull(iv)}, rent+T-bills ${fmtFull(ca)}\n`+
+    `Buy − rent&invest: ${d>=0?'+':''}${fmtFull(d)}; break-even year ${beY||'>'+N}; break-even rent ${beRent?fmtFull(beRent):'n/a'}/mo; break-even home growth ${beG!=null?pct(beG):'n/a'}\n`+
+    `Owning month 1: ${fmtFull(own1)}/mo; housing/income ${p.income?pct(fe,0):'n/a'}, all debt ${p.income?pct(be,0):'n/a'}`+(MC?`\nMonte Carlo: buying wins in ${pct(MC.pWin[Math.min(N,MC.N)])} of ${MC.n} paths`:'');
   // explanation
   const tor=tornado(p),top2=tor.rows.slice(-2).reverse();
   const verb=x=>x.hi>x.lo?'raising':'lowering';
@@ -192,6 +208,8 @@ function summary(){
   why.push(`<strong>Biggest drivers:</strong> ${top2.map(r=>`${r.lab.replace(/ ±.*/,'').toLowerCase()} (${fmt(Math.max(Math.abs(r.lo),Math.abs(r.hi)))} swing)`).join(' and ')}.`);
   if(d<0){why.push(`Buying would tie if rent were ${beRent?fmtFull(beRent):'much higher'} instead of ${fmtFull(p.rent0)}${beG!=null?`, or if homes appreciated ${pct(beG)}/yr instead of ${pct(p.gh)}`:''}.`)}
   else{why.push(`Renting would tie if rent were ${beRent?fmtFull(beRent):'much lower'}${beG!=null?`, or if homes appreciated only ${pct(beG)}/yr`:''}.`)}
+  if(p.income){const fe=own1/(p.income/12),be=(own1+p.debt)/(p.income/12);
+    if(fe>0.28||be>0.36)why.push(`Affordability: housing would take ${pct(fe,0)} of gross income${p.debt?` (${pct(be,0)} with other debt)`:''}, above the common 28/36 guideline; most lenders cap total debt near 43% ${linkTo(AFF_URL)}.`)}
   if(o.refis>0)why.push(`The projection refinances ${o.refis} time${o.refis>1?'s':''} as rates move toward ${pct(p.rateLR,2)}.`);
   const own0=own1,rent0=p.rent0;
   why.push(own0>rent0?`In year 1 owning costs ${fmtFull(own0-rent0)}/mo more than renting, which the renter invests.`:`In year 1 owning costs ${fmtFull(rent0-own0)}/mo less than renting, which the buyer invests.`);
@@ -209,6 +227,11 @@ function renderProj(){
   const data=[tr(o.buy,'Buy',t.buy),tr(o.inv,'Rent + invest',t.inv),tr(o.cash,'Rent + T-bills',t.cash,'dot')];
   if(o.refiAt.length){const ys=o.refiAt.map(a=>{const k=Math.min(o.buy.length-1,Math.ceil(a));return adj(o.buy[k],o.cpi[k])});
     data.push({x:o.refiAt.map(a=>Math.ceil(a)),y:ys,mode:'markers',name:'Refinance',marker:{size:9,color:t.bg,line:{color:t.buy,width:2}},hovertemplate:'refinanced<extra></extra>'})}
+  const showBand=document.getElementById('nwBand')&&document.getElementById('nwBand').checked&&MC;
+  if(showBand){const hh=P.N,xs=[...Array(hh+1)].map((_,k)=>k);
+    const bandOf=(arr,col,name)=>{const lo=xs.map(y=>q(arr.map(a=>a[y]),.25)),hi=xs.map(y=>q(arr.map(a=>a[y]),.75));
+      return [{x:xs,y:hi,mode:'lines',line:{width:0},showlegend:false,hoverinfo:'skip'},{x:xs,y:lo,mode:'lines',line:{width:0},fill:'tonexty',fillcolor:hexA(col,.16),name:name+' 25–75%',hoverinfo:'skip'}]};
+    data.unshift(...bandOf(MC.res.buy,t.buy,'Buy'),...bandOf(MC.res.inv,t.inv,'Rent + invest'))}
   plot('p-nw',data,{xaxis:{...X('Years from today'),dtick:P.N>15?5:1},yaxis:Yd('Net worth, '+basisLabel()),
      shapes:be?[{type:'line',x0:be,x1:be,yref:'paper',y0:0,y1:1,line:{color:t.muted,dash:'dash',width:1}}]:[],
      annotations:be?[{x:be,yref:'paper',y:1,text:'break-even',showarrow:false,yanchor:'bottom',font:{size:11,color:t.muted}}]:[]});
@@ -483,7 +506,9 @@ function buildMethod(){
   \\(H_y\\) is the home value at the start of year \\(y\\) and \\(A_y\\) the assessed value (equal to \\(H_y\\) unless an assessment cap applies, then \\(A_{y}=\\min(H_y, A_{y-1}(1+\\min(g_{y-1},\\kappa_A)))\\)). PMI of \\(p_{mi}L/12\\) applies while \\(B_t > 0.78P\\) with under 20% down. Rent resets each January: \\(R_y = R_0\\prod_{k<y}(1+g^{rent}_k)\\).</p>
   <h3>Tax savings</h3>
   <p>\\[ S_y = \\mu\\Big[\\max\\big(D^{std}_y,\\ \\min(\\text{SALT}_y,\\ T^{state}+\\tau_pA_y) + I^{ded}_y + O\\big) - \\max\\big(D^{std}_y,\\ \\min(\\text{SALT}_y,T^{state}) + O\\big)\\Big] \\]
-  Deductible interest is capped to the share of the original loan under $750,000. The 2026 standard deduction ($16,100 single, $32,200 joint) is indexed to inflation. The SALT cap is $40,400 in 2026, rises 1% a year through 2029, and returns to $10,000 in 2030; the phase-out above $505,000 MAGI is not modeled.</p>
+  Deductible interest is capped to the share of the original loan under $750,000. The 2026 standard deduction ($16,100 single, $32,200 joint) is indexed to inflation. The SALT cap is $40,400 in 2026, rises 1% a year through 2029, and returns to $10,000 in 2030. Above $505,000 of income (also indexed 1% a year) the cap shrinks by 30% of the excess, to a $10,000 floor; income grows with inflation. In automatic mode the marginal rate \\(\\mu\\) is the 2026 bracket for income minus the standard deduction.</p>
+  <h3>Affordability</h3>
+  <p>Front-end ratio = month-1 owning cost / monthly gross income; back-end adds other debt payments. The common guideline is at most 28% and 36%, with most lenders capping total debt near 43% (${linkTo(AFF_URL,'Bankrate')}).</p>
   <h3>Portfolios, taxes and leverage</h3>
   <p>Monthly gross return \\(g_t = w_s r^{stk}_t + w_b r^{bond}_t + w_c r^{bill}_t\\). With leverage \\(\\lambda\\) and borrowing spread \\(s_b\\):
   \\[ \\rho_t = \\lambda g_t - (\\lambda-1)(r^{bill}_t + s_b/12) - f/12. \\]
@@ -544,13 +569,24 @@ function persist(){try{localStorage.setItem('rbi-inputs',JSON.stringify(Object.a
 function restore(){try{const o=JSON.parse(localStorage.getItem('rbi-inputs')||'null');if(!o||o.v!==4)return;setRaw(o);if(o.REAL===false)REAL=false;const m=METROS.find(x=>x.slug===o.metro);if(m){const ms=metroStart(m),btn=document.getElementById('metroPreset');btn.hidden=!ms;if(ms)btn.textContent=`${m.name} ${ms}–2025 avg`;updateMetroHints(m)}}catch(e){}}
 function validate(){document.querySelectorAll('aside input[type=number]').forEach(el=>el.classList.toggle('bad',el.value===''||!isFinite(parseFloat(el.value))))}
 let timer=null;
-function update(){clearTimeout(timer);timer=setTimeout(()=>{validate();syncQuick();persist();P=readP();document.getElementById('Nlab').textContent=P.N+' year'+(P.N>1?'s':'');
+function update(){clearTimeout(timer);timer=setTimeout(()=>{validate();syncQuick();persist();P=readP();
+  {const muEl=document.getElementById('mu');const auto=P.muMode==='auto';muEl.disabled=auto;if(auto)muEl.value=Math.round(P.mu*100);}document.getElementById('Nlab').textContent=P.N+' year'+(P.N>1?'s':'');
   BASE=simulate(P,constPath(P,P.N));MC=null;
   if(CUR!=='mc'){try{runMC(500);MC.quick=true}catch(e){console.error(e)}}
   summary();RENDER[CUR]()},150)}
+function encodeState(){return btoa(unescape(encodeURIComponent(JSON.stringify(Object.assign(getRaw(),{REAL})))))}
+function decodeState(s){try{return JSON.parse(decodeURIComponent(escape(atob(s))))}catch(e){return null}}
+function copyText(txt,msgEl,okMsg){const done=()=>{msgEl.textContent=okMsg;setTimeout(()=>msgEl.textContent='',2500)};
+  try{navigator.clipboard.writeText(txt).then(done,()=>{msgEl.textContent='Copy was blocked by the browser.'})}catch(e){msgEl.textContent='Copy was blocked by the browser.'}}
+const STANDALONE_SITE=(()=>{try{return window.top===window.self&&/^https?:$/.test(location.protocol)}catch(e){return false}})();
 function setBasis(){document.getElementById('realBtn').setAttribute('aria-pressed',REAL);document.getElementById('nomBtn').setAttribute('aria-pressed',!REAL);update()}
 function init(){
   buildInputs();buildMetroSelect();buildSnap();buildMethod();restore();
+  if(STANDALONE_SITE){const sp=new URLSearchParams(location.search).get('s');const st=sp&&decodeState(sp);if(st){setRaw(st);if(st.REAL===false)REAL=false;const m=METROS.find(x=>x.slug===st.metro);if(m)updateMetroHints(m);history.replaceState(null,'',location.pathname)}}
+  const shareBtn=document.getElementById('shareLink');shareBtn.hidden=!STANDALONE_SITE;
+  shareBtn.addEventListener('click',()=>copyText(location.origin+location.pathname+'?s='+encodeURIComponent(encodeState()),document.getElementById('actMsg'),'Link copied. Anyone opening it sees these inputs.'));
+  document.getElementById('copySummary').addEventListener('click',()=>copyText(window._summaryText||'',document.getElementById('actMsg'),'Summary copied.'));
+  document.getElementById('nwBand').addEventListener('change',()=>renderProj());
   document.getElementById('realBtn').setAttribute('aria-pressed',REAL);document.getElementById('nomBtn').setAttribute('aria-pressed',!REAL);
   document.getElementById('h-year').max=2025;
   if(!MONTHLY){const o=document.querySelector('#h-mode option[value=monthly]');o.disabled=true;o.textContent+=' (unavailable)'}
