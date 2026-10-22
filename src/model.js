@@ -23,9 +23,15 @@ function geo(a,from,to){const i0=from-Y0,i1=(to||2025)-Y0;let lp=0,n=0;for(let i
 const r2=x=>Math.round(x*100)/100;
 
 /* ===================== Metro home-price series ===================== */
-function metroAnnual(m){ // returns array aligned with YEARS of % change, null where missing
+/* Metro yearly % changes. FHFA indexes swing less than Case-Shiller (no jumbo loans), so unless raw is set
+   the changes are scaled around their own mean by volK = sd(Case-Shiller)/sd(FHFA), estimated over 1992–2025. */
+let VOLADJ=true;
+function metroAnnual(m,raw){
   if(!m||!m.hpi||!m.hpi.values)return null;const v=m.hpi.values;
-  return YEARS.map(y=>(v[y]!=null&&v[y-1]!=null)?(v[y]/v[y-1]-1)*100:null)}
+  const a=YEARS.map(y=>(v[y]!=null&&v[y-1]!=null)?(v[y]/v[y-1]-1)*100:null);
+  const k=m.hpi.volK;if(raw||!VOLADJ||!k||k===1)return a;
+  const xs=a.filter(x=>x!=null),mean=xs.reduce((s,x)=>s+x,0)/xs.length;
+  return a.map(x=>x==null?null:mean+k*(x-mean))}
 function metroStart(m){const a=metroAnnual(m);if(!a)return null;const i=a.findIndex(v=>v!=null);return i<0?null:Y0+i}
 
 /* ===================== Core simulation =====================
