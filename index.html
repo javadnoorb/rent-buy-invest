@@ -36,7 +36,7 @@
 :root[data-theme="dark"]{
   --bg:#0e1312; --surface:#151c1a; --sunk:#1b2422; --ink:#e5ebe8; --muted:#97a39e; --line:#2a3532;
   --accent:#9db6ff; --accent-ink:#0e1312; --buy:#4cc291; --inv:#8aa2ff; --cash:#d4b05a; --neg:#ef7d7d; color-scheme:dark}
-*{box-sizing:border-box}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.5;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 40px}
 a{color:var(--accent)}
 h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;letter-spacing:-.01em}
@@ -781,11 +781,12 @@ function layout(extra){const t=theme();const narrow=innerWidth<600;
     L.hoverlabel=Object.assign({},L.hoverlabel,{bgcolor:hexA(t.bg,0.9),font:Object.assign({},(L.hoverlabel||{}).font,{size:11})})}
   return L}
 const CFG=TOUCH?{responsive:true,displayModeBar:false,scrollZoom:false,doubleClick:false,showTips:false}:{responsive:true,displaylogo:false,displayModeBar:true,modeBarButtonsToRemove:['lasso2d','select2d'],doubleClick:'reset'};
-function unhoverAll(except){document.querySelectorAll('.plot').forEach(el=>{if(el!==except&&el._fullLayout&&window.Plotly&&Plotly.Fx)try{Plotly.Fx.unhover(el)}catch(e){}})}
-if(TOUCH){addEventListener('scroll',()=>unhoverAll(),{passive:true});document.addEventListener('touchstart',e=>{unhoverAll(e.target.closest&&e.target.closest('.plot'))},{passive:true})}
+const HOVERED=new Set();
+function unhoverAll(except){HOVERED.forEach(el=>{if(el!==except&&window.Plotly&&Plotly.Fx){try{Plotly.Fx.unhover(el)}catch(e){}HOVERED.delete(el)}})}
+if(TOUCH){addEventListener('scroll',()=>{if(HOVERED.size)unhoverAll()},{passive:true});addEventListener('touchstart',e=>{if(HOVERED.size)unhoverAll(e.target.closest&&e.target.closest('.plot'))},{passive:true,capture:true})}
 function plot(id,data,lay){const el=document.getElementById(id);
   try{if(el.dataset.err){el.innerHTML='';delete el.dataset.err}Plotly.react(el,data,layout(lay),CFG);
-    if(TOUCH&&!el._hoverWired&&el.on){el._hoverWired=1;el.on('plotly_hover',()=>{clearTimeout(el._ht);el._ht=setTimeout(()=>{try{Plotly.Fx.unhover(el)}catch(e){}},3000)})}}
+    if(TOUCH&&!el._hoverWired&&el.on){el._hoverWired=1;el.on('plotly_hover',()=>{HOVERED.add(el);clearTimeout(el._ht);el._ht=setTimeout(()=>{try{Plotly.Fx.unhover(el)}catch(e){}HOVERED.delete(el)},3000)});el.on('plotly_unhover',()=>HOVERED.delete(el))}}
   catch(e){console.error(id,e);el.dataset.err=1;el.innerHTML=`<div class="note">This chart could not be drawn (${String(e.message||e).slice(0,160)}).</div>`}}
 const X=(t)=>({...layout().xaxis,title:{text:t,font:{size:11}}});
 const Yd=(t)=>({...layout().yaxis,title:{text:t,font:{size:11}},tickprefix:'$',tickformat:'~s'});
@@ -1219,7 +1220,8 @@ function persist(){try{localStorage.setItem('rbi-inputs',JSON.stringify(Object.a
 function restore(){try{const o=JSON.parse(localStorage.getItem('rbi-inputs')||'null');if(!o||o.v!==4)return;setRaw(o);if(o.REAL===false)REAL=false;const m=METROS.find(x=>x.slug===o.metro);if(m){const ms=metroStart(m),btn=document.getElementById('metroPreset');btn.hidden=!ms;if(ms)btn.textContent=`${m.name} ${ms}–2025 avg`;updateMetroHints(m)}}catch(e){}}
 function validate(){document.querySelectorAll('aside input[type=number]').forEach(el=>el.classList.toggle('bad',el.value===''||!isFinite(parseFloat(el.value))))}
 let timer=null;
-function update(){clearTimeout(timer);timer=setTimeout(()=>{validate();syncQuick();persist();P=readP();
+let LAST_KEY='';
+function update(){clearTimeout(timer);timer=setTimeout(()=>{const key=JSON.stringify(getRaw())+REAL;if(key===LAST_KEY&&P)return;LAST_KEY=key;validate();syncQuick();persist();P=readP();
   {const muEl=document.getElementById('mu');const auto=P.muMode==='auto';muEl.disabled=auto;if(auto)muEl.value=Math.round(P.mu*100);}document.getElementById('Nlab').textContent=P.N+' year'+(P.N>1?'s':'');
   BASE=simulate(P,constPath(P,P.N));MC=null;
   if(CUR!=='mc'){try{runMC(500);MC.quick=true}catch(e){console.error(e)}}
@@ -1247,7 +1249,7 @@ function init(){
   const sheet=on=>{aside.classList.toggle('open',on);scrim.classList.toggle('on',on);fab.hidden=on;if(on)aside.scrollTop=0};
   fab.addEventListener('click',()=>sheet(true));scrim.addEventListener('click',()=>sheet(false));document.getElementById('closeSheet').addEventListener('click',()=>sheet(false));
   addEventListener('keydown',e=>{if(e.key==='Escape')sheet(false)});
-  aside.addEventListener('input',update);aside.addEventListener('change',update);
+  aside.addEventListener('input',update);aside.addEventListener('change',e=>{if(e.target.tagName==='SELECT'||e.target.type==='checkbox')update()});
   document.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>{let pr=PRESETS[b.dataset.preset];
     if(b.dataset.preset==='metro'){const m=curMetro(),ms=metroStart(m);if(!ms)return;pr={gh:r2(geo(homeSeries(true),ms))}}
     Object.keys(pr).forEach(k=>document.getElementById(k).value=pr[k]);update()}));

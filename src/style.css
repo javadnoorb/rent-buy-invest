@@ -14,7 +14,7 @@
 :root[data-theme="dark"]{
   --bg:#0e1312; --surface:#151c1a; --sunk:#1b2422; --ink:#e5ebe8; --muted:#97a39e; --line:#2a3532;
   --accent:#9db6ff; --accent-ink:#0e1312; --buy:#4cc291; --inv:#8aa2ff; --cash:#d4b05a; --neg:#ef7d7d; color-scheme:dark}
-*{box-sizing:border-box}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.5;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 40px}
 a{color:var(--accent)}
 h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;letter-spacing:-.01em}
