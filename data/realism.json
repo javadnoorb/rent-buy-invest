@@ -1,0 +1,285 @@
+{
+  "_meta": {
+    "compiled": "2026-10-22",
+    "method": "Values read from pages fetched via WebFetch on 2026-10-22. null = not found on a fetched page. No numbers filled from memory."
+  },
+  "investment_rate_premium": {
+    "value": {
+      "rate_premium_pp_low": 0.5,
+      "rate_premium_pp_high": 1.0,
+      "extra_premium_2_4_unit_pp_low": 0.125,
+      "extra_premium_2_4_unit_pp_high": 0.25,
+      "min_down_payment_1unit_pct": 15,
+      "min_down_payment_2_4unit_pct": 25,
+      "max_ltv_1unit_pct": 85,
+      "max_ltv_2_4unit_pct": 75
+    },
+    "description": "Investment (non-owner-occupied) mortgage rate premium over primary-residence rates, and Fannie Mae max LTV for investment property purchases (min down = 100 - LTV).",
+    "sources": [
+      {
+        "source_title": "Fannie Mae Eligibility Matrix",
+        "source_url": "https://singlefamily.fanniemae.com/media/20786/display",
+        "date": "2026-08-05",
+        "quote": "Investment property purchase, DU: 1 Unit FRM/ARM: 85%; 2-4 Units FRM/ARM: 75% (max LTV/CLTV/HCLTV)"
+      },
+      {
+        "source_title": "Investment Property Mortgage Rates (The Mortgage Reports)",
+        "source_url": "https://www.themortgagereports.com/27698/investment-property-mortgage-rates-how-much-more-will-you-pay",
+        "date": "2026-10-22 (rates as-of date shown; originally published 2026-01-05)",
+        "quote": "Investment property mortgage rates are usually 0.5% to 1% higher than primary mortgage rates; 2-4 unit: at least another 0.125 to 0.25 percent; conventional min down 15% (1-unit), 25% (2-4 units)"
+      },
+      {
+        "source_title": "Current Investment Property Mortgage Rates (LendingTree)",
+        "source_url": "https://www.lendingtree.com/mortgage/buying-and-financing-investment-property-article",
+        "date": "2026-08-07 (updated)",
+        "quote": "generally a half to a full percentage point higher than residential home rates; Fannie/Freddie investment loans require 15% to 25% down"
+      }
+    ],
+    "source_title": "Fannie Mae Eligibility Matrix; The Mortgage Reports; LendingTree",
+    "source_url": "https://singlefamily.fanniemae.com/media/20786/display",
+    "date": "2026-08-05",
+    "notes": "Premium 0.5-1.0 pp is a lender/media rule of thumb (driven largely by Fannie/Freddie LLPAs for investment occupancy); no agency-published rate spread found. Owner-occupied 2-4 unit (house hack) can use FHA 3.5% / VA 0% per The Mortgage Reports."
+  },
+  "rental_vacancy": {
+    "value": {
+      "rental_vacancy_rate_pct": 7.3,
+      "quarter": "2026Q2",
+      "year_ago_rental_vacancy_rate_pct": 7.0,
+      "homeownership_rate_pct": 65.0
+    },
+    "description": "U.S. rental vacancy rate, Census CPS/HVS.",
+    "source_title": "Census Bureau, Quarterly Residential Vacancies and Homeownership, Second Quarter 2026",
+    "source_url": "https://www.census.gov/housing/hvs/current/index.html",
+    "date": "2026-07-28",
+    "notes": "Q3 2026 release not yet out as of 2026-10-22 (page showed Q2). 2025Q2 was 7.0%."
+  },
+  "mgmt_fee": {
+    "value": {
+      "typical_low_pct_of_rent": 8,
+      "typical_high_pct_of_rent": 12,
+      "most_cited_pct": 10,
+      "average_pct_of_collected_rent": 8.49,
+      "range_low_pct": 3.75,
+      "range_high_pct": 14,
+      "leasing_fee_pct_of_one_month_rent_avg": 70.6,
+      "renewal_fee_flat_usd_avg": 231.77
+    },
+    "description": "Ongoing property management fee as % of monthly rent, plus tenant placement fee.",
+    "source_title": "Baselane - Property Management Fee Statistics",
+    "source_url": "https://www.baselane.com/resources/property-management-fee-statistics",
+    "date": "2026-09-17",
+    "notes": "Baselane cites iPropertyManagement (722 branches, 80 metros; study last updated 2022) for the 8.49% average and RapidEye Inspections for 8-12% typical/10% benchmark and leasing fees. NARPM not cited; no NARPM figure found. ClearLead Digital cited for first-year all-in cost 18-20% of gross rent."
+  },
+  "depreciation_tax": {
+    "value": {
+      "recovery_period_years": 27.5,
+      "method": "straight line (GDS)",
+      "convention": "mid-month",
+      "ads_recovery_period_years": 30,
+      "land_depreciable": false,
+      "unrecaptured_1250_max_rate_pct": 25,
+      "passive_special_allowance_usd": 25000,
+      "passive_phaseout_start_magi_usd": 100000,
+      "passive_phaseout_end_magi_usd": 150000,
+      "passive_phaseout_rate": 0.5,
+      "mfs_lived_apart_allowance_usd": 12500,
+      "mfs_lived_apart_phaseout_usd": [50000, 75000]
+    },
+    "description": "Rental property depreciation, recapture rate on sale, and passive activity loss special allowance.",
+    "sources": [
+      {
+        "source_title": "IRS Publication 527 (2025), Residential Rental Property",
+        "source_url": "https://www.irs.gov/publications/p527",
+        "date": "2025 tax year edition (fetched 2026-10-22)",
+        "quote": "You must use the straight line method and a mid-month convention for residential rental property. / GDS 27.5-year option for residential rental property / You can't depreciate the cost of land because land generally doesn't wear out, become obsolete, or get used up."
+      },
+      {
+        "source_title": "IRS Publication 527 (2025) PDF",
+        "source_url": "https://www.irs.gov/pub/irs-pdf/p527.pdf",
+        "date": "2025 tax year edition",
+        "quote": "$25,000 for single individuals and married individuals filing a joint return ... If your MAGI is more than $100,000 (more than $50,000 if married filing separately) ...; ADS 30 years"
+      },
+      {
+        "source_title": "IRS Topic no. 409, Capital gains and losses",
+        "source_url": "https://www.irs.gov/taxtopics/tc409",
+        "date": "2026-09-24 (last reviewed)",
+        "quote": "The portion of any unrecaptured section 1250 gain from selling section 1250 real property is taxed at a maximum 25% rate."
+      },
+      {
+        "source_title": "IRS Publication 925 (2025), Passive Activity and At-Risk Rules",
+        "source_url": "https://www.irs.gov/publications/p925",
+        "date": "2025 tax year edition",
+        "quote": "you therefore can deduct up to $25,000 of loss from the activity from your nonpassive income ... reduced by 50% of the amount of your modified adjusted gross income that is more than $100,000 ... If your modified adjusted gross income is $150,000 or more ($75,000 or more if you're married filing separately), you generally can't use the special allowance."
+      }
+    ],
+    "source_title": "IRS Pub 527 / Topic 409 / Pub 925",
+    "source_url": "https://www.irs.gov/publications/p527",
+    "date": "2025 editions; Topic 409 reviewed 2026-09-24",
+    "notes": "MFS: $12,500 allowance only if lived apart all year; otherwise none. Thresholds are not inflation-indexed."
+  },
+  "house_hacking_tax": {
+    "value": {
+      "sec121_exclusion_single_usd": 250000,
+      "sec121_exclusion_mfj_usd": 500000,
+      "depreciation_after_1997_05_06_excludable": false,
+      "allocate_gain_if_rental_within_dwelling_unit": false,
+      "allocate_gain_if_rental_separate_from_dwelling": true,
+      "nonqualified_use_after": "2008"
+    },
+    "description": "Renting part of your home: Section 121 exclusion interplay and depreciation recapture; expense split between rental and personal use.",
+    "sources": [
+      {
+        "source_title": "IRS Publication 523 (2025), Selling Your Home",
+        "source_url": "https://www.irs.gov/publications/p523",
+        "date": "2025 tax year edition",
+        "quote": "you do not need to allocate gain on the sale of the property between the business part [within the dwelling unit] ... You generally can't exclude gain on the separate portion of your property used for business ... you can't exclude the part of your gain equal to any depreciation allowed or allowable [after May 6, 1997] ... any period after 2008 during which the property isn't used as a principal residence [is nonqualified use]"
+      },
+      {
+        "source_title": "IRS Topic no. 701, Sale of your home",
+        "source_url": "https://www.irs.gov/taxtopics/tc701",
+        "date": "2026-10-12 (last reviewed)",
+        "quote": "may qualify to exclude up to $250,000 of that gain from your income (refers to Pub 523 for business/rental use)"
+      },
+      {
+        "source_title": "IRS Tax Tip 2011-45, Seven Tips About Rental Income and Expenses (historical)",
+        "source_url": "https://irs.gov/zh-hant/newsroom/seven-tips-about-rental-income-and-expenses",
+        "date": "2011-03-04",
+        "quote": "you must divide your expenses between rental use and personal use"
+      }
+    ],
+    "source_title": "IRS Pub 523 / Topic 701",
+    "source_url": "https://www.irs.gov/publications/p523",
+    "date": "2025 edition",
+    "notes": "Pub 527 has a 'Renting Part of Property' / 'How to divide expenses' section (seen in TOC) but its body text could not be retrieved (page truncation), so the expense-split rule is sourced only from a historical IRS tax tip. Recaptured depreciation is taxed as unrecaptured 1250 gain at max 25% (Topic 409); Pub 523 itself does not state the rate."
+  },
+  "renewal_vs_new_lease": {
+    "value": {
+      "renewal_rent_growth_2026_ytd_pct": 3.5,
+      "move_in_rent_growth_latest_pct": 1.9,
+      "renewal_rent_growth_may2025_pct": 3.9,
+      "move_in_rent_growth_mid2025_pct": 1.0,
+      "renewal_rate_1H2026_pct": 56,
+      "renewal_rate_2025_pct": 55,
+      "renewal_long_run_avg_pct": null,
+      "cpi_rent_lag_months_oer": 12,
+      "cpi_rent_lag_months_tenant_rent": 13
+    },
+    "description": "Renewal lease increases vs new-lease (move-in) rent changes (RealPage, market-rate apartments), and lag of CPI rent behind market rents.",
+    "sources": [
+      {
+        "source_title": "Resident Retention Fuels Renewal Lease Pricing Power (Greg Willett, LeaseLock; RealPage data)",
+        "source_url": "https://leaselock.com/greg-willett-signposts-multifamily-resident-retention-renewal-pricing-power/",
+        "date": "2026-07-30",
+        "quote": "average of 3.5 percent so far in 2026 [renewals]; latest RealPage national move-in rent growth 1.9%; 56 percent of market rate apartment residents [renewed, 1H2026]; move-in price cuts averaging 2.3% Aug-Dec 2025"
+      },
+      {
+        "source_title": "Renewal Lease Rent Growth Holds Solid in 2025, Outpacing Move-In Pricing (LeaseLock; RealPage data)",
+        "source_url": "https://leaselock.com/renewal-lease-rent-growth-2025",
+        "date": "2025-09-12",
+        "quote": "May's renewal lease price growth came in at 3.9%; move-in ~1%; 18th consecutive month of renewal growth averaging around 4%; ~55% retention; 2010s renewal results 'very similar'"
+      },
+      {
+        "source_title": "When Will a Decline in Asking Rents Be Reflected in Rent CPI? (John O'Trakoun, Richmond Fed Macro Minute)",
+        "source_url": "https://www.richmondfed.org/research/national_economy/macro_minute/2023/mm_04_04_23",
+        "date": "2023-04-04",
+        "quote": "[ZORI] Leads CPI for owners' equivalent rents by 12 months and CPI for tenant rents by 13 months"
+      },
+      {
+        "source_title": "NLIHC summary of Cleveland Fed WP 22-38 'Disentangling Rent Index Differences: Data, Methods, and Scope'",
+        "source_url": "https://nlihc.org/resource/research-attributes-discrepancies-between-rent-inflation-indices-rent-growth-among-new",
+        "date": "2023-01-30",
+        "quote": "alternative indices show higher rates of rent inflation because they measure rent growth for new tenants; NTRR 11.88% vs ATRR 5.94% YoY"
+      },
+      {
+        "source_title": "Boston Fed: housing cost index (Larry Bean)",
+        "source_url": "https://www.bostonfed.org/news-and-events/news/2023/02/housing-cost-index-rise-consumer-price-index-inflation-boston-fed-chris-cotton.aspx",
+        "date": "2023-02-16",
+        "quote": "CPI shelter tends to lag market rents because of the way that the U.S. Bureau of Labor Statistics constructs CPI shelter."
+      }
+    ],
+    "source_title": "LeaseLock/RealPage; Richmond Fed",
+    "source_url": "https://leaselock.com/greg-willett-signposts-multifamily-resident-retention-renewal-pricing-power/",
+    "date": "2026-07-30",
+    "notes": "Renewal increases persistently exceed move-in changes in soft markets (~3.5-4% vs ~1-2%), i.e., sitting tenants pay a renewal premium vs market when market is flat; in hot markets the reverse occurred (NTRR 11.9% vs all-tenant 5.9%). No numeric long-run renewal average found; Yardi Matrix figures not retrieved."
+  },
+  "wage_growth": {
+    "value": {
+      "atlanta_fed_wgt_overall_pct": 3.9,
+      "month": "2026-09",
+      "prior_month_pct": 4.1,
+      "job_stayers_pct": 3.4,
+      "job_switchers_pct": 4.7,
+      "recent_series": {"2026-05": 3.5, "2026-06": 3.6, "2026-07": 3.8, "2026-08": 4.1, "2026-09": 3.9},
+      "long_run_average_pct": null,
+      "long_run_real_wage_growth_pct": null
+    },
+    "description": "Atlanta Fed Wage Growth Tracker, 3-month moving average of unweighted median YoY hourly wage growth (overall).",
+    "source_title": "Atlanta Fed Wage Growth Tracker; FRED series FRBATLWGT3MMAUMHWGO",
+    "source_url": "https://www.atlantafed.org/chcs/wage-growth-tracker",
+    "date": "2026-10-08",
+    "notes": "FRED: https://fred.stlouisfed.org/series/FRBATLWGT3MMAUMHWGO (updated 2026-10-09; data Jan 1997-Sep 2026). Long-run average and real wage growth not computed/found on fetched pages; could be computed from the FRED series (since 1997) if downloaded."
+  },
+  "forced_sales": {
+    "value": {
+      "foreclosure_discount_pct": 27,
+      "death_related_discount_pct_low": 5,
+      "death_related_discount_pct_high": 7,
+      "bankruptcy_related_discount_pct": 3,
+      "foreclosure_share_of_sales_MA_2009Q1_pct": 25.7,
+      "foreclosure_share_of_sales_MA_1993_pct": 9.7,
+      "nar_distressed_share_2008Q4_pct": 45,
+      "nar_distressed_share_2009_03_pct": 49,
+      "nar_distressed_share_late2014_pct": 9,
+      "job_loss_default_equiv_equity_decline_pct": 35
+    },
+    "description": "Forced-sale price discounts and cyclicality of distressed sales; job loss and forced moves/default.",
+    "sources": [
+      {
+        "source_title": "Campbell, Giglio & Pathak, 'Forced Sales and House Prices', American Economic Review 101(5): 2108-2131 (2011)",
+        "source_url": "https://dash.harvard.edu/server/api/core/bitstreams/7312037c-ae02-6bd4-e053-0100007fdf3b/content",
+        "date": "2011-08",
+        "quote": "Foreclosure discounts are particularly large on average at 27% of the value of a house; smaller for death-related sales at 5-7% of value; smaller again for bankruptcy-related sales at 3% of value. Foreclosure share of sales (Massachusetts) 9.7% in 1993, record 25.7% in 2009Q1."
+      },
+      {
+        "source_title": "Calculated Risk: NAR: Distressed Sales Accounted for 45%",
+        "source_url": "https://www.calculatedriskblog.com/2009/02/nar-distressed-sales-accounted-for-45.html",
+        "date": "2009-02-12",
+        "quote": "Distressed sales - foreclosures and short sales - accounted for 45 percent of transactions in the fourth quarter."
+      },
+      {
+        "source_title": "Special Report: Distressed Sales Nearly Nonexistent in Housing Today (Houston Agent Magazine, NAR data)",
+        "source_url": "https://houstonagentmagazine.com/2015/01/22/special-report-distressed-sales-nearly-nonexistent-housing-today/",
+        "date": "2015-01-22",
+        "quote": "distressed home sales have now fallen from 49 percent of the market in March 2009 to just 9 percent"
+      },
+      {
+        "source_title": "Gerardi, Herkenhoff, Ohanian & Willen, 'Can't Pay or Won't Pay? Unemployment, Negative Equity, and Strategic Default', NBER WP 21630",
+        "source_url": "https://www.nber.org/papers/w21630",
+        "date": "2015-10 (rev. 2017-01)",
+        "quote": "Job loss has an equivalent effect on default likelihood as a 35 percent decline in equity."
+      },
+      {
+        "source_title": "Demyanyk, Hryshko, Luengo-Prado & Sorensen, 'Keeping the House or Moving for a Job', Cleveland Fed Economic Commentary 2013-09",
+        "source_url": "https://www.clevelandfed.org/publications/economic-commentary/2013/ec-201309-keeping-the-house-or-moving-for-a-job",
+        "date": "2013-07-11",
+        "quote": "In high-unemployment-increase areas, homeowners with <20% equity ~1 pp more likely to move for a job per year; unemployed underwater homeowner offered job elsewhere 'highly likely to accept this job'"
+      }
+    ],
+    "source_title": "Campbell, Giglio & Pathak (AER 2011)",
+    "source_url": "https://dash.harvard.edu/server/api/core/bitstreams/7312037c-ae02-6bd4-e053-0100007fdf3b/content",
+    "date": "2011",
+    "notes": "CGP data are Massachusetts 1987-2009. No direct estimate found of the probability a job loser must sell; Gerardi et al. (default) and Cleveland Fed (mobility) are the closest evidence. ATTOM data not retrieved."
+  },
+  "rent_vs_market_turnover": {
+    "value": {
+      "renter_annual_move_rate_pct": 16.2,
+      "year": 2023,
+      "apartment_lease_renewal_rate_pct_1H2026": 56
+    },
+    "description": "Share of renters who move each year.",
+    "source_title": "CPS (previously collected; not re-fetched); renewal rate from LeaseLock/RealPage",
+    "source_url": "https://leaselock.com/greg-willett-signposts-multifamily-resident-retention-renewal-pricing-power/",
+    "date": "2026-07-30",
+    "notes": "Skipped per instructions; no newer CPS figure searched. The 16.2% value was supplied by the caller. RealPage: 56% of market-rate apartment residents with expiring leases renewed in 1H2026 (~44% turnover at lease expiry, apartments only)."
+  }
+}
