@@ -1,5 +1,7 @@
 # Rent, Buy or Invest
 
+**Live app:** https://javadnoorb.github.io/rent-buy-invest/
+
 An interactive calculator comparing three paths on the same monthly budget:
 
 - **Buy** a home and invest any monthly surplus.
