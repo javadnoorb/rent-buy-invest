@@ -108,7 +108,7 @@ function buildMethod(){
   <p class="cap">Inputs marked "assumption" are conventional planning values with no single authoritative source.</p>
 
   <h3 id="notation">Notation</h3>
-  <div class="tablewrap" style="max-height:none"><table class="kv notation">
+  <div class="tablewrap notewrap" style="max-height:none"><table class="kv notation">
   <thead><tr><th>Symbol</th><th>Meaning</th><th>Setting</th></tr></thead><tbody>
     <tr><td>\\(t, y, N\\)</td><td>month, year, horizon in years</td><td>Horizon</td></tr>
   <tr><td>\\(P, d, c, s\\)</td><td>price, down payment share, buyer closing-cost share, selling-cost share</td><td>Home price, Down payment, Closing costs, Selling costs, Transfer taxes</td></tr>

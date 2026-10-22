@@ -25,7 +25,7 @@ const { chromium } = require(process.env.PLAYWRIGHT_PATH || 'playwright');
   }
   // formulas: every \( \) and \[ \] block must render with MathJax, with no TeX errors
   if (!process.env.STUB_PLOTLY) {
-    await page.click('[data-tab=method]');
+    await page.click('[data-tab=method]'); await page.click('#mopen');
     await page.waitForFunction(() => window.MathJax && MathJax.startup && MathJax.startup.promise, null, { timeout: 30000 });
     await page.evaluate(() => MathJax.typesetPromise([document.getElementById('tab-method'), document.getElementById('tab-mc')]));
     const tex = await page.evaluate(() => {
@@ -39,7 +39,8 @@ const { chromium } = require(process.env.PLAYWRIGHT_PATH || 'playwright');
     console.log(`formulas rendered: ${tex.rendered}`);
     // phone width: the page itself must never scroll sideways; long equations scroll inside their own box
     const ov = await page.evaluate(() => ({ page: document.documentElement.scrollWidth - innerWidth,
-      eq: [...document.querySelectorAll('#tab-method mjx-container[display="true"]')].filter(e => e.scrollWidth > e.clientWidth + 2).length }));
+      note: (w => w ? w.scrollWidth - w.clientWidth : 0)(document.querySelector('.notewrap')), eq: [...document.querySelectorAll('#tab-method mjx-container[display="true"]')].filter(e => e.scrollWidth > e.clientWidth + 2).length }));
+    if (ov.note > 1) failed.push(`notation table is ${ov.note}px wider than a 390px phone screen`);
     if (ov.page > 1) failed.push(`page is ${ov.page}px wider than a 390px phone screen`);
     console.log(`equations needing horizontal scroll at 390px: ${ov.eq}`);
     if (process.env.GITHUB_ACTIONS) console.log(`::notice::page overflow ${ov.page}px; equations scrolling at 390px: ${ov.eq}`);
