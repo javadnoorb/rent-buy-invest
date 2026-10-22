@@ -198,3 +198,11 @@ button.ghost{background:transparent}
   details.how summary,aside summary{padding-block:12px}
 }
 [hidden]{display:none!important}
+/* chart interpretation */
+.takeaway{font-size:13px;line-height:1.5;padding:7px 10px;border-left:3px solid var(--accent);background:var(--sunk);border-radius:0 6px 6px 0;max-width:90ch}
+.takeaway:empty{display:none}
+.takeaway strong:first-child{font-weight:600}
+dl.read{margin:6px 0 0;display:flex;flex-direction:column;gap:2px;max-width:80ch}
+dl.read dt{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:6px}
+dl.read dd{margin:0;color:var(--ink);font-size:13px}
+details.how[open] summary{margin-bottom:2px}

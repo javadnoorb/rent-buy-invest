@@ -233,6 +233,12 @@ function summary(){
   document.getElementById('vnote').innerHTML=`${m.slug!=='us'?`Location: ${m.name}. `:''}Price-to-rent ${ptr.toFixed(1)} (gross rent yield ${pct(1/ptr)}). Values in ${basisLabel()}. ${MC?`Monte Carlo: buying beats renting-and-investing in <strong>${pct(MC.pWin[Math.min(N,MC.N)])}</strong> of ${MC.n.toLocaleString()} simulated paths at year ${Math.min(N,MC.N)}.`:''}`;
 }
 
+/* ===================== Chart takeaways ===================== */
+function tk(id,html,label){const el=document.getElementById('tk-'+id);if(el)el.innerHTML=html?`<strong>${label||'For your inputs:'}</strong> ${html}`:''}
+const gapTxt=v=>`<span style="color:var(${v>=0?'--buy':'--inv'})">${v>=0?'buying ahead by ':'renting ahead by '}${fmt(Math.abs(v))}</span>`;
+const nY=n=>`${n} year${n===1?'':'s'}`;
+const sgnP=v=>`${v>=0?'+':'−'}${Math.abs(v).toFixed(0)}%`;
+
 /* ===================== Plain-language answer ===================== */
 function plainAnswer(){const el=document.getElementById('answer');if(!el)return;
   if(!MC||MC.key!==mcKey()){el.innerHTML='<span class="sub">Simulating possible futures…</span>';return}
@@ -293,6 +299,21 @@ function renderProj(){
   document.getElementById('ytable').innerHTML='<thead><tr>'+cols.map(c=>`<th>${c[1]}</th>`).join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+cols.map(c=>`<td>${v(r,c[0])}</td>`).join('')+'</tr>').join('')+'</tbody>';
   const csv=[cols.map(c=>c[1]+(c[0]!=='year'&&c[0]!=='mortRate'?` (${basisLabel()})`:'')).join(',')].concat(rows.map(r=>cols.map(c=>{const x=r[c[0]];if(x==null)return '';if(c[0]==='year')return x;if(c[0]==='mortRate')return (x*100).toFixed(3);return Math.round(adj(x,r.cpiIndex))}).join(','))).join('\n');
   document.getElementById('csvText').value=csv;
+  {const N=P.N,c=o.cpi[N],gap=adj(o.buy[N]-o.inv[N],c);
+   let t1=`At year ${N}: ${gapTxt(gap)}. `+(be?(be<=N?`Buying pulls ahead for good in year ${be}.`:`Buying pulls ahead only after year ${be}.`):`Buying does not pull ahead within ${nY(N)} at these growth rates.`);
+   if(showBand&&MC&&MC.res){const r=(a,f)=>q(a.map(x=>x[N]),f);t1+=` In the middle half of simulated futures, buying ends at ${fmt(r(MC.res.buy,.25))}–${fmt(r(MC.res.buy,.75))} and renting-and-investing at ${fmt(r(MC.res.inv,.25))}–${fmt(r(MC.res.inv,.75))}${r(MC.res.buy,.75)>r(MC.res.inv,.25)&&r(MC.res.inv,.75)>r(MC.res.buy,.25)?', so the ranges overlap and luck could decide it':''}.`}
+   tk('nw',t1);
+   const f1=fl[0],cheap=fl.findIndex(f=>f.own<f.rent);
+   tk('flow',`In year 1 owning costs ${fmtFull(adj(f1.own,f1.cpi))}/mo against ${fmtFull(adj(f1.rent,f1.cpi))}/mo for renting; ${fmtFull(adj(f1.principal,f1.cpi))} of that goes to principal and stays yours. `+
+     (cheap===0?'Owning is the cheaper month from the start.':cheap>0?`Owning becomes the cheaper month in year ${cheap+1}, as rent rises and the payment stays fixed.`:`Owning stays the more expensive month for all ${nY(fl.length)}.`));
+   const u0=u[0],need=(u0.own-u0.rent)/P.P;
+   tk('unrec',`Year 1 unrecoverable cost of owning is ${fmtFull(adj(u0.own,u0.cpi))} (${pct(u0.own/P.P)} of the price) against ${fmtFull(adj(u0.rent,u0.cpi))} of rent. `+
+     (need>0?`The home has to gain about ${pct(need)} that year just to match renting; you assume ${pct(P.gh)}.`:`Owning is already ${fmtFull(-adj(u0.own-u0.rent,u0.cpi))} cheaper than renting before any appreciation.`));
+   const sh=o.buy[N]>0?o.eq[N]/o.buy[N]:0;
+   tk('comp',`At year ${N}, ${pct(Math.max(0,Math.min(1,sh)),0)} of the buyer's net worth is home equity and ${pct(Math.max(0,Math.min(1,1-sh)),0)} is invested. Selling would cost about ${fmt(adj(o.H[N]*P.sell,c))} in commission and fees.`);
+   const mo=o.lqB.map((v,k)=>v/(bud[k]||1)),low=mo.slice(1).findIndex(v=>v>=3);
+   tk('liq',mo.slice(1).every(v=>v>=3)?'The buyer keeps at least 3 months of costs in liquid assets throughout.':
+     (low<0?`The buyer stays below 3 months of costs in liquid assets for all ${nY(N)}; a separate emergency fund matters if you buy.`:`The buyer has under 3 months of costs in liquid assets until year ${low+1}; a separate emergency fund matters in those years.`));}
 }
 
 /* ===================== Sensitivity ===================== */
@@ -302,6 +323,8 @@ function renderSens(){
     {y:rows.map(r=>r.lab),x:rows.map(r=>r.lo),name:'Input lower',type:'bar',orientation:'h',marker:{color:hexA(t.inv,.75)},hovertemplate:'%{x:$,.0f}<extra>lower</extra>'},
     {y:rows.map(r=>r.lab),x:rows.map(r=>r.hi),name:'Input higher',type:'bar',orientation:'h',marker:{color:hexA(t.buy,.75)},hovertemplate:'%{x:$,.0f}<extra>higher</extra>'}],
     {barmode:'overlay',hovermode:'closest',margin:{l:innerWidth<600?150:190,r:14,t:10,b:60},xaxis:{...layout().xaxis,title:{text:`Change in buy advantage at year ${p.N} (base ${fmt(base)})`,font:{size:11}},tickprefix:'$',tickformat:'~s'},yaxis:{...layout().yaxis,automargin:true}});
+  {const top=rows.slice(-3).reverse(),flips=rows.filter(r=>Math.sign(base+r.lo)!==Math.sign(base)||Math.sign(base+r.hi)!==Math.sign(base));
+   tk('tor',`The answer is most sensitive to ${top.map(r=>r.lab.replace(/ ±.*/,'').toLowerCase()).join(', ')}. `+(flips.length?`Within the ranges shown, ${flips.map(r=>r.lab.replace(/ ±.*/,'').toLowerCase()).join(', ')} could flip the decision on its own.`:`None of the shown changes alone flips the decision, so the result is fairly robust to any single input.`))}
   const G=[],R=[];for(let g=-2;g<=8.001;g+=0.5)G.push(r2(g));for(let r=2;r<=14.001;r+=0.5)R.push(r2(r));
   const wc=1-p.ws-p.wb,mix=rs=>p.ws*rs+p.wb*p.rb+wc*p.rc;
   const z=R.map(r=>G.map(g=>{const rs=p.ws>0?(r/100-p.wb*p.rb-wc*p.rc)/p.ws:p.rs;return 100*advAt(p,{gh:g/100,rs})/p.P}));
@@ -311,10 +334,18 @@ function renderSens(){
     {x:G,y:R,z,type:'contour',contours:{start:0,end:0,size:1,coloring:'none',showlabels:false},line:{color:t.ink,width:2},showscale:false,hoverinfo:'skip'},
     {x:[p.gh*100],y:[mix(p.rs)*100],mode:'markers',marker:{size:12,color:t.ink,symbol:'x'},name:'You',hovertemplate:'your assumption<extra></extra>'}],
     {hovermode:'closest',showlegend:false,xaxis:X('Home appreciation, % / yr'),yaxis:Yt('Portfolio return before fees, % / yr')});
+  {const beG=bisect(g=>advAt(p,{gh:g}),-0.15,0.25);
+   tk('heat',beG==null?'At your portfolio return, no home appreciation between −15% and 25% a year changes the winner.':
+     `At your ${pct(mix(p.rs))} portfolio return, buying ties when homes appreciate ${pct(beG)} a year; you assume ${pct(p.gh)}, a margin of ${(Math.abs(beG-p.gh)*100).toFixed(1)} points in favor of ${beG>p.gh?'renting':'buying'}.`)}
   const mults=[0.7,0.85,1,1.15,1.3],cols=[t.inv,hexA(t.inv,.6),t.muted,hexA(t.buy,.6),t.buy];
-  plot('p-ptr',mults.map((m,j)=>{const {o}=runConst(p,{rent0:p.rent0*m},30);
+  const BE=[];
+  plot('p-ptr',mults.map((m,j)=>{const {o}=runConst(p,{rent0:p.rent0*m},30);BE.push(breakevenYear(o));
     return {x:o.buy.map((_,k)=>k),y:o.buy.map((b,k)=>adj(b-o.inv[k],o.cpi[k])),name:`${fmtFull(p.rent0*m)} (P/R ${(p.P/(p.rent0*m*12)).toFixed(1)})`,mode:'lines',line:{color:cols[j],width:m===1?3:1.8},hovertemplate:'%{y:$,.0f}'}}),
     {xaxis:X('Years'),yaxis:Yd('Buy − rent&invest, '+basisLabel())});
+  const be=BE[2],lo=BE[0],hi=BE[4];
+  const ptr=(p.P/(p.rent0*12)).toFixed(1);
+  tk('ptr',!be&&!hi?`At your rent (price-to-rent ${ptr}) buying doesn't break even within 30 years, even if comparable rent were 30% higher.`:
+    `At your rent (price-to-rent ${ptr}) buying breaks even ${be?`in year ${be}`:'after more than 30 years'}. With 30% higher rent: ${hi?`year ${hi}`:'over 30 years'}; with 30% lower rent: ${lo?`year ${lo}`:'over 30 years'}.`);
 }
 
 /* ===================== Optimizer ===================== */
@@ -339,6 +370,10 @@ function renderOpt(){
   const body=rowsDef.map(([lab,f,fm,you])=>`<tr><td>${lab}</td><td>${you}</td>${HS.map(h=>{const v=f(h);return `<td>${v==null?'—':fm(v)}</td>`}).join('')}</tr>`).join('');
   const adv=`<tr class="hl"><td>Buy advantage now</td><td></td>${HS.map(h=>`<td>${fmt(advAt(p,{N:h}))}</td>`).join('')}</tr>`;
   document.getElementById('solveT').innerHTML=head+'<tbody>'+adv+body+'</tbody>';
+  {const j=p.N-1,bdp=best[j],bi=DP.indexOf(bdp),bv=res[bi][j];const you=100*advAt(Object.assign({},p,{term:OPT_TERM,rate:OPT_TERM===15?p.rate15:p.rate30}),{})/p.P;
+   const all=DP.map((_,i)=>res[i][j]),mono=all.every((v,i)=>i===0||v>=all[i-1]-1e-9),dec=all.every((v,i)=>i===0||v<=all[i-1]+1e-9);
+   tk('opt',(Math.abs(bv-you)<1?`With a ${OPT_TERM}-year loan and a ${p.N}-year stay, your ${pct(p.dp,0)} down is already about as good as any down payment shown (${sgnP(you)} of price). `:`With a ${OPT_TERM}-year loan and a ${p.N}-year stay, ${bdp}% down does best (${sgnP(bv)} of price) vs. ${sgnP(you)} at your ${pct(p.dp,0)}. `)+
+     (mono?'Putting more down always helps here, because the loan costs more than the portfolio earns after tax.':dec?'Putting less down helps here, because the portfolio is expected to earn more than the loan costs.':'The effect of the down payment is mixed: PMI below 20% and the rate-versus-return trade-off pull in different directions.'))}
 }
 
 /* ===================== Backtest ===================== */
@@ -375,11 +410,18 @@ function renderHist(){
     customdata:H.map(()=>runs.map(r=>r.lab)),hovertemplate:'bought %{customdata}, after %{y} yr: %{z:.0f}%<extra></extra>'},
     {x:xs,y:H,z,type:'contour',contours:{start:0,end:0,size:1,coloring:'none'},line:{color:t.ink,width:1.5},showscale:false,hoverinfo:'skip'}],
     {hovermode:'closest',xaxis:X(`Start · buying won in ${(share*100).toFixed(0)}% of ${win.length} starts at ${p.N} yr`),yaxis:Yt('Horizon (years)')});
+  {const at=win.map(r=>({lab:r.lab,v:r.adv[p.N]})).sort((a,b)=>a.v-b.v);
+   if(at.length){const md=at[Math.floor(at.length/2)].v,w=at[0],bst=at.at(-1);
+     tk('spag',`Over ${at.length} historical starts with at least ${nY(p.N)} of data, buying won ${pct(share,0)} of the time. The median outcome was ${sgnP(md)} of the price; the worst was ${sgnP(w.v)} (bought ${w.lab}) and the best ${sgnP(bst.v)} (bought ${bst.lab}).`,'In history:');
+     const decs={};runs.forEach(r=>{if(r.adv.length>p.N){const d=Math.floor(r.s/10)*10;(decs[d]=decs[d]||[]).push(r.adv[p.N]>0)}});
+     tk('hheat','Share of starts where buying won at your horizon, by decade bought: '+Object.entries(decs).map(([d,a])=>`${d}s ${pct(a.filter(Boolean).length/a.length,0)}`).join(' · ')+'.','In history:')}
+   else{tk('spag','Not enough history for this horizon; shorten it to see results.','In history:');tk('hheat','')}}
   let ys=parseInt(document.getElementById('h-year').value);if(!(ys>=1972&&ys<=2025))ys=2000;
   const r=mode==='annual'?runs.find(q=>q.s===ys):(runs.find(q=>q.lab===`${ys}-01`)||runs[0]);
   if(!r)return;const o=r.o,x=o.buy.map((_,k)=>Math.floor(r.s)+k);
   document.getElementById('h-detail-cap').textContent=`Bought ${r.lab} at ${(r.rate*100).toFixed(2)}%${o.refis?`, refinanced ${o.refis}× (last rate ${(o.rateAt.at(-1)*100).toFixed(2)}%)`:''}. Real dollars; today's price and rent scaled by the historical paths.`;
   const tr=(a,n,c,d)=>({x,y:a.map((v,k)=>v/o.cpi[k]),name:n,mode:'lines',line:{color:c,width:2.5,dash:d},hovertemplate:'%{y:$,.0f}'});
+  {const Nn=o.buy.length-1,g=(o.buy[Nn]-o.inv[Nn])/o.cpi[Nn];tk('hdet',`Bought ${r.lab}, after ${nY(Nn)}: ${gapTxt(g)} in today's dollars.${o.refis?` The buyer refinanced ${o.refis} time${o.refis>1?'s':''} along the way.`:''}`,'This start:')}
   plot('p-hdet',[tr(o.buy,'Buy',t.buy),tr(o.inv,'Rent + invest',t.inv),tr(o.cash,'Rent + T-bills',t.cash,'dot'),
     {x,y:o.rateAt.map(v=>v*100),name:'Loan rate',yaxis:'y2',mode:'lines',line:{color:t.neg,width:1.2,shape:'hv'},hovertemplate:'%{y:.2f}%'}],
     {xaxis:X('Year'),yaxis:Yd('Real net worth'),yaxis2:{overlaying:'y',side:'right',ticksuffix:'%',showgrid:false,tickfont:{family:'IBM Plex Mono',color:t.neg}},margin:{l:64,r:44,t:10,b:innerWidth<600?72:48}});
@@ -450,6 +492,16 @@ function drawMC(){if(!MC)return;
     {hovermode:'closest',xaxis:X(`Own-home appreciation, annualized over ${h} yr (%)`),yaxis:Yt('Portfolio return, annualized (%)')});
   const yr=[...Array(N)].map((_,k)=>k+1),rq=f=>yr.map((_,k)=>100*q(res.rates.map(a=>a[k]),f));
   const nref=res.refis.filter(v=>v>0).length/n,avgRef=res.refis.reduce((a,b)=>a+b,0)/n;
+  {const B=res.buy.map(a=>a[h]),I=res.inv.map(a=>a[h]);
+   tk('fan',`At year ${h}, the median future leaves ${fmt(q(B,.5))} if you buy and ${fmt(q(I,.5))} if you rent and invest. One in twenty futures leaves the buyer below ${fmt(q(B,.05))} (renter: ${fmt(q(I,.05))}).`);
+   let cross=null;for(let y=1;y<=N;y++){if(MC.pWin[y]>=0.5&&MC.pWin.slice(y).every(v=>v>=0.5)){cross=y;break}}
+   tk('prob',`Buying beats renting-and-investing in ${pct(MC.pWin[h],0)} of futures at ${nY(h)}${P.hz>0?`, or ${pct(MC.pMove,0)} once early moves are included`:''}. `+(cross?`It wins more often than not from year ${cross} on.`:'It never wins more often than not within 30 years.')+` Against renting with T-bills it wins ${pct(MC.pWinC[h],0)}.`);
+   const mean=d.reduce((a,b)=>a+b,0)/d.length,med=q(d,.5);
+   tk('mchist',`The middle half of outcomes runs from ${fmt(q(d,.25))} to ${fmt(q(d,.75))}. `+(mean<med-0.05*Math.abs(med)?`The average (${fmt(mean)}) is below the median (${fmt(med)}): the downside tail for buying is longer than the upside.`:mean>med+0.05*Math.abs(med)?`The average (${fmt(mean)}) is above the median (${fmt(med)}): a few very good futures for buying pull it up.`:`Average and median are close (${fmt(mean)} vs ${fmt(med)}), so the outcomes are fairly symmetric.`));
+   let a1=0,n1=0,a2=0,n2=0;res.gH.forEach((g,i)=>{const w=d[i]>0;if(g>res.gP[i]-4){n1++;if(w)a1++}else{n2++;if(w)a2++}});
+   tk('mcsc',`When your home's yearly gain came within 4 points of the portfolio's, buying won ${n1?pct(a1/n1,0):'—'} of the time; when stocks beat the home by more than that, ${n2?pct(a2/n2,0):'—'}. Leverage is why the home doesn't need to match stocks to win.`);
+   const k=Math.min(5,N),hit=res.rates.filter(a=>Math.min(...a.slice(0,k))<=P.rate-P.refiTh).length/n;
+   tk('mcrate',`In ${pct(hit,0)} of futures the market rate falls at least ${(P.refiTh*100).toFixed(2)} points below your ${pct(P.rate,2)} within ${nY(k)}${P.refiOn?', triggering a refinance':' (refinancing is off)'}.`)}
   plot('p-mcrate',[{x:yr,y:rq(.95),mode:'lines',line:{width:0},showlegend:false,hoverinfo:'skip'},{x:yr,y:rq(.05),mode:'lines',line:{width:0},fill:'tonexty',fillcolor:hexA(t.neg,.15),name:'5–95%',hoverinfo:'skip'},
     {x:yr,y:rq(.5),mode:'lines',line:{color:t.neg,width:2.5},name:'Median market rate',hovertemplate:'%{y:.2f}%'}],
     {xaxis:X('Years from today'),yaxis:Yt('30-yr rate',{ticksuffix:'%'}),annotations:[{xref:'paper',yref:'paper',x:0,y:1,xanchor:'left',yanchor:'top',showarrow:false,text:P.refiOn?`${pct(nref,0)} of paths refinance at least once · ${avgRef.toFixed(2)} refis on average`:'refinancing is off',font:{size:11,color:t.muted}}]});
@@ -472,6 +524,8 @@ function renderScen(){
   const results=all.map(s=>Object.assign({name:s.name},scenarioResult(s.raw)));
   plot('p-scen',results.map((r,i)=>({x:r.o.buy.map((_,k)=>k),y:r.o.buy.map((b,k)=>adj(b-r.o.inv[k],r.o.cpi[k])),name:r.name,mode:'lines',line:{color:cols[i%cols.length],width:i===0?3:2,dash:i===0?'solid':undefined},hovertemplate:'%{y:$,.0f}'})),
     {xaxis:X('Years'),yaxis:Yd('Buy − rent&invest, '+basisLabel()),shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:t.muted,width:1}}]});
+  {const be=results.map(r=>({n:r.name,b:breakevenYear(r.o)}));const ok=be.filter(x=>x.b).sort((a,b)=>a.b-b.b);
+   tk('scen',results.length<2?'Save a scenario to compare it with the current inputs.':(ok.length?`${escapeHtml(ok[0].n)} breaks even first (year ${ok[0].b}).`+(be.length>ok.length?` ${be.length-ok.length} scenario${be.length-ok.length>1?'s':''} never break${be.length-ok.length>1?'':'s'} even within 30 years.`:''):'No scenario breaks even within 30 years.'))}
   document.getElementById('scT').innerHTML='<thead><tr><th>Scenario</th><th>Horizon</th><th>Buy</th><th>Rent + invest</th><th>Gap</th><th>Break-even yr</th><th>P/R</th></tr></thead><tbody>'+
     results.map(r=>{const N=r.p.N,c=r.o.cpi[N],b=adj(r.o.buy[N],c),iv=adj(r.o.inv[N],c),be=breakevenYear(r.o);return `<tr><td>${escapeHtml(r.name)}</td><td>${N}</td><td>${fmt(b)}</td><td>${fmt(iv)}</td><td style="color:var(${b>=iv?'--buy':'--inv'})">${b>=iv?'+':''}${fmt(b-iv)}</td><td>${be||'>30'}</td><td>${(r.p.P/(r.p.rent0*12)).toFixed(1)}</td></tr>`}).join('')+'</tbody>';
 }
@@ -495,6 +549,7 @@ function renderCompare(list){
       return `<tr><td>${lab}</td><td${ca}>${f(a[k])}</td><td${cb}>${f(b[k])}</td></tr>`}).join('')+'</tbody>';
   const line=(r,col,dash,lab)=>{const o=r.sim;return [{x:o.buy.map((_,k)=>k),y:o.buy.map((v,k)=>adj(v,o.cpi[k])),name:`${lab}: buy`,mode:'lines',line:{color:t.buy,width:2.4,dash},hovertemplate:'%{y:$,.0f}'},
     {x:o.inv.map((_,k)=>k),y:o.inv.map((v,k)=>adj(v,o.cpi[k])),name:`${lab}: rent + invest`,mode:'lines',line:{color:t.inv,width:2.4,dash},hovertemplate:'%{y:$,.0f}'}]};
+  tk('cmp',sa.value===sb.value?'Pick two different scenarios above, or save one first.':`${escapeHtml(A.name)}: ${gapTxt(a.gap)} at year ${a.N}. ${escapeHtml(B.name)}: ${gapTxt(b.gap)} at year ${b.N}.`);
   plot('p-cmp',[...line(A,null,'solid','A'),...line(B,null,'dot','B')],{xaxis:X('Years'),yaxis:Yd('Net worth, '+basisLabel())});
 }
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -514,10 +569,15 @@ function renderData(){
   const m=curMetro(),ma=metroAnnual(m),ms=metroStart(m);
   if(ma&&ms){const yrs=YEARS.filter(y=>y>=ms);const idx=(a)=>{let v=100;return [100].concat(yrs.map(y=>{const i=y-Y0;v*=(1+a[i]/100)/(1+INF[i]/100);return v}))};
     document.getElementById('metro-cap').innerHTML=`Real home-price index, ${m.name} vs. national, rebased to 100 at end of ${ms-1}. Metro ${m.hpiSrc?m.hpiSrc.t:''} ${srcObj(m.hpiSrc)}. Metro annualized real growth ${pct(Math.pow(idx(ma).at(-1)/100,1/yrs.length)-1)}; national ${pct(Math.pow(idx(HOME).at(-1)/100,1/yrs.length)-1)}.`;
+    {const a=idx(ma).at(-1),b=idx(HOME).at(-1);let pk=0,dd=0,v=100;idx(ma).forEach(x=>{if(x>pk)pk=x;dd=Math.min(dd,x/pk-1)});tk('metro',`Since ${ms-1}, ${m.name} home prices grew ${pct(Math.pow(a/100,1/yrs.length)-1)} a year after inflation vs. ${pct(Math.pow(b/100,1/yrs.length)-1)} nationally. Its worst fall from a peak, after inflation, was ${pct(-dd,0)}.`,'What stands out:')}
     plot('p-metro',[{x:[ms-1,...yrs],y:idx(ma),name:m.name,line:{color:t.buy,width:2.5},hovertemplate:'%{y:.0f}'},{x:[ms-1,...yrs],y:idx(HOME),name:'National',line:{color:t.muted,width:2,dash:'dash'},hovertemplate:'%{y:.0f}'}],{yaxis:Yt('Real index')})}
   else{document.getElementById('metro-cap').textContent='Choose a location in the top card to compare its home prices with the national index.';
     plot('p-metro',[{x:x.slice(60),y:cum(HOME).slice(60),name:'National home prices (real)',line:{color:t.buy,width:2.3}}],{yaxis:Yt('Real value of $1')})}
+  {const c=cum(STK).at(-1),h=cum(HOME).at(-1),bb=cum(BOND).at(-1),n=YEARS.length;
+   tk('cum',`After inflation, $1 in stocks in 1927 became $${c.toFixed(0)} (${pct(Math.pow(c,1/n)-1)} a year), in Treasury bonds $${bb.toFixed(1)}, and in home prices only $${h.toFixed(1)} (${pct(Math.pow(h,1/n)-1)} a year).`,'What stands out:')}
   const roll=a=>YEARS.map((_,i)=>{if(i<9)return null;let l=0;for(let k=i-9;k<=i;k++)l+=Math.log((1+a[k]/100)/(1+INF[k]/100));return (Math.exp(l/10)-1)*100});
+  {const rs=roll(STK).filter(v=>v!=null),rh=roll(HOME).filter(v=>v!=null);
+   tk('roll',`Stocks lost money after inflation over ${pct(rs.filter(v=>v<0).length/rs.length,0)} of 10-year windows; home prices over ${pct(rh.filter(v=>v<0).length/rh.length,0)}. Stocks' 10-year real return ranged from ${(Math.min(...rs)).toFixed(1).replace('-','−')}% to ${Math.max(...rs).toFixed(1)}% a year.`,'What stands out:')}
   plot('p-roll',[{x:YEARS,y:roll(STK),name:'Stocks',line:{color:t.inv,width:2},hovertemplate:'%{y:.1f}%'},{x:YEARS,y:roll(HOME),name:'Home prices',line:{color:t.buy,width:2},hovertemplate:'%{y:.1f}%'},{x:YEARS,y:roll(RENTG),name:'Rent',line:{color:t.neg,width:1.5},hovertemplate:'%{y:.1f}%'}],
     {yaxis:Yt('Real, annualized',{ticksuffix:'%'})});
   const ks=[['Home','gh'],['Rent','gr'],['Stocks','rs'],['Bonds','rb'],['Bills','rc'],['CPI','inf'],['Δ Mortgage','dm']];
@@ -526,13 +586,18 @@ function renderData(){
   const z=ks.map(([,a])=>ks.map(([,b])=>corr(getS(a),getS(b))));
   plot('p-corr',[{x:ks.map(k=>k[0]),y:ks.map(k=>k[0]),z,type:'heatmap',zmin:-1,zmax:1,colorscale:divScale(t),text:z.map(r=>r.map(v=>v.toFixed(2))),texttemplate:'%{text}',textfont:{family:'IBM Plex Mono',size:10,color:t.ink},showscale:false,hovertemplate:'%{y} × %{x}: %{z:.2f}<extra></extra>'}],
     {hovermode:'closest',margin:{l:76,r:10,t:10,b:60},yaxis:{autorange:'reversed',tickfont:{color:t.ink}},xaxis:{tickfont:{color:t.ink},tickangle:-40}});
+  {const ci=ks.findIndex(k=>k[1]==='gh'),si=ks.findIndex(k=>k[1]==='rs'),ii=ks.findIndex(k=>k[1]==='inf');
+   tk('corr',`Home prices and stocks: ${z[ci][si].toFixed(2)} (close to unrelated). Home prices and inflation: ${z[ci][ii].toFixed(2)}, a partial inflation hedge.`,'What stands out:')}
   const my=MORT.map((_,i)=>MORT0+i);
   plot('p-mort',[{x:my,y:MORT,name:'30-yr fixed (annual avg)',line:{color:t.neg,width:2.3},hovertemplate:'%{y:.2f}%'},{x:my,y:INF.slice(MORT0-Y0),name:'CPI inflation',line:{color:t.cash,width:1.8},hovertemplate:'%{y:.1f}%'},
     {x:my,y:my.map((_,i)=>MORT[i]-INF[MORT0-Y0+i]),name:'Real mortgage rate',line:{color:t.accent,width:1.5,dash:'dot'},hovertemplate:'%{y:.1f}%'}],
     {yaxis:Yt('',{ticksuffix:'%'}),shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:V.rate30,y1:V.rate30,line:{color:t.neg,dash:'dash',width:1}}],
      annotations:[{xref:'paper',x:1,y:V.rate30,xanchor:'right',yanchor:'bottom',text:`today ${V.rate30.toFixed(2)}%`,showarrow:false,font:{size:11,color:t.neg}}]});
+  {const below=MORT.filter(v=>v<V.rate30).length/MORT.length,rr=V.rate30-V.cpiYoY;
+   tk('mort',`Today's ${V.rate30.toFixed(2)}% is higher than the average rate in ${pct(below,0)} of the years since 1972. After ${V.cpiYoY}% inflation, the real rate is about ${rr.toFixed(1)}%.`,'What stands out:')}
   if(RES.zori&&RES.zori.years){const zy=RES.zori.years;const cpiR=zy.map(y=>RENTG[y-Y0]);
     document.getElementById('zori-cap').innerHTML=`Annual growth of CPI rent (all existing leases) vs. Zillow Observed Rent Index (asking rents on new leases). ${srcObj(RES.zori)} ${sl('fredRent')}`;
+    {const zy=RES.zori.years,gaps=zy.map((y,i)=>RES.zori.yoy[i]-RENTG[y-Y0]),mx=Math.max(...gaps.map(Math.abs)),yi=gaps.map(Math.abs).indexOf(mx);tk('zori',`The largest gap was in ${zy[yi]}: asking rents ${RES.zori.yoy[yi]>=0?'+':''}${RES.zori.yoy[yi].toFixed(1)}% vs. CPI rent ${RENTG[zy[yi]-Y0].toFixed(1)}%. A renter who moves faces the asking-rent change, not the index.`,'What stands out:')}
     plot('p-zori',[{x:zy,y:RES.zori.yoy,name:'Zillow asking rents',type:'bar',marker:{color:hexA(t.inv,.7)},hovertemplate:'%{y:.1f}%'},{x:zy,y:cpiR,name:'CPI rent',mode:'lines+markers',line:{color:t.neg,width:2},hovertemplate:'%{y:.1f}%'}],{yaxis:Yt('Annual change',{ticksuffix:'%'})})}
   else{document.getElementById('zori-cap').textContent='Zillow rent history was not available.';}
   if(!dataDone){
