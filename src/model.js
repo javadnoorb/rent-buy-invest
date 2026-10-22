@@ -116,3 +116,33 @@ function simulate(p,path,opt){
 /* ===================== Paths ===================== */
 function marketRatePath(p,N){return [...Array(N)].map((_,y)=>p.rate+(p.rateLR-p.rate)*Math.min(1,y/Math.max(0.0001,p.glide)))}
 function constPath(p,N){const a=k=>Array(N).fill(p[k]);return {gh:a('gh'),gr:a('gr'),rs:a('rs'),rb:a('rb'),rc:a('rc'),inf:a('inf'),mkt:marketRatePath(p,N)}}
+
+/* ===================== Monte Carlo core (also runs in a worker) ===================== */
+function rng(seed){let s=seed>>>0;return()=>{s+=0x6D2B79F5;let t=s;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
+function gauss(r){let u=0;while(u===0)u=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*r())}
+function gammaS(k,r){if(k<1){return gammaS(k+1,r)*Math.pow(r(),1/k)}const d=k-1/3,c=1/Math.sqrt(9*d);for(;;){let x,v;do{x=gauss(r);v=1+c*x}while(v<=0);v=v*v*v;const u=r();if(u<1-0.0331*x**4||Math.log(u)<0.5*x*x+d*(1-v+Math.log(v)))return d*v}}
+const MAINT_CV=1.2;
+function mcCore(p,cfg){
+  const n=cfg.n,bl=cfg.bl,from=cfg.from,rc=cfg.rc,iv=p.idio,adj=(v,c)=>cfg.real?v/c:v;
+  const N=30,i0=from-Y0,W=NY-i0,keys=['gh','gr','rs','rb','rc','inf'];
+  const home=cfg.home;const src={gh:home,gr:RENTG,rs:STK,rb:BOND,rc:BILL,inf:INF};
+  const LOG={},SH={};keys.forEach(k=>{LOG[k]=src[k].slice(i0).map(v=>Math.log(1+v/100));const m=LOG[k].reduce((a,b)=>a+b,0)/W;SH[k]=rc?Math.log(1+p[k])-m:0});
+  const r=rng(12345),res={buy:[],inv:[],cash:[],gH:[],gP:[],lqMinB:[],lqMinR:[],refis:[],rates:[],T:[]};
+  for(let s=0;s<n;s++){
+    const idx=[];while(idx.length<N){const st=Math.floor(r()*W);for(let j=0;j<bl&&idx.length<N;j++)idx.push((st+j)%W)}
+    const path={};keys.forEach(k=>path[k]=idx.map(j=>Math.exp(LOG[k][j]+SH[k])-1));
+    let saleShock=1;if(iv>0){if(p.idioMode==='yearly')path.gh=path.gh.map(g=>(1+g)*Math.exp(iv*gauss(r)-iv*iv/2)-1);else saleShock=Math.exp(iv*gauss(r)-iv*iv/2)}
+    let m=p.rate;path.mkt=idx.map(j=>{const gi=i0+j;let dm=DM_OBS[gi];if(dm==null){dm=DM_FIT.a+DM_FIT.b*(INF[gi]-(gi>0?INF[gi-1]:INF[gi]))+DM_FIT.s*gauss(r)}m=Math.min(0.2,Math.max(0.02,m+dm/100));return m});
+    const kk=1/(MAINT_CV*MAINT_CV),maintShock=idx.map(()=>gammaS(kk,r)/kk);
+    const o=simulate(p,path,{N,saleShock,maintShock});
+    res.buy.push(o.buy.map((v,k)=>adj(v,o.cpi[k])));res.inv.push(o.inv.map((v,k)=>adj(v,o.cpi[k])));res.cash.push(o.cash.map((v,k)=>adj(v,o.cpi[k])));
+    const h=Math.min(p.N,N);let lh=0,lp=0;for(let y=0;y<h;y++){lh+=Math.log(1+path.gh[y]);lp+=Math.log(Math.max(0.01,1+p.ws*path.rs[y]+p.wb*path.rb[y]+(1-p.ws-p.wb)*path.rc[y]-p.fee))}
+    res.gH.push((Math.exp(lh/h)-1)*100);res.gP.push((Math.exp(lp/h)-1)*100);
+    let mb=Infinity,mr=Infinity;for(let y=1;y<=Math.min(5,N);y++){const bud=o.budget[y]||1;mb=Math.min(mb,o.lqB[y]/bud);mr=Math.min(mr,o.lqR[y]/bud)}
+    res.lqMinB.push(mb);res.lqMinR.push(mr);res.refis.push(o.refis);res.rates.push(path.mkt);
+    let T=p.N;if(p.hz>0){for(let t=1;t<p.N;t++){if(r()<p.hz){T=t;break}}}res.T.push(T);
+  }
+  const pWin=[],pWinC=[];for(let y=0;y<=N;y++){let a=0,b=0;for(let s=0;s<n;s++){if(res.buy[s][y]>res.inv[s][y])a++;if(res.buy[s][y]>res.cash[s][y])b++}pWin.push(a/n);pWinC.push(b/n)}
+  let mv=0;for(let s=0;s<n;s++){const T=res.T[s];if(res.buy[s][T]>res.inv[s][T])mv++}
+  return {n,N,res,pWin,pWinC,pMove:mv/n};
+}

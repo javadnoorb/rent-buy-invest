@@ -98,7 +98,7 @@ if os.path.exists(mf):
     MONTHLY = json.load(open(mf))
 
 data_js = ("const SNAP=JSON.parse(document.getElementById('snapshot-data').textContent);\n"
-           f"const RES={json.dumps(RES)};\nconst D0={json.dumps(D0)};\nconst MORT_OVERRIDE={json.dumps(MORT_OVERRIDE)};\n"
+           f"const RES={json.dumps(RES)};\nconst D0={json.dumps(D0)};\n"
            f"const METROS={json.dumps(METROS, separators=(',', ':'))};\nconst MONTHLY={json.dumps(MONTHLY, separators=(',', ':'))};\n")
 
 css = open(D('src', 'style.css')).read()
@@ -137,6 +137,6 @@ else:
 out = (head + '<style>' + css + '</style>\n' + body +
        '\n<!-- SNAPSHOT: current market figures. Weekly refresh edits only this block. -->\n'
        '<script id="snapshot-data" type="application/json">\n' + json.dumps(snap, indent=1) + '\n</script>\n' + mj +
-       '<script>\n' + data_js + model + '\n' + app + '\n</script>\n' + tail)
+       '<script id="model-script">\n"use strict";\nconst MORT_OVERRIDE=' + json.dumps(MORT_OVERRIDE) + ';\n' + model + '\n</script>\n<script>\n"use strict";\n' + data_js + app + '\n</script>\n' + tail)
 open(D('index.html'), 'w').write(out)
 print('built', len(out), 'bytes; metros', len(METROS), '; monthly', bool(MONTHLY))

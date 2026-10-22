@@ -164,3 +164,37 @@ textarea.csv{width:100%;min-height:140px;font-family:var(--mono);font-size:11.5p
 .kv td:first-child,.kv th:first-child{font-family:var(--body);white-space:normal;min-width:150px;position:sticky;left:0;background:var(--surface);z-index:1}
 .kv td{white-space:nowrap}
 .f input:disabled{opacity:.65}
+
+/* v5: guided start, plain answer, compare, touch polish */
+.hrow{display:flex;justify-content:flex-start}
+button.ghost{background:transparent}
+.answer{font-size:15px;line-height:1.45;padding:10px 12px;border-radius:8px;background:var(--sunk);max-width:90ch}
+.conf{display:inline-block;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:2px 7px;border-radius:999px;margin-right:6px;vertical-align:1px;border:1px solid currentColor}
+.conf.hi{color:var(--buy)} .conf.mid{color:var(--cash)} .conf.lo{color:var(--muted)}
+.kv.cmp td.better{color:var(--buy);font-weight:600}
+.wizard{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;padding:0 env(safe-area-inset-right,0px) 0 env(safe-area-inset-left,0px)}
+@media (min-width:700px){.wizard{align-items:center}}
+.wz-card{background:var(--surface);color:var(--ink);width:min(560px,100%);border-radius:14px 14px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;box-shadow:0 -10px 40px rgba(0,0,0,.3);max-height:90vh;overflow:auto}
+@media (min-width:700px){.wz-card{border-radius:14px}}
+.wz-top{display:flex;justify-content:space-between;align-items:center;font-family:var(--display)}
+.wz-step{display:flex;flex-direction:column;gap:10px}
+.wz-step h2{font-size:22px}
+.wz-step select{font:inherit;font-size:16px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.wz-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.wz-n{display:flex;flex-direction:column;gap:8px}
+.wz-n strong{font-size:28px}
+.wz-foot{display:flex;justify-content:space-between;align-items:center}
+.wz-dots{display:flex;gap:6px}
+.wz-dots span{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.wz-dots span.on{background:var(--accent)}
+@media (pointer:coarse){
+  button,.seg button{min-height:40px}
+  .tabs button{padding:12px 14px}
+  input,select,textarea,.q .inp input,.f input,.f select{font-size:16px!important}
+  .f{grid-template-columns:1fr 140px}
+  .f input,.f select,.controls select,.controls input[type=number]{min-height:40px}
+  input[type=range]{height:32px}
+  .src{padding:4px 0;display:inline-block}
+  details.how summary,aside summary{padding-block:12px}
+}
+[hidden]{display:none!important}

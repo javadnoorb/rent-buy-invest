@@ -1,6 +1,7 @@
 <div class="wrap">
 <header>
   <h1>Rent, Buy or Invest</h1>
+  <div class="hrow"><button id="openWizard" class="ghost">Quick setup</button></div>
   <p class="lede">Three paths, same monthly budget: buy and invest any surplus, rent and invest the difference, or rent and hold T-bills. Results are net worth if you sold everything, after selling costs and taxes. Every figure links to its source.</p>
 </header>
 
@@ -37,6 +38,7 @@
         <span class="seg" role="group" aria-label="Dollar basis"><button id="realBtn" aria-pressed="true">Today's $</button><button id="nomBtn" aria-pressed="false">Nominal $</button></span></div>
         <input type="range" id="N" min="1" max="30" value="10" aria-label="Horizon in years"></div>
     </div>
+    <div class="answer" id="answer" aria-live="polite"></div>
     <div class="vhead" id="vhead" aria-live="polite">Computing…</div>
     <div class="bars" id="bars"></div>
     <div class="vgrid" id="vgrid"></div>
@@ -149,6 +151,10 @@
       <div class="controls"><input type="text" id="scName" placeholder="e.g. Boston condo, 20% down" aria-label="Scenario name"><button class="primary" id="scSave">Save current</button><span class="sub" id="scMsg"></span></div>
       <div class="scen" id="scList"></div>
     </div>
+    <div class="card"><h2>Side by side</h2><p class="cap">Pick any two: the current inputs or a saved scenario. The better value in each row is highlighted.</p>
+      <div class="controls"><label>A <select id="cmpA"></select></label><label>B <select id="cmpB"></select></label></div>
+      <div class="tablewrap" style="max-height:none"><table class="kv cmp" id="cmpT"></table></div>
+      <div class="plot" id="p-cmp"></div></div>
     <div class="card"><h2>Compare: buy advantage over time</h2><p class="cap">Buy minus rent-and-invest for each saved scenario and the current inputs.</p><div class="plot tall" id="p-scen"></div></div>
     <div class="card"><h2>Compare: key numbers at each scenario's horizon</h2><div class="tablewrap" style="max-height:none"><table class="kv" id="scT"></table></div></div>
   </section>
@@ -177,4 +183,20 @@
 </div>
 </div>
 <div class="scrim" id="scrim"></div>
+<div class="wizard" id="wizard" hidden role="dialog" aria-modal="true" aria-labelledby="wz-title">
+  <div class="wz-card">
+    <div class="wz-top"><strong id="wz-title">Quick setup</strong><button id="wz-skip" class="ghost">Skip</button></div>
+    <div class="wz-step"><h2>Where are you looking?</h2><p class="cap">Sets typical prices, rents, property tax and insurance for that area. You can change any of them later.</p><select id="wz-metro" aria-label="Location"></select></div>
+    <div class="wz-step" hidden><h2>What are you looking at?</h2><p class="cap">Use a real listing and a rental of similar size if you have them.</p>
+      <div class="wz-grid">
+        <div class="q"><label for="wz-P">Home price</label><div class="inp"><span class="pre">$</span><input id="wz-P" type="number" inputmode="decimal"></div></div>
+        <div class="q"><label for="wz-rent">Comparable rent</label><div class="inp"><span class="pre">$</span><input id="wz-rent" type="number" inputmode="decimal"><span class="suf">/mo</span></div></div>
+        <div class="q"><label for="wz-dp">Down payment</label><div class="inp"><input id="wz-dp" type="number" inputmode="decimal"><span class="suf">%</span></div></div>
+        <div class="q"><label for="wz-inc">Household income</label><div class="inp"><span class="pre">$</span><input id="wz-inc" type="number" inputmode="decimal"><span class="suf">/yr</span></div></div>
+      </div></div>
+    <div class="wz-step" hidden><h2>How long would you stay?</h2><p class="cap">The single biggest factor. Buying has large up-front and exit costs that need time to pay off.</p>
+      <div class="wz-n"><strong class="num" id="wz-Nl">10 years</strong><input type="range" id="wz-N" min="1" max="30" value="10" aria-label="Years you would stay"></div></div>
+    <div class="wz-foot"><span class="wz-dots" id="wz-dots"></span><span style="display:flex;gap:8px"><button id="wz-back" class="ghost">Back</button><button id="wz-next" class="primary">Next</button></span></div>
+  </div>
+</div>
 <button class="fab" id="fab" aria-controls="aside">Edit all assumptions</button>

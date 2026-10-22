@@ -143,9 +143,9 @@ const TOUCH=matchMedia('(pointer: coarse)').matches||('ontouchstart' in window&&
 function layout(extra){const t=theme();const narrow=innerWidth<600;
   const L=Object.assign({paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',font:{family:'IBM Plex Sans, system-ui, sans-serif',color:t.ink,size:narrow?11:12},
     margin:{l:narrow?52:64,r:14,t:10,b:narrow?72:48},hovermode:'x unified',hoverlabel:{bgcolor:t.bg,bordercolor:t.line,font:{color:t.ink,family:'IBM Plex Mono, monospace'}},
-    legend:{orientation:'h',y:narrow?-0.28:-0.16,x:0,font:{size:11}},
-    xaxis:{gridcolor:t.line,zerolinecolor:t.line,linecolor:t.line,tickfont:{family:'IBM Plex Mono, monospace'}},
-    yaxis:{gridcolor:t.line,zerolinecolor:t.muted,linecolor:t.line,tickfont:{family:'IBM Plex Mono, monospace'}}},extra||{});
+    legend:{orientation:'h',y:narrow?-0.3:-0.16,x:0,font:{size:narrow?10:11},itemwidth:narrow?24:30,tracegroupgap:4},
+    xaxis:{gridcolor:narrow?hexA(t.line,.55):t.line,zerolinecolor:t.line,linecolor:t.line,tickfont:{family:'IBM Plex Mono, monospace'},nticks:narrow?6:undefined},
+    yaxis:{gridcolor:narrow?hexA(t.line,.55):t.line,zerolinecolor:t.muted,linecolor:t.line,tickfont:{family:'IBM Plex Mono, monospace'},nticks:narrow?5:undefined}},extra||{});
   if(TOUCH){L.dragmode=false;Object.keys(L).forEach(k=>{if(/^[xy]axis\d*$/.test(k))L[k]=Object.assign({},L[k],{fixedrange:true})});
     if(!L.xaxis)L.xaxis={fixedrange:true};if(!L.yaxis)L.yaxis={fixedrange:true};
     L.hoverlabel=Object.assign({},L.hoverlabel,{bgcolor:hexA(t.bg,0.9),font:Object.assign({},(L.hoverlabel||{}).font,{size:11})})}
@@ -228,9 +228,24 @@ function summary(){
   const own0=own1,rent0=p.rent0+p.rins/12+p.rMove*(p.rMoveCost+p.broker*p.rent0)/12;
   why.push(own0>rent0?`In year 1 owning costs ${fmtFull(own0-rent0)}/mo more than renting, which the renter invests.`:`In year 1 owning costs ${fmtFull(rent0-own0)}/mo less than renting, which the buyer invests.`);
   document.getElementById('why').innerHTML=why.join(' ');
+  plainAnswer();
   const ptr=p.P/(p.rent0*12);const m=curMetro();
   document.getElementById('vnote').innerHTML=`${m.slug!=='us'?`Location: ${m.name}. `:''}Price-to-rent ${ptr.toFixed(1)} (gross rent yield ${pct(1/ptr)}). Values in ${basisLabel()}. ${MC?`Monte Carlo: buying beats renting-and-investing in <strong>${pct(MC.pWin[Math.min(N,MC.N)])}</strong> of ${MC.n.toLocaleString()} simulated paths at year ${Math.min(N,MC.N)}.`:''}`;
 }
+
+/* ===================== Plain-language answer ===================== */
+function plainAnswer(){const el=document.getElementById('answer');if(!el)return;
+  if(!MC||MC.key!==mcKey()){el.innerHTML='<span class="sub">Simulating possible futures…</span>';return}
+  const h=Math.min(P.N,MC.N),pw=MC.pWin[h],n=MC.n;
+  let cross=null;for(let y=1;y<=MC.N;y++){let ok=true;for(let k=y;k<=Math.min(MC.N,y+3);k++)if(MC.pWin[k]<0.5)ok=false;if(ok){cross=y;break}}
+  const conf=pw>=0.8||pw<=0.2?['High confidence','hi']:(pw>=0.65||pw<=0.35?['Moderate confidence','mid']:['Low confidence','lo']);
+  const yrs=`${h} year${h>1?'s':''}`;
+  let main;
+  if(pw>=0.45&&pw<=0.55)main=`If you stay ${yrs}, it's close to a coin flip: buying comes out ahead in ${pct(pw,0)} of ${n} simulated futures.`;
+  else if(pw>0.5)main=`If you stay ${yrs}, buying is ${pw>=0.8?'very likely':pw>=0.65?'likely':'somewhat more likely'} to leave you better off: it wins in ${pct(pw,0)} of ${n} simulated futures.`;
+  else main=`If you stay ${yrs}, renting and investing is ${pw<=0.2?'very likely':pw<=0.35?'likely':'somewhat more likely'} to leave you better off: buying wins in only ${pct(pw,0)} of ${n} simulated futures.`;
+  const tail=cross?(cross<=h?` Buying tends to win once you stay ${cross}+ years.`:` Buying starts winning more often than not if you stay about ${cross}+ years.`):' Buying does not win more often than not at any horizon up to 30 years.';
+  el.innerHTML=`<span class="conf ${conf[1]}">${conf[0]}</span> ${main}${tail}`}
 
 /* ===================== Projection ===================== */
 function yearlyRows(o){const rows=[];for(let k=0;k<o.buy.length;k++){const f=o.flow[k-1]||{};rows.push({year:k,home:o.H[k],balance:o.bal[k],netEquity:o.eq[k],buyerPortfolio:o.pB[k],buyNW:o.buy[k],renterNW:o.inv[k],cashNW:o.cash[k],ownerMonthly:k?f.own:null,rentMonthly:k?f.rent:null,taxSaving:k?-f.tax*12:null,mortRate:o.rateAt[k],cpiIndex:o.cpi[k]})}return rows}
@@ -371,41 +386,35 @@ function renderHist(){
 }
 
 /* ===================== Monte Carlo ===================== */
-function rng(seed){let s=seed>>>0;return()=>{s+=0x6D2B79F5;let t=s;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
-function gauss(r){let u=0;while(u===0)u=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*r())}
-function gammaS(k,r){if(k<1){return gammaS(k+1,r)*Math.pow(r(),1/k)}const d=k-1/3,c=1/Math.sqrt(9*d);for(;;){let x,v;do{x=gauss(r);v=1+c*x}while(v<=0);v=v*v*v;const u=r();if(u<1-0.0331*x**4||Math.log(u)<0.5*x*x+d*(1-v+Math.log(v)))return d*v}}
-const MAINT_CV=1.2;
-function runMC(nOverride){
-  const p=P,n=nOverride||Math.max(200,Math.min(10000,parseInt(document.getElementById('mc-n').value)||1500)),bl=Math.max(1,parseInt(document.getElementById('mc-b').value)||5);
-  const from=parseInt(document.getElementById('mc-w').value),rc=document.getElementById('mc-rc').checked,iv=p.idio;
-  const N=30,i0=from-Y0,W=NY-i0,keys=['gh','gr','rs','rb','rc','inf'];
-  const home=homeSeries(true);const src={gh:home,gr:RENTG,rs:STK,rb:BOND,rc:BILL,inf:INF};
-  const LOG={},SH={};keys.forEach(k=>{LOG[k]=src[k].slice(i0).map(v=>Math.log(1+v/100));const m=LOG[k].reduce((a,b)=>a+b,0)/W;SH[k]=rc?Math.log(1+p[k])-m:0});
-  const r=rng(12345),res={buy:[],inv:[],cash:[],gH:[],gP:[],lqMinB:[],lqMinR:[],refis:[],rates:[],T:[]};
-  for(let s=0;s<n;s++){
-    const idx=[];while(idx.length<N){const st=Math.floor(r()*W);for(let j=0;j<bl&&idx.length<N;j++)idx.push((st+j)%W)}
-    const path={};keys.forEach(k=>path[k]=idx.map(j=>Math.exp(LOG[k][j]+SH[k])-1));
-    let saleShock=1;if(iv>0){if(p.idioMode==='yearly')path.gh=path.gh.map(g=>(1+g)*Math.exp(iv*gauss(r)-iv*iv/2)-1);else saleShock=Math.exp(iv*gauss(r)-iv*iv/2)}
-    let m=p.rate;path.mkt=idx.map(j=>{const gi=i0+j;let dm=DM_OBS[gi];if(dm==null){dm=DM_FIT.a+DM_FIT.b*(INF[gi]-(gi>0?INF[gi-1]:INF[gi]))+DM_FIT.s*gauss(r)}m=Math.min(0.2,Math.max(0.02,m+dm/100));return m});
-    const kk=1/(MAINT_CV*MAINT_CV),maintShock=idx.map(()=>gammaS(kk,r)/kk);
-    const o=simulate(p,path,{N,saleShock,maintShock});
-    res.buy.push(o.buy.map((v,k)=>adj(v,o.cpi[k])));res.inv.push(o.inv.map((v,k)=>adj(v,o.cpi[k])));res.cash.push(o.cash.map((v,k)=>adj(v,o.cpi[k])));
-    const h=Math.min(p.N,N);let lh=0,lp=0;for(let y=0;y<h;y++){lh+=Math.log(1+path.gh[y]);lp+=Math.log(Math.max(0.01,1+p.ws*path.rs[y]+p.wb*path.rb[y]+(1-p.ws-p.wb)*path.rc[y]-p.fee))}
-    res.gH.push((Math.exp(lh/h)-1)*100);res.gP.push((Math.exp(lp/h)-1)*100);
-    let mb=Infinity,mr=Infinity;for(let y=1;y<=Math.min(5,N);y++){const bud=o.budget[y]||1;mb=Math.min(mb,o.lqB[y]/bud);mr=Math.min(mr,o.lqR[y]/bud)}
-    res.lqMinB.push(mb);res.lqMinR.push(mr);res.refis.push(o.refis);res.rates.push(path.mkt);
-    let T=p.N;if(p.hz>0){for(let t=1;t<p.N;t++){if(r()<p.hz){T=t;break}}}res.T.push(T);
-  }
-  const pWin=[],pWinC=[];for(let y=0;y<=N;y++){let a=0,b=0;for(let s=0;s<n;s++){if(res.buy[s][y]>res.inv[s][y])a++;if(res.buy[s][y]>res.cash[s][y])b++}pWin.push(a/n);pWinC.push(b/n)}
-  let mv=0;for(let s=0;s<n;s++){const T=res.T[s];if(res.buy[s][T]>res.inv[s][T])mv++}
-  MC={n,N,res,pWin,pWinC,pMove:mv/n,real:REAL,key:JSON.stringify(getRaw())};
+/* Monte Carlo runs in a background worker built from the model script; falls back to the main thread */
+let MC_REQ=0,WORKER=null,WORKER_OK=null;
+function mcControls(){return {n:Math.max(200,Math.min(10000,parseInt(document.getElementById('mc-n').value)||1500)),bl:Math.max(1,parseInt(document.getElementById('mc-b').value)||5),
+  from:parseInt(document.getElementById('mc-w').value),rc:document.getElementById('mc-rc').checked}}
+function mcKey(){return JSON.stringify(getRaw())+REAL+JSON.stringify(mcControls())}
+function getWorker(){if(WORKER_OK===false)return null;if(WORKER)return WORKER;
+  try{const src=document.getElementById('model-script').textContent+"\nonmessage=e=>{const {id,p,cfg}=e.data;try{postMessage({id,r:mcCore(p,cfg)})}catch(err){postMessage({id,err:String(err)})}}";
+    WORKER=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));
+    WORKER.onmessage=e=>{const {id,r,err}=e.data;const job=PENDING[id];delete PENDING[id];if(!job)return;if(err){console.error(err);runLocal(job);return}job.done(r)};
+    WORKER.onerror=e=>{console.error('worker',e.message);WORKER_OK=false;WORKER=null;Object.values(PENDING).forEach(runLocal);PENDING={}};
+    WORKER_OK=true;return WORKER}catch(e){WORKER_OK=false;return null}}
+let PENDING={};
+function runLocal(job){setTimeout(()=>job.done(mcCore(job.p,job.cfg)),0)}
+function startMC(full){
+  const c=mcControls(),n=full?c.n:600,id=++MC_REQ,key=mcKey();
+  const cfg={n,bl:c.bl,from:c.from,rc:c.rc,home:homeSeries(true),real:REAL},p=P;
+  const job={p,cfg,done:r=>{if(id!==MC_REQ)return;MC=Object.assign(r,{real:REAL,key,quick:!full});onMCReady()}};
+  const w=getWorker();if(w){PENDING[id]=job;w.postMessage({id,p,cfg})}else runLocal(job);
 }
+function mcFresh(full){return MC&&MC.key===mcKey()&&(!full||!MC.quick)}
+function onMCReady(){summary();if(CUR==='mc')drawMC();else if(CUR==='proj')renderProj()}
+function runMC(){/* kept for compatibility */const c=mcControls();MC=Object.assign(mcCore(P,{n:c.n,bl:c.bl,from:c.from,rc:c.rc,home:homeSeries(true),real:REAL}),{real:REAL,key:mcKey(),quick:false})}
 function q(a,f){const s=[...a].sort((x,y)=>x-y);const i=(s.length-1)*f,lo=Math.floor(i);return s[lo]+(s[Math.min(lo+1,s.length-1)]-s[lo])*(i-lo)}
 function ce(ws,g,floor){const w=ws.map(v=>Math.max(floor,v));if(Math.abs(g-1)<1e-6)return Math.exp(w.reduce((a,v)=>a+Math.log(v),0)/w.length);
   const mx=Math.max(...w);const m=w.reduce((a,v)=>a+Math.pow(v/mx,1-g),0)/w.length;return mx*Math.pow(m,1/(1-g))}
-function renderMC(){
-  if(!MC||MC.real!==REAL||MC.quick||MC.key!==JSON.stringify(getRaw()))runMC();
-  const t=theme(),{res,N,n}=MC,h=P.N,x=[...Array(h+1)].map((_,k)=>k);
+function renderMC(){if(mcFresh(true)){drawMC();return}
+  document.getElementById('mc-note').textContent='Running simulations…';startMC(true)}
+function drawMC(){if(!MC)return;
+  const t=theme(),{res,N,n}=MC,h=Math.min(P.N,MC.N),x=[...Array(h+1)].map((_,k)=>k);
   document.getElementById('mc-note').textContent=`Own-home price risk ${pct(P.idio)} (${P.idioMode==='sale'?'one-time at sale':'compounding yearly'}) and moving risk ${pct(P.hz)}/yr are set under Life & risk preferences. Upkeep varies year to year around its average (coefficient of variation ${MAINT_CV}), so big repairs arrive in lumps. Mortgage-rate changes are sampled from the same years (observed 1973–2025; earlier years modeled from inflation changes, slope ${DM_FIT.b.toFixed(2)}, residual s.d. ${DM_FIT.s.toFixed(2)} pts).`;
   const band=(arr,name,col)=>{const cut=f=>x.map(y=>q(arr.map(a=>a[y]),f));const p5=cut(.05),p25=cut(.25),p50=cut(.5),p75=cut(.75),p95=cut(.95);
     return [{x,y:p95,mode:'lines',line:{width:0},showlegend:false,hoverinfo:'skip',legendgroup:name},
@@ -458,12 +467,35 @@ function renderScen(){
     return `<div class="row"><span class="swatch" style="background:${cols[(i+1)%cols.length]}"></span><span class="nm">${escapeHtml(s.name)}</span><span class="meta">${m?m.name+' · ':''}${fmtFull(p.P)} · ${fmtFull(p.rent0)}/mo · ${pct(p.dp,0)} down · ${pct(p.rate,2)} · ${p.N} yr</span><button data-load="${i}">Load</button><button data-del="${i}">Delete</button></div>`}).join(''):'<p class="sub">No saved scenarios yet. Set up inputs, give them a name, and save.</p>';
   document.querySelectorAll('[data-load]').forEach(b=>b.onclick=()=>{setRaw(list[+b.dataset.load].raw);update()});
   document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{list.splice(+b.dataset.del,1);saveSc(list);renderScen()});
+  renderCompare(list);
   const all=[{name:'Current inputs',raw:getRaw()}].concat(list);
   const results=all.map(s=>Object.assign({name:s.name},scenarioResult(s.raw)));
   plot('p-scen',results.map((r,i)=>({x:r.o.buy.map((_,k)=>k),y:r.o.buy.map((b,k)=>adj(b-r.o.inv[k],r.o.cpi[k])),name:r.name,mode:'lines',line:{color:cols[i%cols.length],width:i===0?3:2,dash:i===0?'solid':undefined},hovertemplate:'%{y:$,.0f}'})),
     {xaxis:X('Years'),yaxis:Yd('Buy − rent&invest, '+basisLabel()),shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:t.muted,width:1}}]});
   document.getElementById('scT').innerHTML='<thead><tr><th>Scenario</th><th>Horizon</th><th>Buy</th><th>Rent + invest</th><th>Gap</th><th>Break-even yr</th><th>P/R</th></tr></thead><tbody>'+
     results.map(r=>{const N=r.p.N,c=r.o.cpi[N],b=adj(r.o.buy[N],c),iv=adj(r.o.inv[N],c),be=breakevenYear(r.o);return `<tr><td>${escapeHtml(r.name)}</td><td>${N}</td><td>${fmt(b)}</td><td>${fmt(iv)}</td><td style="color:var(${b>=iv?'--buy':'--inv'})">${b>=iv?'+':''}${fmt(b-iv)}</td><td>${be||'>30'}</td><td>${(r.p.P/(r.p.rent0*12)).toFixed(1)}</td></tr>`}).join('')+'</tbody>';
+}
+function renderCompare(list){
+  const opts=[{name:'Current inputs',raw:getRaw()}].concat(list);
+  const sa=document.getElementById('cmpA'),sb=document.getElementById('cmpB');
+  const fill=(sel,def)=>{const v=sel.value;sel.innerHTML=opts.map((o,i)=>`<option value="${i}">${escapeHtml(o.name)}</option>`).join('');sel.value=sel.dataset.touched&&v&&+v<opts.length?v:String(def)};
+  fill(sa,0);fill(sb,Math.min(1,opts.length-1));
+  const pick=i=>{const o=opts[+i];const {p,o:sim}=scenarioResult(o.raw);return {name:o.name,p,sim}};
+  const A=pick(sa.value),B=pick(sb.value),t=theme();
+  const stat=r=>{const N=r.p.N,c=r.sim.cpi[N],b=adj(r.sim.buy[N],c),iv=adj(r.sim.inv[N],c);const L=r.p.P*(1-r.p.dp),M=pmt(L,r.p.rate/12,r.p.term*12);
+    const own1=M+(r.p.ptax*r.p.P+r.p.maint*r.p.P+r.p.ins+r.p.floodIns)/12+r.p.hoa+r.p.utilDiff+(r.p.dp<0.2?r.p.pmi*L/12:0);
+    const m=METROS.find(x=>x.slug===r.p.metro);
+    return {loc:m?m.name:'—',price:r.p.P,rent:r.p.rent0,ptr:r.p.P/(r.p.rent0*12),N,b,iv,gap:b-iv,be:breakevenYear(r.sim),own1,cash:r.p.P*(r.p.dp+r.p.close),fe:r.p.income?own1/(r.p.income/12):null}};
+  const a=stat(A),b=stat(B);
+  const rows=[['Location','loc',v=>v],['Home price','price',fmtFull],['Rent','rent',v=>fmtFull(v)+'/mo'],['Price-to-rent','ptr',v=>v.toFixed(1)],['Horizon','N',v=>v+' yr'],
+    ['Buy net worth','b',fmt,1],['Rent + invest net worth','iv',fmt,1],['Buy − rent&invest','gap',v=>`<span style="color:var(${v>=0?'--buy':'--inv'})">${v>=0?'+':''}${fmt(v)}</span>`,1],
+    ['Break-even year','be',v=>v?v+' yr':'> 30',0,-1],['Owning, month 1','own1',v=>fmtFull(v)+'/mo',0,-1],['Cash to buy','cash',fmtFull,0,-1],['Housing / income','fe',v=>v==null?'n/a':pct(v,0),0,-1]];
+  document.getElementById('cmpT').innerHTML=`<thead><tr><th></th><th>${escapeHtml(A.name)}</th><th>${escapeHtml(B.name)}</th></tr></thead><tbody>`+
+    rows.map(([lab,k,f,hi,dir])=>{let ca='',cb='';if(hi||dir){const x=a[k]==null?null:a[k],y=b[k]==null?null:b[k];if(x!=null&&y!=null&&x!==y){const better=(dir===-1)?(x<y?'a':'b'):(x>y?'a':'b');if(better==='a')ca=' class="better"';else cb=' class="better"'}}
+      return `<tr><td>${lab}</td><td${ca}>${f(a[k])}</td><td${cb}>${f(b[k])}</td></tr>`}).join('')+'</tbody>';
+  const line=(r,col,dash,lab)=>{const o=r.sim;return [{x:o.buy.map((_,k)=>k),y:o.buy.map((v,k)=>adj(v,o.cpi[k])),name:`${lab}: buy`,mode:'lines',line:{color:t.buy,width:2.4,dash},hovertemplate:'%{y:$,.0f}'},
+    {x:o.inv.map((_,k)=>k),y:o.inv.map((v,k)=>adj(v,o.cpi[k])),name:`${lab}: rent + invest`,mode:'lines',line:{color:t.inv,width:2.4,dash},hovertemplate:'%{y:$,.0f}'}]};
+  plot('p-cmp',[...line(A,null,'solid','A'),...line(B,null,'dot','B')],{xaxis:X('Years'),yaxis:Yd('Net worth, '+basisLabel())});
 }
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
@@ -579,8 +611,33 @@ function updateMetroHints(m){
   hint('ins',`${m.src.ins?m.src.ins.t:''} ${srcObj(m.src.ins)}`);
 }
 
+/* ===================== Guided start ===================== */
+let WZ=0;
+function openWizard(){const w=document.getElementById('wizard');WZ=0;
+  const sel=document.getElementById('wz-metro');sel.innerHTML=document.getElementById('metro').innerHTML;sel.value=document.getElementById('metro').value;
+  const g=id=>document.getElementById(id).value;
+  document.getElementById('wz-P').value=g('P');document.getElementById('wz-rent').value=g('rent0');document.getElementById('wz-dp').value=g('dp');document.getElementById('wz-inc').value=g('income');
+  document.getElementById('wz-N').value=g('N');document.getElementById('wz-Nl').textContent=g('N')+' years';
+  w.hidden=false;wzShow();setTimeout(()=>sel.focus(),50)}
+function wzShow(){document.querySelectorAll('.wz-step').forEach((el,i)=>el.hidden=i!==WZ);document.getElementById('wz-back').hidden=WZ===0;
+  document.getElementById('wz-next').textContent=WZ===2?'Show my result':'Next';document.getElementById('wz-dots').innerHTML=[0,1,2].map(i=>`<span class="${i===WZ?'on':''}"></span>`).join('')}
+function closeWizard(apply){const w=document.getElementById('wizard');w.hidden=true;try{localStorage.setItem('rbi-wz','1')}catch(e){}
+  if(!apply)return;const v=id=>document.getElementById(id).value;
+  const set=(id,x)=>{if(x!==''&&isFinite(parseFloat(x)))document.getElementById(id).value=x};
+  set('P',v('wz-P'));set('rent0',v('wz-rent'));set('dp',v('wz-dp'));set('income',v('wz-inc'));document.getElementById('N').value=v('wz-N');update()}
+function wireWizard(){
+  document.getElementById('wz-metro').addEventListener('change',e=>{const m=METROS.find(x=>x.slug===e.target.value);document.getElementById('metro').value=e.target.value;applyMetro(e.target.value);
+    if(m){document.getElementById('wz-P').value=m.P;document.getElementById('wz-rent').value=m.rent}});
+  document.getElementById('wz-N').addEventListener('input',e=>document.getElementById('wz-Nl').textContent=e.target.value+' year'+(e.target.value==='1'?'':'s'));
+  document.getElementById('wz-next').addEventListener('click',()=>{if(WZ<2){WZ++;wzShow()}else closeWizard(true)});
+  document.getElementById('wz-back').addEventListener('click',()=>{if(WZ>0){WZ--;wzShow()}});
+  document.getElementById('wz-skip').addEventListener('click',()=>closeWizard(false));
+  document.getElementById('openWizard').addEventListener('click',openWizard);
+  addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.getElementById('wizard').hidden)closeWizard(false)});
+}
+
 /* ===================== Wiring ===================== */
-const RENDER={proj:renderProj,sens:renderSens,opt:renderOpt,hist:renderHist,mc:()=>{renderMC();summary();typeset(document.getElementById('tab-mc'))},scen:renderScen,data:renderData,method:()=>typeset(document.getElementById('tab-method'))};
+const RENDER={proj:renderProj,sens:renderSens,opt:renderOpt,hist:renderHist,mc:()=>{renderMC();typeset(document.getElementById('tab-mc'))},scen:renderScen,data:renderData,method:()=>typeset(document.getElementById('tab-method'))};
 function showTab(k){CUR=k;document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===k));
   Object.keys(RENDER).forEach(t=>document.getElementById('tab-'+t).hidden=t!==k);try{localStorage.setItem('rbi-tab',k)}catch(e){}
   requestAnimationFrame(()=>RENDER[k]())}
@@ -594,8 +651,7 @@ let LAST_KEY='';
 function update(){clearTimeout(timer);timer=setTimeout(()=>{const key=JSON.stringify(getRaw())+REAL;if(key===LAST_KEY&&P)return;LAST_KEY=key;validate();syncQuick();persist();P=readP();
   {const muEl=document.getElementById('mu');const auto=P.muMode==='auto';muEl.disabled=auto;if(auto)muEl.value=Math.round(P.mu*100);}document.getElementById('Nlab').textContent=P.N+' year'+(P.N>1?'s':'');
   BASE=simulate(P,constPath(P,P.N));MC=null;
-  if(CUR!=='mc'){try{runMC(500);MC.quick=true}catch(e){console.error(e)}}
-  summary();RENDER[CUR]()},150)}
+  summary();RENDER[CUR]();if(CUR!=='mc')startMC(false)},150)}
 function encodeState(){return btoa(unescape(encodeURIComponent(JSON.stringify(Object.assign(getRaw(),{REAL})))))}
 function decodeState(s){try{return JSON.parse(decodeURIComponent(escape(atob(s))))}catch(e){return null}}
 function copyText(txt,msgEl,okMsg){const done=()=>{msgEl.textContent=okMsg;setTimeout(()=>msgEl.textContent='',2500)};
@@ -603,7 +659,7 @@ function copyText(txt,msgEl,okMsg){const done=()=>{msgEl.textContent=okMsg;setTi
 const STANDALONE_SITE=(()=>{try{return window.top===window.self&&/^https?:$/.test(location.protocol)}catch(e){return false}})();
 function setBasis(){document.getElementById('realBtn').setAttribute('aria-pressed',REAL);document.getElementById('nomBtn').setAttribute('aria-pressed',!REAL);update()}
 function init(){
-  buildInputs();buildMetroSelect();buildSnap();buildMethod();restore();
+  buildInputs();buildMetroSelect();buildSnap();buildMethod();const hadSaved=(()=>{try{return !!localStorage.getItem('rbi-inputs')}catch(e){return false}})();restore();wireWizard();
   if(STANDALONE_SITE){const sp=new URLSearchParams(location.search).get('s');const st=sp&&decodeState(sp);if(st){setRaw(st);if(st.REAL===false)REAL=false;const m=METROS.find(x=>x.slug===st.metro);if(m)updateMetroHints(m);history.replaceState(null,'',location.pathname)}}
   const shareBtn=document.getElementById('shareLink');shareBtn.hidden=!STANDALONE_SITE;
   shareBtn.addEventListener('click',()=>copyText(location.origin+location.pathname+'?s='+encodeURIComponent(encodeState()),document.getElementById('actMsg'),'Link copied. Anyone opening it sees these inputs.'));
@@ -630,8 +686,8 @@ function init(){
   document.getElementById('opt15').addEventListener('click',()=>{OPT_TERM=15;document.getElementById('opt15').setAttribute('aria-pressed',true);document.getElementById('opt30').setAttribute('aria-pressed',false);renderOpt()});
   document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
   ['h-rate','h-year','h-mode','h-home'].forEach(id=>document.getElementById(id).addEventListener('change',()=>renderHist()));
-  document.getElementById('mc-run').addEventListener('click',e=>{const bt=e.currentTarget;bt.disabled=true;bt.textContent='Running…';setTimeout(()=>{try{runMC();renderMC();summary()}finally{bt.disabled=false;bt.textContent='Run'}},30)});
-  ['mc-n','mc-b','mc-w','mc-rc'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{MC=null}));
+  document.getElementById('mc-run').addEventListener('click',()=>{document.getElementById('mc-note').textContent='Running simulations…';startMC(true)});
+  ['mc-n','mc-b','mc-w','mc-rc'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{if(CUR==='mc'){document.getElementById('mc-note').textContent='Running simulations…';startMC(true)}}));
   document.getElementById('scSave').addEventListener('click',()=>{const nm=document.getElementById('scName').value.trim()||`Scenario ${loadSc().length+1}`;const a=loadSc();a.push({name:nm,raw:getRaw()});
     document.getElementById('scMsg').textContent=saveSc(a)?`Saved "${nm}".`:'Could not save: this browser is blocking storage.';document.getElementById('scName').value='';renderScen()});
   document.getElementById('copyCsv').addEventListener('click',()=>{const ta=document.getElementById('csvText'),msg=document.getElementById('copyMsg');
@@ -643,7 +699,10 @@ function init(){
   let tab='proj';try{tab=localStorage.getItem('rbi-tab')||'proj'}catch(e){}
   if(location.hash&&RENDER[location.hash.slice(1)])tab=location.hash.slice(1);
   if(!RENDER[tab])tab='proj';
+  ['cmpA','cmpB'].forEach(id=>document.getElementById(id).addEventListener('change',e=>{e.target.dataset.touched=1;renderCompare(loadSc())}));
   P=readP();BASE=simulate(P,constPath(P,P.N));CUR=tab;update();showTab(tab);
+  let seen=false;try{seen=!!localStorage.getItem('rbi-wz')}catch(e){}
+  if(!seen&&!hadSaved&&!new URLSearchParams(location.search).get('s'))setTimeout(openWizard,400);
 }
 function loadScript(u){return new Promise((res,rej)=>{const sc=document.createElement('script');sc.src=u;sc.onload=res;sc.onerror=rej;document.head.appendChild(sc)})}
 (async()=>{
