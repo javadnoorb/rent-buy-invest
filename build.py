@@ -150,7 +150,7 @@ data_js = ("const SNAP=JSON.parse(document.getElementById('snapshot-data').textC
 css = open(D('src', 'style.css')).read()
 body = open(D('src', 'body.html')).read()
 model = open(D('src', 'model.js')).read()
-app = open(D('src', 'app.js')).read()
+app = ''.join(open(f).read() for f in sorted(glob.glob(D('src', 'app', '*.js'))))  # src/app/NN-*.js, concatenated in order
 head = '''<title>Rent, Buy or Invest</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">

@@ -38,7 +38,7 @@ It then opens full-screen from its own icon, and works offline after the first v
 | Path | Contents |
 |---|---|
 | `index.html` | Built app (generated; do not edit by hand) |
-| `src/` | `body.html`, `style.css`, `model.js` (simulation), `app.js` (UI and charts) |
+| `src/` | `body.html`, `style.css`, `model.js` (simulation), `app/NN-*.js` (UI and charts, concatenated in order) |
 | `data/snapshot.json` | Current market figures shown in the header cards and used as defaults |
 | `data/metro_*.json` | Per-metro price, rent, tax, insurance and home-price index, with source URLs |
 | `data/research.json` | Sourced parameters (single-house volatility, tenure, dividend yield, costs, annual mortgage averages) |
@@ -58,9 +58,13 @@ It then opens full-screen from its own icon, and works offline after the first v
 
 The build uses only the Python standard library. In the browser, the page loads Plotly (charts), MathJax (formulas) and Google Fonts from public CDNs.
 
+## Refreshing data
+
+The **Refresh data** workflow (Actions tab → Refresh data → Run workflow) downloads FHFA home-price indexes, BLS CPI, rent and insurance price indexes, Census ACS tables and Freddie Mac mortgage rates; merges them into `data/` with `scripts/apply_public.py`; rebuilds `index.html`; runs the tests; and commits only if the tests pass. It never runs on a schedule. Zillow, NAR, property-tax and insurance survey figures, forecasts and tax law are updated by hand.
+
 ## Tests
 
-`node tests/run.js` checks the model math (mortgage amortization against the closed form, tax brackets, SALT cap, home-sale exclusion, PMI, refinancing, annual vs. monthly paths, directional sanity checks, and each realism feature). Run it after any change to `src/model.js`.
+`node tests/run.js` checks the model math (74 checks) (mortgage amortization against the closed form, tax brackets, SALT cap, home-sale exclusion, PMI, refinancing, annual vs. monthly paths, directional sanity checks, and each realism feature). Run it after any change to `src/model.js`. `node tests/smoke.js` opens every tab in a browser and fails on errors or charts that don't draw. Both run automatically on every push (Tests workflow).
 
 ## Data sources
 

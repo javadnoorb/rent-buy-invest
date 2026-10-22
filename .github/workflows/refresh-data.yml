@@ -1,0 +1,41 @@
+name: Refresh data
+# Manual only (Actions tab → Refresh data → Run workflow). No schedule.
+# Downloads public data (FHFA, BLS, Census, Freddie Mac), merges it into data/, rebuilds index.html,
+# runs the tests, and commits to main only if the tests pass and something changed.
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: Fetch
+        run: |
+          python scripts/fetch_fhfa.py /tmp/fhfa_extract.json
+          python scripts/fetch_public.py /tmp/public_extract.json
+      - name: Merge and rebuild
+        run: |
+          python scripts/apply_public.py /tmp/public_extract.json /tmp/fhfa_extract.json
+          python prep_monthly.py
+          python build.py --pwa
+      - name: Test
+        run: |
+          node tests/run.js
+          npm i --no-save playwright@1.47.2
+          npx playwright install --with-deps chromium
+          node tests/smoke.js
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data index.html
+          if git diff --cached --quiet; then echo "No data changes."; exit 0; fi
+          git diff --cached --stat
+          git commit -m "Refresh public data $(date -u +%F)"
+          git push
