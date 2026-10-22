@@ -37,8 +37,11 @@ const { chromium } = require(process.env.PLAYWRIGHT_PATH || 'playwright');
     if (tex.errs.length) failed.push('TeX errors: ' + tex.errs.slice(0, 5).join(' | '));
     if (tex.unrendered) failed.push(`${tex.unrendered} formulas left unrendered`);
     console.log(`formulas rendered: ${tex.rendered}`);
+    if (process.env.GITHUB_ACTIONS) console.log(`::notice::formulas rendered: ${tex.rendered}, TeX errors: ${tex.errs.length}`);
   }
   await browser.close();
-  if (errors.length || failed.length) { console.log('FAIL'); errors.forEach(e => console.log('  ' + e)); failed.forEach(f => console.log('  chart not drawn — ' + f)); process.exit(1); }
+  if (errors.length || failed.length) {
+    const gh = !!process.env.GITHUB_ACTIONS, say = m => console.log(gh ? '::error::' + m.replace(/\n/g, ' ') : '  ' + m);
+    console.log('FAIL'); errors.forEach(say); failed.forEach(f => say('check failed — ' + f)); process.exit(1); }
   console.log('smoke test passed: all tabs rendered');
 })().catch(e => { console.error(e); process.exit(1); });
