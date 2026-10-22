@@ -36,12 +36,19 @@ for i in range(0, len(names), 25):
 acs = CFG['acs']; vars_ = ','.join(acs['vars'])
 for yr in acs['years']:
     url = f"https://api.census.gov/data/{yr}/acs/acs1?get={vars_}&for=metropolitan%20statistical%20area/micropolitan%20statistical%20area:*"
+    body = ''
     try:
-        rows = json.loads(get(url)); hdr = rows[0]
+        body = get(url); rows = json.loads(body); hdr = rows[0]
         out['acs'] = {'year': yr, 'url': url, 'header': hdr, 'rows': rows[1:]}
         break
     except Exception as e:
-        out.setdefault('acs_errors', {})[str(yr)] = str(e)
+        out.setdefault('acs_errors', {})[str(yr)] = f'{e} | response: {body[:400]}'
+        # retry with a smaller variable set to isolate unknown variables
+        try:
+            url2 = url.replace(vars_, 'NAME,B25077_001E')
+            b2 = get(url2); out['acs_errors'][f'{yr}_probe'] = b2[:200]
+        except Exception as e2:
+            out['acs_errors'][f'{yr}_probe'] = str(e2)
 
 # ---- Freddie Mac PMMS weekly history ----
 try:
