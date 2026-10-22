@@ -40,6 +40,12 @@ module.exports=function({M,base,run,ok,near}){
    const hiRent=run(Object.assign({},q,{rent0:2200}),15),loRent=run(Object.assign({},q,{rent0:1100}),15);
    ok(hiRent.rental[15]>loRent.rental[15],'higher rent yield raises the rental-property outcome')}
 
+  /* FHFA volatility scaling keeps the mean and multiplies deviations by k */
+  {const vals={};let v=100;for(let y=1990;y<=2025;y++){v*=1+(y%3===0?0.08:0.01);vals[y]=v}
+   const raw=M.metroAnnual({hpi:{values:vals,volK:1.5}},true).filter(x=>x!=null),adj=M.metroAnnual({hpi:{values:vals,volK:1.5}}).filter(x=>x!=null);
+   const mean=a=>a.reduce((s,x)=>s+x,0)/a.length,sd=a=>{const m=mean(a);return Math.sqrt(a.reduce((s,x)=>s+(x-m)**2,0)/a.length)};
+   near(mean(adj),mean(raw),1e-9,'volatility scaling keeps the average yearly change');near(sd(adj),1.5*sd(raw),1e-9,'volatility scaling multiplies the spread by k')}
+
   /* Default inputs leave old results unchanged */
   {const a=run(p0,15),b=run(Object.assign({},p0,{renewGap:0,incGrowth:0,moveMode:'none',hhRent:0,rentalOn:false}),15);
    near(a.buy[15],b.buy[15],1e-12,'features off: identical results')}

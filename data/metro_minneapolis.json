@@ -1,53 +1,85 @@
 {
-  "name": "Minneapolis",
-  "hpi": {
-    "series_id": "MNXRNSA",
-    "source_title": "S&P Cotality Case-Shiller MN-Minneapolis Home Price Index (MNXRNSA), FRED",
-    "source_url": "https://fred.stlouisfed.org/series/MNXRNSA",
-    "data_url": "https://fred.stlouisfed.org/data/MNXRNSA.txt",
-    "basis": "December",
-    "values": {
-      "1989": 64.353181, "1990": 64.50217, "1991": 65.80734, "1992": 67.976649,
-      "1993": 71.132889, "1994": 72.846901, "1995": 76.134397, "1996": 79.664049,
-      "1997": 82.757433, "1998": 89.323157, "1999": 100.02427, "2000": 112.23472,
-      "2001": 126.54599, "2002": 138.53256, "2003": 149.43254, "2004": 160.49058,
-      "2005": 170.3298, "2006": 168.82333, "2007": 155.72394, "2008": 126.27933,
-      "2009": 123.64243, "2010": 117.38932, "2011": 112.35976, "2012": 125.95796,
-      "2013": 138.14219, "2014": 140.368460781769, "2015": 146.862183593015, "2016": 154.808336546067,
-      "2017": 163.024383632295, "2018": 172.025019885936, "2019": 178.649456385715, "2020": 196.489386016432,
-      "2021": 218.605650858393, "2022": 225.360289319689, "2023": 231.831812482501, "2024": 239.2249466998,
-      "2025": 245.7141942256
-    },
-    "latest": {"date": "2026-07", "value": 253.9521804447}
+ "name": "Minneapolis",
+ "hpi": {
+  "index": "FHFA purchase-only house price index",
+  "area": "Minneapolis-St. Paul-Bloomington, MN-WI",
+  "cbsa": "33460",
+  "basis": "Q4, not seasonally adjusted (1991Q1 = 100)",
+  "source_title": "FHFA House Price Index datasets: purchase-only index, 100 largest metros (hpi_po_metro)",
+  "source_url": "https://www.fhfa.gov/data/hpi/datasets",
+  "data_url": "https://www.fhfa.gov/hpi/download/quarterly_datasets/hpi_po_metro.txt",
+  "values": {
+   "1991": 100.23,
+   "1992": 103.84,
+   "1993": 108.67,
+   "1994": 113.16,
+   "1995": 118.21,
+   "1996": 123.93,
+   "1997": 127.6,
+   "1998": 139.14,
+   "1999": 153.62,
+   "2000": 173.62,
+   "2001": 193.14,
+   "2002": 212.91,
+   "2003": 231.49,
+   "2004": 247.54,
+   "2005": 259.1,
+   "2006": 256.29,
+   "2007": 242.56,
+   "2008": 212.93,
+   "2009": 206.21,
+   "2010": 193.9,
+   "2011": 187.29,
+   "2012": 203.48,
+   "2013": 218.2,
+   "2014": 225.13,
+   "2015": 237.85,
+   "2016": 251.85,
+   "2017": 268.96,
+   "2018": 284.65,
+   "2019": 300.96,
+   "2020": 331.26,
+   "2021": 367.8,
+   "2022": 378.98,
+   "2023": 393.06,
+   "2024": 408.61,
+   "2025": 421.65
   },
-  "price": {
-    "value": 389947,
-    "date": "2026-09",
-    "what": "Zillow typical home value (ZHVI), Minneapolis, MN metro",
-    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
-    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+  "latest": {
+   "period": "2026Q2",
+   "value": 436.65
   },
-  "rent": {
-    "value": 1736,
-    "date": "2026-09",
-    "what": "Zillow typical rent (ZORI), Minneapolis, MN metro, monthly",
-    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
-    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
-  },
-  "ptax": {
-    "rate_pct": 1.17,
-    "geography": "Hennepin County, MN",
-    "year": null,
-    "source_title": "SmartAsset Minnesota Property Tax Calculator",
-    "source_url": "https://smartasset.com/taxes/minnesota-property-tax-calculator"
-  },
-  "ins": {
-    "annual_usd": 2676,
-    "geography": "Minnesota",
-    "coverage": "$300,000 dwelling coverage",
-    "year": 2026,
-    "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
-    "source_url": "https://insurify.com/homeowners-insurance/states/"
-  },
-  "notes": "Case-Shiller Minneapolis series starts 1989-01; 1989-2025 continuous, values from FRED .txt. SmartAsset gives no data year for Hennepin 1.17% (Minnesota statewide 1.02%); ATTOM 2025 report did not list Minneapolis. Insurify city figure for Minneapolis: $2,940/yr at $300K dwelling (https://insurify.com/homeowners-insurance/knowledge/average-cost-of-homeowners-insurance/). Cross-checks seen: FRED/Realtor.com median listing price Minneapolis CBSA $407,500 (2026-09, https://fred.stlouisfed.org/data/MEDLISPRI33460.txt); Apartment List Minneapolis metro median rent $1,537 (Oct 2026, https://www.apartmentlist.com/rent-report/mn/minneapolis)."
+  "volK": 1.175,
+  "volK_note": "ratio of yearly-change standard deviations, S&P Cotality Case-Shiller vs FHFA purchase-only, 1992\u20132025 (correlation 0.97); only this summary ratio is stored"
+ },
+ "price": {
+  "value": 389947,
+  "date": "2026-09",
+  "what": "Zillow typical home value (ZHVI), Minneapolis, MN metro",
+  "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+  "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+ },
+ "rent": {
+  "value": 1736,
+  "date": "2026-09",
+  "what": "Zillow typical rent (ZORI), Minneapolis, MN metro, monthly",
+  "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+  "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+ },
+ "ptax": {
+  "rate_pct": 1.17,
+  "geography": "Hennepin County, MN",
+  "year": null,
+  "source_title": "SmartAsset Minnesota Property Tax Calculator",
+  "source_url": "https://smartasset.com/taxes/minnesota-property-tax-calculator"
+ },
+ "ins": {
+  "annual_usd": 2676,
+  "geography": "Minnesota",
+  "coverage": "$300,000 dwelling coverage",
+  "year": 2026,
+  "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
+  "source_url": "https://insurify.com/homeowners-insurance/states/"
+ },
+ "notes": "SmartAsset gives no data year for Hennepin 1.17% (Minnesota statewide 1.02%); ATTOM 2025 report did not list Minneapolis. Insurify city figure for Minneapolis: $2,940/yr at $300K dwelling (https://insurify.com/homeowners-insurance/knowledge/average-cost-of-homeowners-insurance/). Cross-checks seen: FRED/Realtor.com median listing price Minneapolis CBSA $407,500 (2026-09, https://fred.stlouisfed.org/data/MEDLISPRI33460.txt); Apartment List Minneapolis metro median rent $1,537 (Oct 2026, https://www.apartmentlist.com/rent-report/mn/minneapolis). Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22)."
 }

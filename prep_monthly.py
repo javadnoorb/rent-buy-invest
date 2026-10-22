@@ -9,7 +9,7 @@ def series(k):
     v = s.get('values') or {}
     return {d[:7]: x for d, x in v.items() if x is not None}
 
-cs, cpi, rent, mort, tb, g10 = (series(k) for k in ('cs', 'cpi', 'rent', 'mort', 'tbill', 'gs10'))
+cs, cpi, rent, mort, tb, g10 = (series(k) for k in ('fhfa', 'cpi', 'rent', 'mort', 'tbill', 'gs10'))
 sp = series('sp')
 sp_ret = series('sp_ret') if raw.get('sp_ret') else {}
 
@@ -60,4 +60,6 @@ for d in months('1987-01', '2026-12'):
 print('months', len(out['dates']), out['dates'][:1], out['dates'][-1:], 'first gap', list(missing.items())[:3])
 if len(out['dates']) < 120:
     print('too short; not writing'); sys.exit(1)
+out['ghK'] = (raw.get('fhfa') or {}).get('volK') or 1
+out['ghSource'] = 'FHFA purchase-only (U.S., monthly NSA)'
 json.dump(out, open(os.path.join(ROOT, 'data', 'monthly_processed.json'), 'w'))

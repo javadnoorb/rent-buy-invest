@@ -1,53 +1,85 @@
 {
-  "name": "Charlotte",
-  "hpi": {
-    "series_id": "CRXRNSA",
-    "source_title": "S&P Cotality Case-Shiller NC-Charlotte Home Price Index (CRXRNSA), FRED",
-    "source_url": "https://fred.stlouisfed.org/series/CRXRNSA",
-    "data_url": "https://fred.stlouisfed.org/data/CRXRNSA.txt",
-    "basis": "December",
-    "values": {
-      "1987": 67.1876, "1988": 69.6956, "1989": 72.4797, "1990": 73.4621,
-      "1991": 73.7972, "1992": 74.4163, "1993": 76.7419, "1994": 80.0315,
-      "1995": 84.9746, "1996": 88.8679, "1997": 92.1455, "1998": 95.4815,
-      "1999": 99.6066, "2000": 102.4072, "2001": 104.0452, "2002": 107.1757,
-      "2003": 110.6527, "2004": 114.155, "2005": 120.8221, "2006": 128.8847,
-      "2007": 131.8992, "2008": 122.3736, "2009": 117.7904, "2010": 112.4122,
-      "2011": 109.064, "2012": 115.0537, "2013": 124.0668, "2014": 128.405,
-      "2015": 135.3702, "2016": 142.8274, "2017": 151.2974, "2018": 159.129,
-      "2019": 167.4017, "2020": 184.3465, "2021": 228.2915, "2022": 250.8525,
-      "2023": 270.6762, "2024": 280.0393, "2025": 281.7907
-    },
-    "latest": {"date": "2026-07", "value": 288.4821}
+ "name": "Charlotte",
+ "hpi": {
+  "index": "FHFA purchase-only house price index",
+  "area": "Charlotte-Concord-Gastonia, NC-SC",
+  "cbsa": "16740",
+  "basis": "Q4, not seasonally adjusted (1991Q1 = 100)",
+  "source_title": "FHFA House Price Index datasets: purchase-only index, 100 largest metros (hpi_po_metro)",
+  "source_url": "https://www.fhfa.gov/data/hpi/datasets",
+  "data_url": "https://www.fhfa.gov/hpi/download/quarterly_datasets/hpi_po_metro.txt",
+  "values": {
+   "1991": 102.0,
+   "1992": 103.8,
+   "1993": 106.38,
+   "1994": 111.54,
+   "1995": 116.85,
+   "1996": 123.26,
+   "1997": 128.87,
+   "1998": 134.27,
+   "1999": 140.17,
+   "2000": 144.79,
+   "2001": 147.68,
+   "2002": 150.77,
+   "2003": 153.76,
+   "2004": 159.64,
+   "2005": 169.66,
+   "2006": 186.07,
+   "2007": 193.19,
+   "2008": 182.36,
+   "2009": 177.37,
+   "2010": 166.45,
+   "2011": 162.66,
+   "2012": 163.95,
+   "2013": 181.48,
+   "2014": 189.41,
+   "2015": 202.52,
+   "2016": 219.55,
+   "2017": 238.63,
+   "2018": 256.35,
+   "2019": 271.92,
+   "2020": 309.82,
+   "2021": 375.69,
+   "2022": 420.48,
+   "2023": 452.76,
+   "2024": 469.79,
+   "2025": 474.04
   },
-  "price": {
-    "value": 381219,
-    "date": "2026-09",
-    "what": "Zillow typical home value (ZHVI), Charlotte, NC metro",
-    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
-    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+  "latest": {
+   "period": "2026Q2",
+   "value": 481.93
   },
-  "rent": {
-    "value": 1735,
-    "date": "2026-09",
-    "what": "Zillow typical rent (ZORI), Charlotte, NC metro, monthly",
-    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
-    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
-  },
-  "ptax": {
-    "rate_pct": 0.80,
-    "geography": "Mecklenburg County, NC",
-    "year": null,
-    "source_title": "SmartAsset North Carolina Property Tax Calculator",
-    "source_url": "https://smartasset.com/taxes/north-carolina-property-tax-calculator"
-  },
-  "ins": {
-    "annual_usd": 3192,
-    "geography": "North Carolina",
-    "coverage": "$300,000 dwelling coverage",
-    "year": 2026,
-    "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
-    "source_url": "https://insurify.com/homeowners-insurance/states/"
-  },
-  "notes": "Case-Shiller values as returned by the fetch tool were rounded to 4 decimals. SmartAsset gives no year for the 0.80% rate (NC state 0.73%). NC statewide insurance average is pulled up by coastal counties; Charlotte is likely lower. Alternative: NerdWallet (May 6, 2026) NC $3,025/yr at $400,000 dwelling."
+  "volK": 0.968,
+  "volK_note": "ratio of yearly-change standard deviations, S&P Cotality Case-Shiller vs FHFA purchase-only, 1992\u20132025 (correlation 0.95); only this summary ratio is stored"
+ },
+ "price": {
+  "value": 381219,
+  "date": "2026-09",
+  "what": "Zillow typical home value (ZHVI), Charlotte, NC metro",
+  "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+  "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+ },
+ "rent": {
+  "value": 1735,
+  "date": "2026-09",
+  "what": "Zillow typical rent (ZORI), Charlotte, NC metro, monthly",
+  "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+  "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+ },
+ "ptax": {
+  "rate_pct": 0.8,
+  "geography": "Mecklenburg County, NC",
+  "year": null,
+  "source_title": "SmartAsset North Carolina Property Tax Calculator",
+  "source_url": "https://smartasset.com/taxes/north-carolina-property-tax-calculator"
+ },
+ "ins": {
+  "annual_usd": 3192,
+  "geography": "North Carolina",
+  "coverage": "$300,000 dwelling coverage",
+  "year": 2026,
+  "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
+  "source_url": "https://insurify.com/homeowners-insurance/states/"
+ },
+ "notes": "SmartAsset gives no year for the 0.80% rate (NC state 0.73%). NC statewide insurance average is pulled up by coastal counties; Charlotte is likely lower. Alternative: NerdWallet (May 6, 2026) NC $3,025/yr at $400,000 dwelling. Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22)."
 }

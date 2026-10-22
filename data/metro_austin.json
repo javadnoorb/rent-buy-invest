@@ -1,53 +1,85 @@
 {
-  "name": "Austin",
-  "hpi": {
-    "series_id": "ATNHPIUS12420Q",
-    "source_title": "FHFA All-Transactions House Price Index for Austin-Round Rock-Georgetown, TX (MSA) (ATNHPIUS12420Q), FRED, Index 1995:Q1=100, NSA",
-    "source_url": "https://fred.stlouisfed.org/series/ATNHPIUS12420Q",
-    "data_url": "https://fred.stlouisfed.org/data/ATNHPIUS12420Q.txt",
-    "basis": "Q4",
-    "values": {
-      "1977": 43.40, "1978": 49.27, "1979": 59.06, "1980": 61.60, "1981": 57.02,
-      "1982": 72.54, "1983": 81.35, "1984": 91.46, "1985": 96.57, "1986": 95.75,
-      "1987": 81.50, "1988": 73.81, "1989": 72.94, "1990": 73.00, "1991": 78.33,
-      "1992": 85.75, "1993": 94.98, "1994": 100.35, "1995": 105.08, "1996": 107.24,
-      "1997": 109.08, "1998": 114.72, "1999": 126.39, "2000": 142.09, "2001": 150.38,
-      "2002": 153.35, "2003": 152.99, "2004": 156.29, "2005": 165.63, "2006": 180.32,
-      "2007": 193.34, "2008": 197.52, "2009": 193.89, "2010": 193.05, "2011": 193.49,
-      "2012": 200.51, "2013": 220.06, "2014": 243.91, "2015": 265.97, "2016": 287.99,
-      "2017": 305.92, "2018": 322.49, "2019": 345.70, "2020": 377.11, "2021": 500.70,
-      "2022": 534.76, "2023": 500.94, "2024": 499.07, "2025": 502.62
-    },
-    "latest": {"date": "2026-Q2", "value": 506.31}
+ "name": "Austin",
+ "hpi": {
+  "index": "FHFA purchase-only house price index",
+  "area": "Austin-Round Rock-San Marcos, TX",
+  "cbsa": "12420",
+  "basis": "Q4, not seasonally adjusted (1991Q1 = 100)",
+  "source_title": "FHFA House Price Index datasets: purchase-only index, 100 largest metros (hpi_po_metro)",
+  "source_url": "https://www.fhfa.gov/data/hpi/datasets",
+  "data_url": "https://www.fhfa.gov/hpi/download/quarterly_datasets/hpi_po_metro.txt",
+  "values": {
+   "1991": 103.5,
+   "1992": 115.82,
+   "1993": 129.98,
+   "1994": 135.73,
+   "1995": 138.88,
+   "1996": 142.64,
+   "1997": 143.68,
+   "1998": 153.03,
+   "1999": 168.86,
+   "2000": 196.27,
+   "2001": 197.18,
+   "2002": 199.36,
+   "2003": 199.87,
+   "2004": 204.37,
+   "2005": 221.16,
+   "2006": 240.7,
+   "2007": 257.19,
+   "2008": 260.52,
+   "2009": 261.06,
+   "2010": 253.43,
+   "2011": 257.54,
+   "2012": 276.03,
+   "2013": 302.44,
+   "2014": 334.66,
+   "2015": 365.42,
+   "2016": 397.78,
+   "2017": 421.28,
+   "2018": 442.92,
+   "2019": 485.54,
+   "2020": 550.06,
+   "2021": 712.66,
+   "2022": 715.27,
+   "2023": 689.14,
+   "2024": 683.3,
+   "2025": 663.96
   },
-  "price": {
-    "value": 416134,
-    "date": "2026-09",
-    "what": "Zillow typical home value (ZHVI), Austin, TX metro",
-    "source_title": "Zillow Group: Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (Oct. 6, 2026)",
-    "source_url": "https://investors.zillowgroup.com/news-and-events/news/news-details/2026/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5/default.aspx"
+  "latest": {
+   "period": "2026Q2",
+   "value": 693.01
   },
-  "rent": {
-    "value": 1603,
-    "date": "2026-09",
-    "what": "Zillow typical rent (ZORI), Austin, TX metro, monthly",
-    "source_title": "Zillow Group: Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (Oct. 6, 2026)",
-    "source_url": "https://investors.zillowgroup.com/news-and-events/news/news-details/2026/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5/default.aspx"
-  },
-  "ptax": {
-    "rate_pct": 1.34,
-    "geography": "Travis County, TX",
-    "year": null,
-    "source_title": "SmartAsset Texas Property Tax Calculator",
-    "source_url": "https://smartasset.com/taxes/texas-property-tax-calculator"
-  },
-  "ins": {
-    "annual_usd": 4668,
-    "geography": "Texas",
-    "coverage": "$300,000 dwelling coverage",
-    "year": 2026,
-    "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
-    "source_url": "https://insurify.com/homeowners-insurance/states/"
-  },
-  "notes": "HPI is FHFA quarterly all-transactions index (not Case-Shiller), Q4 (YYYY-10-01) values, 1977 (series starts 1977-04-01) through 2025 continuous; latest Q2 2026 = 506.31 (FRED last updated 2026-08-25). CAUTION: a first WebFetch of the .txt returned an older cached vintage ending 2025-07-01 with slightly different values (e.g. 2024Q4 506.90 vs 499.07); the values recorded here are from the current vintage (fetched via data_url + '?v=2', header Last Updated 2026-08-25), which matches the series page's latest observations. FHFA revises history each release. SmartAsset Travis County 1.34% = median tax $7,319 / median value $545,700; no data year. Insurance is Texas statewide; ValuePenguin TX $3,694 at $350K dwelling. Cross-check: Zillow August 2026 Austin metro ZHVI $419,900, ZORI $1,622."
+  "volK": 1.092,
+  "volK_note": "no Case-Shiller index; median of the 18 metros that have one"
+ },
+ "price": {
+  "value": 416134,
+  "date": "2026-09",
+  "what": "Zillow typical home value (ZHVI), Austin, TX metro",
+  "source_title": "Zillow Group: Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (Oct. 6, 2026)",
+  "source_url": "https://investors.zillowgroup.com/news-and-events/news/news-details/2026/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5/default.aspx"
+ },
+ "rent": {
+  "value": 1603,
+  "date": "2026-09",
+  "what": "Zillow typical rent (ZORI), Austin, TX metro, monthly",
+  "source_title": "Zillow Group: Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (Oct. 6, 2026)",
+  "source_url": "https://investors.zillowgroup.com/news-and-events/news/news-details/2026/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5/default.aspx"
+ },
+ "ptax": {
+  "rate_pct": 1.34,
+  "geography": "Travis County, TX",
+  "year": null,
+  "source_title": "SmartAsset Texas Property Tax Calculator",
+  "source_url": "https://smartasset.com/taxes/texas-property-tax-calculator"
+ },
+ "ins": {
+  "annual_usd": 4668,
+  "geography": "Texas",
+  "coverage": "$300,000 dwelling coverage",
+  "year": 2026,
+  "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
+  "source_url": "https://insurify.com/homeowners-insurance/states/"
+ },
+ "notes": "latest Q2 2026 = 506.31 (FRED last updated 2026-08-25). CAUTION: a first WebFetch of the .txt returned an older cached vintage ending 2025-07-01 with slightly different values (e.g. 2024Q4 506.90 vs 499.07); the values recorded here are from the current vintage (fetched via data_url + '?v=2', header Last Updated 2026-08-25), which matches the series page's latest observations. FHFA revises history each release. SmartAsset Travis County 1.34% = median tax $7,319 / median value $545,700; no data year. Insurance is Texas statewide; ValuePenguin TX $3,694 at $350K dwelling. Cross-check: Zillow August 2026 Austin metro ZHVI $419,900, ZORI $1,622. Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22)."
 }

@@ -1,53 +1,85 @@
 {
-  "name": "Portland",
-  "hpi": {
-    "series_id": "POXRNSA",
-    "source_title": "S&P Cotality Case-Shiller OR-Portland Home Price Index (POXRNSA), FRED",
-    "source_url": "https://fred.stlouisfed.org/series/POXRNSA",
-    "data_url": "https://fred.stlouisfed.org/data/POXRNSA.txt",
-    "basis": "December",
-    "values": {
-      "1987": 41.875274, "1988": 44.235709, "1989": 48.674656, "1990": 56.723104,
-      "1991": 61.079549, "1992": 64.779197, "1993": 70.516247, "1994": 76.192103,
-      "1995": 82.542383, "1996": 90.592473, "1997": 93.766924, "1998": 97.875291,
-      "1999": 100.29003, "2000": 103.83929, "2001": 108.1198, "2002": 113.50994,
-      "2003": 122.09592, "2004": 134.96366, "2005": 164.00055, "2006": 180.27343,
-      "2007": 182.47392, "2008": 158.50339, "2009": 149.95263, "2010": 138.22525,
-      "2011": 132.76463, "2012": 141.29485, "2013": 159.84176, "2014": 170.6871163793,
-      "2015": 190.1101237097, "2016": 209.0965572914, "2017": 223.1769409959, "2018": 231.9267794903,
-      "2019": 240.588115065, "2020": 264.5377447745, "2021": 311.7703897375, "2022": 315.1799750442,
-      "2023": 319.2211395325, "2024": 328.5331948402, "2025": 324.8912574029
-    },
-    "latest": {"date": "2026-07", "value": 333.822095089}
+ "name": "Portland",
+ "hpi": {
+  "index": "FHFA purchase-only house price index",
+  "area": "Portland-Vancouver-Hillsboro, OR-WA",
+  "cbsa": "38900",
+  "basis": "Q4, not seasonally adjusted (1991Q1 = 100)",
+  "source_title": "FHFA House Price Index datasets: purchase-only index, 100 largest metros (hpi_po_metro)",
+  "source_url": "https://www.fhfa.gov/data/hpi/datasets",
+  "data_url": "https://www.fhfa.gov/hpi/download/quarterly_datasets/hpi_po_metro.txt",
+  "values": {
+   "1991": 105.93,
+   "1992": 115.67,
+   "1993": 125.59,
+   "1994": 137.86,
+   "1995": 147.28,
+   "1996": 159.51,
+   "1997": 168.14,
+   "1998": 174.08,
+   "1999": 179.0,
+   "2000": 185.22,
+   "2001": 193.82,
+   "2002": 205.23,
+   "2003": 219.84,
+   "2004": 246.2,
+   "2005": 294.87,
+   "2006": 323.89,
+   "2007": 330.92,
+   "2008": 298.77,
+   "2009": 283.66,
+   "2010": 260.3,
+   "2011": 250.12,
+   "2012": 265.05,
+   "2013": 296.52,
+   "2014": 318.88,
+   "2015": 357.5,
+   "2016": 397.5,
+   "2017": 424.15,
+   "2018": 441.59,
+   "2019": 463.9,
+   "2020": 513.06,
+   "2021": 594.01,
+   "2022": 603.26,
+   "2023": 605.45,
+   "2024": 625.43,
+   "2025": 626.15
   },
-  "price": {
-    "value": 541200,
-    "date": "2026-09",
-    "what": "Zillow typical home value (ZHVI), Portland, OR metro",
-    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
-    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+  "latest": {
+   "period": "2026Q2",
+   "value": 647.6
   },
-  "rent": {
-    "value": 1803,
-    "date": "2026-09",
-    "what": "Zillow typical rent (ZORI), Portland, OR metro, monthly",
-    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
-    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
-  },
-  "ptax": {
-    "rate_pct": 0.98,
-    "geography": "Multnomah County, OR",
-    "year": null,
-    "source_title": "SmartAsset Oregon Property Tax Calculator",
-    "source_url": "https://smartasset.com/taxes/oregon-property-tax-calculator"
-  },
-  "ins": {
-    "annual_usd": 1320,
-    "geography": "Oregon",
-    "coverage": "$300,000 dwelling coverage",
-    "year": 2026,
-    "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
-    "source_url": "https://insurify.com/homeowners-insurance/states/"
-  },
-  "notes": "Case-Shiller December values from FRED .txt, 1987-2025 continuous. SmartAsset gives no data year for the 0.98% Multnomah rate (OR statewide 0.78%). Cross-checks: Apartment List Oct 2026 Portland metro median rent $1,655, city $1,559 (https://www.apartmentlist.com/rent-report/or/portland); Redfin Portland city median sale price $518,253 Sep 2026; Redfin Multnomah County $508,299 Aug 2026."
+  "volK": 1.076,
+  "volK_note": "ratio of yearly-change standard deviations, S&P Cotality Case-Shiller vs FHFA purchase-only, 1992\u20132025 (correlation 0.98); only this summary ratio is stored"
+ },
+ "price": {
+  "value": 541200,
+  "date": "2026-09",
+  "what": "Zillow typical home value (ZHVI), Portland, OR metro",
+  "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+  "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+ },
+ "rent": {
+  "value": 1803,
+  "date": "2026-09",
+  "what": "Zillow typical rent (ZORI), Portland, OR metro, monthly",
+  "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+  "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+ },
+ "ptax": {
+  "rate_pct": 0.98,
+  "geography": "Multnomah County, OR",
+  "year": null,
+  "source_title": "SmartAsset Oregon Property Tax Calculator",
+  "source_url": "https://smartasset.com/taxes/oregon-property-tax-calculator"
+ },
+ "ins": {
+  "annual_usd": 1320,
+  "geography": "Oregon",
+  "coverage": "$300,000 dwelling coverage",
+  "year": 2026,
+  "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
+  "source_url": "https://insurify.com/homeowners-insurance/states/"
+ },
+ "notes": "SmartAsset gives no data year for the 0.98% Multnomah rate (OR statewide 0.78%). Cross-checks: Apartment List Oct 2026 Portland metro median rent $1,655, city $1,559 (https://www.apartmentlist.com/rent-report/or/portland); Redfin Portland city median sale price $518,253 Sep 2026; Redfin Multnomah County $508,299 Aug 2026. Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22)."
 }

@@ -5,7 +5,7 @@ const SRC=Object.assign({
   fredRent:{t:"FRED: CPI-U rent of primary residence (CUUR0000SEHA)",u:"https://fred.stlouisfed.org/series/CUUR0000SEHA"},
   damo:{t:"Damodaran, Historical returns on stocks, bonds, bills and real estate, 1928–2025 (NYU Stern)",u:"https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histretSP.html"},
   shiller:{t:"Robert Shiller, U.S. home price data (pre-1987 real estate series)",u:"http://www.econ.yale.edu/~shiller/data.htm"},
-  csFred:{t:"FRED: S&P Case-Shiller U.S. National Home Price Index (CSUSHPINSA)",u:"https://fred.stlouisfed.org/series/CSUSHPINSA"},
+  fhfa:{t:"FHFA House Price Index datasets (purchase-only metro and U.S. monthly indexes)",u:"https://www.fhfa.gov/data/hpi/datasets"},
   irs26:{t:"IRS: 2026 inflation adjustments, standard deduction and brackets",u:"https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill"},
   salt:{t:"SALT cap $40,400 for 2026 and phase-out (Instead)",u:"https://www.instead.com/resources/blog/new-40-000-salt-deduction-limit-for-2025-and-2026-filers"},
   irs121:{t:"IRS Topic 701: Sale of your home (Section 121 exclusion)",u:"https://www.irs.gov/taxtopics/tc701"},
@@ -411,7 +411,7 @@ function renderHist(){
   const t=theme(),p=P,useNow=document.getElementById('h-rate').value==='now',useMetro=document.getElementById('h-home').value==='metro';
   const mode=document.getElementById('h-mode').value==='monthly'&&MONTHLY?'monthly':'annual';
   const m=curMetro(),ms=metroStart(m);
-  let note=`${mode==='monthly'?`Monthly data ${MONTHLY.dates[0]} to ${MONTHLY.dates.at(-1)}; national home prices (Case-Shiller National).`:`Annual data. Home prices: ${useMetro&&ms?`${m.name} from ${ms}, national before that.`:'national.'}`} Refinancing ${p.refiOn?`on (when rates fall ${(p.refiTh*100).toFixed(2)} pts below your loan rate).`:'off.'}`;
+  let note=`${mode==='monthly'?`Monthly data ${MONTHLY.dates[0]} to ${MONTHLY.dates.at(-1)}; national home prices from FHFA's purchase-only index${VOLADJ&&MONTHLY.ghK?`, swings scaled ×${MONTHLY.ghK.toFixed(2)} to Case-Shiller size`:''}.`:`Annual data. Home prices: ${useMetro&&ms?`${m.name} from ${ms}, national before that.`:'national.'}`} Refinancing ${p.refiOn?`on (when rates fall ${(p.refiTh*100).toFixed(2)} pts below your loan rate).`:'off.'}`;
   if(mode==='monthly'&&useMetro&&m.slug!=='us')note+=' Metro prices are available only in annual mode.';
   document.getElementById('h-note').textContent=note;
   let runs=[];
@@ -683,7 +683,7 @@ function buildMethod(){
   <h3>Limits</h3>
   <ul>
     <li>Rent indexes track existing leases and move more slowly than asking rents (see the Data tab). Pre-1940s rent data are sparse; three missing December values (1934, 1935, 1946) are interpolated.</li>
-    <li>The 1928–1986 national real-estate series is Shiller's reconstruction; 1987 onward is Case-Shiller National, as compiled by Damodaran. Metro indexes come from Case-Shiller or FHFA via FRED and start in the years shown.</li>
+    <li>The 1928–1986 national real-estate series is Shiller's reconstruction; 1987 onward is Case-Shiller National, as compiled and published by Damodaran. Metro indexes and the monthly national index are FHFA's purchase-only indexes from 1991, downloaded from FHFA. FHFA covers only homes financed with conforming mortgages, so its swings are smaller than Case-Shiller's in expensive metros; with the volatility setting on, each location's yearly changes are scaled around their mean by \\(k = \\sigma_{CS}/\\sigma_{FHFA}\\), estimated over 1992–2025 (median 1.09; San Francisco and Atlanta 1.37). Only these ratios are stored, not Case-Shiller data.</li>
     <li>No moving between homes, no rent control, and no value placed on stability, control over the home, or the flexibility of renting. Bond total returns are treated as taxable income in the year earned. Margin interest is not deducted.</li>
     <li>${MONTHLY?`Monthly bond returns are approximated from 10-year yields: \\(r_t \\approx y_{t-1}/12 - D\\,(y_t - y_{t-1})\\) with duration \\(D=7.5\\).`:''}</li>
   </ul>

@@ -1,53 +1,85 @@
 {
-  "name": "Tampa",
-  "hpi": {
-    "series_id": "TPXRNSA",
-    "source_title": "S&P Cotality Case-Shiller FL-Tampa Home Price Index (TPXRNSA), FRED",
-    "source_url": "https://fred.stlouisfed.org/series/TPXRNSA",
-    "data_url": "https://fred.stlouisfed.org/data/TPXRNSA.txt",
-    "basis": "December",
-    "values": {
-      "1987": 79.154039, "1988": 80.736001, "1989": 82.053008, "1990": 81.712887,
-      "1991": 81.753179, "1992": 81.528816, "1993": 82.846631, "1994": 85.253079,
-      "1995": 87.125394, "1996": 88.764872, "1997": 90.202728, "1998": 93.958037,
-      "1999": 99.916211, "2000": 110.08987, "2001": 120.21051, "2002": 132.17929,
-      "2003": 145.60732, "2004": 174.06017, "2005": 226.75382, "2006": 230.91232,
-      "2007": 200.13277, "2008": 156.02458, "2009": 138.84571, "2010": 130.65433,
-      "2011": 125.07534, "2012": 134.02231, "2013": 155.22678, "2014": 165.0648109378,
-      "2015": 176.4026706121, "2016": 191.1882435838, "2017": 203.0992032342, "2018": 213.7238643011,
-      "2019": 224.9093714604, "2020": 249.016178162, "2021": 322.1697802524, "2022": 366.9492684167,
-      "2023": 382.1893434754, "2024": 377.7577582643, "2025": 366.886705875
-    },
-    "latest": {"date": "2026-07", "value": 374.0509584569}
+ "name": "Tampa",
+ "hpi": {
+  "index": "FHFA purchase-only house price index",
+  "area": "Tampa, FL (MSAD)",
+  "cbsa": "45294",
+  "basis": "Q4, not seasonally adjusted (1991Q1 = 100)",
+  "source_title": "FHFA House Price Index datasets: purchase-only index, 100 largest metros (hpi_po_metro)",
+  "source_url": "https://www.fhfa.gov/data/hpi/datasets",
+  "data_url": "https://www.fhfa.gov/hpi/download/quarterly_datasets/hpi_po_metro.txt",
+  "values": {
+   "1991": 99.95,
+   "1992": 101.45,
+   "1993": 102.86,
+   "1994": 105.23,
+   "1995": 107.21,
+   "1996": 109.43,
+   "1997": 113.63,
+   "1998": 118.29,
+   "1999": 127.04,
+   "2000": 137.99,
+   "2001": 148.85,
+   "2002": 163.61,
+   "2003": 181.14,
+   "2004": 218.16,
+   "2005": 278.79,
+   "2006": 292.56,
+   "2007": 261.61,
+   "2008": 197.85,
+   "2009": 180.9,
+   "2010": 172.09,
+   "2011": 171.89,
+   "2012": 187.34,
+   "2013": 204.63,
+   "2014": 213.9,
+   "2015": 229.75,
+   "2016": 251.98,
+   "2017": 270.56,
+   "2018": 290.98,
+   "2019": 314.87,
+   "2020": 365.35,
+   "2021": 455.09,
+   "2022": 519.37,
+   "2023": 552.37,
+   "2024": 545.52,
+   "2025": 544.58
   },
-  "price": {
-    "value": 357180,
-    "date": "2026-09",
-    "what": "Zillow typical home value (ZHVI), Tampa, FL metro",
-    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
-    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+  "latest": {
+   "period": "2026Q2",
+   "value": 561.97
   },
-  "rent": {
-    "value": 1991,
-    "date": "2026-09",
-    "what": "Zillow typical rent (ZORI), Tampa, FL metro, monthly",
-    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
-    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
-  },
-  "ptax": {
-    "rate_pct": 0.82,
-    "geography": "Hillsborough County, FL",
-    "year": null,
-    "source_title": "SmartAsset Florida Property Tax Calculator",
-    "source_url": "https://smartasset.com/taxes/florida-property-tax-calculator"
-  },
-  "ins": {
-    "annual_usd": 6408,
-    "geography": "Florida",
-    "coverage": "$300,000 dwelling coverage",
-    "year": 2026,
-    "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
-    "source_url": "https://insurify.com/homeowners-insurance/states/"
-  },
-  "notes": "Case-Shiller 1987-2025 continuous, values from FRED .txt. SmartAsset gives no data year for Hillsborough 0.82% (Florida statewide 0.75% on same page). Insurance is the Florida statewide average; no Tampa city figure on Insurify, and Tampa-area premiums may differ (coastal/wind risk). Cross-checks seen: FRED/Realtor.com median listing price Tampa CBSA $385,398 (2026-09, https://fred.stlouisfed.org/data/MEDLISPRI45300.txt); Apartment List Tampa metro median rent $1,476 (Oct 2026, https://www.apartmentlist.com/rent-report/fl/tampa)."
+  "volK": 1.075,
+  "volK_note": "ratio of yearly-change standard deviations, S&P Cotality Case-Shiller vs FHFA purchase-only, 1992\u20132025 (correlation 0.97); only this summary ratio is stored"
+ },
+ "price": {
+  "value": 357180,
+  "date": "2026-09",
+  "what": "Zillow typical home value (ZHVI), Tampa, FL metro",
+  "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+  "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+ },
+ "rent": {
+  "value": 1991,
+  "date": "2026-09",
+  "what": "Zillow typical rent (ZORI), Tampa, FL metro, monthly",
+  "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+  "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+ },
+ "ptax": {
+  "rate_pct": 0.82,
+  "geography": "Hillsborough County, FL",
+  "year": null,
+  "source_title": "SmartAsset Florida Property Tax Calculator",
+  "source_url": "https://smartasset.com/taxes/florida-property-tax-calculator"
+ },
+ "ins": {
+  "annual_usd": 6408,
+  "geography": "Florida",
+  "coverage": "$300,000 dwelling coverage",
+  "year": 2026,
+  "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
+  "source_url": "https://insurify.com/homeowners-insurance/states/"
+ },
+ "notes": "SmartAsset gives no data year for Hillsborough 0.82% (Florida statewide 0.75% on same page). Insurance is the Florida statewide average; no Tampa city figure on Insurify, and Tampa-area premiums may differ (coastal/wind risk). Cross-checks seen: FRED/Realtor.com median listing price Tampa CBSA $385,398 (2026-09, https://fred.stlouisfed.org/data/MEDLISPRI45300.txt); Apartment List Tampa metro median rent $1,476 (Oct 2026, https://www.apartmentlist.com/rent-report/fl/tampa). Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22)."
 }

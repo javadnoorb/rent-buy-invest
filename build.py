@@ -98,8 +98,8 @@ for slug in order:
                    'P': (m.get('price') or {}).get('value'), 'rent': (m.get('rent') or {}).get('value'),
                    'ptax': (m.get('ptax') or {}).get('rate_pct'), 'ins': (m.get('ins') or {}).get('annual_usd'),
                    'ptaxCap': cap,
-                   'hpi': {'values': vals, 'basis': h.get('basis')} if vals else None,
-                   'hpiSrc': {'t': f"{h.get('series_id')} ({'Case-Shiller' if 'XRNSA' in (h.get('series_id') or '') else 'FHFA all-transactions'}, {h.get('basis')} values)", 'u': h.get('source_url')} if h.get('source_url') else None,
+                   'hpi': {'values': vals, 'basis': h.get('basis'), 'volK': h.get('volK')} if vals else None,
+                   'hpiSrc': {'t': f"FHFA purchase-only index, {h.get('area')} ({h.get('basis')}); volatility ratio {h.get('volK')}", 'u': h.get('source_url')} if h.get('source_url') else None,
                    'src': {k: s(k) for k in ('price', 'rent', 'ptax', 'ins')}})
     METROS[-1]['src']['hpi'] = METROS[-1]['hpiSrc']
 

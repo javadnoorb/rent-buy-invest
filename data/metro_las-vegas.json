@@ -1,53 +1,85 @@
 {
-  "name": "Las Vegas",
-  "hpi": {
-    "series_id": "LVXRNSA",
-    "source_title": "S&P Cotality Case-Shiller NV-Las Vegas Home Price Index (LVXRNSA), FRED",
-    "source_url": "https://fred.stlouisfed.org/series/LVXRNSA",
-    "data_url": "https://fred.stlouisfed.org/data/LVXRNSA.txt",
-    "basis": "December",
-    "values": {
-      "1987": 66.655895, "1988": 67.979921, "1989": 74.985878, "1990": 81.784738,
-      "1991": 82.869298, "1992": 82.907366, "1993": 83.780458, "1994": 87.174107,
-      "1995": 89.042022, "1996": 90.012721, "1997": 93.04176, "1998": 95.46004,
-      "1999": 99.687817, "2000": 105.35869, "2001": 113.32106, "2002": 121.73218,
-      "2003": 142.68806, "2004": 207.61685, "2005": 229.41521, "2006": 231.57448,
-      "2007": 196.0508, "2008": 131.39677, "2009": 104.3785, "2010": 99.477291,
-      "2011": 90.697346, "2012": 102.41302, "2013": 128.52851, "2014": 137.3081192408,
-      "2015": 145.3365729933, "2016": 153.7063250308, "2017": 170.8128472957, "2018": 190.2238536273,
-      "2019": 195.1712957091, "2020": 210.687861982, "2021": 264.2827862644, "2022": 273.5812015696,
-      "2023": 285.0541232184, "2024": 300.4801651317, "2025": 297.7311343466
-    },
-    "latest": {"date": "2026-07", "value": 300.2250722033}
+ "name": "Las Vegas",
+ "hpi": {
+  "index": "FHFA purchase-only house price index",
+  "area": "Las Vegas-Henderson-North Las Vegas, NV",
+  "cbsa": "29820",
+  "basis": "Q4, not seasonally adjusted (1991Q1 = 100)",
+  "source_title": "FHFA House Price Index datasets: purchase-only index, 100 largest metros (hpi_po_metro)",
+  "source_url": "https://www.fhfa.gov/data/hpi/datasets",
+  "data_url": "https://www.fhfa.gov/hpi/download/quarterly_datasets/hpi_po_metro.txt",
+  "values": {
+   "1991": 101.64,
+   "1992": 102.66,
+   "1993": 103.15,
+   "1994": 105.63,
+   "1995": 108.22,
+   "1996": 109.65,
+   "1997": 111.96,
+   "1998": 114.91,
+   "1999": 119.21,
+   "2000": 124.59,
+   "2001": 134.7,
+   "2002": 143.29,
+   "2003": 167.77,
+   "2004": 231.83,
+   "2005": 265.11,
+   "2006": 265.69,
+   "2007": 231.43,
+   "2008": 146.3,
+   "2009": 116.77,
+   "2010": 108.91,
+   "2011": 100.33,
+   "2012": 118.73,
+   "2013": 146.96,
+   "2014": 164.51,
+   "2015": 173.59,
+   "2016": 188.76,
+   "2017": 216.3,
+   "2018": 242.76,
+   "2019": 252.91,
+   "2020": 274.1,
+   "2021": 344.5,
+   "2022": 356.58,
+   "2023": 376.93,
+   "2024": 403.91,
+   "2025": 396.07
   },
-  "price": {
-    "value": 422534,
-    "date": "2026-09",
-    "what": "Zillow typical home value (ZHVI), Las Vegas, NV metro",
-    "source_title": "Zillow Group: Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (Oct. 6, 2026)",
-    "source_url": "https://investors.zillowgroup.com/news-and-events/news/news-details/2026/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5/default.aspx"
+  "latest": {
+   "period": "2026Q2",
+   "value": 401.56
   },
-  "rent": {
-    "value": 1732,
-    "date": "2026-09",
-    "what": "Zillow typical rent (ZORI), Las Vegas, NV metro, monthly",
-    "source_title": "Zillow Group: Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (Oct. 6, 2026)",
-    "source_url": "https://investors.zillowgroup.com/news-and-events/news/news-details/2026/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5/default.aspx"
-  },
-  "ptax": {
-    "rate_pct": 0.52,
-    "geography": "Las Vegas, NV metro",
-    "year": 2025,
-    "source_title": "ATTOM: Average Single-Family Home Property Tax Bill Rose 3 Percent in 2025 (Apr. 9, 2026)",
-    "source_url": "https://www.attomdata.com/news/market-trends/home-sales-prices/2025-annual-tax-report"
-  },
-  "ins": {
-    "annual_usd": 1308,
-    "geography": "Nevada",
-    "coverage": "$300,000 dwelling coverage",
-    "year": 2026,
-    "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
-    "source_url": "https://insurify.com/homeowners-insurance/states/"
-  },
-  "notes": "Case-Shiller Las Vegas starts 1987; 1987-2025 continuous. ATTOM effective rate = average tax bill / average estimated value, single-family homes, 2025 (Nevada statewide also 0.52%). SmartAsset Clark County 0.48% (2024 data per page) (https://smartasset.com/taxes/nevada-property-tax-calculator). ValuePenguin Nevada $1,350 at $350K dwelling. Cross-check: Zillow August 2026 Las Vegas ZHVI $423,354, ZORI $1,742."
+  "volK": 1.006,
+  "volK_note": "ratio of yearly-change standard deviations, S&P Cotality Case-Shiller vs FHFA purchase-only, 1992\u20132025 (correlation 0.98); only this summary ratio is stored"
+ },
+ "price": {
+  "value": 422534,
+  "date": "2026-09",
+  "what": "Zillow typical home value (ZHVI), Las Vegas, NV metro",
+  "source_title": "Zillow Group: Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (Oct. 6, 2026)",
+  "source_url": "https://investors.zillowgroup.com/news-and-events/news/news-details/2026/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5/default.aspx"
+ },
+ "rent": {
+  "value": 1732,
+  "date": "2026-09",
+  "what": "Zillow typical rent (ZORI), Las Vegas, NV metro, monthly",
+  "source_title": "Zillow Group: Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (Oct. 6, 2026)",
+  "source_url": "https://investors.zillowgroup.com/news-and-events/news/news-details/2026/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5/default.aspx"
+ },
+ "ptax": {
+  "rate_pct": 0.52,
+  "geography": "Las Vegas, NV metro",
+  "year": 2025,
+  "source_title": "ATTOM: Average Single-Family Home Property Tax Bill Rose 3 Percent in 2025 (Apr. 9, 2026)",
+  "source_url": "https://www.attomdata.com/news/market-trends/home-sales-prices/2025-annual-tax-report"
+ },
+ "ins": {
+  "annual_usd": 1308,
+  "geography": "Nevada",
+  "coverage": "$300,000 dwelling coverage",
+  "year": 2026,
+  "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
+  "source_url": "https://insurify.com/homeowners-insurance/states/"
+ },
+ "notes": "1987-2025 continuous. ATTOM effective rate = average tax bill / average estimated value, single-family homes, 2025 (Nevada statewide also 0.52%). SmartAsset Clark County 0.48% (2024 data per page) (https://smartasset.com/taxes/nevada-property-tax-calculator). ValuePenguin Nevada $1,350 at $350K dwelling. Cross-check: Zillow August 2026 Las Vegas ZHVI $423,354, ZORI $1,742. Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22)."
 }

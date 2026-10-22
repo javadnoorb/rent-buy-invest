@@ -4,7 +4,7 @@
 const fs=require('fs'),path=require('path'),vm=require('vm');
 const ROOT=path.join(__dirname,'..');
 const src=fs.readFileSync(path.join(ROOT,'src/model.js'),'utf8');
-const EXPORTS=['simulate','pmt','marginalRate','saltCapFor','constPath','mcCore','HOME','RENTG','INF','YEARS','MORT','Y0','NY'];
+const EXPORTS=['metroAnnual','simulate','pmt','marginalRate','saltCapFor','constPath','mcCore','HOME','RENTG','INF','YEARS','MORT','Y0','NY'];
 const extra=fs.existsSync(path.join(ROOT,'src/model.js'))&&/function simulateRental/.test(src)?['simulateRental']:[];
 const M=vm.runInNewContext('const MORT_OVERRIDE=null;\n'+src+'\n;({'+EXPORTS.concat(extra).join(',')+'})',{Math,Array,Object,JSON,Number,Infinity,isFinite});
 

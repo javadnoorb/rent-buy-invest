@@ -1,53 +1,85 @@
 {
-  "name": "New York",
-  "hpi": {
-    "series_id": "NYXRNSA",
-    "source_title": "S&P Cotality Case-Shiller NY-New York Home Price Index (NYXRNSA), FRED",
-    "source_url": "https://fred.stlouisfed.org/series/NYXRNSA",
-    "data_url": "https://fred.stlouisfed.org/data/NYXRNSA.txt",
-    "basis": "December",
-    "values": {
-      "1987": 84.412641, "1988": 84.325662, "1989": 81.315083, "1990": 75.59502,
-      "1991": 74.735526, "1992": 75.345847, "1993": 76.708737, "1994": 78.358829,
-      "1995": 78.695255, "1996": 80.029168, "1997": 83.111322, "1998": 89.428293,
-      "1999": 99.282316, "2000": 111.86853, "2001": 124.716, "2002": 145.19615,
-      "2003": 162.31371, "2004": 185.15536, "2005": 212.67977, "2006": 213.79409,
-      "2007": 202.09206, "2008": 183.45455, "2009": 171.85222, "2010": 167.92256,
-      "2011": 162.40542, "2012": 161.9588, "2013": 171.96073, "2014": 174.709308,
-      "2015": 179.7557066, "2016": 185.2604657, "2017": 195.5531587, "2018": 201.183151,
-      "2019": 203.2085006, "2020": 224.3076206, "2021": 254.3571239, "2022": 273.1866626,
-      "2023": 295.872051, "2024": 318.1231319, "2025": 335.7070892
-    },
-    "latest": {"date": "2026-07", "value": 355.0856766511}
+ "name": "New York",
+ "hpi": {
+  "index": "FHFA purchase-only house price index",
+  "area": "New York-Jersey City-White Plains, NY-NJ (MSAD)",
+  "cbsa": "35614",
+  "basis": "Q4, not seasonally adjusted (1991Q1 = 100)",
+  "source_title": "FHFA House Price Index datasets: purchase-only index, 100 largest metros (hpi_po_metro)",
+  "source_url": "https://www.fhfa.gov/data/hpi/datasets",
+  "data_url": "https://www.fhfa.gov/hpi/download/quarterly_datasets/hpi_po_metro.txt",
+  "values": {
+   "1991": 98.96,
+   "1992": 100.38,
+   "1993": 100.64,
+   "1994": 98.73,
+   "1995": 99.15,
+   "1996": 101.59,
+   "1997": 105.41,
+   "1998": 114.32,
+   "1999": 126.68,
+   "2000": 141.82,
+   "2001": 160.57,
+   "2002": 185.89,
+   "2003": 209.56,
+   "2004": 236.8,
+   "2005": 267.72,
+   "2006": 266.14,
+   "2007": 266.87,
+   "2008": 244.83,
+   "2009": 238.35,
+   "2010": 231.91,
+   "2011": 219.37,
+   "2012": 221.86,
+   "2013": 229.79,
+   "2014": 235.3,
+   "2015": 247.25,
+   "2016": 257.55,
+   "2017": 268.1,
+   "2018": 279.82,
+   "2019": 288.24,
+   "2020": 315.1,
+   "2021": 344.27,
+   "2022": 366.6,
+   "2023": 398.87,
+   "2024": 431.38,
+   "2025": 451.44
   },
-  "price": {
-    "value": 733217,
-    "date": "2026-09",
-    "what": "Zillow typical home value (ZHVI), New York, NY metro",
-    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
-    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+  "latest": {
+   "period": "2026Q2",
+   "value": 475.14
   },
-  "rent": {
-    "value": 3546,
-    "date": "2026-09",
-    "what": "Zillow typical rent (ZORI), New York, NY metro, monthly",
-    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
-    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
-  },
-  "ptax": {
-    "rate_pct": 0.73,
-    "geography": "Kings County (Brooklyn), NY",
-    "year": null,
-    "source_title": "SmartAsset New York Property Tax Calculator",
-    "source_url": "https://smartasset.com/taxes/new-york-property-tax-calculator"
-  },
-  "ins": {
-    "annual_usd": 1356,
-    "geography": "New York (state)",
-    "coverage": "$300,000 dwelling coverage",
-    "year": 2026,
-    "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
-    "source_url": "https://insurify.com/homeowners-insurance/states/"
-  },
-  "notes": "Property tax choice is uncertain for a metro this varied: SmartAsset gives Kings 0.73%, Queens 0.88%, NY state 1.45%, New York County (Manhattan) not available, no year stated. ATTOM 2025 annual tax report gives New York state effective rate 1.23% for 2025 (https://www.attomdata.com/news/market-trends/home-sales-prices/2025-annual-tax-report). Suburban counties (Nassau, Westchester, NJ) are much higher but were not found. Alternative insurance: NerdWallet (May 6, 2026) NY $1,710/yr at $400,000 dwelling."
+  "volK": 1.092,
+  "volK_note": "ratio of yearly-change standard deviations, S&P Cotality Case-Shiller vs FHFA purchase-only, 1992\u20132025 (correlation 0.95); only this summary ratio is stored"
+ },
+ "price": {
+  "value": 733217,
+  "date": "2026-09",
+  "what": "Zillow typical home value (ZHVI), New York, NY metro",
+  "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+  "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+ },
+ "rent": {
+  "value": 3546,
+  "date": "2026-09",
+  "what": "Zillow typical rent (ZORI), New York, NY metro, monthly",
+  "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+  "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+ },
+ "ptax": {
+  "rate_pct": 0.73,
+  "geography": "Kings County (Brooklyn), NY",
+  "year": null,
+  "source_title": "SmartAsset New York Property Tax Calculator",
+  "source_url": "https://smartasset.com/taxes/new-york-property-tax-calculator"
+ },
+ "ins": {
+  "annual_usd": 1356,
+  "geography": "New York (state)",
+  "coverage": "$300,000 dwelling coverage",
+  "year": 2026,
+  "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
+  "source_url": "https://insurify.com/homeowners-insurance/states/"
+ },
+ "notes": "Property tax choice is uncertain for a metro this varied: SmartAsset gives Kings 0.73%, Queens 0.88%, NY state 1.45%, New York County (Manhattan) not available, no year stated. ATTOM 2025 annual tax report gives New York state effective rate 1.23% for 2025 (https://www.attomdata.com/news/market-trends/home-sales-prices/2025-annual-tax-report). Suburban counties (Nassau, Westchester, NJ) are much higher but were not found. Alternative insurance: NerdWallet (May 6, 2026) NY $1,710/yr at $400,000 dwelling. Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22)."
 }

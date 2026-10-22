@@ -1,53 +1,85 @@
 {
-  "name": "Chicago",
-  "hpi": {
-    "series_id": "CHXRNSA",
-    "source_title": "S&P Cotality Case-Shiller IL-Chicago Home Price Index (CHXRNSA), FRED",
-    "source_url": "https://fred.stlouisfed.org/series/CHXRNSA",
-    "data_url": "https://fred.stlouisfed.org/data/CHXRNSA.txt",
-    "basis": "December",
-    "values": {
-      "1987": 60.304727, "1988": 67.695254, "1989": 68.912132, "1990": 70.084593,
-      "1991": 72.450755, "1992": 75.425018, "1993": 78.807256, "1994": 81.662321,
-      "1995": 83.802074, "1996": 86.288316, "1997": 89.175047, "1998": 92.398986,
-      "1999": 99.843537, "2000": 107.86091, "2001": 116.87619, "2002": 126.26935,
-      "2003": 137.09175, "2004": 148.85242, "2005": 163.1629, "2006": 167.65038,
-      "2007": 160.02569, "2008": 137.15885, "2009": 127.25581, "2010": 117.86237,
-      "2011": 110.16315, "2012": 112.60814, "2013": 125.29063, "2014": 126.7899132784,
-      "2015": 129.6516927276, "2016": 135.041119804, "2017": 138.4524237012, "2018": 142.4259285495,
-      "2019": 143.3990463949, "2020": 153.7989496343, "2021": 172.4002462365, "2022": 182.516291959,
-      "2023": 197.2135886262, "2024": 210.1353899334, "2025": 221.2404089417
-    },
-    "latest": {"date": "2026-07", "value": 238.6064431084}
+ "name": "Chicago",
+ "hpi": {
+  "index": "FHFA purchase-only house price index",
+  "area": "Chicago-Naperville-Schaumburg, IL (MSAD)",
+  "cbsa": "16984",
+  "basis": "Q4, not seasonally adjusted (1991Q1 = 100)",
+  "source_title": "FHFA House Price Index datasets: purchase-only index, 100 largest metros (hpi_po_metro)",
+  "source_url": "https://www.fhfa.gov/data/hpi/datasets",
+  "data_url": "https://www.fhfa.gov/hpi/download/quarterly_datasets/hpi_po_metro.txt",
+  "values": {
+   "1991": 102.91,
+   "1992": 107.17,
+   "1993": 110.73,
+   "1994": 115.77,
+   "1995": 117.96,
+   "1996": 120.89,
+   "1997": 122.75,
+   "1998": 129.34,
+   "1999": 137.7,
+   "2000": 149.74,
+   "2001": 161.72,
+   "2002": 176.07,
+   "2003": 191.92,
+   "2004": 207.98,
+   "2005": 226.74,
+   "2006": 231.88,
+   "2007": 226.89,
+   "2008": 207.35,
+   "2009": 191.34,
+   "2010": 181.95,
+   "2011": 168.56,
+   "2012": 176.21,
+   "2013": 187.5,
+   "2014": 190.71,
+   "2015": 193.66,
+   "2016": 202.77,
+   "2017": 207.03,
+   "2018": 212.38,
+   "2019": 218.65,
+   "2020": 237.83,
+   "2021": 262.79,
+   "2022": 277.25,
+   "2023": 300.28,
+   "2024": 321.78,
+   "2025": 342.81
   },
-  "price": {
-    "value": 358074,
-    "date": "2026-09",
-    "what": "Zillow typical home value (ZHVI), Chicago, IL metro",
-    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
-    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+  "latest": {
+   "period": "2026Q2",
+   "value": 363.94
   },
-  "rent": {
-    "value": 2163,
-    "date": "2026-09",
-    "what": "Zillow typical rent (ZORI), Chicago, IL metro, monthly",
-    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
-    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
-  },
-  "ptax": {
-    "rate_pct": 1.78,
-    "geography": "Chicago, IL metro (single-family homes)",
-    "year": 2025,
-    "source_title": "ATTOM: Average Single-Family Home Property Tax Bill Rose 3 Percent in 2025 (Apr 9, 2026)",
-    "source_url": "https://www.attomdata.com/news/market-trends/home-sales-prices/2025-annual-tax-report"
-  },
-  "ins": {
-    "annual_usd": 2568,
-    "geography": "Illinois",
-    "coverage": "$300,000 dwelling coverage",
-    "year": 2026,
-    "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
-    "source_url": "https://insurify.com/homeowners-insurance/states/"
-  },
-  "notes": "Case-Shiller 1987-2025 continuous, values from FRED .txt. Property tax alternatives: SmartAsset Cook County 1.89%, Illinois 1.92%, no year (https://smartasset.com/taxes/illinois-property-tax-calculator); ATTOM 2025 Illinois statewide 1.84%. Insurify city figure for Chicago: $2,772/yr at $300K dwelling (https://insurify.com/homeowners-insurance/knowledge/average-cost-of-homeowners-insurance/). Cross-checks seen: FRED/Realtor.com median listing price Chicago CBSA $389,450 (2026-09, https://fred.stlouisfed.org/data/MEDLISPRI16980.txt); Apartment List Chicago metro median rent $1,741 (Oct 2026, https://www.apartmentlist.com/rent-report/il/chicago)."
+  "volK": 1.155,
+  "volK_note": "ratio of yearly-change standard deviations, S&P Cotality Case-Shiller vs FHFA purchase-only, 1992\u20132025 (correlation 0.96); only this summary ratio is stored"
+ },
+ "price": {
+  "value": 358074,
+  "date": "2026-09",
+  "what": "Zillow typical home value (ZHVI), Chicago, IL metro",
+  "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+  "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+ },
+ "rent": {
+  "value": 2163,
+  "date": "2026-09",
+  "what": "Zillow typical rent (ZORI), Chicago, IL metro, monthly",
+  "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+  "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+ },
+ "ptax": {
+  "rate_pct": 1.78,
+  "geography": "Chicago, IL metro (single-family homes)",
+  "year": 2025,
+  "source_title": "ATTOM: Average Single-Family Home Property Tax Bill Rose 3 Percent in 2025 (Apr 9, 2026)",
+  "source_url": "https://www.attomdata.com/news/market-trends/home-sales-prices/2025-annual-tax-report"
+ },
+ "ins": {
+  "annual_usd": 2568,
+  "geography": "Illinois",
+  "coverage": "$300,000 dwelling coverage",
+  "year": 2026,
+  "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
+  "source_url": "https://insurify.com/homeowners-insurance/states/"
+ },
+ "notes": "Property tax alternatives: SmartAsset Cook County 1.89%, Illinois 1.92%, no year (https://smartasset.com/taxes/illinois-property-tax-calculator); ATTOM 2025 Illinois statewide 1.84%. Insurify city figure for Chicago: $2,772/yr at $300K dwelling (https://insurify.com/homeowners-insurance/knowledge/average-cost-of-homeowners-insurance/). Cross-checks seen: FRED/Realtor.com median listing price Chicago CBSA $389,450 (2026-09, https://fred.stlouisfed.org/data/MEDLISPRI16980.txt); Apartment List Chicago metro median rent $1,741 (Oct 2026, https://www.apartmentlist.com/rent-report/il/chicago). Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22)."
 }

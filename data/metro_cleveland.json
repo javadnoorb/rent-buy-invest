@@ -1,53 +1,85 @@
 {
-  "name": "Cleveland",
-  "hpi": {
-    "series_id": "CEXRNSA",
-    "source_title": "S&P Cotality Case-Shiller OH-Cleveland Home Price Index (CEXRNSA), FRED",
-    "source_url": "https://fred.stlouisfed.org/series/CEXRNSA",
-    "data_url": "https://fred.stlouisfed.org/data/CEXRNSA.txt",
-    "basis": "December",
-    "values": {
-      "1987": 56.378954, "1988": 61.056728, "1989": 64.94043, "1990": 68.524627,
-      "1991": 71.00498, "1992": 74.1534, "1993": 78.049557, "1994": 81.133762,
-      "1995": 84.389106, "1996": 87.687751, "1997": 90.373383, "1998": 94.594289,
-      "1999": 99.733097, "2000": 103.91725, "2001": 106.09643, "2002": 109.98097,
-      "2003": 116.13942, "2004": 119.58411, "2005": 122.70865, "2006": 119.5948,
-      "2007": 112.0436, "2008": 105.21021, "2009": 103.86334, "2010": 100.20526,
-      "2011": 97.750336, "2012": 100.71483, "2013": 104.20424, "2014": 105.7541350087,
-      "2015": 108.6505677038, "2016": 113.3592399854, "2017": 117.0546086358, "2018": 122.3917291352,
-      "2019": 126.6862645466, "2020": 141.7828222672, "2021": 160.5962849195, "2022": 170.2396947207,
-      "2023": 182.8517973554, "2024": 192.4855186463, "2025": 200.1339684405
-    },
-    "latest": {"date": "2026-07", "value": 212.6704406119}
+ "name": "Cleveland",
+ "hpi": {
+  "index": "FHFA purchase-only house price index",
+  "area": "Cleveland, OH",
+  "cbsa": "17410",
+  "basis": "Q4, not seasonally adjusted (1991Q1 = 100)",
+  "source_title": "FHFA House Price Index datasets: purchase-only index, 100 largest metros (hpi_po_metro)",
+  "source_url": "https://www.fhfa.gov/data/hpi/datasets",
+  "data_url": "https://www.fhfa.gov/hpi/download/quarterly_datasets/hpi_po_metro.txt",
+  "values": {
+   "1991": 103.78,
+   "1992": 110.03,
+   "1993": 114.77,
+   "1994": 119.88,
+   "1995": 124.73,
+   "1996": 129.01,
+   "1997": 131.89,
+   "1998": 138.26,
+   "1999": 144.17,
+   "2000": 149.24,
+   "2001": 154.77,
+   "2002": 160.36,
+   "2003": 165.63,
+   "2004": 171.03,
+   "2005": 172.95,
+   "2006": 168.13,
+   "2007": 161.69,
+   "2008": 146.26,
+   "2009": 147.42,
+   "2010": 143.25,
+   "2011": 135.08,
+   "2012": 139.52,
+   "2013": 143.12,
+   "2014": 149.87,
+   "2015": 153.5,
+   "2016": 162.83,
+   "2017": 170.48,
+   "2018": 180.07,
+   "2019": 190.24,
+   "2020": 215.22,
+   "2021": 243.06,
+   "2022": 259.1,
+   "2023": 285.57,
+   "2024": 303.86,
+   "2025": 318.44
   },
-  "price": {
-    "value": 251602,
-    "date": "2026-09",
-    "what": "Zillow typical home value (ZHVI), Cleveland, OH metro",
-    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
-    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+  "latest": {
+   "period": "2026Q2",
+   "value": 334.97
   },
-  "rent": {
-    "value": 1440,
-    "date": "2026-09",
-    "what": "Zillow typical rent (ZORI), Cleveland, OH metro, monthly",
-    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
-    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
-  },
-  "ptax": {
-    "rate_pct": 1.63,
-    "geography": "Cleveland, OH metro (single-family homes)",
-    "year": 2025,
-    "source_title": "ATTOM: Average Single-Family Home Property Tax Bill Rose 3 Percent in 2025 (Apr 9, 2026)",
-    "source_url": "https://www.attomdata.com/news/market-trends/home-sales-prices/2025-annual-tax-report"
-  },
-  "ins": {
-    "annual_usd": 1716,
-    "geography": "Ohio",
-    "coverage": "$300,000 dwelling coverage",
-    "year": 2026,
-    "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
-    "source_url": "https://insurify.com/homeowners-insurance/states/"
-  },
-  "notes": "Case-Shiller 1987-2025 continuous, values from FRED .txt. Property tax alternatives: SmartAsset Cuyahoga County 1.80%, Ohio 1.22%, no year (https://smartasset.com/taxes/ohio-property-tax-calculator); ATTOM 2025 Ohio statewide 1.32%. Insurance is the Ohio statewide average (no Cleveland city figure on Insurify). Cross-checks seen: Redfin Cleveland metro median sale price $230,000 (Feb 2026, https://www.redfin.com/news/cleveland-remains-a-beacon-of-affordability-for-homebuyers/); Apartment List Cleveland metro median rent $1,111 (Feb 2026, per Axios https://www.axios.com/local/cleveland/2026/03/19/median-rent-dip-2026). FRED median listing price for the Cleveland CBSA could not be fetched (MEDLISPRI17410 returned a client error)."
+  "volK": 0.894,
+  "volK_note": "ratio of yearly-change standard deviations, S&P Cotality Case-Shiller vs FHFA purchase-only, 1992\u20132025 (correlation 0.94); only this summary ratio is stored"
+ },
+ "price": {
+  "value": 251602,
+  "date": "2026-09",
+  "what": "Zillow typical home value (ZHVI), Cleveland, OH metro",
+  "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+  "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+ },
+ "rent": {
+  "value": 1440,
+  "date": "2026-09",
+  "what": "Zillow typical rent (ZORI), Cleveland, OH metro, monthly",
+  "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+  "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+ },
+ "ptax": {
+  "rate_pct": 1.63,
+  "geography": "Cleveland, OH metro (single-family homes)",
+  "year": 2025,
+  "source_title": "ATTOM: Average Single-Family Home Property Tax Bill Rose 3 Percent in 2025 (Apr 9, 2026)",
+  "source_url": "https://www.attomdata.com/news/market-trends/home-sales-prices/2025-annual-tax-report"
+ },
+ "ins": {
+  "annual_usd": 1716,
+  "geography": "Ohio",
+  "coverage": "$300,000 dwelling coverage",
+  "year": 2026,
+  "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
+  "source_url": "https://insurify.com/homeowners-insurance/states/"
+ },
+ "notes": "Property tax alternatives: SmartAsset Cuyahoga County 1.80%, Ohio 1.22%, no year (https://smartasset.com/taxes/ohio-property-tax-calculator); ATTOM 2025 Ohio statewide 1.32%. Insurance is the Ohio statewide average (no Cleveland city figure on Insurify). Cross-checks seen: Redfin Cleveland metro median sale price $230,000 (Feb 2026, https://www.redfin.com/news/cleveland-remains-a-beacon-of-affordability-for-homebuyers/); Apartment List Cleveland metro median rent $1,111 (Feb 2026, per Axios https://www.axios.com/local/cleveland/2026/03/19/median-rent-dip-2026). FRED median listing price for the Cleveland CBSA could not be fetched (MEDLISPRI17410 returned a client error). Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22)."
 }

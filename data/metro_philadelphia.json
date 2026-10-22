@@ -1,53 +1,85 @@
 {
-  "name": "Philadelphia",
-  "hpi": {
-    "series_id": "ATNHPIUS37964Q",
-    "source_title": "All-Transactions House Price Index for Philadelphia, PA (MSAD) (ATNHPIUS37964Q), FHFA via FRED",
-    "source_url": "https://fred.stlouisfed.org/series/ATNHPIUS37964Q",
-    "data_url": "https://fred.stlouisfed.org/data/ATNHPIUS37964Q.txt",
-    "basis": "Q4",
-    "values": {
-      "1976": 35.62, "1977": 39.41, "1978": 39.32, "1979": 43.12, "1980": 47.73,
-      "1981": 47.36, "1982": 51.09, "1983": 56.16, "1984": 59.31, "1985": 64.42,
-      "1986": 73.67, "1987": 86.06, "1988": 96.55, "1989": 101.25, "1990": 102.17,
-      "1991": 104.31, "1992": 105.57, "1993": 106.33, "1994": 101.22, "1995": 104.23,
-      "1996": 103.42, "1997": 105.29, "1998": 109.15, "1999": 111.38, "2000": 117.81,
-      "2001": 129.82, "2002": 144.14, "2003": 160.12, "2004": 186.86, "2005": 215.87,
-      "2006": 229.11, "2007": 233.01, "2008": 227.78, "2009": 220.81, "2010": 220.2,
-      "2011": 212.55, "2012": 211.46, "2013": 212.85, "2014": 218.71, "2015": 223.61,
-      "2016": 235.52, "2017": 247.97, "2018": 262.74, "2019": 278.62, "2020": 296.08,
-      "2021": 333.61, "2022": 358.19, "2023": 368.43, "2024": 389.75, "2025": 410.39
-    },
-    "latest": {"date": "2026-04-01 (2026 Q2)", "value": 421.68}
+ "name": "Philadelphia",
+ "hpi": {
+  "index": "FHFA purchase-only house price index",
+  "area": "Philadelphia, PA (MSAD)",
+  "cbsa": "37964",
+  "basis": "Q4, not seasonally adjusted (1991Q1 = 100)",
+  "source_title": "FHFA House Price Index datasets: purchase-only index, 100 largest metros (hpi_po_metro)",
+  "source_url": "https://www.fhfa.gov/data/hpi/datasets",
+  "data_url": "https://www.fhfa.gov/hpi/download/quarterly_datasets/hpi_po_metro.txt",
+  "values": {
+   "1991": 101.83,
+   "1992": 102.36,
+   "1993": 100.22,
+   "1994": 98.11,
+   "1995": 97.34,
+   "1996": 97.37,
+   "1997": 98.09,
+   "1998": 101.94,
+   "1999": 105.89,
+   "2000": 114.5,
+   "2001": 127.06,
+   "2002": 145.09,
+   "2003": 161.31,
+   "2004": 191.2,
+   "2005": 217.77,
+   "2006": 230.28,
+   "2007": 232.9,
+   "2008": 227.31,
+   "2009": 226.87,
+   "2010": 218.98,
+   "2011": 202.16,
+   "2012": 213.6,
+   "2013": 220.04,
+   "2014": 223.15,
+   "2015": 230.31,
+   "2016": 245.98,
+   "2017": 261.27,
+   "2018": 278.81,
+   "2019": 289.94,
+   "2020": 318.24,
+   "2021": 347.33,
+   "2022": 373.39,
+   "2023": 384.38,
+   "2024": 410.97,
+   "2025": 419.04
   },
-  "price": {
-    "value": 387304,
-    "date": "2026-09",
-    "what": "Zillow typical home value (ZHVI), Philadelphia, PA metro",
-    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
-    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+  "latest": {
+   "period": "2026Q2",
+   "value": 436.23
   },
-  "rent": {
-    "value": 1903,
-    "date": "2026-09",
-    "what": "Zillow typical rent (ZORI), Philadelphia, PA metro, monthly",
-    "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
-    "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
-  },
-  "ptax": {
-    "rate_pct": 0.83,
-    "geography": "Philadelphia County, PA",
-    "year": null,
-    "source_title": "SmartAsset Pennsylvania Property Tax Calculator",
-    "source_url": "https://smartasset.com/taxes/pennsylvania-property-tax-calculator"
-  },
-  "ins": {
-    "annual_usd": 1272,
-    "geography": "Pennsylvania",
-    "coverage": "$300,000 dwelling coverage",
-    "year": 2026,
-    "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
-    "source_url": "https://insurify.com/homeowners-insurance/states/"
-  },
-  "notes": "HPI is the Philadelphia, PA metropolitan division (MSAD 37964), not the full Philadelphia-Camden-Wilmington MSA (the MSA-level URL ATNHPIUS37980Q failed to fetch). FHFA all-transactions, Q4 basis, continuous 1976-2025. Property tax: SmartAsset (no year) Philadelphia County 0.83%, PA state 1.16%; ATTOM 2025 annual tax report gives Philadelphia metro 1.41% and PA 1.24% for 2025 (https://www.attomdata.com/news/market-trends/home-sales-prices/2025-annual-tax-report). Use 1.41% if modeling suburbs. Alternative insurance: NerdWallet (May 6, 2026) PA $1,720/yr at $400,000 dwelling."
+  "volK": 1.092,
+  "volK_note": "no Case-Shiller index; median of the 18 metros that have one"
+ },
+ "price": {
+  "value": 387304,
+  "date": "2026-09",
+  "what": "Zillow typical home value (ZHVI), Philadelphia, PA metro",
+  "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+  "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+ },
+ "rent": {
+  "value": 1903,
+  "date": "2026-09",
+  "what": "Zillow typical rent (ZORI), Philadelphia, PA metro, monthly",
+  "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
+  "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
+ },
+ "ptax": {
+  "rate_pct": 0.83,
+  "geography": "Philadelphia County, PA",
+  "year": null,
+  "source_title": "SmartAsset Pennsylvania Property Tax Calculator",
+  "source_url": "https://smartasset.com/taxes/pennsylvania-property-tax-calculator"
+ },
+ "ins": {
+  "annual_usd": 1272,
+  "geography": "Pennsylvania",
+  "coverage": "$300,000 dwelling coverage",
+  "year": 2026,
+  "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
+  "source_url": "https://insurify.com/homeowners-insurance/states/"
+ },
+ "notes": "Property tax: SmartAsset (no year) Philadelphia County 0.83%, PA state 1.16%; ATTOM 2025 annual tax report gives Philadelphia metro 1.41% and PA 1.24% for 2025 (https://www.attomdata.com/news/market-trends/home-sales-prices/2025-annual-tax-report). Use 1.41% if modeling suburbs. Alternative insurance: NerdWallet (May 6, 2026) PA $1,720/yr at $400,000 dwelling. Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22)."
 }
