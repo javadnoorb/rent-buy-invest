@@ -50,6 +50,26 @@ const { chromium } = require(process.env.PLAYWRIGHT_PATH || 'playwright');
     if (process.env.GITHUB_ACTIONS) console.log(`::notice::page overflow ${ov.page}px; equations scrolling at 390px: ${ov.eq}`);
     if (process.env.GITHUB_ACTIONS) console.log(`::notice::formulas rendered: ${tex.rendered}, TeX errors: ${tex.errs.length}`);
   }
+  // touch: a tap shows the chart readout; tapping again closes it, and it closes on its own after a few seconds
+  if (!process.env.STUB_PLOTLY) {
+    const ctx = await browser.newContext({ viewport: { width: 412, height: 915 }, isMobile: true, hasTouch: true });
+    const tp = await ctx.newPage();
+    await tp.addInitScript(() => { try { localStorage.setItem('rbi-wz', '1'); } catch (e) {} });
+    await tp.goto('file://' + path.join(__dirname, '..', 'index.html'));
+    await tp.waitForFunction(() => window.Plotly && document.querySelector('#p-nw svg.main-svg'), null, { timeout: 30000 });
+    await tp.evaluate(() => document.getElementById('p-nw').scrollIntoView({ block: 'center' }));
+    await tp.waitForTimeout(500);
+    const box = await tp.$eval('#p-nw .nsewdrag', e => { const r = e.getBoundingClientRect(); return { x: r.x + r.width * 0.6, y: r.y + r.height * 0.4 }; });
+    const shown = () => tp.$eval('#p-nw .hoverlayer', e => e.childElementCount > 0);
+    await tp.touchscreen.tap(box.x, box.y); await tp.waitForTimeout(400); const s1 = await shown();
+    await tp.touchscreen.tap(box.x - 40, box.y); await tp.waitForTimeout(400); const s2 = await shown();
+    await tp.touchscreen.tap(box.x, box.y); await tp.waitForTimeout(3200); const s3 = await shown();
+    console.log(`touch readout: shown ${s1}, after second tap ${s2}, after 3.2 s ${s3}`);
+    if (process.env.GITHUB_ACTIONS) console.log(`::notice::touch readout shown ${s1}, after second tap ${s2}, after 3.2 s ${s3}`);
+    if (s2) failed.push('chart readout stayed open after a second tap');
+    if (s3) failed.push('chart readout did not close on its own');
+    await ctx.close();
+  }
   await browser.close();
   if (errors.length || failed.length) {
     const gh = !!process.env.GITHUB_ACTIONS, say = m => console.log(gh ? '::error::' + m.replace(/\n/g, ' ') : '  ' + m);

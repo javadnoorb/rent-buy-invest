@@ -21,11 +21,15 @@ function layout(extra){const t=theme();const narrow=innerWidth<600;
   return L}
 const CFG=TOUCH?{responsive:true,displayModeBar:false,scrollZoom:false,doubleClick:false,showTips:false}:{responsive:true,displaylogo:false,displayModeBar:true,modeBarButtonsToRemove:['lasso2d','select2d'],doubleClick:'reset'};
 const HOVERED=new Set();
-function unhoverAll(except){HOVERED.forEach(el=>{if(el!==except&&window.Plotly&&Plotly.Fx){try{Plotly.Fx.unhover(el)}catch(e){}HOVERED.delete(el)}})}
-if(TOUCH){addEventListener('scroll',()=>{if(HOVERED.size)unhoverAll()},{passive:true});addEventListener('touchstart',e=>{if(HOVERED.size)unhoverAll(e.target.closest&&e.target.closest('.plot'))},{passive:true,capture:true})}
+/* touch: a tap shows the readout; the next tap anywhere (the same chart included), a scroll, or 2.5 s closes it */
+function clearHover(el){try{Plotly.Fx.unhover(el)}catch(e){}const hl=el.querySelector('.hoverlayer');if(hl)hl.replaceChildren();HOVERED.delete(el);clearTimeout(el._ht)}
+function unhoverAll(except){[...HOVERED].forEach(el=>{if(el!==except)clearHover(el)})}
+if(TOUCH){addEventListener('scroll',()=>{if(HOVERED.size)unhoverAll()},{passive:true});
+  addEventListener('touchstart',e=>{if(!HOVERED.size)return;const p=e.target.closest&&e.target.closest('.plot');
+    if(p&&HOVERED.has(p)){p._swallow=Date.now()}unhoverAll()},{passive:true,capture:true})}
 function plot(id,data,lay){const el=document.getElementById(id);
   try{if(el.dataset.err){el.innerHTML='';delete el.dataset.err}Plotly.react(el,data,layout(lay),CFG);
-    if(TOUCH&&!el._hoverWired&&el.on){el._hoverWired=1;el.on('plotly_hover',()=>{HOVERED.add(el);clearTimeout(el._ht);el._ht=setTimeout(()=>{try{Plotly.Fx.unhover(el)}catch(e){}HOVERED.delete(el)},3000)});el.on('plotly_unhover',()=>HOVERED.delete(el))}}
+    if(TOUCH&&!el._hoverWired&&el.on){el._hoverWired=1;el.on('plotly_hover',()=>{if(el._swallow&&Date.now()-el._swallow<600){el._swallow=0;setTimeout(()=>clearHover(el),0);return}HOVERED.add(el);clearTimeout(el._ht);el._ht=setTimeout(()=>clearHover(el),2500)});el.on('plotly_unhover',()=>HOVERED.delete(el))}}
   catch(e){console.error(id,e);el.dataset.err=1;el.innerHTML=`<div class="note">This chart could not be drawn (${String(e.message||e).slice(0,160)}).</div>`}}
 const X=(t)=>({...layout().xaxis,title:{text:t,font:{size:11}}});
 const Yd=(t)=>({...layout().yaxis,title:{text:t,font:{size:11}},tickprefix:'$',tickformat:'~s'});
