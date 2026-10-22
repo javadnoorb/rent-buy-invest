@@ -81,5 +81,166 @@
   "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
   "source_url": "https://insurify.com/homeowners-insurance/states/"
  },
- "notes": "Prop 13: assessed value increases limited to max 2%/yr (Placer County, 'Limited Assessment rate increases to a maximum of 2% per year', https://www.placer.ca.gov/5882/Proposition-13; also SmartAsset CA page: 'it restricts increases in assessed value to 2% per year'). SmartAsset gives no data year for the 0.68% LA County rate (CA statewide 0.71% on same page). Alternative ptax: Ownwell LA County median effective rate 1.29%, median bill $5,993 (page updated Apr 13, 2026, no data year; https://www.ownwell.com/trends/california/los-angeles-county). Cross-checks: Apartment List Oct 2026 LA metro median rent $2,207 (https://www.apartmentlist.com/rent-report/ca/los-angeles); Redfin LA County median sale price $912,957 Sep 2026 (3-month) and LA city $1,032,508 Sep 2026; Zillow March 2026 LA metro ZHVI $962,935 per Secret Los Angeles. Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22)."
+ "notes": "Prop 13: assessed value increases limited to max 2%/yr (Placer County, 'Limited Assessment rate increases to a maximum of 2% per year', https://www.placer.ca.gov/5882/Proposition-13; also SmartAsset CA page: 'it restricts increases in assessed value to 2% per year'). SmartAsset gives no data year for the 0.68% LA County rate (CA statewide 0.71% on same page). Alternative ptax: Ownwell LA County median effective rate 1.29%, median bill $5,993 (page updated Apr 13, 2026, no data year; https://www.ownwell.com/trends/california/los-angeles-county). Cross-checks: Apartment List Oct 2026 LA metro median rent $2,207 (https://www.apartmentlist.com/rent-report/ca/los-angeles); Redfin LA County median sale price $912,957 Sep 2026 (3-month) and LA city $1,032,508 Sep 2026; Zillow March 2026 LA metro ZHVI $962,935 per Secret Los Angeles. Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
+ "rent_hist": {
+  "growth_pct": {
+   "1987": 5.371,
+   "1988": 4.835,
+   "1989": 4.661,
+   "1990": 4.482,
+   "1991": 2.875,
+   "1992": 1.229,
+   "1993": 0.241,
+   "1994": 0.165,
+   "1995": -0.421,
+   "1996": 0.979,
+   "1997": 1.489,
+   "1998": 2.736,
+   "1999": 3.644,
+   "2000": 4.031,
+   "2001": 5.435,
+   "2002": 5.678,
+   "2003": 5.275,
+   "2004": 6.405,
+   "2005": 6.466,
+   "2006": 5.761,
+   "2007": 6.158,
+   "2008": 4.519,
+   "2009": 1.66,
+   "2010": -0.18,
+   "2011": 1.32,
+   "2012": 2.143,
+   "2013": 2.432,
+   "2014": 2.832,
+   "2015": 3.866,
+   "2016": 4.69,
+   "2017": 5.056,
+   "2018": 4.858,
+   "2019": 5.513,
+   "2020": 3.414,
+   "2021": 1.233,
+   "2022": 4.355,
+   "2023": 5.459,
+   "2024": 4.757,
+   "2025": 4.122
+  },
+  "source_by_year": {
+   "1987": "metro",
+   "1988": "metro",
+   "1989": "metro",
+   "1990": "metro",
+   "1991": "metro",
+   "1992": "metro",
+   "1993": "metro",
+   "1994": "metro",
+   "1995": "metro",
+   "1996": "metro",
+   "1997": "metro",
+   "1998": "metro",
+   "1999": "metro",
+   "2000": "metro",
+   "2001": "metro",
+   "2002": "metro",
+   "2003": "metro",
+   "2004": "metro",
+   "2005": "metro",
+   "2006": "metro",
+   "2007": "metro",
+   "2008": "metro",
+   "2009": "metro",
+   "2010": "metro",
+   "2011": "metro",
+   "2012": "metro",
+   "2013": "metro",
+   "2014": "metro",
+   "2015": "metro",
+   "2016": "metro",
+   "2017": "metro",
+   "2018": "metro",
+   "2019": "metro",
+   "2020": "metro",
+   "2021": "metro",
+   "2022": "metro",
+   "2023": "metro",
+   "2024": "metro",
+   "2025": "metro"
+  },
+  "series": {
+   "metro": "CUURS49ASEHA",
+   "metro_pre2018": "CUURA421SEHA",
+   "region": "CUURS400SEHA"
+  },
+  "source_title": "BLS CPI-U rent of primary residence, annual average of published months (public domain)",
+  "source_url": "https://data.bls.gov/timeseries/CUURS49ASEHA",
+  "note": "Years without a metro series use the BLS regional large-metro (size A) rent index."
+ },
+ "acs": {
+  "year": 2024,
+  "geo_id": "310M700US31080",
+  "name": "Los Angeles-Long Beach-Anaheim, CA Metro Area",
+  "median_tax": 6011.0,
+  "median_value": 908500.0,
+  "eff_tax_pct": 0.662,
+  "median_gross_rent": 2114.0,
+  "rent_ratio_by_bedrooms": {
+   "0": 0.774,
+   "1": 0.862,
+   "2": 1.07,
+   "3": 1.269,
+   "4": 1.458
+  },
+  "source_title": "Census ACS 2024 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
+  "source_url": "https://www.census.gov/programs-surveys/acs/data/summary-file.html"
+ },
+ "transfer_taxes": [
+  {
+   "name": "Los Angeles County documentary transfer tax",
+   "base": "price",
+   "payer": "seller",
+   "structure": "flat",
+   "rate": 0.0011,
+   "tiers": null,
+   "source_title": "LA County Registrar-Recorder: Documentary Transfer Taxes",
+   "source_url": "https://lavote.gov/home/recorder/property-document-recording/documentary-transfer-taxes",
+   "notes": "$0.55 per $500 ($1.10 per $1,000), consideration excluding liens remaining. Payer not stated; customarily seller in LA."
+  },
+  {
+   "name": "City of Los Angeles real property transfer tax (base)",
+   "base": "price",
+   "payer": "seller",
+   "structure": "flat",
+   "rate": 0.0045,
+   "tiers": null,
+   "source_title": "LA County Registrar-Recorder: Documentary Transfer Taxes (City of LA, Code 44)",
+   "source_url": "https://lavote.gov/home/recorder/property-document-recording/documentary-transfer-taxes",
+   "notes": "$2.25 per $500 = 0.45%, separate from (not credited against) county tax. Customarily seller."
+  },
+  {
+   "name": "City of Los Angeles Measure ULA ('mansion tax') surcharge",
+   "base": "price",
+   "payer": "seller",
+   "structure": "whole_price_tiers",
+   "rate": null,
+   "tiers": [
+    {
+     "from": 0,
+     "to": 5400000,
+     "rate": 0.0
+    },
+    {
+     "from": 5400000,
+     "to": 10900000,
+     "rate": 0.04
+    },
+    {
+     "from": 10900000,
+     "to": null,
+     "rate": 0.055
+    }
+   ],
+   "source_title": "LA County Registrar-Recorder: Documentary Transfer Taxes (City of LA rates table)",
+   "source_url": "https://lavote.gov/home/recorder/property-document-recording/documentary-transfer-taxes",
+   "notes": "Effective 7/1/26: 4% of total value for sales above $5,400,000 and below $10,900,000; 5.5% at $10,900,000+ (7/1/25-6/30/26 thresholds were $5.3M/$10.6M). Thresholds CPI-indexed each July 1. Whole price, on top of base 0.45%. Pending Nov-2026 ballot items (Palisades fire exemption, new multifamily exemption) per law-firm summary https://www.hansonbridgett.com/publications/260812_7087_ula-ordinance-updates. Payer: customarily seller."
+  }
+ ]
 }

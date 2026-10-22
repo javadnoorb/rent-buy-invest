@@ -1,0 +1,628 @@
+{
+  "as_of": "2026-10-22",
+  "metros": {
+    "boston": {
+      "state": "MA",
+      "jurisdiction": "Suffolk County / City of Boston",
+      "taxes": [
+        {
+          "name": "Massachusetts deeds excise (tax stamps)",
+          "base": "price",
+          "payer": "seller",
+          "structure": "flat",
+          "rate": 0.00456,
+          "tiers": null,
+          "source_title": "Mass DOR Directive 95-4: Enforcement of the Deeds Excise; Salem Deeds excise page; M.G.L. c.64D s.1",
+          "source_url": "https://www.mass.gov/directive/directive-95-4-enforcement-of-the-deeds-excise",
+          "notes": "$2.28 per $500 of consideration (= $2 per $500 under c.64D s.1 plus 14% surcharge) = $4.56 per $1,000; consideration excludes liens/encumbrances remaining at sale; applies above $100. DOR: 'paid by the person who makes or signs the deed' (grantor/seller). Barnstable County differs ($1.71 per $500). Corroborating: https://salemdeeds.com/SalemDeeds/fees_excise.aspx and https://malegislature.gov/Laws/GeneralLaws/PartI/TitleIX/Chapter64D/Section1. No Boston city transfer tax found. No mortgage tax. No primary-residence exemption."
+        }
+      ]
+    },
+    "new-york": {
+      "state": "NY",
+      "jurisdiction": "New York City",
+      "taxes": [
+        {
+          "name": "NYS real estate transfer tax (base)",
+          "base": "price",
+          "payer": "seller",
+          "structure": "flat",
+          "rate": 0.004,
+          "tiers": null,
+          "source_title": "NYS Dept of Taxation: Real estate transfer tax",
+          "source_url": "https://www.tax.ny.gov/bus/transfer/rptidx.htm",
+          "notes": "$2 per $500 of consideration. Grantor (seller) pays; grantee pays only if seller fails/exempt or contract shifts it."
+        },
+        {
+          "name": "NYS additional base tax (NYC, residential >= $3M)",
+          "base": "price",
+          "payer": "seller",
+          "structure": "whole_price_tiers",
+          "rate": null,
+          "tiers": [{"from": 0, "to": 3000000, "rate": 0.0}, {"from": 3000000, "to": null, "rate": 0.0025}],
+          "source_title": "NYS TSB-M-19(1)R; NYS real estate transfer tax page",
+          "source_url": "https://www.tax.ny.gov/pdf/memos/real_estate/m19-1r.pdf",
+          "notes": "$1.25 per $500 on ENTIRE consideration when residential conveyance in NYC is $3M or more (so state base becomes 0.65%). Seller pays."
+        },
+        {
+          "name": "NYS 'mansion tax' (additional tax, residential >= $1M)",
+          "base": "price",
+          "payer": "buyer",
+          "structure": "whole_price_tiers",
+          "rate": null,
+          "tiers": [{"from": 0, "to": 1000000, "rate": 0.0}, {"from": 1000000, "to": null, "rate": 0.01}],
+          "source_title": "NYS Dept of Taxation: Real estate transfer tax",
+          "source_url": "https://www.tax.ny.gov/bus/transfer/rptidx.htm",
+          "notes": "1% of the entire price for residential consideration of $1M or more. Buyer (grantee) pays. Applies statewide incl. co-ops."
+        },
+        {
+          "name": "NYS supplemental tax (NYC residential >= $2M; stacks on mansion tax)",
+          "base": "price",
+          "payer": "buyer",
+          "structure": "whole_price_tiers",
+          "rate": null,
+          "tiers": [
+            {"from": 0, "to": 2000000, "rate": 0.0},
+            {"from": 2000000, "to": 3000000, "rate": 0.0025},
+            {"from": 3000000, "to": 5000000, "rate": 0.005},
+            {"from": 5000000, "to": 10000000, "rate": 0.0125},
+            {"from": 10000000, "to": 15000000, "rate": 0.0225},
+            {"from": 15000000, "to": 20000000, "rate": 0.025},
+            {"from": 20000000, "to": 25000000, "rate": 0.0275},
+            {"from": 25000000, "to": null, "rate": 0.029}
+          ],
+          "source_title": "NYS TSB-M-19(1)R: Amendments to the Real Estate Transfer Tax",
+          "source_url": "https://www.tax.ny.gov/pdf/memos/real_estate/m19-1r.pdf",
+          "notes": "Computed on entire consideration for wholly residential property. Buyer pays (seller if buyer fails/exempt). Combined with the 1% mansion tax gives 1.25% at $2-3M up to 3.9% at $25M+."
+        },
+        {
+          "name": "NYC Real Property Transfer Tax (RPTT), residential Type 1/2",
+          "base": "price",
+          "payer": "seller",
+          "structure": "whole_price_tiers",
+          "rate": null,
+          "tiers": [{"from": 0, "to": 500000.01, "rate": 0.01}, {"from": 500000.01, "to": null, "rate": 0.01425}],
+          "source_title": "NYC Dept of Finance: Real Property Transfer Tax (RPTT)",
+          "source_url": "https://www.nyc.gov/site/finance/property/property-real-property-transfer-tax-rptt.page",
+          "notes": "1-3 family houses, condo units, co-op units: 1% if value is $500,000 or less; 1.425% if above $500,000 (rate on whole price). Applies to transfers over $25,000. DOF page does not name payer ('usually paid as part of closing costs'; both sign return); customarily the seller (grantor) - payer not confirmed on fetched page."
+        },
+        {
+          "name": "NYC mortgage recording tax (city + state), borrower share",
+          "base": "mortgage",
+          "payer": "buyer",
+          "structure": "whole_price_tiers",
+          "rate": null,
+          "tiers": [{"from": 0, "to": 500000, "rate": 0.018}, {"from": 500000, "to": null, "rate": 0.01925}],
+          "source_title": "NYC DOF 2022 Mortgage Recording Tax Annual Report; NY Tax Law s.253",
+          "source_url": "https://www.nyc.gov/assets/finance/downloads/pdf/reports/reports_mrt/2022-mrt-report.pdf",
+          "notes": "Tier chosen by mortgage amount, rate applied to whole loan. DOF report: residential (1-3 family, condo) combined 2.05% (<$500k) / 2.175% (>=$500k), which includes the 0.25% state 'special additional tax'. Under Tax Law s.253(1-a)(a) (https://www.nysenate.gov/legislation/laws/TAX/253) the special additional tax on small residential property is paid by the mortgagee and may not be passed to the mortgagor; borrower share therefore 1.8% / 1.925%. Co-op purchases are financed with share loans and do not pay MRT."
+        }
+      ]
+    },
+    "washington-dc": {
+      "state": "DC",
+      "jurisdiction": "District of Columbia",
+      "taxes": [
+        {
+          "name": "DC deed recordation tax",
+          "base": "price",
+          "payer": "buyer",
+          "structure": "whole_price_tiers",
+          "rate": null,
+          "tiers": [{"from": 0, "to": 400000, "rate": 0.011}, {"from": 400000, "to": null, "rate": 0.0145}],
+          "source_title": "DC OTR: Recorder of Deeds / recordation & transfer tax rates",
+          "source_url": "https://otr.cfo.dc.gov/node/1794781",
+          "notes": "Residential: 1.1% if under $400,000; 1.45% on the ENTIRE amount at $400,000+. Customarily buyer (OTR rate page does not name payer; ROD-11 says first-time-buyer recordation benefit goes entirely to grantee). First-time DC homebuyers meeting income/price limits: recordation rate 0.725% (https://otr.cfo.dc.gov/sites/default/files/dc/sites/otr/publication/attachments/ROD%2011%20-%20Reduced%20Recordation%20Tax%20Rate%20for%20First-Time%20Homebuyers%20FY2026.pdf)."
+        },
+        {
+          "name": "DC deed transfer tax",
+          "base": "price",
+          "payer": "seller",
+          "structure": "whole_price_tiers",
+          "rate": null,
+          "tiers": [{"from": 0, "to": 400000, "rate": 0.011}, {"from": 400000, "to": null, "rate": 0.0145}],
+          "source_title": "DC OTR: Recorder of Deeds / recordation & transfer tax rates",
+          "source_url": "https://otr.cfo.dc.gov/node/1794781",
+          "notes": "Same rates as recordation tax. ROD-11: 'the full amount of the transfer tax ... should be allocated to the transferor' (seller). No separate recordation tax on purchase-money deed of trust found on fetched page (only $150 recording fee)."
+        }
+      ]
+    },
+    "philadelphia": {
+      "state": "PA",
+      "jurisdiction": "City of Philadelphia",
+      "taxes": [
+        {
+          "name": "Pennsylvania realty transfer tax (state)",
+          "base": "price",
+          "payer": "split",
+          "structure": "flat",
+          "rate": 0.01,
+          "tiers": null,
+          "source_title": "PA Dept of Revenue: Realty Transfer Tax",
+          "source_url": "https://www.pa.gov/agencies/revenue/resources/tax-types-and-information/realty-transfer-tax.html",
+          "notes": "1% of value. Grantor and grantee jointly and severally liable; customary 50/50 split (custom not stated on fetched page)."
+        },
+        {
+          "name": "Philadelphia realty transfer tax (city)",
+          "base": "price",
+          "payer": "split",
+          "structure": "flat",
+          "rate": 0.03578,
+          "tiers": null,
+          "source_title": "City of Philadelphia: Philly's realty transfer tax rate is now 4.578%",
+          "source_url": "https://www.phila.gov/2025-07-28-phillys-realty-transfer-tax-rate-is-now-4-578/",
+          "notes": "3.578% effective July 1, 2025 (was 3.278%); combined with state = 4.578%. Base is sale price (or OPA assessed value if no price). Payer not stated on page; modeled as customary 50/50 split."
+        }
+      ]
+    },
+    "raleigh": {
+      "state": "NC",
+      "jurisdiction": "Wake County",
+      "taxes": [
+        {
+          "name": "NC excise tax on conveyances (revenue stamps)",
+          "base": "price",
+          "payer": "seller",
+          "structure": "flat",
+          "rate": 0.002,
+          "tiers": null,
+          "source_title": "N.C.G.S. Chapter 105 Article 8E",
+          "source_url": "https://house.ncleg.gov/EnactedLegislation/Statutes/HTML/ByArticle/Chapter_105/Article_8E.html",
+          "notes": "$1 per $500 (or fraction). Paid by the transferor (grantor). Proceeds split county/state. No additional Wake County transfer tax found."
+        }
+      ]
+    },
+    "charlotte": {
+      "state": "NC",
+      "jurisdiction": "Mecklenburg County",
+      "taxes": [
+        {
+          "name": "NC excise tax on conveyances (revenue stamps)",
+          "base": "price",
+          "payer": "seller",
+          "structure": "flat",
+          "rate": 0.002,
+          "tiers": null,
+          "source_title": "N.C.G.S. Chapter 105 Article 8E",
+          "source_url": "https://house.ncleg.gov/EnactedLegislation/Statutes/HTML/ByArticle/Chapter_105/Article_8E.html",
+          "notes": "$1 per $500. Paid by transferor. No additional Mecklenburg County transfer tax found."
+        }
+      ]
+    },
+    "atlanta": {
+      "state": "GA",
+      "jurisdiction": "Fulton County",
+      "taxes": [
+        {
+          "name": "Georgia real estate transfer tax",
+          "base": "price",
+          "payer": "seller",
+          "structure": "flat",
+          "rate": 0.001,
+          "tiers": null,
+          "source_title": "Georgia DOR: Real Estate Transfer Tax",
+          "source_url": "https://dor.georgia.gov/real-estate-transfer-tax",
+          "notes": "$1 for first $1,000 plus $0.10 per additional $100 (= 0.1%). Seller liable; contract may shift to buyer. Base excludes pre-existing liens not removed by sale (O.C.G.A. 48-6-1, https://law.justia.com/codes/georgia/title-48/chapter-6/article-1/section-48-6-1)."
+        },
+        {
+          "name": "Georgia intangible recording tax (on long-term note)",
+          "base": "mortgage",
+          "payer": "buyer",
+          "structure": "flat",
+          "rate": 0.003,
+          "tiers": null,
+          "source_title": "Georgia DOR: Intangible Recording Tax",
+          "source_url": "https://dor.georgia.gov/node/2141",
+          "notes": "$1.50 per $500 of note face amount; maximum $25,000 per note. Legally collected from the note holder (lender), who may pass it to the borrower; customarily borrower-paid closing cost."
+        }
+      ]
+    },
+    "tampa": {
+      "state": "FL",
+      "jurisdiction": "Hillsborough County",
+      "taxes": [
+        {
+          "name": "Florida documentary stamp tax on deeds",
+          "base": "price",
+          "payer": "seller",
+          "structure": "flat",
+          "rate": 0.007,
+          "tiers": null,
+          "source_title": "Florida DOR: Documentary Stamp Tax overview (tutorial)",
+          "source_url": "https://floridarevenue.com/taxes/tutorial/tutorial_docs/docStampTaxOverview.pdf",
+          "notes": "$0.70 per $100 (all counties except Miami-Dade). All parties are liable; seller customarily pays (custom not stated on DOR page)."
+        },
+        {
+          "name": "Florida documentary stamp tax on mortgage/note",
+          "base": "mortgage",
+          "payer": "buyer",
+          "structure": "flat",
+          "rate": 0.0035,
+          "tiers": null,
+          "source_title": "Florida DOR: Documentary Stamp Tax overview (tutorial)",
+          "source_url": "https://floridarevenue.com/taxes/tutorial/tutorial_docs/docStampTaxOverview.pdf",
+          "notes": "$0.35 per $100; no cap for recorded mortgages (unsecured notes capped at $2,450)."
+        },
+        {
+          "name": "Florida nonrecurring intangible tax on mortgage",
+          "base": "mortgage",
+          "payer": "buyer",
+          "structure": "flat",
+          "rate": 0.002,
+          "tiers": null,
+          "source_title": "Fla. Stat. 199.133; Florida DOR Nonrecurring Intangible Tax",
+          "source_url": "https://m.flsenate.gov/Statutes/199.133",
+          "notes": "2 mills per dollar. DOR (https://floridarevenue.com/taxes/taxesfees/Pages/nonrecurring_intangible_tax.aspx): lender is the taxpayer liable but may pass cost to borrower."
+        }
+      ]
+    },
+    "miami": {
+      "state": "FL",
+      "jurisdiction": "Miami-Dade County",
+      "taxes": [
+        {
+          "name": "Florida documentary stamp tax on deeds (Miami-Dade rate)",
+          "base": "price",
+          "payer": "seller",
+          "structure": "flat",
+          "rate": 0.006,
+          "tiers": null,
+          "source_title": "Florida DOR: Documentary Stamp Tax overview (tutorial)",
+          "source_url": "https://floridarevenue.com/taxes/tutorial/tutorial_docs/docStampTaxOverview.pdf",
+          "notes": "$0.60 per $100 in Miami-Dade. Plus $0.45 per $100 discretionary surtax that does NOT apply to deeds conveying only a single-family residence; condos/other property pay 0.60% + 0.45% = 1.05%. Seller customarily pays."
+        },
+        {
+          "name": "Florida documentary stamp tax on mortgage/note",
+          "base": "mortgage",
+          "payer": "buyer",
+          "structure": "flat",
+          "rate": 0.0035,
+          "tiers": null,
+          "source_title": "Florida DOR: Documentary Stamp Tax overview (tutorial)",
+          "source_url": "https://floridarevenue.com/taxes/tutorial/tutorial_docs/docStampTaxOverview.pdf",
+          "notes": "$0.35 per $100; no cap for recorded mortgages."
+        },
+        {
+          "name": "Florida nonrecurring intangible tax on mortgage",
+          "base": "mortgage",
+          "payer": "buyer",
+          "structure": "flat",
+          "rate": 0.002,
+          "tiers": null,
+          "source_title": "Fla. Stat. 199.133",
+          "source_url": "https://m.flsenate.gov/Statutes/199.133",
+          "notes": "2 mills; lender liable, may pass to borrower."
+        }
+      ]
+    },
+    "chicago": {
+      "state": "IL",
+      "jurisdiction": "Cook County / City of Chicago",
+      "taxes": [
+        {
+          "name": "Illinois state real estate transfer tax",
+          "base": "price",
+          "payer": "seller",
+          "structure": "flat",
+          "rate": 0.001,
+          "tiers": null,
+          "source_title": "35 ILCS 200/31-10",
+          "source_url": "https://www.ilga.gov/Documents/legislation/ilcs/documents/003502000K31-10.htm",
+          "notes": "50 cents per $500 of value. Payer not stated in fetched section; customarily seller."
+        },
+        {
+          "name": "Cook County real property transfer tax",
+          "base": "price",
+          "payer": "seller",
+          "structure": "flat",
+          "rate": 0.0005,
+          "tiers": null,
+          "source_title": "Cook County news release: pursuing unpaid taxes on real estate sales",
+          "source_url": "https://www.cookcountyil.gov/news/president-preckwinkle-pursuing-unpaid-taxes-real-estate-sales",
+          "notes": "25 cents per $500 of transfer price; county enforces against sellers."
+        },
+        {
+          "name": "Chicago real property transfer tax (city portion)",
+          "base": "price",
+          "payer": "buyer",
+          "structure": "flat",
+          "rate": 0.0075,
+          "tiers": null,
+          "source_title": "City of Chicago Dept of Finance: Real Property Transfer Tax (7551)",
+          "source_url": "https://chicago.gov/city/en/depts/fin/supp_info/revenue/tax_list/real_property_transfertax.html",
+          "notes": "$3.75 per $500, generally paid by buyer. No graduated rates listed on page."
+        },
+        {
+          "name": "Chicago CTA portion of real property transfer tax",
+          "base": "price",
+          "payer": "seller",
+          "structure": "flat",
+          "rate": 0.003,
+          "tiers": null,
+          "source_title": "City of Chicago Dept of Finance: Real Property Transfer Tax (7551)",
+          "source_url": "https://chicago.gov/city/en/depts/fin/supp_info/revenue/tax_list/real_property_transfertax.html",
+          "notes": "$1.50 per $500, generally paid by seller. Refund available to buyers 65+ who occupy as residence 1 yr with price <= $250,000."
+        }
+      ]
+    },
+    "minneapolis": {
+      "state": "MN",
+      "jurisdiction": "Hennepin County",
+      "taxes": [
+        {
+          "name": "Minnesota deed tax (incl. Hennepin environmental response fund)",
+          "base": "price",
+          "payer": "seller",
+          "structure": "flat",
+          "rate": 0.0034,
+          "tiers": null,
+          "source_title": "Minnesota DOR: Deed Tax Rate",
+          "source_url": "https://www.revenue.state.mn.us/deed-tax-rate",
+          "notes": "0.33% of net consideration statewide + 0.01% ERF in Hennepin and Ramsey = 0.34%. Payer not stated on page; customarily seller."
+        },
+        {
+          "name": "Minnesota mortgage registry tax (incl. Hennepin ERF)",
+          "base": "mortgage",
+          "payer": "buyer",
+          "structure": "flat",
+          "rate": 0.0024,
+          "tiers": null,
+          "source_title": "Minnesota DOR: Mortgage Registry and Deed Tax",
+          "source_url": "https://revenue.state.mn.us/mortgage-registry-and-deed-tax",
+          "notes": "0.23% of debt secured + 0.01% ERF in Hennepin/Ramsey = 0.24%. Payer not stated; customarily borrower."
+        }
+      ]
+    },
+    "cleveland": {
+      "state": "OH",
+      "jurisdiction": "Cuyahoga County",
+      "taxes": [
+        {
+          "name": "Ohio real property conveyance fee (state mandatory portion)",
+          "base": "price",
+          "payer": "seller",
+          "structure": "flat",
+          "rate": 0.001,
+          "tiers": null,
+          "source_title": "Ohio Revised Code 319.54(G)(3)",
+          "source_url": "https://codes.ohio.gov/ohio-revised-code/section-319.54",
+          "notes": "10 cents per $100 of value."
+        },
+        {
+          "name": "Cuyahoga County permissive real property transfer tax",
+          "base": "price",
+          "payer": "seller",
+          "structure": "flat",
+          "rate": 0.003,
+          "tiers": null,
+          "source_title": "Cuyahoga County Fiscal Officer: Procedures for transferring ownership; ORC 322.02",
+          "source_url": "https://it.cuyahogacounty.gov/fiscal-officer/departments/real-property/procedures-for-transferring-ownership",
+          "notes": "County page states total conveyance fee of $4.00 per $1,000 of purchase price (page also says '.04%', inconsistent; $4/$1,000 = 0.4%). Permissive portion = 0.4% - 0.1% state. ORC 322.02 (https://codes.ohio.gov/ohio-revised-code/section-322.02): max 30 cents per $100, 'levied upon the grantor'."
+        }
+      ]
+    },
+    "detroit": {
+      "state": "MI",
+      "jurisdiction": "Wayne County",
+      "taxes": [
+        {
+          "name": "Michigan state real estate transfer tax",
+          "base": "price",
+          "payer": "seller",
+          "structure": "flat",
+          "rate": 0.0075,
+          "tiers": null,
+          "source_title": "State Real Estate Transfer Tax Act (MCL Act 330 of 1993)",
+          "source_url": "https://ombudsman.legislature.mi.gov/documents/mcl/pdf/MCL-ACT-330-OF-1993.pdf",
+          "notes": "$3.75 per $500. Seller/grantor liable. Exemption 6(u): principal residence (7cc) sales at arm's length where SEV at sale is <= SEV when seller acquired it (rare in rising markets; refundable)."
+        },
+        {
+          "name": "Wayne County real estate transfer tax",
+          "base": "price",
+          "payer": "seller",
+          "structure": "flat",
+          "rate": 0.0011,
+          "tiers": null,
+          "source_title": "Wayne County Register of Deeds: Document Recording",
+          "source_url": "https://www.waynecountymi.gov/Government/Elected-Officials/Register-of-Deeds/Document-Recording",
+          "notes": "$0.55 per $500 (page: county + state = $8.60 per $1,000). Seller customarily/legally pays (county act liability not fetched)."
+        }
+      ]
+    },
+    "dallas": {
+      "state": "TX",
+      "jurisdiction": "Dallas County",
+      "taxes": [],
+      "notes": "No state or local real estate transfer tax. Texas Constitution Art. 8 Sec. 29 is titled 'Transfer Tax on Transaction Conveying Fee Simple Title to Real Property' (referenced in https://capitol.texas.gov/tlodocs/89R/analysis/html/HJ00002E.htm); full text not fetched. Only ordinary recording fees."
+    },
+    "austin": {
+      "state": "TX",
+      "jurisdiction": "Travis County",
+      "taxes": [],
+      "notes": "Same as Dallas: no transfer tax or mortgage tax in Texas."
+    },
+    "denver": {
+      "state": "CO",
+      "jurisdiction": "City and County of Denver",
+      "taxes": [
+        {
+          "name": "Colorado documentary fee",
+          "base": "price",
+          "payer": "buyer",
+          "structure": "flat",
+          "rate": 0.0001,
+          "tiers": null,
+          "source_title": "C.R.S. 39-13-102; Denver Clerk & Recorder: Record Documents",
+          "source_url": "https://denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Denver-Clerk-and-Recorder/Recording-Division/Denver-Recording/document-recording",
+          "notes": "1 cent per $100 ($0.10 per $1,000) when consideration > $500. Statute (https://colorado.public.law/statutes/crs_39-13-102) imposes it on the person offering the deed for recording (typically buyer side). Denver page lists no separate transfer tax."
+        }
+      ]
+    },
+    "phoenix": {
+      "state": "AZ",
+      "jurisdiction": "Maricopa County",
+      "taxes": [],
+      "notes": "No transfer tax. Prop 100 (2008) amended AZ Constitution to bar state/local taxes or fees on sale/transfer of real property (except those existing before 12/31/2007, e.g. $2 recorder fee per deed/affidavit). Source: https://www.azjlbc.gov/ballot/100fn.pdf"
+    },
+    "las-vegas": {
+      "state": "NV",
+      "jurisdiction": "Clark County",
+      "taxes": [
+        {
+          "name": "Nevada real property transfer tax (Clark County rate)",
+          "base": "price",
+          "payer": "seller",
+          "structure": "flat",
+          "rate": 0.0051,
+          "tiers": null,
+          "source_title": "Nevada Dept of Taxation: Real Property Transfer Tax; Clark County Recorder Declaration of Value packet",
+          "source_url": "https://tax.nv.gov/tax-types/real-property-transfer-tax",
+          "notes": "$1.95 per $500 base + $0.60 Clark County = $2.55 per $500 (confirmed in https://files.clarkcountynv.gov/Recorder/Forms/DV_Packet.pdf). Pages do not name payer; buyer and seller jointly and severally liable for deficiencies (NRS 375.030). Modeled as customary seller-paid (negotiable)."
+        }
+      ]
+    },
+    "los-angeles": {
+      "state": "CA",
+      "jurisdiction": "City of Los Angeles (LA County)",
+      "taxes": [
+        {
+          "name": "Los Angeles County documentary transfer tax",
+          "base": "price",
+          "payer": "seller",
+          "structure": "flat",
+          "rate": 0.0011,
+          "tiers": null,
+          "source_title": "LA County Registrar-Recorder: Documentary Transfer Taxes",
+          "source_url": "https://lavote.gov/home/recorder/property-document-recording/documentary-transfer-taxes",
+          "notes": "$0.55 per $500 ($1.10 per $1,000), consideration excluding liens remaining. Payer not stated; customarily seller in LA."
+        },
+        {
+          "name": "City of Los Angeles real property transfer tax (base)",
+          "base": "price",
+          "payer": "seller",
+          "structure": "flat",
+          "rate": 0.0045,
+          "tiers": null,
+          "source_title": "LA County Registrar-Recorder: Documentary Transfer Taxes (City of LA, Code 44)",
+          "source_url": "https://lavote.gov/home/recorder/property-document-recording/documentary-transfer-taxes",
+          "notes": "$2.25 per $500 = 0.45%, separate from (not credited against) county tax. Customarily seller."
+        },
+        {
+          "name": "City of Los Angeles Measure ULA ('mansion tax') surcharge",
+          "base": "price",
+          "payer": "seller",
+          "structure": "whole_price_tiers",
+          "rate": null,
+          "tiers": [{"from": 0, "to": 5400000, "rate": 0.0}, {"from": 5400000, "to": 10900000, "rate": 0.04}, {"from": 10900000, "to": null, "rate": 0.055}],
+          "source_title": "LA County Registrar-Recorder: Documentary Transfer Taxes (City of LA rates table)",
+          "source_url": "https://lavote.gov/home/recorder/property-document-recording/documentary-transfer-taxes",
+          "notes": "Effective 7/1/26: 4% of total value for sales above $5,400,000 and below $10,900,000; 5.5% at $10,900,000+ (7/1/25-6/30/26 thresholds were $5.3M/$10.6M). Thresholds CPI-indexed each July 1. Whole price, on top of base 0.45%. Pending Nov-2026 ballot items (Palisades fire exemption, new multifamily exemption) per law-firm summary https://www.hansonbridgett.com/publications/260812_7087_ula-ordinance-updates. Payer: customarily seller."
+        }
+      ]
+    },
+    "san-diego": {
+      "state": "CA",
+      "jurisdiction": "City of San Diego (San Diego County)",
+      "taxes": [
+        {
+          "name": "San Diego County documentary transfer tax",
+          "base": "price",
+          "payer": "seller",
+          "structure": "flat",
+          "rate": 0.0011,
+          "tiers": null,
+          "source_title": "San Diego County Assessor/Recorder/County Clerk: Recording",
+          "source_url": "https://www.sdarcc.gov/content/arcc/home/divisions/recorder-clerk/recording.html",
+          "notes": "$0.55 per $500 (R&T 11911). Collected 'for the county and cities'; under R&T 11911(b)-(c) a city tax of half the county rate is credited against the county tax, so no net additional city tax. No separate City of San Diego tax found. Payer customary/negotiable (seller assumed; a non-official guide says it is often split)."
+        }
+      ]
+    },
+    "san-francisco": {
+      "state": "CA",
+      "jurisdiction": "City and County of San Francisco",
+      "taxes": [
+        {
+          "name": "San Francisco real property transfer tax",
+          "base": "price",
+          "payer": "seller",
+          "structure": "whole_price_tiers",
+          "rate": null,
+          "tiers": [
+            {"from": 0, "to": 250000, "rate": 0.005},
+            {"from": 250000, "to": 1000000, "rate": 0.0068},
+            {"from": 1000000, "to": 5000000, "rate": 0.0075},
+            {"from": 5000000, "to": 10000000, "rate": 0.0225},
+            {"from": 10000000, "to": 25000000, "rate": 0.055},
+            {"from": 25000000, "to": null, "rate": 0.06}
+          ],
+          "source_title": "SF.gov: Transfer tax",
+          "source_url": "https://www.sf.gov/transfer-tax",
+          "notes": "Per $500: $2.50 (>$100-$250k), $3.40 ($250k-<$1M), $3.75 ($1M-<$5M), $11.25 ($5M-<$10M), $27.50 ($10M-<$25M), $30.00 ($25M+). Bracket is chosen by the 'entire value or consideration' and applied to the whole value. SF is a consolidated city-county; no separate county DTT on top. Payer not stated on page; customarily seller."
+        }
+      ]
+    },
+    "seattle": {
+      "state": "WA",
+      "jurisdiction": "City of Seattle (King County)",
+      "taxes": [
+        {
+          "name": "Washington state real estate excise tax (graduated)",
+          "base": "price",
+          "payer": "seller",
+          "structure": "marginal_tiers",
+          "rate": null,
+          "tiers": [
+            {"from": 0, "to": 525000, "rate": 0.011},
+            {"from": 525000, "to": 1525000, "rate": 0.0128},
+            {"from": 1525000, "to": 3025000, "rate": 0.0275},
+            {"from": 3025000, "to": null, "rate": 0.03}
+          ],
+          "tiers_from_2027_01_01": [
+            {"from": 0, "to": 551000, "rate": 0.011},
+            {"from": 551000, "to": 1551000, "rate": 0.0128},
+            {"from": 1551000, "to": 3051000, "rate": 0.0275},
+            {"from": 3051000, "to": null, "rate": 0.03}
+          ],
+          "source_title": "WA DOR: Real estate excise tax (REET)",
+          "source_url": "https://dor.wa.gov/REET",
+          "notes": "Rates apply to the portion of selling price in each band (marginal). Current thresholds effective 1/1/2023; new thresholds effective 1/1/2027 (adjusted every 4 years, RCW 82.45.060). Seller usually pays; buyer liable if seller does not. Plus $5 technology fee."
+        },
+        {
+          "name": "Seattle local REET",
+          "base": "price",
+          "payer": "seller",
+          "structure": "flat",
+          "rate": 0.005,
+          "tiers": null,
+          "source_title": "WA DOR local REET rate table (84-0013, effective May 1, 2026)",
+          "source_url": "https://dor.wa.gov/sites/default/files/2026-03/84-0013-May26_REET.pdf",
+          "notes": "Seattle location code 1726: 0.50%, added to state REET."
+        }
+      ]
+    },
+    "portland": {
+      "state": "OR",
+      "jurisdiction": "Multnomah County (City of Portland)",
+      "taxes": [],
+      "notes": "No state transfer tax and none in Multnomah County. ORS 306.815 (https://oregon.public.law/statutes/ors_306.815) bars local taxes on transfer of fee estates except those in effect on March 31, 1997 - Washington County's is the grandfathered one. See alt_jurisdictions for Washington County (west suburbs; small part of Portland).",
+      "alt_jurisdictions": {
+        "washington-county-or": {
+          "taxes": [
+            {
+              "name": "Washington County (OR) real property transfer tax",
+              "base": "price",
+              "payer": "split",
+              "structure": "flat",
+              "rate": 0.001,
+              "tiers": null,
+              "source_title": "Washington County OR Assessment & Taxation: Transfer tax exemption",
+              "source_url": "https://washingtoncountyor.gov/at/recording/transfer-tax-exemption",
+              "notes": "$1 per $1,000 of selling price. 'Liability for the tax is between the purchaser and seller' (customarily split). Exemption form J.13 for transfers under $13,999."
+            }
+          ]
+        }
+      }
+    }
+  },
+  "notes": "Rates as decimals. 'whole_price_tiers' = the tier is selected by total price (or loan amount for base=mortgage) and that rate applies to the whole amount (mansion-tax style); 'marginal_tiers' = each rate applies only to the portion within the band. Tier boundaries are half-open [from, to): a value equal to 'to' falls in the next tier (DC 1.45% at >= $400,000; NYC MRT higher tier at >= $500,000; NY thresholds 'or more'). NYC RPTT is 1% at <= $500,000, encoded with to=500000.01. Per-$500/$100 rounding ignored. 'payer' is legal payer where the fetched source said so, otherwise customary practice (flagged in notes); payer is negotiable in most places. Mortgage-based taxes (NY MRT, FL doc stamps on note + intangible, GA intangible, MN mortgage registry) are buyer/borrower costs only when financed. Primary-residence exemptions are rare: only DC first-time homebuyer reduced recordation rate (0.725%) and Michigan state-tax exemption when SEV has not risen since purchase were found. Recording fees (flat $) excluded. Texas, Arizona, Multnomah County OR have no transfer tax."
+}

@@ -98,10 +98,44 @@ for slug in order:
                    'P': (m.get('price') or {}).get('value'), 'rent': (m.get('rent') or {}).get('value'),
                    'ptax': (m.get('ptax') or {}).get('rate_pct'), 'ins': (m.get('ins') or {}).get('annual_usd'),
                    'ptaxCap': cap,
+                   'acs': ({'rate': (m.get('acs') or {}).get('eff_tax_pct'), 'year': (m.get('acs') or {}).get('year'), 'name': (m.get('acs') or {}).get('name'),
+                            'beds': (m.get('acs') or {}).get('rent_ratio_by_bedrooms'), 'u': (m.get('acs') or {}).get('source_url')} if m.get('acs') else None),
+                   'rentG': ((m.get('rent_hist') or {}).get('growth_pct')),
+                   'rentSrc': ({'t': f"BLS rent index {', '.join(x for x in (m.get('rent_hist') or {}).get('series', {}).values() if x)} (metro years {sum(1 for s in (m.get('rent_hist') or {}).get('source_by_year', {}).values() if s != 'region')}, region otherwise)", 'u': (m.get('rent_hist') or {}).get('source_url')} if m.get('rent_hist') else None),
+                   'tt': m.get('transfer_taxes'), 'ttSrc': [{'t': x['name'], 'u': x['source_url']} for x in (m.get('transfer_taxes') or []) if x.get('source_url')],
                    'hpi': {'values': vals, 'basis': h.get('basis'), 'volK': h.get('volK')} if vals else None,
                    'hpiSrc': {'t': f"FHFA purchase-only index, {h.get('area')} ({h.get('basis')}); volatility ratio {h.get('volK')}", 'u': h.get('source_url')} if h.get('source_url') else None,
                    'src': {k: s(k) for k in ('price', 'rent', 'ptax', 'ins')}})
     METROS[-1]['src']['hpi'] = METROS[-1]['hpiSrc']
+
+# ---------- national public data and loan rules ----------
+NATP = json.load(open(D('data', 'national_public.json'))) if os.path.exists(D('data', 'national_public.json')) else {}
+LR = json.load(open(D('data', 'loan_rules.json'))) if os.path.exists(D('data', 'loan_rules.json')) else {}
+ins_ = NATP.get('insurance') or {}
+D0['insG'] = ins_.get('excess_long', 0)
+D0['bedRatio'] = NATP.get('rent_ratio_by_bedrooms') or {}
+arm_v = (LR.get('arm') or {}).get('values') or {}
+def _find(d, *keys):
+    for k in keys:
+        if isinstance(d, dict) and d.get(k) is not None: return d[k]
+    return None
+cur = arm_v.get('current_5_1_arm_rate') or {}; fx = arm_v.get('mba_30yr_fixed_same_week') or {}
+ARM_SPREAD = round((fx.get('rate', 0.075) - cur.get('rate', 0.0654)) * 100, 2)
+D0['armRate'] = round(snap['values']['rate30'] - ARM_SPREAD, 2)
+D0['armMargin'] = 2.75; D0['ptsCut'] = 0.25
+RES['insG'] = {'u': ins_.get('source_url'), 'h': f"homeowners insurance prices (BLS PPI) rose {ins_.get('ppi_cagr_long')}%/yr vs CPI {ins_.get('cpi_cagr_long')}% since 1998: {ins_.get('excess_long')} pts faster ({ins_.get('excess_10y')} pts over the last 10 years)"} if ins_ else {}
+def _src(k): e = LR.get(k) or {}; return e.get('source_url')
+RES['fha'] = {'u': _src('fha'), 'h': 'HUD ML 2023-05: 1.75% upfront (financed); 0.55% a year at >95% LTV (0.50% at ≤95%), for the full term above 90% LTV, 11 years at ≤90%; 3.5% minimum down'}
+RES['arm'] = {'u': _src('arm'), 'h': f"MBA survey: 5/1 ARM {cur.get('rate',0)*100:.2f}% vs 30-yr fixed {fx.get('rate',0)*100:.2f}% (week ending {cur.get('week_ending')}), a {ARM_SPREAD}-pt discount applied to today's Freddie Mac rate. Resets every 6 months to 30-day SOFR + margin; the model uses the T-bill rate as the index"}
+RES['armMargin'] = {'u': _src('arm'), 'h': 'Fannie Mae allows up to 3%; 2–3% typical. <span class="tag">assumption</span>'}
+RES['pts'] = {'u': _src('points'), 'h': 'CFPB: a point has no fixed value in rate terms; ask lenders. <span class="tag">assumption</span>'}
+own_sh = (NATP.get('owner_bedroom_share') or {}).get('3')
+RES['beds'] = {'u': 'https://www.census.gov/programs-surveys/acs/data/summary-file.html', 'h': f"{round(own_sh*100) if own_sh else '—'}% of owner-occupied homes have 3 bedrooms (ACS {NATP.get('acs_year')}); rent is scaled by the area's median rent for that size vs. all units"}
+for k in ('fha', 'arm', 'points', 'sofr'):
+    e = LR.get(k) or {}
+    if e.get('source_url') and e.get('source_title'): RES['sources'][f'lr_{k}'] = {'t': e['source_title'], 'u': e['source_url']}
+if ins_: RES['sources']['ppi_ins'] = {'t': 'BLS PPI: homeowners insurance premiums (PCU5241265241262)', 'u': ins_['source_url']}
+RES['sources']['acs'] = {'t': f"Census ACS {NATP.get('acs_year')} 1-year summary file (property tax, home value, rent by bedrooms, bedrooms by tenure)", 'u': 'https://www.census.gov/programs-surveys/acs/data/summary-file.html'}
 
 # ---------- monthly ----------
 MONTHLY = None

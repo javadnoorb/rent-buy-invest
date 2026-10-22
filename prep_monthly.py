@@ -10,6 +10,21 @@ def series(k):
     return {d[:7]: x for d, x in v.items() if x is not None}
 
 cs, cpi, rent, mort, tb, g10 = (series(k) for k in ('fhfa', 'cpi', 'rent', 'mort', 'tbill', 'gs10'))
+def fill_single_gaps(d):
+    # BLS skipped some months (e.g. Oct 2025); fill a one-month gap with the geometric mean of its neighbours
+    ks = sorted(d)
+    if not ks: return d
+    y, m = map(int, ks[0].split('-'))
+    while f'{y:04d}-{m:02d}' < ks[-1]:
+        cur = f'{y:04d}-{m:02d}'; m += 1
+        if m > 12: y, m = y + 1, 1
+        nxt = f'{y:04d}-{m:02d}'
+        py, pm = map(int, cur.split('-')); pm -= 1
+        if pm == 0: py, pm = py - 1, 12
+        prv = f'{py:04d}-{pm:02d}'
+        if cur not in d and prv in d and nxt in d: d[cur] = (d[prv] * d[nxt]) ** 0.5
+    return d
+cpi, rent = fill_single_gaps(cpi), fill_single_gaps(rent)
 sp = series('sp')
 sp_ret = series('sp_ret') if raw.get('sp_ret') else {}
 

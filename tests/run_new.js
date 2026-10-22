@@ -46,6 +46,43 @@ module.exports=function({M,base,run,ok,near}){
    const mean=a=>a.reduce((s,x)=>s+x,0)/a.length,sd=a=>{const m=mean(a);return Math.sqrt(a.reduce((s,x)=>s+(x-m)**2,0)/a.length)};
    near(mean(adj),mean(raw),1e-9,'volatility scaling keeps the average yearly change');near(sd(adj),1.5*sd(raw),1e-9,'volatility scaling multiplies the spread by k')}
 
+  /* FHA: upfront MIP financed, annual MIP for 11 years at ≤90% LTV, for the full term above */
+  {const q=Object.assign({},p0,{P:400000,dp:0.035,loanType:'fha',N:30,pmi:0.005}),o=run(q,30,{detail:true});
+   near(o.bal[0],400000*0.965*1.0175,1e-12,'FHA loan includes the 1.75% upfront premium');
+   near(o.flow[0].pmi*12/(400000*0.965*1.0175),0.0055,0.03,'FHA annual premium ≈ 0.55% at 96.5% LTV');
+   ok(o.flow[25].pmi>0,'FHA premium lasts the whole term above 90% LTV');
+   const r=run(Object.assign({},q,{dp:0.10}),30,{detail:true});ok(r.flow[10].pmi>0&&r.flow[11].pmi===0,'FHA premium stops after 11 years at 10% down')}
+
+  /* Points lower the rate and cost cash up front */
+  {const q=Object.assign({},p0,{rate:0.07,rate30:0.07,pts:2,ptsCut:0.0025,N:30}),o=run(q,30,{detail:true}),n=run(Object.assign({},q,{pts:0}),30,{detail:true});
+   ok(o.flow[0].interest<n.flow[0].interest,'points lower the interest paid');
+   near(o.inv[0]-n.inv[0],0.02*q.P*(1-q.dp),1e-9,'renter invests the cash the buyer spends on points')}
+
+  /* ARM: resets after the fixed period, within caps */
+  {const q=Object.assign({},p0,{loanType:'arm',rate:0.07,rate30:0.07,armRate:0.06,armYears:5,armMargin:0.0275,armCapInit:0.02,armCapPer:0.01,armCapLife:0.05,rc:0.06,N:12});
+   const o=run(q,12,{detail:true});const r5=o.flow[4].interest,r6=o.flow[6].interest;
+   ok(o.flow[0].interest<run(Object.assign({},q,{loanType:'fixed'}),12,{detail:true}).flow[0].interest,'ARM starts below the fixed rate');
+   ok(r6>r5,'ARM rate rises at reset when the index is high');
+   const lo=run(Object.assign({},q,{rc:0.0}),12,{detail:true});ok(lo.flow[7].interest<o.flow[7].interest,'a lower index gives a lower reset rate')}
+
+  /* Insurance growing faster than inflation raises owner costs */
+  {const a=run(Object.assign({},p0,{ins:3000,insG:0.03}),15,{detail:true}),b=run(Object.assign({},p0,{ins:3000,insG:0}),15,{detail:true});
+   ok(a.flow[14].ins>b.flow[14].ins*1.4,'insurance compounds at inflation plus its extra growth')}
+
+  /* Mortgage-rate paths pull back toward the expected long-run rate */
+  {const q=Object.assign({},p0,{rate:0.12,rateLR:0.06,gh:0.04,rs:0.08,rb:0.04,rc:0.03,inf:0.025,N:10}),cfg={n:400,bl:5,from:1972,rc:true,home:M.HOME,real:true};
+   const a=M.mcCore(q,cfg),med=k=>{const v=a.res.rates.map(x=>x[k]).sort((x,y)=>x-y);return v[v.length>>1]};
+   ok(med(29)<0.11,'rates starting at 12% drift down toward a 6% long-run level')}
+
+  /* Transfer taxes: hand-checked cases from the collected rules */
+  {const tt=JSON.parse(require('fs').readFileSync(require('path').join(__dirname,'..','data','transfer_taxes.json'),'utf8')).metros;
+   const pct=(slug,P,L)=>{const r=M.transferTaxes(tt[slug].taxes,P,L);return [r.buyer/P*100,r.seller/P*100]};
+   const [b1,s1]=pct('seattle',500000,400000);near(s1,1.6,1e-9,'Seattle seller pays 1.1% state + 0.5% local under $525k');
+   const [b2,s2]=pct('seattle',1500000,1200000);near(s2*15000,0.011*525000+0.0128*975000+0.005*1500000,1e-9,'Seattle state REET is marginal');
+   const [b3,s3]=pct('washington-dc',500000,400000);near(b3,1.45,1e-9,'DC buyer recordation 1.45% at $400k+');near(s3,1.45,1e-9,'DC seller transfer 1.45%');
+   const [b4,s4]=pct('dallas',500000,400000);ok(b4===0&&s4===0,'Texas has no transfer tax');
+   const [b5]=pct('new-york',1500000,1200000);ok(b5>2,'NYC buyer pays mansion tax and mortgage recording tax over $1M')}
+
   /* Default inputs leave old results unchanged */
   {const a=run(p0,15),b=run(Object.assign({},p0,{renewGap:0,incGrowth:0,moveMode:'none',hhRent:0,rentalOn:false}),15);
    near(a.buy[15],b.buy[15],1e-12,'features off: identical results')}

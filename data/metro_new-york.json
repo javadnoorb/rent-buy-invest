@@ -81,5 +81,268 @@
   "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
   "source_url": "https://insurify.com/homeowners-insurance/states/"
  },
- "notes": "Property tax choice is uncertain for a metro this varied: SmartAsset gives Kings 0.73%, Queens 0.88%, NY state 1.45%, New York County (Manhattan) not available, no year stated. ATTOM 2025 annual tax report gives New York state effective rate 1.23% for 2025 (https://www.attomdata.com/news/market-trends/home-sales-prices/2025-annual-tax-report). Suburban counties (Nassau, Westchester, NJ) are much higher but were not found. Alternative insurance: NerdWallet (May 6, 2026) NY $1,710/yr at $400,000 dwelling. Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22)."
+ "notes": "Property tax choice is uncertain for a metro this varied: SmartAsset gives Kings 0.73%, Queens 0.88%, NY state 1.45%, New York County (Manhattan) not available, no year stated. ATTOM 2025 annual tax report gives New York state effective rate 1.23% for 2025 (https://www.attomdata.com/news/market-trends/home-sales-prices/2025-annual-tax-report). Suburban counties (Nassau, Westchester, NJ) are much higher but were not found. Alternative insurance: NerdWallet (May 6, 2026) NY $1,710/yr at $400,000 dwelling. Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
+ "rent_hist": {
+  "growth_pct": {
+   "1987": 6.744,
+   "1988": 5.321,
+   "1989": 5.615,
+   "1990": 5.662,
+   "1991": 3.497,
+   "1992": 3.207,
+   "1993": 2.578,
+   "1994": 2.483,
+   "1995": 2.714,
+   "1996": 2.772,
+   "1997": 3.46,
+   "1998": 3.403,
+   "1999": 3.251,
+   "2000": 4.326,
+   "2001": 4.0,
+   "2002": 4.463,
+   "2003": 4.403,
+   "2004": 4.528,
+   "2005": 5.232,
+   "2006": 5.177,
+   "2007": 4.52,
+   "2008": 5.064,
+   "2009": 3.901,
+   "2010": 2.058,
+   "2011": 2.186,
+   "2012": 2.417,
+   "2013": 3.069,
+   "2014": 2.985,
+   "2015": 3.092,
+   "2016": 3.439,
+   "2017": 2.531,
+   "2018": 1.974,
+   "2019": 2.983,
+   "2020": 2.003,
+   "2021": 0.201,
+   "2022": 2.461,
+   "2023": 5.698,
+   "2024": 4.865,
+   "2025": 4.839
+  },
+  "source_by_year": {
+   "1987": "metro",
+   "1988": "metro",
+   "1989": "metro",
+   "1990": "metro",
+   "1991": "metro",
+   "1992": "metro",
+   "1993": "metro",
+   "1994": "metro",
+   "1995": "metro",
+   "1996": "metro",
+   "1997": "metro",
+   "1998": "metro",
+   "1999": "metro",
+   "2000": "metro",
+   "2001": "metro",
+   "2002": "metro",
+   "2003": "metro",
+   "2004": "metro",
+   "2005": "metro",
+   "2006": "metro",
+   "2007": "metro",
+   "2008": "metro",
+   "2009": "metro",
+   "2010": "metro",
+   "2011": "metro",
+   "2012": "metro",
+   "2013": "metro",
+   "2014": "metro",
+   "2015": "metro",
+   "2016": "metro",
+   "2017": "metro",
+   "2018": "metro",
+   "2019": "metro",
+   "2020": "metro",
+   "2021": "metro",
+   "2022": "metro",
+   "2023": "metro",
+   "2024": "metro",
+   "2025": "metro"
+  },
+  "series": {
+   "metro": "CUURS12ASEHA",
+   "metro_pre2018": null,
+   "region": "CUURS100SEHA"
+  },
+  "source_title": "BLS CPI-U rent of primary residence, annual average of published months (public domain)",
+  "source_url": "https://data.bls.gov/timeseries/CUURS12ASEHA",
+  "note": "Years without a metro series use the BLS regional large-metro (size A) rent index."
+ },
+ "acs": {
+  "year": 2024,
+  "geo_id": "310M700US35620",
+  "name": "New York-Newark-Jersey City, NY-NJ Metro Area",
+  "median_tax": 9973.0,
+  "median_value": 648800.0,
+  "eff_tax_pct": 1.537,
+  "median_gross_rent": 1851.0,
+  "rent_ratio_by_bedrooms": {
+   "0": 0.881,
+   "1": 0.923,
+   "2": 1.019,
+   "3": 1.182,
+   "4": 1.403
+  },
+  "source_title": "Census ACS 2024 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
+  "source_url": "https://www.census.gov/programs-surveys/acs/data/summary-file.html"
+ },
+ "transfer_taxes": [
+  {
+   "name": "NYS real estate transfer tax (base)",
+   "base": "price",
+   "payer": "seller",
+   "structure": "flat",
+   "rate": 0.004,
+   "tiers": null,
+   "source_title": "NYS Dept of Taxation: Real estate transfer tax",
+   "source_url": "https://www.tax.ny.gov/bus/transfer/rptidx.htm",
+   "notes": "$2 per $500 of consideration. Grantor (seller) pays; grantee pays only if seller fails/exempt or contract shifts it."
+  },
+  {
+   "name": "NYS additional base tax (NYC, residential >= $3M)",
+   "base": "price",
+   "payer": "seller",
+   "structure": "whole_price_tiers",
+   "rate": null,
+   "tiers": [
+    {
+     "from": 0,
+     "to": 3000000,
+     "rate": 0.0
+    },
+    {
+     "from": 3000000,
+     "to": null,
+     "rate": 0.0025
+    }
+   ],
+   "source_title": "NYS TSB-M-19(1)R; NYS real estate transfer tax page",
+   "source_url": "https://www.tax.ny.gov/pdf/memos/real_estate/m19-1r.pdf",
+   "notes": "$1.25 per $500 on ENTIRE consideration when residential conveyance in NYC is $3M or more (so state base becomes 0.65%). Seller pays."
+  },
+  {
+   "name": "NYS 'mansion tax' (additional tax, residential >= $1M)",
+   "base": "price",
+   "payer": "buyer",
+   "structure": "whole_price_tiers",
+   "rate": null,
+   "tiers": [
+    {
+     "from": 0,
+     "to": 1000000,
+     "rate": 0.0
+    },
+    {
+     "from": 1000000,
+     "to": null,
+     "rate": 0.01
+    }
+   ],
+   "source_title": "NYS Dept of Taxation: Real estate transfer tax",
+   "source_url": "https://www.tax.ny.gov/bus/transfer/rptidx.htm",
+   "notes": "1% of the entire price for residential consideration of $1M or more. Buyer (grantee) pays. Applies statewide incl. co-ops."
+  },
+  {
+   "name": "NYS supplemental tax (NYC residential >= $2M; stacks on mansion tax)",
+   "base": "price",
+   "payer": "buyer",
+   "structure": "whole_price_tiers",
+   "rate": null,
+   "tiers": [
+    {
+     "from": 0,
+     "to": 2000000,
+     "rate": 0.0
+    },
+    {
+     "from": 2000000,
+     "to": 3000000,
+     "rate": 0.0025
+    },
+    {
+     "from": 3000000,
+     "to": 5000000,
+     "rate": 0.005
+    },
+    {
+     "from": 5000000,
+     "to": 10000000,
+     "rate": 0.0125
+    },
+    {
+     "from": 10000000,
+     "to": 15000000,
+     "rate": 0.0225
+    },
+    {
+     "from": 15000000,
+     "to": 20000000,
+     "rate": 0.025
+    },
+    {
+     "from": 20000000,
+     "to": 25000000,
+     "rate": 0.0275
+    },
+    {
+     "from": 25000000,
+     "to": null,
+     "rate": 0.029
+    }
+   ],
+   "source_title": "NYS TSB-M-19(1)R: Amendments to the Real Estate Transfer Tax",
+   "source_url": "https://www.tax.ny.gov/pdf/memos/real_estate/m19-1r.pdf",
+   "notes": "Computed on entire consideration for wholly residential property. Buyer pays (seller if buyer fails/exempt). Combined with the 1% mansion tax gives 1.25% at $2-3M up to 3.9% at $25M+."
+  },
+  {
+   "name": "NYC Real Property Transfer Tax (RPTT), residential Type 1/2",
+   "base": "price",
+   "payer": "seller",
+   "structure": "whole_price_tiers",
+   "rate": null,
+   "tiers": [
+    {
+     "from": 0,
+     "to": 500000.01,
+     "rate": 0.01
+    },
+    {
+     "from": 500000.01,
+     "to": null,
+     "rate": 0.01425
+    }
+   ],
+   "source_title": "NYC Dept of Finance: Real Property Transfer Tax (RPTT)",
+   "source_url": "https://www.nyc.gov/site/finance/property/property-real-property-transfer-tax-rptt.page",
+   "notes": "1-3 family houses, condo units, co-op units: 1% if value is $500,000 or less; 1.425% if above $500,000 (rate on whole price). Applies to transfers over $25,000. DOF page does not name payer ('usually paid as part of closing costs'; both sign return); customarily the seller (grantor) - payer not confirmed on fetched page."
+  },
+  {
+   "name": "NYC mortgage recording tax (city + state), borrower share",
+   "base": "mortgage",
+   "payer": "buyer",
+   "structure": "whole_price_tiers",
+   "rate": null,
+   "tiers": [
+    {
+     "from": 0,
+     "to": 500000,
+     "rate": 0.018
+    },
+    {
+     "from": 500000,
+     "to": null,
+     "rate": 0.01925
+    }
+   ],
+   "source_title": "NYC DOF 2022 Mortgage Recording Tax Annual Report; NY Tax Law s.253",
+   "source_url": "https://www.nyc.gov/assets/finance/downloads/pdf/reports/reports_mrt/2022-mrt-report.pdf",
+   "notes": "Tier chosen by mortgage amount, rate applied to whole loan. DOF report: residential (1-3 family, condo) combined 2.05% (<$500k) / 2.175% (>=$500k), which includes the 0.25% state 'special additional tax'. Under Tax Law s.253(1-a)(a) (https://www.nysenate.gov/legislation/laws/TAX/253) the special additional tax on small residential property is paid by the mortgagee and may not be passed to the mortgagor; borrower share therefore 1.8% / 1.925%. Co-op purchases are financed with share loans and do not pay MRT."
+  }
+ ]
 }

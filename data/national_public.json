@@ -1,0 +1,27 @@
+{
+ "rent_ratio_by_bedrooms": {
+  "0": 0.888,
+  "1": 0.875,
+  "2": 1.002,
+  "3": 1.128,
+  "4": 1.391
+ },
+ "acs_year": 2024,
+ "owner_bedroom_share": {
+  "0": 0.006,
+  "1": 0.024,
+  "2": 0.165,
+  "3": 0.476,
+  "4": 0.254,
+  "5+": 0.075
+ },
+ "insurance": {
+  "series": "PCU5241265241262",
+  "source_url": "https://data.bls.gov/timeseries/PCU5241265241262",
+  "through": 2025,
+  "ppi_cagr_long": 3.95,
+  "cpi_cagr_long": 2.56,
+  "excess_long": 1.39,
+  "excess_10y": 0.63
+ }
+}
