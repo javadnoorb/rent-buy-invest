@@ -30,9 +30,12 @@ It then opens full-screen from its own icon, and works offline after the first v
 - **Other ways to own:** house-hacking income (renting part of your home) and an optional fourth path: rent your home and buy a rental property (vacancy, management, depreciation, passive-loss limits, recapture).
 - **Realism:** lease renewals vs. market rent with resets on moves, income growth with per-year tax brackets, a planned move (sell and rebuy, or sell and rent), and moves that are likelier in downturns with a forced-sale discount.
 - **Presets:** 1928–2025 and 1972–2025 historical averages, current year-over-year figures, and 2026 published forecasts (Horizon Actuarial survey of 43 firms; Pulsenomics home-price expectations).
+- **Any county:** pick "Any U.S. county…" in Location to fill price, rent and property tax for any of about 3,200 counties from Census ACS 5-year data, scaled to today's national Zillow figures (appears once the Refresh data workflow has fetched `data/counties.json`).
+- **Mortgage choices:** extra monthly payments toward principal or invested instead (with the difference shown in the summary), PMI removal by appraisal, and a home-equity line counted as an emergency reserve.
 - **Locations:** the same household in all 23 metros at once: verdict, monthly cost, cash needed, affordability and break-even year, sortable, with growth set the same everywhere, adjusted by each metro's history, or taken from it.
 - **Scenarios:** save named setups in the browser and compare them.
-- **Help and offline:** a "?" next to every setting, number and chart; works offline once installed; warns when market data is more than three weeks old.
+- **Share and print:** copy a link, use the phone's share sheet, or print the answer with your inputs (or save it as a PDF). An undo bar lists what changed whenever one action changes several settings.
+- **Help, accessibility and offline:** a "?" next to every setting, number and chart; every chart is announced to screen readers with its title and written takeaway; works offline once installed; warns when market data is more than three weeks old.
 - **Sources:** every data point links to its source; the Method tab lists the formulas.
 
 ## Repository layout
@@ -43,6 +46,7 @@ It then opens full-screen from its own icon, and works offline after the first v
 | `src/` | `body.html`, `style.css`, `model.js` (simulation), `app/NN-*.js` (UI and charts, concatenated in order) |
 | `data/snapshot.json` | Current market figures shown in the header cards and used as defaults |
 | `data/metro_*.json` | Per-metro price, rent, tax, insurance and home-price index, with source URLs |
+| `data/counties.json` | County median home value, contract rent and real-estate tax (Census ACS 5-year), written by `scripts/fetch_counties.py` |
 | `data/research.json` | Sourced parameters (single-house volatility, tenure, dividend yield, costs, annual mortgage averages) |
 | `data/monthly.json` | Raw monthly series, 1987–2026 |
 | `data/monthly_processed.json` | Monthly returns used by the monthly backtest |
@@ -64,7 +68,8 @@ Everything runs with the Python standard library and Node; no install is needed 
 | `npm run serve` | Serves the folder at http://localhost:8000 |
 | `npm test` | Lint plus the model tests (about a second) |
 | `npm run smoke` | Browser test with the real chart and formula libraries (needs `npm i playwright`) |
-| `npm run check` | Build, test, and the browser test with a stubbed chart library (works offline) |
+| `npm run test:ui` | Browser test of the UI logic: headline wording, ties, undo, counties, chart descriptions |
+| `npm run check` | Build, test, and the browser tests with a stubbed chart library (works offline) |
 
 `src/app/*.js` files are concatenated in name order into one script, so they share one scope: `npm run lint` fails if a top-level name is declared twice, if code looks up an element id that does not exist, or if a setting has no pop-up help.
 
@@ -79,11 +84,11 @@ The GitHub Pages build loads Plotly (charts) and MathJax (formulas) from `vendor
 
 ## Refreshing data
 
-The **Refresh data** workflow (Actions tab → Refresh data → Run workflow) downloads FHFA home-price indexes, BLS CPI, rent and insurance price indexes, Census ACS tables and Freddie Mac mortgage rates; merges them into `data/` with `scripts/apply_public.py`; rebuilds `index.html`; runs the tests; and commits only if the tests pass. It never runs on a schedule. Zillow, NAR, property-tax and insurance survey figures, forecasts and tax law are updated by hand.
+The **Refresh data** workflow runs on the 4th of each month and on demand (Actions tab → Refresh data → Run workflow). It downloads FHFA home-price indexes, BLS CPI, rent and insurance price indexes, Census ACS tables (including county figures) and Freddie Mac mortgage rates; merges them into `data/` with `scripts/apply_public.py`; rebuilds `index.html`; and runs the tests. If they pass and something changed, it opens or updates a pull request from the `data-refresh` branch; it never commits to main. It needs Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests". Zillow, NAR, property-tax and insurance survey figures, forecasts and tax law are updated by hand.
 
 ## Tests
 
-`npm test` runs `tests/lint.js` (static checks) and `tests/run.js`, with `tests/run_new.js`, which check the model math (mortgage amortization against the closed form, tax brackets, SALT cap, home-sale exclusion, PMI, refinancing, annual vs. monthly paths, directional sanity checks, each realism feature, underwater sales, tax-year indexing, and property checks over random inputs: results stay finite, monthly and annual paths agree, and higher home or stock growth never hurts the matching path). Run it after any change to `src/model.js`. `tests/smoke.js` opens every tab at phone width and fails on page errors, charts that don't draw, formulas that don't render, anything wider than the screen, or a chart readout that doesn't close on a second tap. Both run in parallel on every push (Tests workflow, about a minute).
+`npm test` runs `tests/lint.js` (static checks) and `tests/run.js`, with `tests/run_new.js`, which check the model math (mortgage amortization against the closed form, tax brackets, SALT cap, home-sale exclusion, PMI, refinancing, annual vs. monthly paths, directional sanity checks, each realism feature, underwater sales, tax-year indexing, and property checks over random inputs: results stay finite, monthly and annual paths agree, and higher home or stock growth never hurts the matching path). Run it after any change to `src/model.js`. `tests/smoke.js` opens every tab at phone width and fails on page errors, charts that don't draw, formulas that don't render, anything wider than the screen, or a chart readout that doesn't close on a second tap. `tests/ui.js` loads the page with a small county list swapped in and checks the headline wording, ties, break-even search, affordability colors, the undo bar, the county picker, Monte Carlo caching and chart descriptions. All run on every push (Tests workflow, about a minute).
 
 ## Data sources
 

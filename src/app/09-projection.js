@@ -36,7 +36,8 @@ function renderProj(){
   const bud=o.budget.map((b,k)=>b||o.budget[1]||1);
   plot('p-liq',[
     {x,y:o.lqB.map((v,k)=>v/bud[k]),name:'Buyer',mode:'lines',line:{color:t.buy,width:2.5},hovertemplate:'%{y:.1f} months'},
-    {x,y:o.lqR.map((v,k)=>v/bud[k]),name:'Renter (invest)',mode:'lines',line:{color:t.inv,width:2.5},hovertemplate:'%{y:.1f} months'}],
+    {x,y:o.lqR.map((v,k)=>v/bud[k]),name:'Renter (invest)',mode:'lines',line:{color:t.inv,width:2.5},hovertemplate:'%{y:.1f} months'}]
+    .concat(P.heloc>0?[{x,y:o.lqB.map((v,k)=>(v+o.heloc[k])/bud[k]),name:'Buyer + home-equity line',mode:'lines',line:{color:t.buy,width:2,dash:'dot'},hovertemplate:'%{y:.1f} months'}]:[]),
     {xaxis:X('Years from today'),yaxis:Yt('Months of budget',{type:'log',tickvals:[0.5,1,3,6,12,24,60,120,240,600],ticktext:['0.5','1','3','6','12','24','60','120','240','600']}),
      shapes:[3,6].map(v=>({type:'line',xref:'paper',x0:0,x1:1,y0:v,y1:v,line:{color:t.neg,dash:'dot',width:1}}))});
   // table + csv
@@ -59,8 +60,8 @@ function renderProj(){
      (need>0?`The home has to gain about ${pct(need)} that year just to match renting; you assume ${pct(P.gh)}.`:`Owning is already ${fmtFull(-adj(u0.own-u0.rent,u0.cpi))} cheaper than renting before any appreciation.`));
    const sh=o.buy[N]>0?o.eq[N]/o.buy[N]:0;
    tk('comp',`At year ${N}, ${pct(Math.max(0,Math.min(1,sh)),0)} of the buyer's net worth is home equity and ${pct(Math.max(0,Math.min(1,1-sh)),0)} is invested. Selling would cost about ${fmt(adj(o.H[N]*P.sell,c))} in commission and fees.`);
-   const mo=o.lqB.map((v,k)=>v/(bud[k]||1)),low=mo.slice(1).findIndex(v=>v>=3);
-   tk('liq',mo.slice(1).every(v=>v>=3)?'The buyer keeps at least 3 months of costs in liquid assets throughout.':
-     (low<0?`The buyer stays below 3 months of costs in liquid assets for all ${nY(N)}; a separate emergency fund matters if you buy.`:`The buyer has under 3 months of costs in liquid assets until year ${low+1}; a separate emergency fund matters in those years.`));}
+   const mo=o.lqB.map((v,k)=>(v+(P.heloc>0?o.heloc[k]:0))/(bud[k]||1)),low=mo.slice(1).findIndex(v=>v>=3);
+   tk('liq',(P.heloc>0?'Counting the home-equity line: ':'')+(mo.slice(1).every(v=>v>=3)?'The buyer keeps at least 3 months of costs in liquid assets throughout.':
+     (low<0?`The buyer stays below 3 months of costs in liquid assets for all ${nY(N)}; a separate emergency fund matters if you buy.`:`The buyer has under 3 months of costs in liquid assets until year ${low+1}; a separate emergency fund matters in those years.`)));}
 }
 

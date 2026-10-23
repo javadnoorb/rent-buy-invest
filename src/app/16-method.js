@@ -78,6 +78,14 @@ function buildMethod(){
   <h3>Planned move</h3>
   <p>At the start of the move year the buyer sells as in the net-worth formula. <em>Sell and buy again:</em> the next home costs what the old one sold for, closing costs are paid again, all remaining equity becomes the down payment, and a new 30-year fixed loan is taken at \\(m_t\\) then (PMI if under 20% down; the 2-year exclusion clock restarts). <em>Sell and rent:</em> proceeds go into the buyer's portfolio and the household pays market rent from then on. Both households move, so moving costs common to both are left out; the renter's lease resets to market.</p>
 
+  <p>A sale that brings in less than the mortgage leaves a shortfall. It is held as a negative balance that grows at the T-bill rate plus 3 points a year, \\(V_{t+1} = V_t\\,(1 + r^{bill}_t + 0.03/12)\\) while \\(V_t \\lt 0\\), and later savings pay it down before anything is invested.</p>
+
+  <h3>Extra payments, PMI removal, gains tax and home-equity line</h3>
+  <p><em>Extra each month</em> \\(E\\) is added to the owner's monthly cost, so the renter invests the same amount. Toward principal: \\(B_{t+1} = B_t - (M - iB_t) - \\min(E, B_t)\\); once the loan is paid off early, the scheduled payment \\(M\\) keeps going into the buyer's portfolio until the original term ends, so both choices spend the same. Toward the portfolio: \\(E\\) is invested each month instead.</p>
+  <p><em>PMI by appraisal</em> (conventional loans): PMI stops at the first month \\(t \\ge 24\\) with \\(B_t \\le 0.75\\,H_t\\), or \\(t \\ge 60\\) with \\(B_t \\le 0.80\\,H_t\\), besides the scheduled stop at \\(0.78\\,P\\). The appraisal fee is not modeled.</p>
+  <p><em>Capital-gains rate, automatic:</em> \\(\\tau_g = 0\\%\\) for taxable ordinary income up to \\$49,450 (\\$98,900 joint), 15% up to \\$545,500 (\\$613,700), else 20% (2026 thresholds, indexed like the brackets). The gain itself is not stacked on income.</p>
+  <p><em>Home-equity line:</em> available credit \\(\\max(0,\\ \\ell H_t - B_t)\\) for a limit \\(\\ell\\) is added to the buyer's liquid assets in the liquidity checks only; it is never drawn and does not change net worth.</p>
+
   <h3>Moving risk</h3>
   \\[ \\begin{aligned} \\Pr(T=\\tau) &= h(1-h)^{\\tau-1}, \\quad \\tau \\lt N \\\\ \\Pr(T=N) &= (1-h)^{N-1} \\\\ \\text{gap} &= \\textstyle\\sum_{\\tau=1}^{N}\\Pr(T=\\tau) \\\\ &\\quad \\times \\big(W^{buy}_{\\tau} - W^{inv}_{\\tau}\\big) \\end{aligned} \\]
   <dl class="sym"><dt>\\(T\\)</dt><dd>years until you sell (holding period), capped at \\(N\\)</dd><dt>\\(h\\)</dt><dd>chance of moving in any year</dd><dt>\\(\\tau\\)</dt><dd>a possible holding period, in years</dd><dt>\\(W^{buy}_{\\tau},\\ W^{inv}_{\\tau}\\)</dt><dd>net worth at the end of year \\(\\tau\\)</dd></dl>
@@ -143,7 +151,7 @@ function buildMethod(){
   `;
   structureMethod();
   document.getElementById('srclist').innerHTML=Object.values(SRC).map(s=>`<li><a target="_blank" rel="noopener" href="${s.u}">${s.t}</a></li>`).join('')+
-    METROS.filter(m=>m.slug!=='us').map(m=>`<li>${m.name}: ${['price','rent','ptax','ins','hpi'].map(k=>m.src&&m.src[k]?`<a target="_blank" rel="noopener" href="${m.src[k].u}">${({price:'price',rent:'rent',ptax:'property tax',ins:'insurance',hpi:'home-price index'})[k]}</a>`:null).filter(Boolean).join(' · ')}</li>`).join('');
+    METROS.filter(m=>m.slug!=='us'&&!m.county).map(m=>`<li>${m.name}: ${['price','rent','ptax','ins','hpi'].map(k=>m.src&&m.src[k]?`<a target="_blank" rel="noopener" href="${m.src[k].u}">${({price:'price',rent:'rent',ptax:'property tax',ins:'insurance',hpi:'home-price index'})[k]}</a>`:null).filter(Boolean).join(' · ')}</li>`).join('');
 }
 function typeset(el,tries=0){if(window.MathJax&&MathJax.typesetPromise){MathJax.typesetPromise([el]).catch(()=>{})}else if(tries<40)setTimeout(()=>typeset(el,tries+1),250)}
 

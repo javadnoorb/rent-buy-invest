@@ -16,10 +16,11 @@ function syncLoanFields(){const t=document.getElementById('loanType').value;
   document.getElementById('pmi').closest('.f').hidden=t==='fha';
   ['ttBuy','ttSell'].forEach(id=>document.getElementById(id).closest('.f').hidden=false)}
 let LAST_KEY='';
-function update(){clearTimeout(timer);timer=setTimeout(()=>{VOLADJ=document.getElementById('volAdj').value!=='0';applyTT();syncLoanFields();formatMoneyAll();markChanged();const key=JSON.stringify(getRaw())+REAL;if(key===LAST_KEY&&P)return;LAST_KEY=key;validate();syncQuick();persist();P=readP();
-  {const muEl=document.getElementById('mu');const auto=P.muMode==='auto';muEl.disabled=auto;if(auto)muEl.value=Math.round(P.mu*100);}document.getElementById('Nlab').textContent=P.N+' year'+(P.N>1?'s':'');
-  BASE=simulate(P,constPath(P,P.N));MC=null;
-  summary();RENDER[CUR]();if(CUR!=='mc')startMC(false)},150)}
+function update(){clearTimeout(timer);timer=setTimeout(()=>{VOLADJ=document.getElementById('volAdj').value!=='0';applyTT();syncLoanFields();formatMoneyAll();markChanged();const raw=getRaw(),key=JSON.stringify(raw)+REAL;if(key===LAST_KEY&&P)return;LAST_KEY=key;if(LAST_RAW)noteBulkChange(LAST_RAW,raw);LAST_RAW=raw;validate();syncQuick();persist();P=readP();
+  {const muEl=document.getElementById('mu');const auto=P.muMode==='auto';muEl.disabled=auto;if(auto)muEl.value=Math.round(P.mu*100);
+   const lgEl=document.getElementById('ltcg'),lgAuto=P.ltcgMode==='auto';lgEl.disabled=lgAuto;if(lgAuto)lgEl.value=Math.round(P.ltcg*100);}document.getElementById('Nlab').textContent=P.N+' year'+(P.N>1?'s':'');
+  BASE=simulate(P,constPath(P,P.N));if(MC&&MC.key!==mcKey())MC=null;
+  summary();RENDER[CUR]();if(CUR!=='mc'&&!mcFresh(false))startMC(false)},150)}
 function encodeState(){return btoa(unescape(encodeURIComponent(JSON.stringify(Object.assign(getRaw(),{REAL})))))}
 function decodeState(s){try{return JSON.parse(decodeURIComponent(escape(atob(s))))}catch(e){return null}}
 function copyText(txt,msgEl,okMsg){const done=()=>{msgEl.textContent=okMsg;setTimeout(()=>msgEl.textContent='',2500)};
@@ -27,7 +28,7 @@ function copyText(txt,msgEl,okMsg){const done=()=>{msgEl.textContent=okMsg;setTi
 const STANDALONE_SITE=(()=>{try{return window.top===window.self&&/^https?:$/.test(location.protocol)}catch(e){return false}})();
 function setBasis(){document.getElementById('realBtn').setAttribute('aria-pressed',REAL);document.getElementById('nomBtn').setAttribute('aria-pressed',!REAL);update()}
 function init(){
-  buildInputs();buildMetroSelect();buildSnap();buildMethod();const hadSaved=(()=>{try{return !!localStorage.getItem('rbi-inputs')}catch(e){return false}})();restore();wireWizard();wireSettings();wireLoc();wireHelp();wireMini();{const tb=document.querySelector('.tabs'),sn=document.getElementById('snap');const sf=()=>sn.classList.toggle('more-r',sn.scrollLeft+sn.clientWidth<sn.scrollWidth-4);tb.addEventListener('scroll',tabFade,{passive:true});sn.addEventListener('scroll',sf,{passive:true});addEventListener('resize',()=>{tabFade();sf()});tabFade();sf()}
+  buildInputs();buildMetroSelect();buildSnap();buildMethod();const hadSaved=(()=>{try{return !!localStorage.getItem('rbi-inputs')}catch(e){return false}})();restore();wireWizard();wireSettings();wireLoc();wireHelp();wireMini();wireShareUndo();wireCounty();{const tb=document.querySelector('.tabs'),sn=document.getElementById('snap');const sf=()=>sn.classList.toggle('more-r',sn.scrollLeft+sn.clientWidth<sn.scrollWidth-4);tb.addEventListener('scroll',tabFade,{passive:true});sn.addEventListener('scroll',sf,{passive:true});addEventListener('resize',()=>{tabFade();sf()});tabFade();sf()}
   if(STANDALONE_SITE){const sp=new URLSearchParams(location.search).get('s');const st=sp&&decodeState(sp);if(st){setRaw(st);if(st.REAL===false)REAL=false;const m=METROS.find(x=>x.slug===st.metro);if(m)updateMetroHints(m);history.replaceState(null,'',location.pathname)}}
   const shareBtn=document.getElementById('shareLink');shareBtn.hidden=!STANDALONE_SITE;
   shareBtn.addEventListener('click',()=>copyText(location.origin+location.pathname+'?s='+encodeURIComponent(encodeState()),document.getElementById('actMsg'),'Link copied. Anyone opening it sees these inputs.'));

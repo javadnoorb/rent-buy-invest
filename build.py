@@ -158,11 +158,33 @@ mf = D('data', 'monthly_processed.json')
 if os.path.exists(mf):
     MONTHLY = json.load(open(mf))
 
+# ---------- counties (optional, from scripts/fetch_counties.py) ----------
+# Each county keeps its level relative to the U.S. median in the ACS, scaled to today's national Zillow figures, so a
+# county at 1.5× the U.S. median value starts at 1.5× today's typical U.S. home. Insurance uses the state average when
+# a metro file has one for that state, else the U.S. average.
+COUNTIES = None
+cf = D('data', 'counties.json')
+if os.path.exists(cf):
+    c = json.load(open(cf))
+    us = c['us']; kP = snap['values']['zhvi'] / us['P']; kR = snap['values']['zori'] / us['rent'] if us.get('rent') else 1
+    state_ins = {}
+    for mf in glob.glob(D('data', 'metro_*.json')):
+        ins = json.load(open(mf)).get('ins') or {}
+        if ins.get('geography') and ins.get('annual_usd'): state_ins[ins['geography']] = [ins['annual_usd'], ins.get('source_url')]
+    rows = []
+    for fips, name, P, rent, tax in c['rows']:
+        st = name.rsplit(', ', 1)[-1]
+        rows.append([fips, name, round(P * kP, -2), round(rent * kR, -1) if rent else None,
+                     round(tax / P * 100, 2) if tax else None, (state_ins.get(st) or [None])[0]])
+    COUNTIES = {'t': c['source_title'], 'u': c['source_url'], 'span': c['span'], 'kP': round(kP, 3), 'kR': round(kR, 3),
+                'insU': next((v[1] for v in state_ins.values() if v[1]), None), 'rows': rows}
+
 # the installed (PWA) build serves pinned copies from vendor/; the artifact build can only load from public CDNs
 VENDOR = {'plotly': 'vendor/plotly-2.35.2.min.js', 'mathjax': 'vendor/mathjax-3.2.2-tex-svg-full.js'}
 data_js = (f"const LOCAL_LIBS={json.dumps([VENDOR['plotly']] if PWA else [])};\n"
            "const SNAP=JSON.parse(document.getElementById('snapshot-data').textContent);\n"
            f"const RES={json.dumps(RES)};\nconst D0={json.dumps(D0)};\nconst FCST={json.dumps(FCST)};\n"
+           f"const COUNTIES={json.dumps(COUNTIES, separators=(',', ':'))};\n"
            f"const METROS={json.dumps(METROS, separators=(',', ':'))};\nconst MONTHLY={json.dumps(MONTHLY, separators=(',', ':'))};\n")
 
 css = open(D('src', 'style.css')).read()

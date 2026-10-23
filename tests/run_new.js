@@ -128,6 +128,33 @@ module.exports=function({M,base,run,ok,near}){
    ok(fin,'150 random setups: every result is finite');
    ok(mono,'150 random setups: faster home growth never lowers the buyer, faster stocks never lower the renter')}
 
+  /* Extra principal: pays the loan off sooner; investing the same money instead leaves the renter unchanged */
+  {const q=Object.assign({},p0,{extraPay:500,N:30}),pre=run(q,30,{detail:true}),inv=run(Object.assign({},q,{extraMode:'invest'}),30,{detail:true}),none=run(Object.assign({},p0,{N:30}),30,{detail:true});
+   const off=k=>k.bal.findIndex((v,y)=>y>0&&v<=0.005);
+   ok(off(pre)>0&&off(pre)<off(none)||off(none)<0,'extra principal pays the loan off sooner');
+   near(pre.inv[30],inv.inv[30],1e-12,'the renter is the same whichever way the buyer uses the extra');
+   ok(pre.inv[30]>none.inv[30],'the renter invests the same extra amount');
+   const lo=Object.assign({},q,{rs:0.03,rc:0.03}),hi=Object.assign({},q,{rs:0.12});
+   ok(run(lo,30).buy[30]>run(Object.assign({},lo,{extraMode:'invest'}),30).buy[30],'prepaying a 6% loan beats investing at 3%');
+   ok(run(hi,30).buy[30]<run(Object.assign({},hi,{extraMode:'invest'}),30).buy[30],'investing at 12% beats prepaying a 6% loan')}
+
+  /* PMI removed by appraisal once prices rise */
+  {const q=Object.assign({},p0,{dp:0.1,pmi:0.006,gh:0.08,N:10}),a=run(q,10,{detail:true}),b=run(Object.assign({},q,{pmiAppr:true}),10,{detail:true});
+   ok(b.flow[1].pmi===a.flow[1].pmi,'no early removal in the first two years');
+   ok(b.flow[4].pmi===0&&a.flow[4].pmi>0,'appraisal removes PMI after prices rise');ok(b.buy[10]-b.inv[10]>a.buy[10]-a.inv[10],'which helps buying against renting');
+   const f=run(Object.assign({},q,{gh:-0.02,pmiAppr:true}),10,{detail:true});ok(f.flow[4].pmi>0,'no removal when prices fall')}
+
+  /* Capital-gains brackets */
+  {ok(M.ltcgRate(60000,'single')===0&&M.ltcgRate(150000,'single')===0.15&&M.ltcgRate(700000,'single')===0.2,'0 / 15 / 20% tiers (single)');
+   ok(M.ltcgRate(110000,'mfj')===0&&M.ltcgRate(120000,'single')===0.15,'joint 0% tier is about twice the single one');
+   const q=Object.assign({},p0,{taxOn:true,acct:'taxable',dy:0.015,ltcg:0.15,income:55000,N:15});
+   ok(run(Object.assign({},q,{ltcgMode:'auto'}),15).inv[15]>run(q,15).inv[15],'a 0% bracket household keeps more of its gains')}
+
+  /* Home-equity line counts as a reserve but is never drawn */
+  {const q=Object.assign({},p0,{heloc:0.8,N:10}),a=run(q,10),b=run(p0,10);
+   near(a.buy[10],b.buy[10],1e-12,'the line does not change net worth');
+   ok(a.heloc[0]===0.8*q.P-q.P*(1-q.dp),'available credit = 80% of value minus the loan');ok(b.heloc.every(v=>v===0),'none without a line')}
+
   /* Monte Carlo blocks never join the last data year to the first */
   {const q=Object.assign({},p0,{gh:0.04,rs:0.08,rb:0.04,rc:0.03,inf:0.025,N:10});
    const a=M.mcCore(q,{n:50,bl:10,from:2016,rc:false,home:M.HOME,real:false});

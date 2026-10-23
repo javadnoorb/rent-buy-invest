@@ -31,7 +31,7 @@
 <main>
   <section class="verdict">
     <div class="quick" aria-label="Key inputs">
-      <div class="q loc"><label for="metro">Location</label><select id="metro"></select></div>
+      <div class="q loc"><label for="metro">Location</label><select id="metro"></select><input id="countyQ" list="countyList" placeholder="Type a county name" aria-label="County" autocomplete="off" hidden><datalist id="countyList"></datalist></div>
       <div class="q"><label for="q-P">Home price</label><div class="inp"><span class="pre">$</span><input id="q-P" type="text" data-money="1" autocomplete="off" inputmode="decimal" step="1000"></div></div>
       <div class="q"><label for="q-rent0">Comparable rent</label><div class="inp"><span class="pre">$</span><input id="q-rent0" type="text" data-money="1" autocomplete="off" inputmode="decimal" step="10"><span class="suf">/mo</span></div></div>
       <div class="q"><label for="q-dp">Down payment</label><div class="inp"><input id="q-dp" type="number" inputmode="decimal" step="1"><span class="suf">%</span></div></div>
@@ -51,10 +51,12 @@
       <div class="vgrid" id="vgrid2"></div>
       <div class="cap" id="vnote"></div>
     </details>
-    <div class="controls"><button id="copySummary">Copy summary</button><button id="shareLink" hidden>Copy link to this scenario</button><span class="sub" id="actMsg" aria-live="polite"></span></div>
+    <div class="controls"><button id="copySummary">Copy summary</button><button id="shareLink" hidden>Copy link to this scenario</button><button id="shareNative" hidden>Share…</button><button id="printReport">Print or save PDF</button><span class="sub" id="actMsg" aria-live="polite"></span></div>
   </section>
 
   <div class="stickyhead">
+  <div class="print-only" id="printInputs"></div>
+  <div class="undo" id="undoBar" role="status" hidden><span id="undoTxt"></span><button type="button" id="undoBtn">Undo</button><button type="button" id="undoX" aria-label="Dismiss">×</button></div>
   <div class="mini" id="mini" hidden><button type="button" class="mini-sum" id="miniSum" aria-label="Back to the answer"></button>
     <span class="mini-hz"><button type="button" id="miniDn" aria-label="Shorter horizon">−</button><span id="miniN" class="num">10 yr</span><button type="button" id="miniUp" aria-label="Longer horizon">+</button></span></div>
   <nav class="tabs" role="tablist">

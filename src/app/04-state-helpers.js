@@ -34,8 +34,7 @@ if(TOUCH){
     if(p._close){p._close=false;[0,60,250].forEach(d=>setTimeout(()=>clearHover(p),d));return}
     HOVERED.add(p);clearTimeout(p._ht);p._ht=setTimeout(()=>clearHover(p),2500)},{passive:true,capture:true})}
 function plot(id,data,lay){const el=document.getElementById(id);
-  try{if(el.dataset.err){el.innerHTML='';delete el.dataset.err}Plotly.react(el,data,layout(lay),CFG);
-    }
+  try{if(el.dataset.err){el.innerHTML='';delete el.dataset.err}Plotly.react(el,data,layout(lay),CFG);describeChart(el)}
   catch(e){console.error(id,e);el.dataset.err=1;el.innerHTML=`<div class="note">This chart could not be drawn (${String(e.message||e).slice(0,160)}).</div>`}}
 const X=(t)=>({...layout().xaxis,title:{text:t,font:{size:11}}});
 const Yd=(t)=>({...layout().yaxis,title:{text:t,font:{size:11}},tickprefix:'$',tickformat:'~s'});

@@ -3,7 +3,9 @@
 let MC_REQ=0,WORKER=null,WORKER_OK=null;
 function mcControls(){return {n:Math.max(200,Math.min(10000,parseInt(document.getElementById('mc-n').value)||1500)),bl:Math.max(1,parseInt(document.getElementById('mc-b').value)||5),
   from:parseInt(document.getElementById('mc-w').value),rc:document.getElementById('mc-rc').checked}}
-function mcKey(){return JSON.stringify(getRaw())+REAL+JSON.stringify(mcControls())}
+// the horizon and risk aversion are read from finished results (any year up to 30), so changing them doesn't re-simulate
+function mcKey(){const r=getRaw();delete r.N;delete r.gamma;return JSON.stringify(r)+REAL+JSON.stringify(mcControls())}
+function mcSync(){if(!MC||!MC.pMoveH)return;const h=Math.max(1,Math.min(P.N,MC.N));if(MC.h===h)return;MC.h=h;MC.pMove=MC.pMoveH[h];MC.pForced=MC.pForcedH[h];mcHorizon(MC.res,h)}
 function getWorker(){if(WORKER_OK===false)return null;if(WORKER)return WORKER;
   try{const src=document.getElementById('model-script').textContent+"\nonmessage=e=>{const {id,p,cfg}=e.data;try{postMessage({id,r:mcCore(p,cfg)})}catch(err){postMessage({id,err:String(err)})}}";
     WORKER=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));
@@ -15,7 +17,7 @@ function runLocal(job){setTimeout(()=>job.done(mcCore(job.p,job.cfg)),0)}
 function startMC(full){
   const c=mcControls(),n=full?c.n:600,id=++MC_REQ,key=mcKey();
   const cfg={n,bl:c.bl,from:c.from,rc:c.rc,home:homeSeries(true),rent:rentSeries(true),real:REAL},p=P;
-  const job={p,cfg,done:r=>{if(id!==MC_REQ)return;MC=Object.assign(r,{real:REAL,key,quick:!full});onMCReady()}};
+  const job={p,cfg,done:r=>{if(id!==MC_REQ)return;MC=Object.assign(r,{real:REAL,key,quick:!full,h:null});onMCReady()}};
   const w=getWorker();if(w){PENDING[id]=job;w.postMessage({id,p,cfg})}else runLocal(job);
 }
 function mcFresh(full){return MC&&MC.key===mcKey()&&(!full||!MC.quick)}
@@ -26,7 +28,7 @@ function ce(ws,g,floor){const w=ws.map(v=>Math.max(floor,v));if(Math.abs(g-1)<1e
   const mx=Math.max(...w);const m=w.reduce((a,v)=>a+Math.pow(v/mx,1-g),0)/w.length;return mx*Math.pow(m,1/(1-g))}
 function renderMC(){if(mcFresh(true)){drawMC();return}
   document.getElementById('mc-note').textContent='Running simulations…';startMC(true)}
-function drawMC(){if(!MC)return;
+function drawMC(){if(!MC)return;mcSync();
   const t=theme(),{res,N,n}=MC,h=Math.min(P.N,MC.N),x=[...Array(h+1)].map((_,k)=>k);
   document.getElementById('mc-note').textContent=`Own-home price risk ${pct(P.idio)} (${P.idioMode==='sale'?'one-time at sale':'compounding yearly'}) and moving risk ${pct(P.hz)}/yr are set under Life & risk preferences. Upkeep varies year to year around its average (coefficient of variation ${MAINT_CV}), so big repairs arrive in lumps. Mortgage-rate changes are sampled from the same years (observed 1973–2025; earlier years modeled from inflation changes, slope ${DM_FIT.b.toFixed(2)}, residual s.d. ${DM_FIT.s.toFixed(2)} pts).`;
   const band=(arr,name,col)=>{const cut=f=>x.map(y=>q(arr.map(a=>a[y]),f));const p5=cut(.05),p25=cut(.25),p50=cut(.5),p75=cut(.75),p95=cut(.95);

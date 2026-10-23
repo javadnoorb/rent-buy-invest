@@ -11,7 +11,8 @@
     "test": "node tests/lint.js && node tests/run.js",
     "smoke": "node tests/smoke.js",
     "smoke:offline": "STUB_PLOTLY=1 node tests/smoke.js",
-    "check": "npm run build && npm test && npm run smoke:offline"
+    "test:ui": "node tests/ui.js",
+    "check": "npm run build && npm test && npm run smoke:offline && npm run test:ui"
   },
   "devDependencies": {
     "playwright": "1.47.2"

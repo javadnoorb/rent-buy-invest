@@ -20,7 +20,7 @@ function locParams(base,m){
   return {q,g}}
 function locRows(){
   const N=P.N;
-  return METROS.map(m=>{const {q,g}=locParams(P,m);const o=simulate(q,constPath(q,N));const c=o.cpi[N];
+  return METROS.filter(m=>!m.county).map(m=>{const {q,g}=locParams(P,m);const o=simulate(q,constPath(q,N));const c=o.cpi[N];
     const b=adj(o.buy[N],c),iv=adj(o.inv[N],c),own1=month1Cost(q);
     return {m,q,o,g,gap:b-iv,buy:b,inv:iv,own1,rent:q.rent0,ptr:q.P/(12*q.rent0),cash:q.P*(q.dp+q.close)+loanSetup(q,q.rate).ptsCost,
       hti:q.income?own1/(q.income/12):null,beY:breakevenYear(o),diff:own1-q.rent0}})}

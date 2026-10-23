@@ -1,11 +1,20 @@
 name: Refresh data
-# Manual only (Actions tab → Refresh data → Run workflow). No schedule.
-# Downloads public data (FHFA, BLS, Census, Freddie Mac), merges it into data/, rebuilds index.html,
-# runs the tests, and commits to main only if the tests pass and something changed.
+# Runs on the 4th of each month and on demand (Actions tab → Refresh data → Run workflow).
+# Downloads public data (FHFA, BLS, Census incl. county figures, Freddie Mac), merges it into data/, rebuilds
+# index.html and runs the tests. If the tests pass and something changed, it pushes the result to the
+# `data-refresh` branch and opens (or updates) a pull request for review. It never commits to main.
+# Needs Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests".
+# Pull requests opened with the workflow token don't start the Tests workflow; this run's own test step covers them.
 on:
+  schedule:
+    - cron: '23 14 4 * *'
   workflow_dispatch:
 permissions:
   contents: write
+  pull-requests: write
+concurrency:
+  group: refresh-data
+  cancel-in-progress: false
 jobs:
   refresh:
     runs-on: ubuntu-24.04
@@ -14,11 +23,12 @@ jobs:
       - uses: actions/setup-python@v6
         with: { python-version: '3.12' }
       - uses: actions/setup-node@v5
-        with: { node-version: '20' }
+        with: { node-version: '22' }
       - name: Fetch
         run: |
           python scripts/fetch_fhfa.py /tmp/fhfa_extract.json
           python scripts/fetch_public.py /tmp/public_extract.json
+          python scripts/fetch_counties.py || echo "::warning::county fetch failed; keeping the existing data/counties.json"
       - name: Merge and rebuild
         run: |
           python scripts/apply_public.py /tmp/public_extract.json /tmp/fhfa_extract.json
@@ -26,16 +36,28 @@ jobs:
           python build.py --pwa
       - name: Test
         run: |
+          node tests/lint.js
           node tests/run.js
-          npm i --no-save playwright@1.47.2
-          npx playwright install --with-deps chromium
-          node tests/smoke.js
-      - name: Commit if changed
+          npm i --no-save --no-audit --no-fund playwright-core@1.47.2
+          PLAYWRIGHT_PATH=playwright-core CHROME_PATH=/usr/bin/google-chrome node tests/smoke.js
+      - name: Open or update a pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data index.html
           if git diff --cached --quiet; then echo "No data changes."; exit 0; fi
-          git diff --cached --stat
+          git diff --cached --stat | tee /tmp/stat.txt
           git commit -m "Refresh public data $(date -u +%F)"
-          git push
+          git push -f origin HEAD:data-refresh
+          body="Automatic data refresh from run ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}. Lint, model tests and the browser smoke test passed in that run.
+
+          \`\`\`
+          $(cat /tmp/stat.txt)
+          \`\`\`"
+          if [ -z "$(gh pr list --head data-refresh --state open --json number --jq '.[].number')" ]; then
+            gh pr create --base main --head data-refresh --title "Refresh public data $(date -u +%F)" --body "$body"
+          else
+            gh pr edit data-refresh --title "Refresh public data $(date -u +%F)" --body "$body"
+          fi

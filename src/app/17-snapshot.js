@@ -14,7 +14,25 @@ function applyTT(){const auto=document.getElementById('ttAuto').value==='auto',e
   if(!m||!m.tt){eb.value=0;es.value=0;return}
   const P=numOf('P')||0,dp=(parseFloat(document.getElementById('dp').value)||0)/100,L=P*(1-dp);
   const t=transferTaxes(m.tt,P,L);eb.value=P?(t.buyer/P*100).toFixed(3):0;es.value=P?(t.seller/P*100).toFixed(3):0}
-function buildMetroSelect(){const sel=document.getElementById('metro');sel.innerHTML=METROS.map(m=>`<option value="${m.slug}">${m.name}</option>`).join('')}
+function buildMetroSelect(){const sel=document.getElementById('metro');sel.innerHTML=METROS.map(m=>`<option value="${m.slug}">${m.name}</option>`).join('')+
+  (COUNTIES?'<option value="__county">Any U.S. county…</option>':'')}
+/* ---- counties: any of ~3,200 counties from Census ACS, added to the location list as they are picked ---- */
+function countyMetro(slug){if(!COUNTIES||!/^cty:/.test(slug||''))return null;const have=METROS.find(m=>m.slug===slug);if(have)return have;
+  const r=COUNTIES.rows.find(x=>x[0]===slug.slice(4));if(!r)return null;const [fips,name,Pc,rent,ptax,ins]=r,us=METROS[0],C=COUNTIES;
+  const m={slug,county:true,name,P:Pc,rent:rent||us.rent,ptax:ptax!=null?ptax:us.ptax,ins:ins||us.ins,ptaxCap:0,hpi:null,acs:null,tt:null,ttSrc:[],
+    src:{price:{t:`median home value, Census ACS ${C.span}, × ${C.kP} (the U.S. median's change to today's Zillow typical value)`,u:C.u},
+      rent:{t:rent?`median contract rent, Census ACS ${C.span}, × ${C.kR} (scaled to today's Zillow typical U.S. rent)`:'no county rent estimate; U.S. typical rent',u:C.u},
+      ptax:{t:ptax!=null?`median tax ÷ median value, Census ACS ${C.span}`:'U.S. effective rate',u:C.u},
+      ins:{t:ins?`${name.split(', ').pop()} average premium (Insurify)`:'U.S. average premium',u:ins?C.insU:null}}};
+  METROS.push(m);const sel=document.getElementById('metro'),o=document.createElement('option');o.value=slug;o.textContent=name;
+  sel.insertBefore(o,sel.querySelector('option[value="__county"]'));return m}
+function wireCounty(){if(!COUNTIES)return;const sel=document.getElementById('metro'),q=document.getElementById('countyQ'),dl=document.getElementById('countyList');let prev=sel.value;
+  sel.addEventListener('focus',()=>{prev=sel.value});
+  sel.addEventListener('change',e=>{if(sel.value!=='__county'){prev=sel.value;return}e.stopImmediatePropagation();sel.value=prev;
+    if(!dl.options.length)dl.innerHTML=COUNTIES.rows.map(r=>`<option value="${r[1]}"></option>`).join('');q.hidden=false;q.value='';q.focus()},true);
+  const pick=()=>{const r=COUNTIES.rows.find(x=>x[1].toLowerCase()===q.value.trim().toLowerCase());if(!r)return;const m=countyMetro('cty:'+r[0]);
+    q.hidden=true;sel.value=m.slug;prev=m.slug;applyMetro(m.slug);update()};
+  q.addEventListener('change',pick);q.addEventListener('keydown',e=>{if(e.key==='Enter')pick();if(e.key==='Escape')q.hidden=true})}
 function applyMetro(slug){const m=METROS.find(x=>x.slug===slug);if(!m)return;
   const set=(id,v)=>{if(v!=null&&isFinite(v))document.getElementById(id).value=v};
   set('P',m.P);set('ptax',m.acs&&m.acs.rate!=null?m.acs.rate:m.ptax);set('ins',m.ins);set('ptaxCap',m.ptaxCap||0);setRentFromBeds(m);
@@ -31,7 +49,7 @@ function updateMetroHints(m){
   hint('ins',`${m.src.ins?m.src.ins.t:''} ${srcObj(m.src.ins)}`);
   if(m.acs&&m.acs.rate!=null)hint('ptax',`${m.acs.name}: median tax ÷ median value, Census ACS ${m.acs.year} ${linkTo(m.acs.u)}${m.src.ptax?` · main county: ${m.src.ptax.t} ${srcObj(m.src.ptax)}`:''}`);
   hint('rent0',`${m.name}: ${m.src.rent?m.src.rent.t:''}${d(m.src.rent)} ${srcObj(m.src.rent)} × Census ratio for the chosen bedrooms`);
-  const tts=document.getElementById('ttBuy').closest('.f').querySelector('.hint');if(tts)tts.innerHTML=m.ttSrc&&m.ttSrc.length?`${m.name}: `+m.ttSrc.map(x=>`${x.t} ${linkTo(x.u)}`).join(' · '):'no transfer taxes found for this location';
+  const tts=document.getElementById('ttBuy').closest('.f').querySelector('.hint');if(tts)tts.innerHTML=m.county?'not available for counties; set to manual and enter your state and local rates':m.ttSrc&&m.ttSrc.length?`${m.name}: `+m.ttSrc.map(x=>`${x.t} ${linkTo(x.u)}`).join(' · '):'no transfer taxes found for this location';
 }
 
 

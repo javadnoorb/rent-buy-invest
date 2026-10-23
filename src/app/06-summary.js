@@ -3,7 +3,7 @@ function affCell(own1,p){if(!p.income)return 'n/a';const fe=own1/(p.income/12),b
   const col=fe<=0.28&&be<=0.36?'--buy':(be<=0.43?'--cash':'--neg');
   return `<span style="color:var(${col})">${pct(fe,0)}</span><span class="sub" style="font-family:var(--body)"> · all debt ${pct(be,0)}</span>`}
 function summary(){
-  const p=P,o=BASE,N=p.N,c=o.cpi[N];
+  mcSync();const p=P,o=BASE,N=p.N,c=o.cpi[N];
   const b=adj(o.buy[N],c),iv=adj(o.inv[N],c),ca=adj(o.cash[N],c),d=b-iv;
   const own1=month1Cost(p);
   // a gap under 2% of the larger outcome (or 0.5% of the price) is within the noise of the assumptions: call it even
@@ -17,7 +17,8 @@ function summary(){
     `${d>=0?'<span class="who buy">Buying</span>':'<span class="who inv">Renting and investing</span>'} comes out ahead by <span class="vamt">${fmt(Math.abs(d))}</span> after ${N} year${N>1?'s':''}`;
   const rp=p.rentalOn&&o.rental[N]!=null?adj(o.rental[N],c):null;
   const opts=[['buy','Buy',b],['inv','Rent + invest',iv],['cash','Rent + T-bills',ca]].concat(rp!=null?[['rp','Rent + rental property',rp]]:[]),mx=Math.max(...opts.map(o=>o[2]),1),top=Math.max(...opts.map(o=>o[2]));
-  document.getElementById('bars').innerHTML=opts.map(([k,lab,v])=>`<div class="bar ${v===top?'win':''}"><span class="lab">${lab}${v===top?'<span class="pill">best</span>':''}</span><span class="track"><span class="fill" style="display:block;width:${Math.max(0,v/mx*100).toFixed(1)}%;background:var(--${k})"></span></span><span class="val">${fmt(v)}</span></div>`).join('');
+  const best=(k,v)=>v===top&&!(even&&(k==='buy'||k==='inv'));
+  document.getElementById('bars').innerHTML=opts.map(([k,lab,v])=>`<div class="bar ${best(k,v)?'win':''}"><span class="lab">${lab}${best(k,v)?'<span class="pill">best</span>':''}</span><span class="track"><span class="fill" style="display:block;width:${Math.max(0,v/mx*100).toFixed(1)}%;background:var(--${k})"></span></span><span class="val">${fmt(v)}</span></div>`).join('');
   document.getElementById('miniSum').innerHTML=even?`About even at year ${N}`:`<span class="who ${d>=0?'buy':'inv'}">${d>=0?'Buying':'Renting'}</span> ahead by <strong>${fmt(Math.abs(d))}</strong> at year ${N}`;document.getElementById('miniN').textContent=N+' yr';
   document.getElementById('fabSub').textContent=`${pct(p.dp,0)} down · ${pct(p.rate,2)} · ${N} yr`;
   document.getElementById('sheetlive').innerHTML=`Year ${N}: buy ${fmt(b)} · rent+invest ${fmt(iv)} · gap <strong style="color:var(${d>=0?'--buy':'--inv'})">${d>=0?'+':''}${fmt(d)}</strong>`;
@@ -50,6 +51,9 @@ function summary(){
   else{why.push(`Renting would tie if rent were ${beRent?fmtFull(beRent):'much lower'}${beG!=null?`, or if homes appreciated only ${pct(beG)}/yr`:''}.`)}
   if(p.income){const fe=own1/(p.income/12),be=(own1+p.debt)/(p.income/12);
     if(fe>0.28||be>0.36)why.push(`Affordability: housing would take ${pct(fe,0)} of gross income${p.debt?` (${pct(be,0)} with other debt)`:''}, above the common 28/36 guideline; most lenders cap total debt near 43% ${linkTo(AFF_URL)}.`)}
+  if(p.extraPay>0){const run=m=>simulate(Object.assign({},p,{extraMode:m}),constPath(p,N),{N,detail:true}),pre=run('prepay'),inv=run('invest');
+    const g=adj(pre.buy[N],c)-adj(inv.buy[N],c),off=pre.bal.findIndex((v,k)=>k>0&&v<=0.005);
+    why.push(`Putting the extra ${fmtFull(p.extraPay)}/mo toward the mortgage instead of investing it ${g>=0?'adds':'costs'} ${fmt(Math.abs(g))} by year ${N}${off>0?` and pays the loan off in year ${off}`:''}.`)}
   if(o.refis>0)why.push(`The projection refinances ${o.refis} time${o.refis>1?'s':''} as rates move toward ${pct(p.rateLR,2)}.`);
   const own0=own1,rent0=p.rent0+p.rins/12+p.rMove*(p.rMoveCost+p.broker*p.rent0)/12;
   why.push(own0>rent0?`In year 1 owning costs ${fmtFull(own0-rent0)}/mo more than renting, which the renter invests.`:`In year 1 owning costs ${fmtFull(rent0-own0)}/mo less than renting, which the buyer invests.`);

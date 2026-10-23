@@ -14,6 +14,9 @@ const F=[
  ['home','ptsCut','Rate cut per point (pts)',D0.ptsCut,0.05,resHint('pts')],
  ['home','close','Buyer closing costs (% of price)',D0.close,0.1,resHint('close')],
  ['home','pmi','PMI (% of loan / yr)',0.5,0.05,tag+' applies if down payment &lt; 20%'],
+ ['home','pmiAppr','Remove PMI early with an appraisal',0,null,'at 75% of current value after 2 years, 80% after 5 (conventional loans)','sel',[[0,'No'],[1,'Yes']]],
+ ['home','extraPay','Extra each month ($ / month)',0,50,'part of the monthly budget; the renter invests the same amount'],
+ ['home','extraMode','Put the extra toward','prepay',null,'compare paying the mortgage down early with investing the same money','sel',[['prepay','Mortgage principal'],['invest',"Buyer's portfolio"]]],
  ['refi','refiOn','Allow refinancing',1,null,'Refinance when the market rate falls far enough below your loan rate','sel',[[1,'Yes'],[0,'No']]],
  ['refi','rateLR','Expected market rate later (%)',V.rate30,0.05,`Projection only; backtest and Monte Carlo use historical rates. 10-yr Treasury ${V.tsy10}% ${sl('tsy')}${RES.mortSpread&&RES.mortSpread.u?` · typical mortgage spread ${linkTo(RES.mortSpread.u)}`:''}`],
  ['refi','glide','Years to reach that rate',5,1,''],
@@ -64,6 +67,7 @@ const F=[
  ['tax','oth','Other itemized deductions ($ / yr)',0,500,'charity etc.'],
  ['tax','stRate','State tax on investment income &amp; gains (%)',0,0.5,'add your state rate, e.g. 5 in Massachusetts'],
  ['tax','stDed','State deducts mortgage interest &amp; property tax',0,null,'some states (e.g. California) allow it, Massachusetts does not','sel',[[0,'No'],[1,'Yes']]],
+ ['tax','ltcgMode','Capital-gains rate','auto',null,'0%, 15% or 20% by taxable income (2026 thresholds)','sel',[['auto','From income (2026 brackets)'],['manual','Enter manually']]],
  ['tax','ltcg','Capital-gains rate (%)',15,1,`home gain exclusion ${sl('irs121')} · interest limit ${sl('irs936')}`],
  ['alt','hhRent','House-hack: rent from part of your home ($ / month)',0,25,'e.g. a room or basement unit; taxed after the rented share of costs. '+resHint('hhTax','')],
  ['alt','hhShare','Share of the home rented out (%)',25,5,'splits interest, tax and upkeep between personal and rental use'],
@@ -78,6 +82,7 @@ const F=[
  ['life','moveMode','Planned move','none',null,'Sell at a set year, then buy again or rent. Both households move.','sel',[['none','No planned move'],['buy','Sell and buy again'],['rent','Sell and rent']]],
  ['life','moveYear','Move in year',7,1,'must be before the horizon; the new home costs what the old one sells for'],
  ['life','volAdj','Scale FHFA price swings to Case-Shiller size','1',null,'FHFA indexes exclude jumbo loans and swing less; on = keep their timing and long-run growth but match Case-Shiller\'s volatility (one ratio per location)','sel',[['1','Yes'],['0','No']]],
+ ['life','heloc','Home-equity line up to (% of home value)',0,5,'0 = none; counted as an emergency reserve in the liquidity checks, not drawn'],
  ['life','hz','Chance of moving each year (%)',D0.hz,0.5,resHint('hazard')],
  ['life','stressMult','Moving more likely in bad years (×)',D0.stressMult,0.25,resHint('stress')],
  ['life','forcedDisc','Price discount on a forced sale (%)',D0.forcedDisc,0.5,resHint('forced')],
@@ -108,7 +113,7 @@ function numOf(id){return parseFloat(unfmt(document.getElementById(id).value))}
 function getRaw(){const o={N:document.getElementById('N').value,metro:document.getElementById('metro').value};F.forEach(f=>o[f[1]]=unfmt(document.getElementById(f[1]).value));return o}
 function fmtMoneyEl(el){if(document.activeElement===el)return;const v=unfmt(el.value);if(v===''||!isFinite(parseFloat(v)))return;el.value=Number(v).toLocaleString('en-US',{maximumFractionDigits:2})}
 function formatMoneyAll(){document.querySelectorAll('[data-money]').forEach(fmtMoneyEl)}
-function setRaw(o){F.forEach(f=>{if(o[f[1]]!=null)document.getElementById(f[1]).value=o[f[1]]});if(o.N)document.getElementById('N').value=o.N;if(o.metro!=null&&METROS.some(m=>m.slug===o.metro))document.getElementById('metro').value=o.metro}
+function setRaw(o){F.forEach(f=>{if(o[f[1]]!=null)document.getElementById(f[1]).value=o[f[1]]});if(o.N)document.getElementById('N').value=o.N;if(o.metro!=null)countyMetro(o.metro);if(o.metro!=null&&METROS.some(m=>m.slug===o.metro))document.getElementById('metro').value=o.metro}
 function parseP(raw){
   const n=id=>{const x=parseFloat(raw[id]);return isFinite(x)?x:DEF[id]};
   const pc=id=>n(id)/100;
@@ -125,10 +130,11 @@ function parseP(raw){
     ptax:pc('ptax'),ptaxCap:Math.max(0,pc('ptaxCap')),ins:n('ins'),maint:pc('maint'),hoa:n('hoa'),sell:pc('sell')+ttS,rent0:Math.max(0,n('rent0')),rins:n('rins'),
     gh:pc('gh'),gr:pc('gr'),inf:pc('inf'),rs:pc('rs'),rb:pc('rb'),rc:pc('rc'),ws,wb,
     acct:raw.acct||'taxable',dy:pc('dy'),fee:pc('fee'),lev:Math.max(0,n('lev')),spread:pc('spread'),
-    taxOn:raw.taxOn==='1'||raw.taxOn===1,filing:raw.filing||'single',income:Math.max(0,n('income')),debt:Math.max(0,n('debt')),muMode:raw.muMode||'auto',mu:(raw.muMode||'auto')==='auto'?marginalRate(Math.max(0,n('income')),raw.filing||'single',tk):pc('mu'),stTax:n('stTax'),oth:n('oth'),ltcg:pc('ltcg'),
+    taxOn:raw.taxOn==='1'||raw.taxOn===1,filing:raw.filing||'single',income:Math.max(0,n('income')),debt:Math.max(0,n('debt')),muMode:raw.muMode||'auto',mu:(raw.muMode||'auto')==='auto'?marginalRate(Math.max(0,n('income')),raw.filing||'single',tk):pc('mu'),stTax:n('stTax'),oth:n('oth'),ltcg:(raw.ltcgMode||'auto')==='auto'?ltcgRate(Math.max(0,n('income')),raw.filing||'single',tk):pc('ltcg'),
     utilDiff:n('utilDiff'),floodIns:Math.max(0,n('floodIns')),moveIn:Math.max(0,n('moveIn')),impShare:Math.min(1,Math.max(0,pc('impShare'))),rMove:Math.max(0,pc('rMove')),rMoveCost:Math.max(0,n('rMoveCost')),broker:Math.max(0,n('broker')),
     investShare:Math.min(1,Math.max(0,pc('investShare'))),stRate:Math.max(0,pc('stRate')),stDed:raw.stDed==='1'||raw.stDed===1,
-    volAdj:raw.volAdj!=='0',niitAuto:true,niit:0,renewGap:pc('renewGap'),incGrowth:pc('incGrowth'),moveMode:raw.moveMode||'none',moveYear:Math.max(0,Math.round(n('moveYear'))),
+    volAdj:raw.volAdj!=='0',pmiAppr:raw.pmiAppr==='1'||raw.pmiAppr===1,extraPay:Math.max(0,n('extraPay')),extraMode:raw.extraMode||'prepay',
+    ltcgMode:raw.ltcgMode||'auto',heloc:Math.min(0.95,Math.max(0,pc('heloc'))),niitAuto:true,niit:0,renewGap:pc('renewGap'),incGrowth:pc('incGrowth'),moveMode:raw.moveMode||'none',moveYear:Math.max(0,Math.round(n('moveYear'))),
     stressMult:Math.max(1,n('stressMult')),forcedDisc:Math.min(0.9,Math.max(0,pc('forcedDisc'))),hhRent:Math.max(0,n('hhRent')),hhShare:Math.min(0.9,Math.max(0,pc('hhShare'))),hhVac:Math.min(1,Math.max(0,pc('hhVac'))),
     rentalOn:raw.rentalOn==='1'||raw.rentalOn===1,dpR:Math.min(1,Math.max(0.05,pc('dpR'))),ratePrem:pc('ratePrem'),vacR:Math.min(1,Math.max(0,pc('vacR'))),mgmt:Math.min(0.5,Math.max(0,pc('mgmt'))),landShare:Math.min(0.9,Math.max(0,pc('landShare'))),
     hz:Math.min(0.99,Math.max(0,pc('hz'))),idio:Math.max(0,pc('idio')),idioMode:raw.idioMode||'sale',gamma:Math.max(0,n('gamma')),

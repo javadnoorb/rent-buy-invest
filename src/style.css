@@ -372,3 +372,19 @@ table.loct td:first-child{min-width:150px}
 .fabsub:empty{display:none}
 .fab.tuck{transform:translateY(calc(100% + 24px));opacity:0}
 @media (prefers-reduced-motion:reduce){.fab{transition:none}}
+/* undo bar: appears when one action changes several settings */
+.undo{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:21;display:flex;gap:10px;align-items:center;max-width:min(640px,calc(100vw - 32px));padding:10px 12px;border-radius:12px;background:var(--ink);color:var(--bg);font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.undo span{flex:1;min-width:0}
+.undo button{background:none;border:0;color:inherit;font-weight:600;padding:4px 6px;cursor:pointer}
+#undoBtn{text-decoration:underline}
+.print-only{display:none}
+.ptable{border-collapse:collapse;width:100%;font-size:12px}.ptable td{padding:3px 8px;border-bottom:1px solid #ddd}.ptable td:last-child{text-align:right;font-family:var(--mono,monospace)}
+@media print{
+  aside,.tabs,.mini,.fab,.undo,.scrim,.snap,#stale,.controls,.hlp,.vhelp,.tabfade,header p{display:none!important}
+  .print-only{display:block;break-inside:avoid;margin:12px 0}
+  body,.wrap,main{background:#fff!important;color:#000!important;display:block!important;max-width:none!important;padding:0!important}
+  .card,.verdict{box-shadow:none!important;border:1px solid #ccc!important;break-inside:avoid}
+  .plot{max-width:100%;overflow:hidden}
+  #openWizard,.verdict details.more>summary{display:none!important}
+}
+#countyQ{margin-top:6px;width:100%;box-sizing:border-box}
