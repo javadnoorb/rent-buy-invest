@@ -158,6 +158,31 @@ mf = D('data', 'monthly_processed.json')
 if os.path.exists(mf):
     MONTHLY = json.load(open(mf))
 
+# ---------- national home prices from FHFA (public) ----------
+# Yearly (December-to-December) changes of FHFA's U.S. purchase-only index from 1992 on, scaled around their own mean by
+# volK (the 1992–2025 ratio of Case-Shiller to FHFA yearly-change s.d.; only that ratio is stored) so the swings keep
+# Case-Shiller's size. They replace the 1992+ years of HOME in model.js. The header card shows FHFA's latest 12-month change.
+def fhfa_national():
+    m = json.load(open(D('data', 'monthly.json'))).get('fhfa') or {}
+    v = m.get('values') or {}
+    if isinstance(v, str): v = json.loads(v.replace("'", '"'))
+    ch = {y: (v[f'{y}-12'] / v[f'{y-1}-12'] - 1) * 100 for y in range(1992, 2100) if v.get(f'{y}-12') and v.get(f'{y-1}-12')}
+    if not ch: return None, None
+    k = float(m.get('volK') or 1); mean = sum(ch.values()) / len(ch)
+    last = max(v); prev = f'{int(last[:4]) - 1}{last[4:]}'
+    yoy = round((v[last] / v[prev] - 1) * 100, 1) if v.get(prev) else None
+    return {y: round(mean + k * (c - mean), 2) for y, c in ch.items()}, (last, yoy)
+HOME_OVERRIDE, (hpi_month, hpi_yoy) = fhfa_national()
+if hpi_yoy is not None:
+    import calendar
+    when = f"{calendar.month_abbr[int(hpi_month[5:])]} {hpi_month[:4]}"
+    snap['values']['hpiYoY'] = hpi_yoy
+    snap['sources']['fhfaUS'] = {'t': f'FHFA purchase-only house price index, U.S., not seasonally adjusted: change over the 12 months to {when}',
+                                 'u': 'https://www.fhfa.gov/data/hpi/datasets'}
+    card = {'k': 'Home prices (FHFA)', 'v': f"{hpi_yoy:+.1f}% YoY", 's': when, 'src': 'fhfaUS', 'field': 'gh', 'val': hpi_yoy}
+    items = [i for i in snap['items'] if i.get('field') != 'gh']
+    snap['items'] = items[:3] + [card] + items[3:]  # after the three rate cards
+
 # ---------- counties (optional, from scripts/fetch_counties.py) ----------
 # Each county keeps its level relative to the U.S. median in the ACS, scaled to today's national Zillow figures, so a
 # county at 1.5× the U.S. median value starts at 1.5× today's typical U.S. home. Insurance uses the state average when
@@ -225,7 +250,7 @@ else:
 out = (head + '<style>' + css + '</style>\n' + body +
        '\n<!-- SNAPSHOT: current market figures. Weekly refresh edits only this block. -->\n'
        '<script id="snapshot-data" type="application/json">\n' + json.dumps(snap, indent=1) + '\n</script>\n' + mj +
-       '<script id="model-script">\n"use strict";\nconst MORT_OVERRIDE=' + json.dumps(MORT_OVERRIDE) + ';\n' + model + '\n</script>\n<script>\n"use strict";\n' + data_js + app + '\n</script>\n' + tail)
+       '<script id="model-script">\n"use strict";\nconst MORT_OVERRIDE=' + json.dumps(MORT_OVERRIDE) + ';\nconst HOME_OVERRIDE=' + json.dumps(HOME_OVERRIDE) + ';\n' + model + '\n</script>\n<script>\n"use strict";\n' + data_js + app + '\n</script>\n' + tail)
 os.makedirs(os.path.dirname(os.path.abspath(OUT)), exist_ok=True)
 open(OUT, 'w').write(out)
 print('built', len(out), 'bytes; metros', len(METROS), '; monthly', bool(MONTHLY))

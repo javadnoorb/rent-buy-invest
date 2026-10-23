@@ -110,7 +110,7 @@ function buildMethod(){
   <h3>Limits</h3>
   <ul>
     <li>Rent indexes track existing leases and move more slowly than asking rents (see the Data tab). Pre-1940s rent data are sparse; three missing December values (1934, 1935, 1946) are interpolated.</li>
-    <li>The 1928–1986 national real-estate series is Shiller's reconstruction; 1987 onward is Case-Shiller National, as compiled and published by Damodaran. Metro and monthly national home prices are FHFA's purchase-only indexes from 1991.</li>
+    <li>The national real-estate series is Shiller's reconstruction for 1928–1986 and Case-Shiller National for 1987–1991, as published by Damodaran. From 1992 it is FHFA's U.S. purchase-only index, December to December, with its swings scaled to Case-Shiller's size by one stored ratio (see volatility scaling). Metro and monthly national home prices are FHFA's purchase-only indexes from 1991.</li>
     <li>No rent control, and no value placed on stability, control over the home, or the flexibility of renting. Bond total returns are taxed as income in the year earned. Margin interest and mortgage-insurance premiums are not deducted.</li>
   </ul>
   <p class="cap">Inputs marked "assumption" are conventional planning values with no single authoritative source.</p>

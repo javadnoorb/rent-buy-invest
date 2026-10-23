@@ -92,7 +92,7 @@ The **Refresh data** workflow runs on the 4th of each month and on demand (Actio
 
 ## Data sources
 
-- **Annual returns, 1928–2025:** Damodaran, NYU Stern. The real-estate series is Case-Shiller from 1987 and Shiller's reconstruction before that.
+- **Annual returns, 1928–2025:** Damodaran, NYU Stern. The national real-estate series is Shiller's reconstruction through 1986 and Case-Shiller 1987–1991 (as published by Damodaran); from 1992 it is FHFA's U.S. purchase-only index, rebuilt from `data/monthly.json` at each build, with its swings scaled to Case-Shiller's size by one stored ratio.
 - **CPI and rent CPI:** BLS (public domain).
 - **Mortgage rates:** Freddie Mac PMMS (used with attribution).
 - **Treasury rates:** Federal Reserve H.15 (public domain).

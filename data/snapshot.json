@@ -6,7 +6,6 @@
   "rate15": 6.68,
   "tsy10": 5.11,
   "tbill": 4.21,
-  "csYoY": 1.9,
   "narMedian": 417500,
   "zhvi": 366913,
   "zori": 1932,
@@ -40,14 +39,6 @@
    "src": "tsy",
    "field": "rb",
    "val": 5.11
-  },
-  {
-   "k": "Home prices (Case-Shiller)",
-   "v": "+1.9% YoY",
-   "s": "Jul 2026",
-   "src": "cs",
-   "field": "gh",
-   "val": 1.9
   },
   {
    "k": "Median existing home",
@@ -98,10 +89,6 @@
   "tsy": {
    "t": "Mortgage News Daily: 10-year Treasury yield, Oct 21 2026",
    "u": "https://www.mortgagenewsdaily.com/treasury/10yr"
-  },
-  "cs": {
-   "t": "S&P Cotality Case-Shiller: annual gain in July 2026 (released Sep 29 2026)",
-   "u": "https://www.spglobal.com/spdji/en/index-announcements/article/sp-cotality-case-shiller-index-reports-annual-gain-in-july-2026/"
   },
   "nar": {
    "t": "NAR existing-home sales, September 2026 (Mortgage News Daily)",

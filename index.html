@@ -701,7 +701,6 @@ table.loct td:first-child{min-width:150px}
   "rate15": 6.68,
   "tsy10": 5.11,
   "tbill": 4.21,
-  "csYoY": 1.9,
   "narMedian": 417500,
   "zhvi": 366913,
   "zori": 1932,
@@ -709,7 +708,8 @@ table.loct td:first-child{min-width:150px}
   "cpiYoY": 3.7,
   "coreYoY": 2.6,
   "ptaxUS": 0.9,
-  "insUS": 3057
+  "insUS": 3057,
+  "hpiYoY": 2.6
  },
  "items": [
   {
@@ -737,12 +737,12 @@ table.loct td:first-child{min-width:150px}
    "val": 5.11
   },
   {
-   "k": "Home prices (Case-Shiller)",
-   "v": "+1.9% YoY",
+   "k": "Home prices (FHFA)",
+   "v": "+2.6% YoY",
    "s": "Jul 2026",
-   "src": "cs",
+   "src": "fhfaUS",
    "field": "gh",
-   "val": 1.9
+   "val": 2.6
   },
   {
    "k": "Median existing home",
@@ -794,10 +794,6 @@ table.loct td:first-child{min-width:150px}
    "t": "Mortgage News Daily: 10-year Treasury yield, Oct 21 2026",
    "u": "https://www.mortgagenewsdaily.com/treasury/10yr"
   },
-  "cs": {
-   "t": "S&P Cotality Case-Shiller: annual gain in July 2026 (released Sep 29 2026)",
-   "u": "https://www.spglobal.com/spdji/en/index-announcements/article/sp-cotality-case-shiller-index-reports-annual-gain-in-july-2026/"
-  },
   "nar": {
    "t": "NAR existing-home sales, September 2026 (Mortgage News Daily)",
    "u": "https://www.mortgagenewsdaily.com/news/10162026-existing-home-sales-nar-inventory-prices-appr"
@@ -817,6 +813,10 @@ table.loct td:first-child{min-width:150px}
   "ins": {
    "t": "Insurify projection: $3,057 average homeowners premium in 2026",
    "u": "https://agencychecklists.com/2026/03/23/insurify-projects-home-insurance-premiums-to-reach-3057-in-2026-80649/"
+  },
+  "fhfaUS": {
+   "t": "FHFA purchase-only house price index, U.S., not seasonally adjusted: change over the 12 months to Jul 2026",
+   "u": "https://www.fhfa.gov/data/hpi/datasets"
   }
  }
 }
@@ -828,18 +828,23 @@ window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},opt
 <script id="model-script">
 "use strict";
 const MORT_OVERRIDE=[7.38, 8.04, 9.19, 9.05, 8.87, 8.85, 9.64, 11.2, 13.74, 16.64, 16.04, 13.24, 13.88, 12.43, 10.19, 10.21, 10.34, 10.32, 10.13, 9.25, 8.39, 7.31, 8.38, 7.93, 7.81, 7.6, 6.94, 7.44, 8.05, 6.97, 6.54, 5.83, 5.84, 5.87, 6.41, 6.34, 6.03, 5.04, 4.69, 4.45, 3.66, 3.98, 4.17, 3.85, 3.65, 3.99, 4.54, 3.94, 3.11, 2.96, 5.34, 6.81, 6.72, 6.6];
+const HOME_OVERRIDE={"1992": 1.8, "1993": 2.85, "1994": 1.98, "1995": 2.66, "1996": 2.31, "1997": 3.04, "1998": 6.2, "1999": 6.38, "2000": 7.67, "2001": 7.13, "2002": 8.45, "2003": 8.61, "2004": 11.38, "2005": 11.0, "2006": 1.66, "2007": -5.2, "2008": -13.66, "2009": -3.37, "2010": -5.81, "2011": -3.1, "2012": 5.21, "2013": 7.17, "2014": 4.77, "2015": 5.5, "2016": 6.33, "2017": 6.55, "2018": 5.46, "2019": 6.13, "2020": 13.18, "2021": 20.18, "2022": 6.42, "2023": 6.98, "2024": 5.0, "2025": 1.64};
 "use strict";
 /* ===================== Historical annual data (calendar years 1928–2025) ===================== */
 const Y0=1928;
 const STK=[43.81,-8.30,-25.12,-43.84,-8.64,49.98,-1.19,46.74,31.94,-35.34,29.28,-1.10,-10.67,-12.77,19.17,25.06,19.03,35.82,-8.43,5.20,5.70,18.30,30.81,23.68,18.15,-1.21,52.56,32.60,7.44,-10.46,43.72,12.06,0.34,26.64,-8.81,22.61,16.42,12.40,-9.97,23.80,10.81,-8.24,3.56,14.22,18.76,-14.31,-25.90,37.00,23.83,-6.98,6.51,18.52,31.74,-4.70,20.42,22.34,6.15,31.24,18.49,5.81,16.54,31.48,-3.06,30.23,7.49,9.97,1.33,37.20,22.68,33.10,28.34,20.89,-9.03,-11.85,-21.97,28.36,10.74,4.83,15.61,5.48,-36.55,25.94,14.82,2.10,15.89,32.15,13.52,1.38,11.77,21.61,-4.23,31.21,18.02,28.47,-18.04,26.06,24.88,17.78];
 const BILL=[3.08,3.16,4.55,2.31,1.07,0.96,0.28,0.17,0.17,0.28,0.07,0.05,0.04,0.13,0.34,0.38,0.38,0.38,0.38,0.60,1.05,1.12,1.20,1.52,1.72,1.89,0.94,1.72,2.62,3.22,1.77,3.39,2.87,2.35,2.77,3.16,3.55,3.95,4.86,4.29,5.34,6.67,6.39,4.33,4.06,7.04,7.85,5.79,4.98,5.26,7.18,10.05,11.39,14.04,11.09,8.95,9.92,7.72,6.15,5.96,6.89,8.39,7.75,5.54,3.51,3.07,4.37,5.66,5.15,5.20,4.91,4.78,6.00,3.48,1.64,1.03,1.40,3.22,4.85,4.48,1.40,0.15,0.14,0.05,0.09,0.06,0.03,0.05,0.32,0.95,1.97,2.11,0.36,0.04,2.09,5.28,5.18,4.21];
 const BOND=[0.84,4.20,4.54,-2.56,8.79,1.86,7.96,4.47,5.02,1.38,4.21,4.41,5.40,-2.02,2.29,2.49,2.58,3.80,3.13,0.92,1.95,4.66,0.43,-0.30,2.27,4.14,3.29,-1.34,-2.26,6.80,-2.10,-2.65,11.64,2.06,5.69,1.68,3.73,0.72,2.91,-1.58,3.27,-5.01,16.75,9.79,2.82,3.66,1.99,3.61,15.98,1.29,-0.78,0.67,-2.99,8.20,32.81,3.20,13.73,25.71,24.28,-4.96,8.22,17.69,6.24,15.00,9.36,14.21,-8.04,23.48,1.43,9.94,14.92,-8.25,16.66,5.57,15.12,0.38,4.49,2.87,1.96,10.21,20.10,-11.12,8.46,16.04,2.97,-9.10,10.75,1.28,0.69,2.80,-0.02,9.64,11.33,-4.42,-17.83,3.88,-1.64,7.80];
-const HOME=[1.49,-2.06,-4.30,-8.15,-10.47,-3.81,2.91,9.77,3.22,2.56,-0.87,-1.30,3.31,-8.38,3.33,11.45,16.58,11.78,24.10,21.26,2.06,0.09,3.64,6.05,4.41,11.52,0.92,0.00,0.91,2.72,0.66,0.11,0.77,0.98,0.32,2.14,1.26,1.66,1.22,2.32,4.13,6.99,8.22,4.24,2.98,3.42,10.07,6.77,8.18,14.65,15.72,13.74,7.40,5.10,0.56,4.75,4.68,7.47,9.61,7.85,7.22,4.39,-0.69,-0.17,0.82,2.16,2.52,1.79,2.43,4.02,6.44,7.68,9.29,6.68,9.56,9.81,13.64,13.51,1.73,-5.40,-12.00,-3.85,-4.12,-3.89,6.44,10.72,4.50,5.19,5.31,6.21,4.52,3.69,10.43,18.86,5.65,5.68,3.96,1.58];
+const HOME=[1.49,-2.06,-4.30,-8.15,-10.47,-3.81,2.91,9.77,3.22,2.56,-0.87,-1.30,3.31,-8.38,3.33,11.45,16.58,11.78,24.10,21.26,2.06,0.09,3.64,6.05,4.41,11.52,0.92,0.00,0.91,2.72,0.66,0.11,0.77,0.98,0.32,2.14,1.26,1.66,1.22,2.32,4.13,6.99,8.22,4.24,2.98,3.42,10.07,6.77,8.18,14.65,15.72,13.74,7.40,5.10,0.56,4.75,4.68,7.47,9.61,7.85,7.22,4.39,-0.69,-0.17,1.8,2.85,1.98,2.66,2.31,3.04,6.2,6.38,7.67,7.13,8.45,8.61,11.38,11,1.66,-5.2,-13.66,-3.37,-5.81,-3.1,5.21,7.17,4.77,5.5,6.33,6.55,5.46,6.13,13.18,20.18,6.42,6.98,5,1.64];
 const CPIL=[17.3,17.1,17.2,16.1,14.6,13.1,13.2,13.4,13.8,14.0,14.4,14.0,14.0,14.1,15.5,16.9,17.4,17.8,18.2,21.5,23.4,24.1,23.6,25.0,26.5,26.7,26.9,26.7,26.8,27.6,28.4,28.9,29.4,29.8,30.0,30.4,30.9,31.2,31.8,32.9,33.9,35.5,37.7,39.8,41.1,42.5,46.2,51.9,55.5,58.2,62.1,67.7,76.7,86.3,94.0,97.6,101.3,105.3,109.3,110.5,115.4,120.5,126.1,133.8,137.9,141.9,145.8,149.7,153.5,158.6,161.3,163.9,168.3,174.0,176.7,180.9,184.3,190.3,196.8,201.8,210.036,210.228,215.949,219.179,225.672,229.601,233.049,234.812,236.525,241.432,246.524,251.233,256.974,260.474,278.802,296.797,306.746,315.605,324.054];
 const RENTL=[33.3,32.5,31.8,30.7,28.6,24.7,21.8,21.967,22.133,22.3,23.5,23.7,23.7,23.8,24.6,24.6,24.7,24.8,24.9,25.9,26.9,28.1,29.2,30.2,31.6,33.0,34.9,35.4,35.8,36.7,37.3,37.9,38.5,39.0,39.5,39.9,40.3,40.7,41.1,41.8,42.7,43.8,45.5,47.6,49.4,51.1,53.6,56.5,59.4,62.6,66.7,71.6,77.3,84.3,91.5,97.5,102.2,108.2,115.1,120.8,125.6,130.1,135.5,141.1,145.2,148.6,151.9,155.7,159.6,164.0,169.1,174.9,180.3,187.6,196.4,202.5,207.9,213.9,220.5,230.0,239.102,247.278,248.999,250.986,257.189,264.098,271.688,280.874,291.204,302.735,313.904,324.815,336.789,344.455,355.931,385.649,410.606,428.151,440.667];
 const MORT0=1972;
 let MORT=[7.38,8.04,9.19,9.05,8.87,8.85,9.64,11.20,13.74,16.63,16.04,13.24,13.88,12.43,10.19,10.21,10.34,10.32,10.13,9.25,8.39,7.31,8.38,7.93,7.81,7.60,6.94,7.44,8.05,6.97,6.54,5.83,5.84,5.87,6.41,6.34,6.03,5.04,4.69,4.45,3.66,3.98,4.17,3.85,3.65,3.99,4.54,3.94,3.11,2.96,5.34,6.81,6.72,6.63];
 if(typeof MORT_OVERRIDE!=='undefined'&&MORT_OVERRIDE&&MORT_OVERRIDE.length===MORT.length)MORT=MORT_OVERRIDE;
+/* National home prices: Shiller's reconstruction through 1986 and Case-Shiller 1987–1991 (both as published by Damodaran);
+   from 1992 FHFA's U.S. purchase-only index, December to December, scaled around its mean by volK so the swings keep
+   Case-Shiller's size. The values above are the defaults; the build passes HOME_OVERRIDE from data/monthly.json. */
+if(typeof HOME_OVERRIDE!=='undefined'&&HOME_OVERRIDE)for(const y in HOME_OVERRIDE){const i=y-Y0;if(i>=0&&i<HOME.length)HOME[i]=HOME_OVERRIDE[y]}
 const NY=STK.length, YEARS=[...Array(NY)].map((_,i)=>Y0+i);
 const INF=YEARS.map((_,i)=>(CPIL[i+1]/CPIL[i]-1)*100);
 const RENTG=YEARS.map((_,i)=>(RENTL[i+1]/RENTL[i]-1)*100);
@@ -1128,7 +1133,7 @@ const PRESETS={
   long:{gh:r2(geo(HOME,1928)),gr:r2(geo(RENTG,1928)),inf:r2(geo(INF,1928)),rs:r2(geo(STK,1928)),rb:r2(geo(BOND,1928)),rc:r2(geo(BILL,1928))},
   modern:{gh:r2(geo(HOME,1972)),gr:r2(geo(RENTG,1972)),inf:r2(geo(INF,1972)),rs:r2(geo(STK,1972)),rb:r2(geo(BOND,1972)),rc:r2(geo(BILL,1972))},
   ...(FCST&&FCST.preset?{fcst:FCST.preset}:{}),
-  now:{gh:SNAP.values.csYoY,gr:SNAP.values.zoriYoY,inf:SNAP.values.cpiYoY,rs:r2(geo(STK,1928)),rb:SNAP.values.tsy10,rc:SNAP.values.tbill}
+  now:{gh:SNAP.values.hpiYoY,gr:SNAP.values.zoriYoY,inf:SNAP.values.cpiYoY,rs:r2(geo(STK,1928)),rb:SNAP.values.tsy10,rc:SNAP.values.tbill}
 };
 const V=SNAP.values;
 const tag='<span class="tag">assumption</span>';
@@ -1179,7 +1184,7 @@ const F=[
  ['rent','rent0','Rent ($ / month)',Math.round(V.zori*(D0.bedRatio['3']||1)/10)*10,10,`Zillow typical U.S. rent $${V.zori.toLocaleString('en-US')} × Census 3-bedroom ratio · ${sl('zillow')}`],
  ['rent','renewGap','Lease renewals below market growth (pts / yr)',D0.renewGap,0.25,resHint('renew')],
  ['rent','rins',"Renter's insurance ($ / yr)",0,10,''],
- ['mkt','gh','Home appreciation (% / yr)',PRESETS.long.gh,0.1,`Case-Shiller National ${V.csYoY>=0?'+':''}${V.csYoY}% YoY ${sl('cs')}`],
+ ['mkt','gh','Home appreciation (% / yr)',PRESETS.long.gh,0.1,`FHFA U.S. index ${V.hpiYoY>=0?'+':''}${V.hpiYoY}% over 12 months ${sl('fhfaUS')}`],
  ['mkt','gr','Rent growth (% / yr)',PRESETS.long.gr,0.1,`Zillow asking rents ${V.zoriYoY>=0?'+':''}${V.zoriYoY}% YoY ${sl('zillow')}`],
  ['mkt','inf','Inflation (% / yr)',PRESETS.long.inf,0.1,`CPI-U ${V.cpiYoY}% YoY ${sl('cpi')}`],
  ['mkt','rs','Stock return (% / yr)',PRESETS.long.rs,0.1,`S&P 500 with dividends ${sl('damo')}`],
@@ -1972,7 +1977,7 @@ function buildMethod(){
   <h3>Limits</h3>
   <ul>
     <li>Rent indexes track existing leases and move more slowly than asking rents (see the Data tab). Pre-1940s rent data are sparse; three missing December values (1934, 1935, 1946) are interpolated.</li>
-    <li>The 1928–1986 national real-estate series is Shiller's reconstruction; 1987 onward is Case-Shiller National, as compiled and published by Damodaran. Metro and monthly national home prices are FHFA's purchase-only indexes from 1991.</li>
+    <li>The national real-estate series is Shiller's reconstruction for 1928–1986 and Case-Shiller National for 1987–1991, as published by Damodaran. From 1992 it is FHFA's U.S. purchase-only index, December to December, with its swings scaled to Case-Shiller's size by one stored ratio (see volatility scaling). Metro and monthly national home prices are FHFA's purchase-only indexes from 1991.</li>
     <li>No rent control, and no value placed on stability, control over the home, or the flexibility of renting. Bond total returns are taxed as income in the year earned. Margin interest and mortgage-insurance premiums are not deducted.</li>
   </ul>
   <p class="cap">Inputs marked "assumption" are conventional planning values with no single authoritative source.</p>
@@ -2366,7 +2371,7 @@ const CHART_HELP={
  zori:'Rents on new leases vs. all leases.',
 };
 const CARD_HELP={'30-yr mortgage':'Freddie Mac weekly national average for a 30-year fixed loan.','15-yr mortgage':'Freddie Mac weekly national average for a 15-year fixed loan.',
- '10-yr Treasury':'Yield on 10-year U.S. government bonds; mortgage rates tend to sit about 1.7 points above it.','Home prices (Case-Shiller)':'Change in U.S. home prices over the past year (S&P Cotality Case-Shiller National Index).',
+ '10-yr Treasury':'Yield on 10-year U.S. government bonds; mortgage rates tend to sit about 1.7 points above it.','Home prices (FHFA)':'Change in U.S. home prices over the past 12 months, from the Federal Housing Finance Agency\'s purchase-only index (homes bought with conforming mortgages, not seasonally adjusted).',
  'Median existing home':'Middle sale price of existing homes sold last month (National Association of Realtors).','Typical home value':'Zillow\'s typical U.S. home value (middle of the market).',
  'Typical rent':'Zillow\'s typical U.S. asking rent across all rental sizes.','CPI inflation':'Change in consumer prices over the past year (BLS).','Property tax':'U.S. average effective property tax rate.','Data as of':'When the market figures above were last updated.'};
 

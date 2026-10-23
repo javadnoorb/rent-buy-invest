@@ -43,7 +43,7 @@ const F=[
  ['rent','rent0','Rent ($ / month)',Math.round(V.zori*(D0.bedRatio['3']||1)/10)*10,10,`Zillow typical U.S. rent $${V.zori.toLocaleString('en-US')} × Census 3-bedroom ratio · ${sl('zillow')}`],
  ['rent','renewGap','Lease renewals below market growth (pts / yr)',D0.renewGap,0.25,resHint('renew')],
  ['rent','rins',"Renter's insurance ($ / yr)",0,10,''],
- ['mkt','gh','Home appreciation (% / yr)',PRESETS.long.gh,0.1,`Case-Shiller National ${V.csYoY>=0?'+':''}${V.csYoY}% YoY ${sl('cs')}`],
+ ['mkt','gh','Home appreciation (% / yr)',PRESETS.long.gh,0.1,`FHFA U.S. index ${V.hpiYoY>=0?'+':''}${V.hpiYoY}% over 12 months ${sl('fhfaUS')}`],
  ['mkt','gr','Rent growth (% / yr)',PRESETS.long.gr,0.1,`Zillow asking rents ${V.zoriYoY>=0?'+':''}${V.zoriYoY}% YoY ${sl('zillow')}`],
  ['mkt','inf','Inflation (% / yr)',PRESETS.long.inf,0.1,`CPI-U ${V.cpiYoY}% YoY ${sl('cpi')}`],
  ['mkt','rs','Stock return (% / yr)',PRESETS.long.rs,0.1,`S&P 500 with dividends ${sl('damo')}`],
