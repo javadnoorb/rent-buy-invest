@@ -27,7 +27,7 @@ function copyText(txt,msgEl,okMsg){const done=()=>{msgEl.textContent=okMsg;setTi
 const STANDALONE_SITE=(()=>{try{return window.top===window.self&&/^https?:$/.test(location.protocol)}catch(e){return false}})();
 function setBasis(){document.getElementById('realBtn').setAttribute('aria-pressed',REAL);document.getElementById('nomBtn').setAttribute('aria-pressed',!REAL);update()}
 function init(){
-  buildInputs();buildMetroSelect();buildSnap();buildMethod();const hadSaved=(()=>{try{return !!localStorage.getItem('rbi-inputs')}catch(e){return false}})();restore();wireWizard();wireSettings();wireLoc();wireHelp();{const tb=document.querySelector('.tabs');tb.addEventListener('scroll',tabFade,{passive:true});addEventListener('resize',tabFade);tabFade()}
+  buildInputs();buildMetroSelect();buildSnap();buildMethod();const hadSaved=(()=>{try{return !!localStorage.getItem('rbi-inputs')}catch(e){return false}})();restore();wireWizard();wireSettings();wireLoc();wireHelp();wireMini();{const tb=document.querySelector('.tabs'),sn=document.getElementById('snap');const sf=()=>sn.classList.toggle('more-r',sn.scrollLeft+sn.clientWidth<sn.scrollWidth-4);tb.addEventListener('scroll',tabFade,{passive:true});sn.addEventListener('scroll',sf,{passive:true});addEventListener('resize',()=>{tabFade();sf()});tabFade();sf()}
   if(STANDALONE_SITE){const sp=new URLSearchParams(location.search).get('s');const st=sp&&decodeState(sp);if(st){setRaw(st);if(st.REAL===false)REAL=false;const m=METROS.find(x=>x.slug===st.metro);if(m)updateMetroHints(m);history.replaceState(null,'',location.pathname)}}
   const shareBtn=document.getElementById('shareLink');shareBtn.hidden=!STANDALONE_SITE;
   shareBtn.addEventListener('click',()=>copyText(location.origin+location.pathname+'?s='+encodeURIComponent(encodeState()),document.getElementById('actMsg'),'Link copied. Anyone opening it sees these inputs.'));
@@ -83,3 +83,16 @@ function loadScript(u){return new Promise((res,rej)=>{const sc=document.createEl
   if(!window.Plotly){window.Plotly={react(){throw new Error('the charting library did not load; check your connection and reload')}}}
   init();
 })();
+
+/* compact answer bar that appears once the main answer scrolls out of view, with a horizon stepper */
+function wireMini(){const mini=document.getElementById('mini'),v=document.querySelector('.verdict');
+  if('IntersectionObserver' in window)new IntersectionObserver(([e])=>{mini.hidden=e.isIntersecting||e.boundingClientRect.top>0},{threshold:0,rootMargin:'-60px 0px 0px 0px'}).observe(v);
+  const step=d=>{const el=document.getElementById('N');el.value=Math.min(30,Math.max(1,+el.value+d));update()};
+  document.getElementById('miniDn').onclick=()=>step(-1);document.getElementById('miniUp').onclick=()=>step(1);
+  document.getElementById('miniSum').onclick=()=>v.scrollIntoView({behavior:'smooth',block:'start'});
+  // floating "Assumptions" button: tucks away while scrolling down, returns when scrolling up
+  const fab=document.getElementById('fab');let y0=scrollY;
+  addEventListener('scroll',()=>{const y=scrollY;if(Math.abs(y-y0)<8)return;fab.classList.toggle('tuck',y>y0&&y>300);y0=y},{passive:true});
+  // keyboard: "/" jumps to the settings search, Escape closes the settings sheet
+  addEventListener('keydown',e=>{if(e.key==='/'&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();const q=document.getElementById('aq');if(innerWidth<=900)fab.click();setTimeout(()=>q.focus(),innerWidth<=900?300:0)}
+    if(e.key==='Escape'&&document.getElementById('aside').classList.contains('open'))document.getElementById('closeSheet').click()})}

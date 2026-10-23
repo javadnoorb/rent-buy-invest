@@ -16,6 +16,7 @@ function summary(){
   const rp=p.rentalOn&&o.rental[N]!=null?adj(o.rental[N],c):null;
   const opts=[['buy','Buy',b],['inv','Rent + invest',iv],['cash','Rent + T-bills',ca]].concat(rp!=null?[['rp','Rent + rental property',rp]]:[]),mx=Math.max(...opts.map(o=>o[2]),1),top=Math.max(...opts.map(o=>o[2]));
   document.getElementById('bars').innerHTML=opts.map(([k,lab,v])=>`<div class="bar ${v===top?'win':''}"><span class="lab">${lab}${v===top?'<span class="pill">best</span>':''}</span><span class="track"><span class="fill" style="display:block;width:${Math.max(0,v/mx*100).toFixed(1)}%;background:var(--${k})"></span></span><span class="val">${fmt(v)}</span></div>`).join('');
+  document.getElementById('miniSum').innerHTML=Math.abs(d)<0.005*p.P?`About even at year ${N}`:`<span class="who ${d>=0?'buy':'inv'}">${d>=0?'Buying':'Renting'}</span> ahead by <strong>${fmt(Math.abs(d))}</strong> at year ${N}`;document.getElementById('miniN').textContent=N+' yr';
   document.getElementById('sheetlive').innerHTML=`Year ${N}: buy ${fmt(b)} · rent+invest ${fmt(iv)} · gap <strong style="color:var(${d>=0?'--buy':'--inv'})">${d>=0?'+':''}${fmt(d)}</strong>`;
   const stat=([k,v,h])=>`<div class="stat"${h?` title="${h}"`:''}><div class="k">${k}</div><div class="v">${v}</div></div>`;
   document.getElementById('vgrid').innerHTML=[

@@ -96,7 +96,7 @@ ol.sources li{max-width:90ch}
 
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
 @media (max-width:700px){.snap{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(156px,62%);overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:4px;scrollbar-width:thin}.chip{scroll-snap-align:start}}
-.tabs{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:6}
+.stickyhead{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:6}
 .quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) minmax(0,1.4fr);gap:10px;align-items:end;padding-bottom:12px;border-bottom:1px solid var(--line)}
 @media (max-width:760px){.quick{grid-template-columns:repeat(2,minmax(0,1fr))}.quick .hz{grid-column:1/-1}}
 .q{display:flex;flex-direction:column;gap:3px;min-width:0}
@@ -348,3 +348,24 @@ table.loct td:first-child{min-width:150px}
 .plot:empty{border-radius:10px;background:linear-gradient(90deg,var(--sunk) 0%,var(--surface) 50%,var(--sunk) 100%) 0 0/200% 100%;animation:shimmer 1.4s linear infinite}
 @keyframes shimmer{to{background-position:-200% 0}}
 @media (prefers-reduced-motion:reduce){.plot:empty{animation:none}}
+/* market cards: label truncates so the help button never overlaps it */
+.chip .k{min-width:0}
+.chip .kt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.chip .k .hlp{margin-left:auto;flex:none}
+.snap.more-r{-webkit-mask-image:linear-gradient(to right,#000 90%,transparent);mask-image:linear-gradient(to right,#000 90%,transparent)}
+/* compact answer bar */
+.mini{display:flex;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid var(--line);font-size:13px}
+.mini[hidden]{display:none}
+.mini-sum{flex:1;min-width:0;text-align:left;border:0;background:none;padding:4px 2px;color:var(--ink);font:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;min-height:0}
+.mini-sum .who.buy{color:var(--buy);font-weight:650}.mini-sum .who.inv{color:var(--inv);font-weight:650}
+.mini-hz{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:999px;overflow:hidden;flex:none}
+.mini-hz button{border:0;background:var(--surface);color:var(--ink);width:34px;height:30px;padding:0;font-size:17px;line-height:1;cursor:pointer;min-height:0}
+.mini-hz span{padding:0 8px;font-size:12.5px;min-width:42px;text-align:center}
+/* horizon ticks */
+.hz{position:relative}
+.ticks{position:relative;height:14px;margin:0 9px;font:11px var(--mono);color:var(--muted)}
+.ticks span{position:absolute;transform:translateX(-50%);top:0}
+/* floating assumptions button */
+.fab{gap:7px;align-items:center;transition:transform .25s ease,opacity .25s ease}
+.fab.tuck{transform:translateY(calc(100% + 24px));opacity:0}
+@media (prefers-reduced-motion:reduce){.fab{transition:none}}
