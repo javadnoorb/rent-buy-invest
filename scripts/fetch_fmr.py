@@ -15,9 +15,15 @@ OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'data', 'county_f
 PAGE = 'https://www.huduser.gov/portal/datasets/fmr.html'
 BASE = 'https://www.huduser.gov/portal/datasets/fmr/fmr{y}/'
 
+# huduser.gov answers unfamiliar clients with an HTML page instead of the file, so ask like a browser would
+HEADERS = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36 rent-buy-invest',
+           'Accept': 'text/html,application/xhtml+xml,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,*/*;q=0.8',
+           'Accept-Language': 'en-US,en;q=0.9', 'Referer': 'https://www.huduser.gov/portal/datasets/fmr.html'}
 def get(url, binary=False):
-    req = urllib.request.Request(url, headers={'User-Agent': 'rent-buy-invest data refresh'})
-    with urllib.request.urlopen(req, timeout=180) as r: body = r.read()
+    req = urllib.request.Request(url, headers=HEADERS)
+    with urllib.request.urlopen(req, timeout=180) as r: body = r.read(); ctype = r.headers.get('Content-Type', '')
+    if binary and body[:2] != b'PK':
+        raise ValueError(f'not a spreadsheet ({ctype}, {len(body)} bytes): ' + body[:160].decode('utf-8', 'replace').replace('\n', ' '))
     return body if binary else body.decode('utf-8', 'replace')
 
 def candidates(fy):
@@ -25,7 +31,9 @@ def candidates(fy):
     yy = str(fy)[2:]; urls = []
     try:
         page = get(PAGE)
-        for href in re.findall(r'href="([^"]+\.xlsx)"', page, re.I):
+        links = re.findall(r'href="([^"]+\.xlsx)"', page, re.I)
+        print(f'dataset page: {len(page)} characters, {len(links)} .xlsx links, e.g. ' + ', '.join(l.rsplit('/', 1)[-1] for l in links[:12]))
+        for href in links:
             u = urllib.request.urljoin(PAGE, href); f = u.rsplit('/', 1)[-1].lower()
             if f'fmr{fy}' in u.lower() and f.startswith(f'fy{yy}_fmr') and not re.search(r'safmr|50|cbsa|zip|hmfa', f): urls.append(u)
     except Exception as e:

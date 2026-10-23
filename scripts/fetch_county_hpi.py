@@ -58,6 +58,16 @@ for url in candidates():
     except Exception as e: print(f'{url}: could not read ({e})'); continue
     print(f'{url}: {len(series)} counties')
     if len(series) < 2500: continue
+    # small counties have early years from a handful of sales, with one-year jumps of 50–90%; keep each county's
+    # history only from its last implausible jump (or gap) on, so the app never resamples those years
+    trimmed = 0
+    for f, s in list(series.items()):
+        ys = sorted(s, key=int); start = 0
+        for i in range(1, len(ys)):
+            g = s[ys[i]] / s[ys[i - 1]] - 1 if s[ys[i - 1]] else None
+            if int(ys[i]) != int(ys[i - 1]) + 1 or g is None or not -0.4 <= g <= 0.6: start = i
+        if start: trimmed += 1; series[f] = {y: s[y] for y in ys[start:]}
+    print(f'trimmed early years of {trimmed} counties after a gap or a one-year move outside -40%..+60%')
     os.makedirs(OUT, exist_ok=True)
     by_state = {}
     for f, s in series.items(): by_state.setdefault(f[:2], {})[f] = s
