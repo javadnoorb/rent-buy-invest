@@ -212,6 +212,15 @@
         <dt>Housing ÷ income</dt><dd>Month-1 owning cost over your gross monthly income. Green up to 28%, amber to 36%, red above: the same household may not qualify for a mortgage everywhere.</dd>
         <dt>Not modeled</dt><dd>Local pay differences, state income tax (kept at your setting) and local homestead exemptions.</dd></dl></details>
     </div>
+    <div class="card"><h2>Side by side</h2>
+      <p class="cap">Any two places, including counties and ZIP codes, with your household and settings. The growth mode above applies here too.</p>
+      <div class="sbs-pick"><div><label for="sbsA">Place A</label><input id="sbsA" list="sbsList" autocomplete="off" placeholder="Metro, county or ZIP"></div>
+        <div><label for="sbsB">Place B</label><input id="sbsB" list="sbsList" autocomplete="off" placeholder="Metro, county or ZIP"></div>
+        <button type="button" id="sbsSwap" class="ghost" aria-label="Swap places A and B">⇄</button><datalist id="sbsList"></datalist></div>
+      <p class="sub" id="sbsMsg" role="status"></p>
+      <div class="takeaway" id="tk-sbs"></div>
+      <div class="tablewrap" style="max-height:none"><table class="kv sbs" id="sbsT"></table></div>
+    </div>
     <div class="card"><h2>Buy advantage over time, by location</h2><p class="cap">Buy minus rent-and-invest each year for the ticked locations; the thicker line is your current location.</p><div class="plot tall" id="p-loc"></div></div>
     <div class="card"><h2>Price-to-rent ratio vs. the answer</h2><p class="cap">Each dot is a location: how expensive homes are relative to rent, against the buy advantage at your horizon. Green dots: buying wins.</p><div class="plot" id="p-locsc"></div></div>
   </section>

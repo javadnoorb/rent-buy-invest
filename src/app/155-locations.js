@@ -47,7 +47,7 @@ function renderLoc(){
   document.getElementById('loc-cap').innerHTML=`Same household in every location: your income, savings rate, down payment share, loan, tax settings and horizon (${N} years). What changes: home price, comparable ${P.beds==='any'?'':P.beds+'-bedroom '}rent, property tax, insurance${getRaw().ttAuto==='auto'?', transfer taxes':''}${LOC_MODE==='same'?'':', and home and rent growth'}. State income tax stays at your setting.`;
   document.getElementById('tk-loc').innerHTML=`<strong>Buying comes out ahead in ${g} of ${rows.length} locations</strong> at ${N} years. Best for buying: ${best.m.name} (${best.gap>=0?'+':'−'}${fmt(Math.abs(best.gap))}); best for renting: ${worst.m.name} (${worst.gap>=0?'+':'−'}${fmt(Math.abs(worst.gap))}). `+
     (isFinite(corr)?`Across locations the price-to-rent ratio and the buy advantage correlate at ${corr.toFixed(2)}: ${corr<-0.5?'where homes are expensive relative to rent, renting tends to win':'the ratio alone does not decide it here'}.`:'');
-  drawLoc(rows)}
+  drawLoc(rows);renderSbs()}
 function drawLoc(rows){
   const t=theme(),N=P.N,sel=rows.filter(r=>LOC_SEL.includes(r.m.slug)),pal=[t.buy,t.inv,t.cash,t.rp,t.neg,t.ink];
   plot('p-loc',sel.map((r,i)=>({x:r.o.buy.map((_,k)=>k),y:r.o.buy.map((b,k)=>adj(b-r.o.inv[k],r.o.cpi[k])),mode:'lines',name:r.m.name,line:{color:pal[i%pal.length],width:r.m.slug===P.metro?3:2,dash:i>=3?'dot':'solid'},hovertemplate:'%{y:$,.0f}<extra>'+r.m.name+'</extra>'})),
@@ -55,4 +55,4 @@ function drawLoc(rows){
   plot('p-locsc',[{x:rows.map(r=>r.ptr),y:rows.map(r=>r.gap),text:rows.map(r=>r.m.name),mode:'markers+text',textposition:'top center',textfont:{size:9,color:t.muted},
     marker:{size:rows.map(r=>r.m.slug===P.metro?12:8),color:rows.map(r=>r.gap>=0?t.buy:t.inv),line:{width:rows.map(r=>LOC_SEL.includes(r.m.slug)?1.5:0),color:t.ink}},hovertemplate:'%{text}<br>price ÷ yearly rent %{x:.1f}<br>buy − rent+invest %{y:$,.0f}<extra></extra>'}],
     Object.assign(layout(),{xaxis:X('Price ÷ yearly rent'),yaxis:Yd(`Buy − rent+invest at year ${N}`),showlegend:false,shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:t.muted,width:1}}]}))}
-function wireLoc(){document.querySelectorAll('#locMode button').forEach(b=>b.addEventListener('click',()=>{LOC_MODE=b.dataset.m;document.querySelectorAll('#locMode button').forEach(x=>x.setAttribute('aria-pressed',x===b));renderLoc()}))}
+function wireLoc(){wireSbs();document.querySelectorAll('#locMode button').forEach(b=>b.addEventListener('click',()=>{LOC_MODE=b.dataset.m;document.querySelectorAll('#locMode button').forEach(x=>x.setAttribute('aria-pressed',x===b));renderLoc()}))}

@@ -1,6 +1,6 @@
 name: Tests
 # Runs on every push and pull request. Two jobs in parallel:
-#   checks — static lint, model math tests, and that index.html matches src/ and data/ (seconds)
+#   checks — static lint, model math tests, data-script parser tests and the build (seconds)
 #   smoke  — the built page in the runner's preinstalled Chrome with the real chart and formula libraries, UI logic tests
 #            and an axe-core accessibility check
 on: [push, pull_request]
@@ -20,6 +20,8 @@ jobs:
         run: node tests/lint.js
       - name: Model tests
         run: node tests/run.js
+      - name: Data script parsers (offline samples)
+        run: python3 tests/test_scripts.py
       - name: Build
         run: python3 build.py --pwa
   smoke:

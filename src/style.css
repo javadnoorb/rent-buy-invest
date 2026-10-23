@@ -398,3 +398,12 @@ table.loct td:first-child{min-width:150px}
 .affrow .k{font-weight:600;font-size:13px}.affrow .k .sub{font-weight:400}
 .affrow .v{font-family:var(--mono,monospace);font-size:20px;margin:2px 0;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
 .affrow .v .qlink{font-family:var(--body,inherit);font-size:12px}
+
+/* side-by-side places */
+.sbs-pick{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin:8px 0}
+.sbs-pick>div{display:flex;flex-direction:column;gap:3px;flex:1 1 200px;min-width:0}
+.sbs-pick label{font-size:11.5px;color:var(--muted)}
+.sbs-pick input{font:inherit;font-size:14px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);width:100%;box-sizing:border-box;min-height:38px}
+.sbs-pick button{min-height:38px}
+table.sbs td:not(:first-child),table.sbs th:not(:first-child){text-align:right;white-space:nowrap}
+table.sbs tr.sbs-head td{font-weight:600}

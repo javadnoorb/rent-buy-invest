@@ -164,6 +164,21 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
   ok(aff.l > 0.425 && aff.l <= 0.43 && aff.order, 'lender-limit price uses 43% and is higher');
   ok(aff.tl === 'cash', 'with little cash, the cash limits the price');
 
+  /* side by side: a county and a ZIP code next to each other, with the difference column */
+  await page.evaluate(() => { localStorage.removeItem('rbi-sbs'); SBS = null; });
+  await page.click('[data-tab="loc"]'); await page.waitForTimeout(600);
+  await page.fill('#sbsA', 'King County, Washington'); await page.press('#sbsA', 'Enter'); await page.waitForTimeout(500);
+  await page.fill('#sbsB', '98101'); await page.press('#sbsB', 'Enter'); await page.waitForTimeout(600);
+  const sbs = await page.evaluate(() => [...document.querySelectorAll('#sbsT tr')].map(r => [...r.children].map(c => c.textContent.trim())));
+  const priceRow = sbs.find(r => r[0] === 'Home price');
+  ok(sbs[0][1] === 'King County, Washington' && /ZIP 98101/.test(sbs[0][2]), 'side by side shows a county and a ZIP', JSON.stringify(sbs[0]));
+  ok(priceRow && priceRow[2] === '$840k' && /^[+−]/.test(priceRow[3]), 'ZIP price and the B − A column', JSON.stringify(priceRow));
+  await page.fill('#sbsB', 'Atlantis'); await page.press('#sbsB', 'Enter'); await page.waitForTimeout(300);
+  ok(/No data for/.test(await page.textContent('#sbsMsg')), 'an unknown place shows a message');
+  await page.click('#sbsSwap'); await page.waitForTimeout(400);
+  ok(await page.evaluate(() => SBS[0].startsWith('zip:') && SBS[1].startsWith('cty:')), 'swap exchanges the two places');
+  await page.click('[data-tab="proj"]');
+
   /* saves from before v6 pick up the new defaults for renter's insurance and the chance of moving; later choices are kept */
   const defs = await page.evaluate(() => [D0.rins, D0.hz]);
   await reloadWith({ v: 5, metro: 'us', beds: '3', P: '500000', rins: '0', hz: '5.6' });

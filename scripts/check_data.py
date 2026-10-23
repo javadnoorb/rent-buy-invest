@@ -2,9 +2,12 @@
 """Sanity checks for a data refresh: compares data/ in the working tree with the last commit (HEAD) and exits 1, listing
 every problem, if anything looks implausible. The tests catch broken data; this catches data that is well-formed but
 wrong (a shifted column, a units change, a source returning a stale or partial file). Run after scripts/apply_public.py.
+It also checks that each source is current from the dates inside the data. A stale source does not fail the run (the
+other sources still update): it is printed as a warning and, if STALE_OUT is set, written to that file, from which the
+refresh workflow opens a "stale data" issue.
 Run: python3 scripts/check_data.py
 """
-import glob, json, os, subprocess, sys
+import glob, json, os, subprocess, sys, time
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 problems = []
 
@@ -197,6 +200,30 @@ if mv and not (0.015 <= (mv.get('owner') or 0) <= 0.15 and 0.05 <= (mv.get('rent
 ri, ri0 = (fp.get('renters_ins') or {}).get('value'), (fp0.get('renters_ins') or {}).get('value')
 if fp.get('renters_ins') and not 20 <= (ri or 0) <= 1000: bad(f'renters insurance: {ri}/yr')
 if ri and ri0 and abs(ri / ri0 - 1) > 0.6: bad(f'renters insurance: {ri0} → {ri}')
+
+# ---- freshness: the newest date each source holds (a source down for weeks keeps old data without failing) ----
+stale = []
+now = time.gmtime(); ym = now.tm_year * 12 + now.tm_mon - 1
+def months_old(s): y, m = (int(x) for x in str(s)[:7].split('-')); return ym - (y * 12 + m - 1)
+def days_old(s): return (time.mktime(now) - time.mktime(time.strptime(str(s)[:10], '%Y-%m-%d'))) / 86400
+mk = load('data/market.json') or {}
+for what, cond, msg in (
+        ('Treasury yields', lambda: days_old(mk['treasury']['date']) <= 14, lambda: f"latest {mk['treasury']['date']}"),
+        ('CPI (BLS)', lambda: months_old(mk['cpi']['month']) <= 3, lambda: f"latest {mk['cpi']['month']}"),
+        ('Zillow home value and rent', lambda: months_old(mk['zillow']['month']) <= 3, lambda: f"latest {mk['zillow']['month']}"),
+        ('Mortgage rates (Freddie Mac)', lambda: months_old(max(vals(new_m.get('mort')))) <= 2, lambda: f"latest month {max(vals(new_m.get('mort')))}"),
+        ('FHFA house price index', lambda: months_old(max(vals(new_m.get('fhfa')))) <= 5, lambda: f"latest month {max(vals(new_m.get('fhfa')))}"),
+        ('HUD Fair Market Rents', lambda: load('data/county_fmr.json')['fiscal_year'] >= now.tm_year + (now.tm_mon >= 10) - 1, lambda: f"FY{load('data/county_fmr.json')['fiscal_year']}"),
+        ('Census county figures (ACS 5-year)', lambda: load('data/counties.json')['year'] >= now.tm_year - 3, lambda: f"survey year {load('data/counties.json')['year']}"),
+        ('Homeowners insurance (ACS microdata)', lambda: load('data/insurance.json')['year'] >= now.tm_year - 3, lambda: f"survey year {load('data/insurance.json')['year']}"),
+        ('Professional forecasters survey', lambda: fp['spf']['year'] >= now.tm_year - (1 if now.tm_mon <= 3 else 0), lambda: f"Q1 {fp['spf']['year']} survey"),
+        ('Census mover rates', lambda: fp['movers']['year'] >= now.tm_year - 4, lambda: f"year {fp['movers']['year']}"),
+        ('Renters insurance (BLS CE)', lambda: fp['renters_ins']['year'] >= now.tm_year - 3, lambda: f"year {fp['renters_ins']['year']}")):
+    try: ok_ = cond()
+    except Exception as e: ok_, msg = False, (lambda e=e: f'missing ({type(e).__name__}: {e})')
+    if not ok_: stale.append(f'{what}: {msg()}')
+for s_ in stale: print(f'::warning::stale source: {s_}')
+if os.environ.get('STALE_OUT'): open(os.environ['STALE_OUT'], 'w').write(''.join(f'- {s_}\n' for s_ in stale))
 
 if problems:
     print(f'data check failed ({len(problems)} problem{"s" if len(problems) > 1 else ""}):')
