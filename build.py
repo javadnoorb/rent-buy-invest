@@ -119,6 +119,35 @@ mort = res_raw['mortgage_annual']['value']
 MORT_OVERRIDE = [mort[str(y)] for y in range(1972, 2026)]
 
 # ---------- metros ----------
+# ---------- homeowners insurance by state (data/insurance.json, from scripts/fetch_insurance.py) ----------
+# Census ACS microdata medians of what owners of one-family homes pay, brought to today's prices with the BLS homeowners-
+# insurance price index. Metros use their state (from the Zillow region name, e.g. "Boston, MA"); counties and ZIPs too.
+_ABBR = {'AL': 'Alabama', 'AK': 'Alaska', 'AZ': 'Arizona', 'AR': 'Arkansas', 'CA': 'California', 'CO': 'Colorado', 'CT': 'Connecticut', 'DE': 'Delaware',
+         'DC': 'District of Columbia', 'FL': 'Florida', 'GA': 'Georgia', 'HI': 'Hawaii', 'ID': 'Idaho', 'IL': 'Illinois', 'IN': 'Indiana', 'IA': 'Iowa',
+         'KS': 'Kansas', 'KY': 'Kentucky', 'LA': 'Louisiana', 'ME': 'Maine', 'MD': 'Maryland', 'MA': 'Massachusetts', 'MI': 'Michigan', 'MN': 'Minnesota',
+         'MS': 'Mississippi', 'MO': 'Missouri', 'MT': 'Montana', 'NE': 'Nebraska', 'NV': 'Nevada', 'NH': 'New Hampshire', 'NJ': 'New Jersey',
+         'NM': 'New Mexico', 'NY': 'New York', 'NC': 'North Carolina', 'ND': 'North Dakota', 'OH': 'Ohio', 'OK': 'Oklahoma', 'OR': 'Oregon',
+         'PA': 'Pennsylvania', 'RI': 'Rhode Island', 'SC': 'South Carolina', 'SD': 'South Dakota', 'TN': 'Tennessee', 'TX': 'Texas', 'UT': 'Utah',
+         'VT': 'Vermont', 'VA': 'Virginia', 'WA': 'Washington', 'WV': 'West Virginia', 'WI': 'Wisconsin', 'WY': 'Wyoming'}
+def _abbr(m):
+    import re as _re
+    mm = _re.search(r',\s*([A-Z]{2})\s+metro', ((m.get('price') or {}).get('what') or ''))
+    return mm.group(1) if mm else None
+_ins = json.load(open(D('data', 'insurance.json'))) if os.path.exists(D('data', 'insurance.json')) else {}
+INS = {'us': snap['values']['insUS'], 'by_name': {}, 'by_abbr': {}, 'src': lambda a: {'t': 'U.S. average premium', 'u': None}}
+if _ins.get('states') and _ins.get('us'):
+    pp = _ins.get('ppi') or {}; k = pp['latest'] / pp['base_year_avg'] if pp.get('latest') and pp.get('base_year_avg') else 1
+    upto = _mon(pp['latest_month']) if pp.get('latest_month') else str(_ins['year'])
+    INS['us'] = round(_ins['us'] * k / 10) * 10
+    INS['by_name'] = {n: round(v * k / 10) * 10 for n, v in _ins['states'].items()}
+    INS['by_abbr'] = {a: INS['by_name'].get(n) for a, n in _ABBR.items()}
+    _t = lambda where, v: (f"median paid by owners of one-family homes, {where}, Census ACS {_ins['year']} microdata (${v:,}/yr then), "
+                           f"× {k:.3f} BLS homeowners-insurance price index to {upto}")
+    INS['src'] = lambda a: ({'t': _t(_ABBR[a], _ins['states'][_ABBR[a]]), 'u': _ins['source_url']} if a in _ABBR and _ABBR[a] in _ins['states']
+                            else {'t': _t('U.S.', _ins['us']), 'u': _ins['source_url']})
+    snap['values']['insUS'] = INS['us']
+    snap['sources']['ins'] = INS['src'](None)
+
 METROS = [{'slug': 'us', 'name': 'United States', 'P': snap['values']['zhvi'], 'rent': snap['values']['zori'],
            'ptax': snap['values']['ptaxUS'], 'ins': snap['values']['insUS'], 'ptaxCap': 0, 'hpi': None, 'src': {}}]
 order = ['boston', 'new-york', 'washington-dc', 'philadelphia', 'raleigh', 'charlotte', 'atlanta', 'tampa', 'miami',
@@ -134,13 +163,11 @@ for slug in order:
         e = m.get(k) or {}
         if not e.get('source_url'): return None
         t = e.get('what') or e.get('source_title')
-        if k == 'ptax': t = f"{e.get('rate_pct')}% effective, {e.get('geography')}" + (f", {e['year']}" if e.get('year') else '') + f" ({e.get('source_title','').split(':')[0]})"
-        if k == 'ins': t = f"${e.get('annual_usd'):,} avg premium, {e.get('geography')}" + (f", {e['coverage']}" if e.get('coverage') else '') + f" ({e.get('source_title','').split(':')[0]})"
         return {'t': t, 'u': e['source_url'], 'd': e.get('date')}
     cap = 2 if slug in ('los-angeles', 'san-diego', 'san-francisco') else 0
     METROS.append({'slug': slug, 'name': m['name'] + (' metro' if False else ''),
                    'P': (m.get('price') or {}).get('value'), 'rent': (m.get('rent') or {}).get('value'),
-                   'ptax': (m.get('ptax') or {}).get('rate_pct'), 'ins': (m.get('ins') or {}).get('annual_usd'),
+                   'ptax': (m.get('acs') or {}).get('eff_tax_pct'), 'ins': INS['by_abbr'].get(_abbr(m)) or INS['us'],
                    'ptaxCap': cap,
                    'acs': ({'rate': (m.get('acs') or {}).get('eff_tax_pct'), 'year': (m.get('acs') or {}).get('year'), 'name': (m.get('acs') or {}).get('name'),
                             'beds': (m.get('acs') or {}).get('rent_ratio_by_bedrooms'), 'u': (m.get('acs') or {}).get('source_url')} if m.get('acs') else None),
@@ -149,7 +176,9 @@ for slug in order:
                    'tt': m.get('transfer_taxes'), 'ttSrc': [{'t': x['name'], 'u': x['source_url']} for x in (m.get('transfer_taxes') or []) if x.get('source_url')],
                    'hpi': {'values': vals, 'basis': h.get('basis'), 'volK': h.get('volK')} if vals else None,
                    'hpiSrc': {'t': f"FHFA purchase-only index, {h.get('area')} ({h.get('basis')}); volatility ratio {h.get('volK')}", 'u': h.get('source_url')} if h.get('source_url') else None,
-                   'src': {k: s(k) for k in ('price', 'rent', 'ptax', 'ins')}})
+                   'src': {**{k: s(k) for k in ('price', 'rent')},
+                           'ptax': {'t': f"median tax ÷ median value, {(m.get('acs') or {}).get('name', m['name'])}, Census ACS {(m.get('acs') or {}).get('year', '')}", 'u': (m.get('acs') or {}).get('source_url')},
+                           'ins': INS['src'](_abbr(m))}})
     METROS[-1]['src']['hpi'] = METROS[-1]['hpiSrc']
     z = ((MARKET.get('zillow') or {}).get('metros') or {}).get(slug) or {}
     if z.get('zhvi') and z.get('zori'):
@@ -227,10 +256,7 @@ cf = D('data', 'counties.json')
 if os.path.exists(cf):
     c = json.load(open(cf))
     us = c['us']; kP = snap['values']['zhvi'] / us['P']; kR = snap['values']['zori'] / us['rent'] if us.get('rent') else 1
-    state_ins = {}
-    for mf in sorted(glob.glob(D('data', 'metro_*.json'))):
-        ins = json.load(open(mf)).get('ins') or {}
-        if ins.get('geography') and ins.get('annual_usd'): state_ins[ins['geography']] = [ins['annual_usd'], ins.get('source_url')]
+    state_ins = {n: [v, _ins.get('source_url')] for n, v in INS['by_name'].items()}
     # the page gets only these scaling figures; the installed build fetches data/counties.json the first time someone
     # picks a county (it is served next to the page), while the artifact build, which cannot fetch files, embeds the rows
     # HUD Fair Market Rents by bedrooms (data/county_fmr.json) and FHFA county price indexes (data/county_hpi/<state>.json)

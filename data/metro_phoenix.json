@@ -66,22 +66,7 @@
   "source_title": "Zillow Group: Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (Oct. 6, 2026)",
   "source_url": "https://investors.zillowgroup.com/news-and-events/news/news-details/2026/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5/default.aspx"
  },
- "ptax": {
-  "rate_pct": 0.39,
-  "geography": "Phoenix, AZ metro",
-  "year": 2025,
-  "source_title": "ATTOM: Average Single-Family Home Property Tax Bill Rose 3 Percent in 2025 (Apr. 9, 2026)",
-  "source_url": "https://www.attomdata.com/news/market-trends/home-sales-prices/2025-annual-tax-report"
- },
- "ins": {
-  "annual_usd": 2184,
-  "geography": "Arizona",
-  "coverage": "$300,000 dwelling coverage",
-  "year": 2026,
-  "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
-  "source_url": "https://insurify.com/homeowners-insurance/states/"
- },
- "notes": "1989-2025 continuous. ATTOM effective rate = average tax bill / average estimated value, single-family homes, 2025 (Arizona statewide 0.43%). SmartAsset Maricopa County 0.40%, no year (https://smartasset.com/taxes/arizona-property-tax-calculator). Zillow Sep 2026 Phoenix figures independently confirmed by AZ Big Media (Oct 20, 2026): $440,821 and $1,720 (https://azbigmedia.com/real-estate/phoenix-home-values-fall-as-mortgage-rates-squeeze-buyers/). ValuePenguin Arizona $1,993 at $350K dwelling. Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
+ "notes": "1989-2025 continuous. Zillow Sep 2026 Phoenix figures independently confirmed by AZ Big Media (Oct 20, 2026): $440,821 and $1,720 (https://azbigmedia.com/real-estate/phoenix-home-values-fall-as-mortgage-rates-squeeze-buyers/). Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
  "rent_hist": {
   "growth_pct": {
    "1987": 4.741,

@@ -176,8 +176,8 @@ const CHART_HELP={
 };
 const CARD_HELP={'30-yr mortgage':'Freddie Mac weekly national average for a 30-year fixed loan.','15-yr mortgage':'Freddie Mac weekly national average for a 15-year fixed loan.',
  '10-yr Treasury':'Yield on 10-year U.S. government bonds; mortgage rates tend to sit about 1.7 points above it.','Home prices (FHFA)':'Change in U.S. home prices over the past 12 months, from the Federal Housing Finance Agency\'s purchase-only index (homes bought with conforming mortgages, not seasonally adjusted).',
- 'Median existing home':'Middle sale price of existing homes sold last month (National Association of Realtors).','Typical home value':'Zillow\'s typical U.S. home value (middle of the market).',
- 'Typical rent':'Zillow\'s typical U.S. asking rent across all rental sizes.','CPI inflation':'Change in consumer prices over the past year (BLS).','Property tax':'U.S. average effective property tax rate.','Data as of':'When the market figures above were last updated.'};
+ 'Typical home value':'Zillow\'s typical U.S. home value (middle of the market).',
+ 'Typical rent':'Zillow\'s typical U.S. asking rent across all rental sizes.','CPI inflation':'Change in consumer prices over the past year (BLS).','Property tax':'U.S. median real-estate taxes paid divided by the median home value (Census American Community Survey).','Data as of':'When the market figures above were last updated.'};
 
 function helpBtn(key,title){return `<button type="button" class="hlp" data-h="${key}" aria-label="Help: ${(title||'').replace(/"/g,'')}">?</button>`}
 function addHelp(el,key,title,where){if(!el||el.querySelector(':scope > .hlp'))return;el.insertAdjacentHTML(where||'beforeend',helpBtn(key,title))}

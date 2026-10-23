@@ -1,7 +1,7 @@
 /* ===================== Inputs ===================== */
 // [group,id,label,default,step,hint,kind,options]
 const F=[
- ['home','P','Home price ($)',V.zhvi,1000,`Zillow typical U.S. home value · ${sl('zillow')} · NAR median ${V.narMedian.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0})} ${sl('nar')}`],
+ ['home','P','Home price ($)',V.zhvi,1000,`Zillow typical U.S. home value · ${sl('zillow')}`],
  ['home','dp','Down payment (%)',20,1,''],
  ['home','rate','Mortgage rate, 30-yr (%)',V.rate30,0.01,`Freddie Mac PMMS, ${SNAP.rateDate} · ${sl('pmms')}`],
  ['home','rate15','Mortgage rate, 15-yr (%)',V.rate15,0.01,`used when term is 15 years · ${sl('pmms')}`],
@@ -22,9 +22,9 @@ const F=[
  ['refi','glide','Years to reach that rate',5,1,''],
  ['refi','refiTh','Refinance when rate drops by (pts)',1.0,0.1,tag+' common rule of thumb 0.75–1.5'],
  ['refi','refiCost','Refinance cost (% of balance)',2,0.1,tag+' paid in cash'],
- ['own','ptax','Property tax (% of value / yr)',V.ptaxUS,0.01,`U.S. effective rate 2025 · ${sl('attom')}`],
+ ['own','ptax','Property tax (% of value / yr)',V.ptaxUS,0.01,`U.S. median tax ÷ median value, Census ACS · ${sl('ptaxUS')}`],
  ['own','ptaxCap','Assessment growth cap (% / yr, 0 = none)',0,0.5,'e.g. 2 for California Prop 13'],
- ['own','ins','Home insurance ($ / yr)',V.insUS,10,`2026 U.S. average projection · ${sl('ins')}`],
+ ['own','ins','Home insurance ($ / yr)',V.insUS,10,`U.S. median paid by homeowners · ${sl('ins')}`],
  ['own','maint','Maintenance (% of value / yr)',D0.maint,0.1,resHint('maint')],
  ['own','hoa','HOA ($ / month)',0,10,''],
  ['own','sell','Selling costs, before transfer taxes (% of price)',D0.sell,0.1,resHint('sell')],

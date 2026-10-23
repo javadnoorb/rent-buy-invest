@@ -66,22 +66,7 @@
   "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
   "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
  },
- "ptax": {
-  "rate_pct": 0.65,
-  "geography": "San Diego County, CA",
-  "year": null,
-  "source_title": "SmartAsset California Property Tax Calculator",
-  "source_url": "https://smartasset.com/taxes/california-property-tax-calculator"
- },
- "ins": {
-  "annual_usd": 2040,
-  "geography": "California",
-  "coverage": "$300,000 dwelling coverage",
-  "year": 2026,
-  "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
-  "source_url": "https://insurify.com/homeowners-insurance/states/"
- },
- "notes": "Prop 13: assessed value increases limited to max 2%/yr (https://www.placer.ca.gov/5882/Proposition-13; also stated on the SmartAsset CA page). SmartAsset gives no data year for the 0.65% rate (CA statewide 0.71%). Cross-checks: Apartment List Oct 2026 San Diego metro median rent $2,291 (https://www.apartmentlist.com/rent-report/ca/san-diego). Redfin San Diego County page showed median sale price $912,957 Sep 2026 (3-month), identical to the figure on Redfin's LA County page, so treat with caution; Redfin San Diego city $979,034 Sep 2026. Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
+ "notes": "Prop 13: assessed value increases limited to max 2%/yr (https://www.placer.ca.gov/5882/Proposition-13; Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
  "rent_hist": {
   "growth_pct": {
    "1987": 4.741,

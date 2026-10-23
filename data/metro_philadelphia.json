@@ -66,22 +66,7 @@
   "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
   "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
  },
- "ptax": {
-  "rate_pct": 0.83,
-  "geography": "Philadelphia County, PA",
-  "year": null,
-  "source_title": "SmartAsset Pennsylvania Property Tax Calculator",
-  "source_url": "https://smartasset.com/taxes/pennsylvania-property-tax-calculator"
- },
- "ins": {
-  "annual_usd": 1272,
-  "geography": "Pennsylvania",
-  "coverage": "$300,000 dwelling coverage",
-  "year": 2026,
-  "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
-  "source_url": "https://insurify.com/homeowners-insurance/states/"
- },
- "notes": "Property tax: SmartAsset (no year) Philadelphia County 0.83%, PA state 1.16%; ATTOM 2025 annual tax report gives Philadelphia metro 1.41% and PA 1.24% for 2025 (https://www.attomdata.com/news/market-trends/home-sales-prices/2025-annual-tax-report). Use 1.41% if modeling suburbs. Alternative insurance: NerdWallet (May 6, 2026) PA $1,720/yr at $400,000 dwelling. Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
+ "notes": "Use 1.41% if modeling suburbs. Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
  "rent_hist": {
   "growth_pct": {
    "1987": 5.802,

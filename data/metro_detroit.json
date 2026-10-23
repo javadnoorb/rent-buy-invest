@@ -66,22 +66,7 @@
   "source_title": "Zillow Group: Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (Oct. 6, 2026)",
   "source_url": "https://investors.zillowgroup.com/news-and-events/news/news-details/2026/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5/default.aspx"
  },
- "ptax": {
-  "rate_pct": 1.51,
-  "geography": "Wayne County, MI",
-  "year": null,
-  "source_title": "SmartAsset Michigan Property Tax Calculator",
-  "source_url": "https://smartasset.com/taxes/michigan-property-tax-calculator"
- },
- "ins": {
-  "annual_usd": 2256,
-  "geography": "Michigan",
-  "coverage": "$300,000 dwelling coverage",
-  "year": 2026,
-  "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
-  "source_url": "https://insurify.com/homeowners-insurance/states/"
- },
- "notes": "1991-2025 continuous. Latest observation is 2026-06 (Detroit lags other metros by a month). SmartAsset Wayne County 1.51% = median tax $2,939 / median value $194,800; no data year given (Michigan statewide 1.18% on same page). ATTOM 2025 report did not list Detroit. Cross-checks: Zillow August 2026 report Detroit ZHVI $267,999, ZORI $1,524 (https://www.zillow.com/research/august-2026-market-report/); ValuePenguin Michigan avg premium $1,783 at $350K dwelling (updated Sep 25, 2026, https://www.valuepenguin.com/average-cost-of-homeowners-insurance). Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
+ "notes": "1991-2025 continuous. Latest observation is 2026-06 (Detroit lags other metros by a month). no data year given (Michigan statewide 1.18% on same page). Cross-checks: Zillow August 2026 report Detroit ZHVI $267,999, ZORI $1,524 (https://www.zillow.com/research/august-2026-market-report/); Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
  "rent_hist": {
   "growth_pct": {
    "1987": 4.621,

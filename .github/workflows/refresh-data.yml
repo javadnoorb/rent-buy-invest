@@ -31,6 +31,7 @@ jobs:
           python scripts/fetch_fmr.py || echo "::warning::HUD Fair Market Rent fetch failed; keeping the existing data/county_fmr.json"
           python scripts/fetch_county_hpi.py || echo "::warning::FHFA county index fetch failed; keeping the existing data/county_hpi/"
           python scripts/fetch_zips.py || echo "::warning::ZIP code fetch failed; keeping the existing data/zip/"
+          python scripts/fetch_insurance.py || echo "::warning::insurance fetch failed; keeping the existing data/insurance.json"
       - name: Merge and rebuild
         run: |
           python scripts/apply_public.py /tmp/public_extract.json /tmp/fhfa_extract.json

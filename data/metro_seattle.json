@@ -66,22 +66,7 @@
   "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
   "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
  },
- "ptax": {
-  "rate_pct": 0.82,
-  "geography": "King County, WA",
-  "year": null,
-  "source_title": "SmartAsset Washington Property Tax Calculator",
-  "source_url": "https://smartasset.com/taxes/washington-property-tax-calculator"
- },
- "ins": {
-  "annual_usd": 1404,
-  "geography": "Washington",
-  "coverage": "$300,000 dwelling coverage",
-  "year": 2026,
-  "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
-  "source_url": "https://insurify.com/homeowners-insurance/states/"
- },
- "notes": "December values 1990-2025 continuous. SmartAsset gives no data year for the 0.82% King County rate (WA statewide 0.79%). Cross-checks: Apartment List Oct 2026 Seattle metro median rent $2,014 (https://www.apartmentlist.com/rent-report/wa/seattle); Redfin King County median sale price $848,102 Sep 2026 (3-month), Seattle city $854,593 Sep 2026; Zillow Seattle city ZHVI $851,471 as of Jul 31, 2026 (per sammamishmortgage.com). Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
+ "notes": "December values 1990-2025 continuous. Zillow Seattle city ZHVI $851,471 as of Jul 31, 2026 (per sammamishmortgage.com). Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
  "rent_hist": {
   "growth_pct": {
    "1987": 4.741,

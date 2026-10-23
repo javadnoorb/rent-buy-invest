@@ -66,22 +66,7 @@
   "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
   "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
  },
- "ptax": {
-  "rate_pct": 0.76,
-  "geography": "San Francisco County, CA",
-  "year": null,
-  "source_title": "SmartAsset California Property Tax Calculator",
-  "source_url": "https://smartasset.com/taxes/california-property-tax-calculator"
- },
- "ins": {
-  "annual_usd": 2040,
-  "geography": "California",
-  "coverage": "$300,000 dwelling coverage",
-  "year": 2026,
-  "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
-  "source_url": "https://insurify.com/homeowners-insurance/states/"
- },
- "notes": "Prop 13: assessed value increases limited to max 2%/yr (https://www.placer.ca.gov/5882/Proposition-13; also stated on the SmartAsset CA page). SmartAsset gives no data year for the 0.76% rate (CA statewide 0.71%). Zillow 'San Francisco, CA' metro = San Francisco-Oakland-Berkeley MSA; ZHVI $1,131,146 verified verbatim in the report table. A Kalshi market page (https://kalshi.com/markets/kxsfhomeval/san-francisco-typical-home-value-on-date/kxsfhomeval-26mar19) suggested the Feb 2026 SF metro typical value resolved above $1,265,000; it does not name its exact source, so the discrepancy is unresolved. Cross-checks: Apartment List Oct 2026 SF metro median rent $3,017, city $3,878 (https://www.apartmentlist.com/rent-report/ca/san-francisco); Redfin SF city median sale price $1,579,248 Sep 2026. Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
+ "notes": "Prop 13: assessed value increases limited to max 2%/yr (https://www.placer.ca.gov/5882/Proposition-13; Zillow 'San Francisco, CA' metro = San Francisco-Oakland-Berkeley MSA; ZHVI $1,131,146 verified verbatim in the report table. A Kalshi market page (https://kalshi.com/markets/kxsfhomeval/san-francisco-typical-home-value-on-date/kxsfhomeval-26mar19) suggested the Feb 2026 SF metro typical value resolved above $1,265,000; it does not name its exact source, so the discrepancy is unresolved. Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
  "rent_hist": {
   "growth_pct": {
    "1987": 4.575,

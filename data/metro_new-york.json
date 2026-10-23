@@ -66,22 +66,7 @@
   "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
   "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
  },
- "ptax": {
-  "rate_pct": 0.73,
-  "geography": "Kings County (Brooklyn), NY",
-  "year": null,
-  "source_title": "SmartAsset New York Property Tax Calculator",
-  "source_url": "https://smartasset.com/taxes/new-york-property-tax-calculator"
- },
- "ins": {
-  "annual_usd": 1356,
-  "geography": "New York (state)",
-  "coverage": "$300,000 dwelling coverage",
-  "year": 2026,
-  "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
-  "source_url": "https://insurify.com/homeowners-insurance/states/"
- },
- "notes": "Property tax choice is uncertain for a metro this varied: SmartAsset gives Kings 0.73%, Queens 0.88%, NY state 1.45%, New York County (Manhattan) not available, no year stated. ATTOM 2025 annual tax report gives New York state effective rate 1.23% for 2025 (https://www.attomdata.com/news/market-trends/home-sales-prices/2025-annual-tax-report). Suburban counties (Nassau, Westchester, NJ) are much higher but were not found. Alternative insurance: NerdWallet (May 6, 2026) NY $1,710/yr at $400,000 dwelling. Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
+ "notes": "Suburban counties (Nassau, Westchester, NJ) are much higher but were not found. Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
  "rent_hist": {
   "growth_pct": {
    "1987": 6.744,

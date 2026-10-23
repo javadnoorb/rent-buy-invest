@@ -66,22 +66,7 @@
   "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
   "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
  },
- "ptax": {
-  "rate_pct": 0.86,
-  "geography": "Fulton County, GA",
-  "year": null,
-  "source_title": "SmartAsset Georgia Property Tax Calculator",
-  "source_url": "https://smartasset.com/taxes/georgia-property-tax-calculator"
- },
- "ins": {
-  "annual_usd": 2496,
-  "geography": "Georgia",
-  "coverage": "$300,000 dwelling coverage",
-  "year": 2026,
-  "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
-  "source_url": "https://insurify.com/homeowners-insurance/states/"
- },
- "notes": "SmartAsset gives no data year for the Fulton 0.86% rate (Georgia statewide 0.74% on same page); ATTOM 2025 report (https://www.attomdata.com/news/market-trends/home-sales-prices/2025-annual-tax-report) did not list Atlanta. Insurify city figure for Atlanta: $2,280/yr at $300K dwelling (https://insurify.com/homeowners-insurance/knowledge/average-cost-of-homeowners-insurance/). Cross-checks seen: FRED/Realtor.com median listing price Atlanta CBSA $415,000 (2026-09, https://fred.stlouisfed.org/data/MEDLISPRI12060.txt); Redfin Atlanta city median sale price $424,898 (Sep 2026); Apartment List Atlanta metro median rent $1,457 (Oct 2026, https://www.apartmentlist.com/rent-report/ga/atlanta). Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
+ "notes": "Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
  "rent_hist": {
   "growth_pct": {
    "1987": 2.208,

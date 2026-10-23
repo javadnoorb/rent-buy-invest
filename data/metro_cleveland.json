@@ -66,22 +66,7 @@
   "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
   "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
  },
- "ptax": {
-  "rate_pct": 1.63,
-  "geography": "Cleveland, OH metro (single-family homes)",
-  "year": 2025,
-  "source_title": "ATTOM: Average Single-Family Home Property Tax Bill Rose 3 Percent in 2025 (Apr 9, 2026)",
-  "source_url": "https://www.attomdata.com/news/market-trends/home-sales-prices/2025-annual-tax-report"
- },
- "ins": {
-  "annual_usd": 1716,
-  "geography": "Ohio",
-  "coverage": "$300,000 dwelling coverage",
-  "year": 2026,
-  "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
-  "source_url": "https://insurify.com/homeowners-insurance/states/"
- },
- "notes": "Property tax alternatives: SmartAsset Cuyahoga County 1.80%, Ohio 1.22%, no year (https://smartasset.com/taxes/ohio-property-tax-calculator); ATTOM 2025 Ohio statewide 1.32%. Insurance is the Ohio statewide average (no Cleveland city figure on Insurify). Cross-checks seen: Redfin Cleveland metro median sale price $230,000 (Feb 2026, https://www.redfin.com/news/cleveland-remains-a-beacon-of-affordability-for-homebuyers/); Apartment List Cleveland metro median rent $1,111 (Feb 2026, per Axios https://www.axios.com/local/cleveland/2026/03/19/median-rent-dip-2026). FRED median listing price for the Cleveland CBSA could not be fetched (MEDLISPRI17410 returned a client error). Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
+ "notes": "FRED median listing price for the Cleveland CBSA could not be fetched (MEDLISPRI17410 returned a client error). Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
  "rent_hist": {
   "growth_pct": {
    "1987": 2.389,

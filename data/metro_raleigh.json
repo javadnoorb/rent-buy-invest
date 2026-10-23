@@ -66,22 +66,7 @@
   "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
   "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
  },
- "ptax": {
-  "rate_pct": 0.75,
-  "geography": "Wake County, NC",
-  "year": null,
-  "source_title": "SmartAsset North Carolina Property Tax Calculator",
-  "source_url": "https://smartasset.com/taxes/north-carolina-property-tax-calculator"
- },
- "ins": {
-  "annual_usd": 3192,
-  "geography": "North Carolina",
-  "coverage": "$300,000 dwelling coverage",
-  "year": 2026,
-  "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
-  "source_url": "https://insurify.com/homeowners-insurance/states/"
- },
- "notes": "SmartAsset gives no year for the 0.75% Wake rate (NC state 0.73%). NC statewide insurance average is pulled up by coastal counties; Raleigh likely lower. Alternative: NerdWallet (May 6, 2026) NC $3,025/yr at $400,000 dwelling. Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
+ "notes": "NC statewide insurance average is pulled up by coastal counties; Raleigh likely lower. Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
  "rent_hist": {
   "growth_pct": {
    "1987": 2.208,

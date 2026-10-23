@@ -6,13 +6,12 @@
   "rate15": 6.68,
   "tsy10": 5.11,
   "tbill": 4.21,
-  "narMedian": 417500,
   "zhvi": 366913,
   "zori": 1932,
   "zoriYoY": 2.7,
   "cpiYoY": 3.7,
   "coreYoY": 2.6,
-  "ptaxUS": 0.9,
+  "ptaxUS": 0.94,
   "insUS": 3057
  },
  "items": [
@@ -41,14 +40,6 @@
    "val": 5.11
   },
   {
-   "k": "Median existing home",
-   "v": "$417,500",
-   "s": "Sep 2026, NAR",
-   "src": "nar",
-   "field": "P",
-   "val": 417500
-  },
-  {
    "k": "Typical home value",
    "v": "$366,913",
    "s": "Sep 2026, Zillow",
@@ -74,11 +65,11 @@
   },
   {
    "k": "Property tax",
-   "v": "0.90%",
-   "s": "2025 U.S. effective",
-   "src": "attom",
+   "v": "0.94%",
+   "s": "U.S. median, Census ACS",
+   "src": "ptaxUS",
    "field": "ptax",
-   "val": 0.9
+   "val": 0.94
   }
  ],
  "sources": {
@@ -90,10 +81,6 @@
    "t": "Mortgage News Daily: 10-year Treasury yield, Oct 21 2026",
    "u": "https://www.mortgagenewsdaily.com/treasury/10yr"
   },
-  "nar": {
-   "t": "NAR existing-home sales, September 2026 (Mortgage News Daily)",
-   "u": "https://www.mortgagenewsdaily.com/news/10162026-existing-home-sales-nar-inventory-prices-appr"
-  },
   "zillow": {
    "t": "Zillow September 2026 Market Report (national and metro values)",
    "u": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
@@ -102,13 +89,13 @@
    "t": "BLS CPI release, September 2026 (Oct 14 2026)",
    "u": "https://www.bls.gov/news.release/cpi.nr0.htm"
   },
-  "attom": {
-   "t": "ATTOM 2025 property tax report (0.90% U.S. effective rate)",
-   "u": "https://www.attomdata.com/news/market-trends/home-sales-prices/2025-annual-tax-report"
-  },
   "ins": {
    "t": "Insurify projection: $3,057 average homeowners premium in 2026",
    "u": "https://agencychecklists.com/2026/03/23/insurify-projects-home-insurance-premiums-to-reach-3057-in-2026-80649/"
+  },
+  "ptaxUS": {
+   "t": "Census ACS 5-year 2020–2024: U.S. median real-estate taxes ÷ median home value",
+   "u": "https://www.census.gov/programs-surveys/acs/data/summary-file.html"
   }
  }
 }

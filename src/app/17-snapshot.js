@@ -55,7 +55,7 @@ function countyMetro(slug){if(!COUNTIES||!COUNTY_ROWS)return null;if(/^zip:/.tes
       rent:fmr?{t:`HUD Fair Market Rent FY${C.fmr.fy} for the bedrooms chosen (2-bedroom $${fmr[2].toLocaleString('en-US')} without utilities: HUD's figure includes them, × ${cg.toFixed(2)}, the county's ACS contract-to-gross rent ratio)`,u:C.fmr.u}
         :{t:rent?`median contract rent, Census ACS ${C.span}, × ${C.kR.toFixed(3)} (scaled to today's Zillow typical U.S. rent)`:'no county rent estimate; U.S. typical rent',u:C.u},
       ptax:{t:ptax!=null?`median tax ÷ median value, Census ACS ${C.span}`:'U.S. effective rate',u:C.u},
-      ins:{t:ins?`${name.split(', ').pop()} average premium (Insurify)`:'U.S. average premium',u:ins?C.insU:null}}};
+      ins:{t:ins?`median paid by owners of one-family homes, ${name.split(', ').pop()} (Census ACS microdata, brought to today with the BLS insurance price index)`:'U.S. figure',u:ins?C.insU:null}}};
   addLocation(m);return m}
 function addLocation(m){METROS.push(m);const sel=document.getElementById('metro'),o=document.createElement('option');o.value=m.slug;o.textContent=m.name;
   sel.insertBefore(o,sel.querySelector('option[value="__county"]'));loadCountyHpi(m)}

@@ -66,22 +66,7 @@
   "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
   "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
  },
- "ptax": {
-  "rate_pct": 0.68,
-  "geography": "Los Angeles County, CA",
-  "year": null,
-  "source_title": "SmartAsset California Property Tax Calculator",
-  "source_url": "https://smartasset.com/taxes/california-property-tax-calculator"
- },
- "ins": {
-  "annual_usd": 2040,
-  "geography": "California",
-  "coverage": "$300,000 dwelling coverage",
-  "year": 2026,
-  "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
-  "source_url": "https://insurify.com/homeowners-insurance/states/"
- },
- "notes": "Prop 13: assessed value increases limited to max 2%/yr (Placer County, 'Limited Assessment rate increases to a maximum of 2% per year', https://www.placer.ca.gov/5882/Proposition-13; also SmartAsset CA page: 'it restricts increases in assessed value to 2% per year'). SmartAsset gives no data year for the 0.68% LA County rate (CA statewide 0.71% on same page). Alternative ptax: Ownwell LA County median effective rate 1.29%, median bill $5,993 (page updated Apr 13, 2026, no data year; https://www.ownwell.com/trends/california/los-angeles-county). Cross-checks: Apartment List Oct 2026 LA metro median rent $2,207 (https://www.apartmentlist.com/rent-report/ca/los-angeles); Redfin LA County median sale price $912,957 Sep 2026 (3-month) and LA city $1,032,508 Sep 2026; Zillow March 2026 LA metro ZHVI $962,935 per Secret Los Angeles. Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
+ "notes": "Prop 13: assessed value increases limited to max 2%/yr (Placer County, 'Limited Assessment rate increases to a maximum of 2% per year', https://www.placer.ca.gov/5882/Proposition-13; Alternative ptax: Ownwell LA County median effective rate 1.29%, median bill $5,993 (page updated Apr 13, 2026, no data year; https://www.ownwell.com/trends/california/los-angeles-county). Zillow March 2026 LA metro ZHVI $962,935 per Secret Los Angeles. Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
  "rent_hist": {
   "growth_pct": {
    "1987": 5.371,

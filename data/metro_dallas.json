@@ -66,22 +66,7 @@
   "source_title": "Zillow Group: Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (Oct. 6, 2026)",
   "source_url": "https://investors.zillowgroup.com/news-and-events/news/news-details/2026/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5/default.aspx"
  },
- "ptax": {
-  "rate_pct": 1.41,
-  "geography": "Dallas County, TX",
-  "year": null,
-  "source_title": "SmartAsset Texas Property Tax Calculator",
-  "source_url": "https://smartasset.com/taxes/texas-property-tax-calculator"
- },
- "ins": {
-  "annual_usd": 4668,
-  "geography": "Texas",
-  "coverage": "$300,000 dwelling coverage",
-  "year": 2026,
-  "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
-  "source_url": "https://insurify.com/homeowners-insurance/states/"
- },
- "notes": "2000-2025 continuous. SmartAsset Dallas County 1.41% = median tax $4,649 / median value $330,500; no data year (Texas statewide 1.31%). ATTOM 2025 report did not list Dallas. Insurance varies widely by source for Texas: ValuePenguin $3,694 at $350K dwelling (Sep 25, 2026, https://www.valuepenguin.com/average-cost-of-homeowners-insurance). Cross-checks: Zillow August 2026 Dallas metro ZHVI $361,463, ZORI $1,659 (https://www.zillow.com/research/august-2026-market-report/); Redfin Dallas city median sale price $449,736 (Sep 2026). Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
+ "notes": "2000-2025 continuous. no data year (Texas statewide 1.31%). Cross-checks: Zillow August 2026 Dallas metro ZHVI $361,463, ZORI $1,659 (https://www.zillow.com/research/august-2026-market-report/); Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
  "rent_hist": {
   "growth_pct": {
    "1987": -1.518,

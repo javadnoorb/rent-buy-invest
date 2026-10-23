@@ -66,22 +66,7 @@
   "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
   "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
  },
- "ptax": {
-  "rate_pct": 1.78,
-  "geography": "Chicago, IL metro (single-family homes)",
-  "year": 2025,
-  "source_title": "ATTOM: Average Single-Family Home Property Tax Bill Rose 3 Percent in 2025 (Apr 9, 2026)",
-  "source_url": "https://www.attomdata.com/news/market-trends/home-sales-prices/2025-annual-tax-report"
- },
- "ins": {
-  "annual_usd": 2568,
-  "geography": "Illinois",
-  "coverage": "$300,000 dwelling coverage",
-  "year": 2026,
-  "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
-  "source_url": "https://insurify.com/homeowners-insurance/states/"
- },
- "notes": "Property tax alternatives: SmartAsset Cook County 1.89%, Illinois 1.92%, no year (https://smartasset.com/taxes/illinois-property-tax-calculator); ATTOM 2025 Illinois statewide 1.84%. Insurify city figure for Chicago: $2,772/yr at $300K dwelling (https://insurify.com/homeowners-insurance/knowledge/average-cost-of-homeowners-insurance/). Cross-checks seen: FRED/Realtor.com median listing price Chicago CBSA $389,450 (2026-09, https://fred.stlouisfed.org/data/MEDLISPRI16980.txt); Apartment List Chicago metro median rent $1,741 (Oct 2026, https://www.apartmentlist.com/rent-report/il/chicago). Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
+ "notes": "Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
  "rent_hist": {
   "growth_pct": {
    "1987": 5.018,

@@ -66,22 +66,7 @@
   "source_title": "Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (PRNewswire, Oct. 6, 2026)",
   "source_url": "https://s25.q4cdn.com/975009107/files/doc_news/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5-2026.pdf"
  },
- "ptax": {
-  "rate_pct": 1.17,
-  "geography": "Hennepin County, MN",
-  "year": null,
-  "source_title": "SmartAsset Minnesota Property Tax Calculator",
-  "source_url": "https://smartasset.com/taxes/minnesota-property-tax-calculator"
- },
- "ins": {
-  "annual_usd": 2676,
-  "geography": "Minnesota",
-  "coverage": "$300,000 dwelling coverage",
-  "year": 2026,
-  "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
-  "source_url": "https://insurify.com/homeowners-insurance/states/"
- },
- "notes": "SmartAsset gives no data year for Hennepin 1.17% (Minnesota statewide 1.02%); ATTOM 2025 report did not list Minneapolis. Insurify city figure for Minneapolis: $2,940/yr at $300K dwelling (https://insurify.com/homeowners-insurance/knowledge/average-cost-of-homeowners-insurance/). Cross-checks seen: FRED/Realtor.com median listing price Minneapolis CBSA $407,500 (2026-09, https://fred.stlouisfed.org/data/MEDLISPRI33460.txt); Apartment List Minneapolis metro median rent $1,537 (Oct 2026, https://www.apartmentlist.com/rent-report/mn/minneapolis). Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
+ "notes": "Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
  "rent_hist": {
   "growth_pct": {
    "1987": 4.138,

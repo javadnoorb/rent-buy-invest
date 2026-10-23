@@ -91,7 +91,7 @@ The GitHub Pages build loads Plotly (charts, the 1.4 MB cartesian build) and Mat
 
 ## Refreshing data
 
-The **Refresh data** workflow runs every Friday and on demand (Actions tab → Refresh data → Run workflow). It downloads Treasury yields, CPI, Zillow's typical home value and rent (U.S. and metros), FHFA home-price indexes (including annual county indexes), HUD Fair Market Rents by county, BLS CPI, rent and insurance price indexes, Census ACS tables (including county figures) and Freddie Mac mortgage rates; merges them into `data/` with `scripts/apply_public.py`; rebuilds `index.html`; then `scripts/check_data.py` compares the new data with what is on main and stops the run on anything implausible (months lost, past values revised by more than a few percent, mortgage rates moving more than 1.5 points in a month or 2 points between refreshes, price indexes jumping more than 5% in a month, out-of-range tax rates, or a county file that is short or has many medians changing by more than half). If that and the tests pass and something changed, it commits the data files to main, and the Deploy site workflow rebuilds and publishes the page. NAR, property-tax and insurance survey figures, forecasts and tax law are updated by hand. The header cards and the 'data as of' date come from the newest automatic figures.
+The **Refresh data** workflow runs every Friday and on demand (Actions tab → Refresh data → Run workflow). It downloads Treasury yields, CPI, Zillow's typical home value and rent (U.S. and metros), FHFA home-price indexes (including annual county indexes), HUD Fair Market Rents by county, BLS CPI, rent and insurance price indexes, Census ACS tables (including county figures) and Freddie Mac mortgage rates; merges them into `data/` with `scripts/apply_public.py`; rebuilds `index.html`; then `scripts/check_data.py` compares the new data with what is on main and stops the run on anything implausible (months lost, past values revised by more than a few percent, mortgage rates moving more than 1.5 points in a month or 2 points between refreshes, price indexes jumping more than 5% in a month, out-of-range tax rates, or a county file that is short or has many medians changing by more than half). If that and the tests pass and something changed, it commits the data files to main, and the Deploy site workflow rebuilds and publishes the page. Published forecasts, homeowner-tenure figures and tax law are updated by hand. The header cards and the 'data as of' date come from the newest automatic figures.
 
 ## Tests
 
@@ -110,8 +110,8 @@ The **Refresh data** workflow runs every Friday and on demand (Actions tab → R
 - **S&P 500 monthly:** total returns only, computed from Robert Shiller's monthly data (index levels not stored).
 - **Home values and rents:** Zillow Home Value Index and Zillow Observed Rent Index (Zillow research data, free for public use with attribution to Zillow), downloaded by `scripts/fetch_market.py`.
 - **Treasury yields:** U.S. Treasury daily par yield curve (public domain).
-- **Property tax:** ATTOM and SmartAsset.
-- **Insurance:** Insurify.
+- **Property tax:** Census ACS median real-estate taxes ÷ median home value (U.S., metro, county and ZIP).
+- **Insurance:** median yearly insurance paid by owners of one-family homes, by state, from the Census ACS 1-year microdata (public domain), brought to today's prices with the BLS homeowners-insurance price index; downloaded by `scripts/fetch_insurance.py`.
 - **Tax law:** IRS releases.
 
 Full links are inside the app.

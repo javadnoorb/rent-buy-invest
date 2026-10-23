@@ -174,6 +174,17 @@ if zf:
     if nr and nr < 15000: bad(f'ZIP codes: only {nr} with HUD rents')
     if both and jumps > 0.02 * both: bad(f'ZIP codes: {jumps} of {both} 2-bedroom rents changed by more than 40%')
 
+# ---- homeowners insurance by state ----
+ic, ic0 = load('data/insurance.json') or {}, old('data/insurance.json') or {}
+if ic.get('states'):
+    if len(ic['states']) < 48: bad(f"insurance: only {len(ic['states'])} states")
+    for n, v in list(ic['states'].items()) + [('U.S.', ic.get('us'))]:
+        if not v or not 200 <= v <= 12000: bad(f'insurance {n}: {v}/yr')
+        p = (ic0.get('states') or {}).get(n) if n != 'U.S.' else ic0.get('us')
+        if p and v and abs(v / p - 1) > 0.4: bad(f'insurance {n}: {p} → {v}')
+    pp = ic.get('ppi') or {}
+    if pp.get('latest') and pp.get('base_year_avg') and not 0.7 <= pp['latest'] / pp['base_year_avg'] <= 1.8: bad(f"insurance price index ratio {pp['latest'] / pp['base_year_avg']:.2f}")
+
 if problems:
     print(f'data check failed ({len(problems)} problem{"s" if len(problems) > 1 else ""}):')
     for p in problems[:60]: print('  ' + p)

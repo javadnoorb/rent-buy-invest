@@ -66,22 +66,7 @@
   "source_title": "Zillow Group: Zillow's September Market Report shows an early winter in the housing market as newly pending sales fall 8.5% (Oct. 6, 2026)",
   "source_url": "https://investors.zillowgroup.com/news-and-events/news/news-details/2026/Zillows-September-Market-Report-shows-an-early-winter-in-the-housing-market-as-newly-pending-sales-fall-8-5/default.aspx"
  },
- "ptax": {
-  "rate_pct": 0.48,
-  "geography": "Denver County, CO",
-  "year": null,
-  "source_title": "SmartAsset Colorado Property Tax Calculator",
-  "source_url": "https://smartasset.com/taxes/colorado-property-tax-calculator"
- },
- "ins": {
-  "annual_usd": 3240,
-  "geography": "Colorado",
-  "coverage": "$300,000 dwelling coverage",
-  "year": 2026,
-  "source_title": "Insurify: Average Home Insurance Rates by State (2026), updated Oct 21, 2026",
-  "source_url": "https://insurify.com/homeowners-insurance/states/"
- },
- "notes": "1987-2025 continuous. SmartAsset gives no data year for Denver County 0.48% (Colorado statewide 0.49%); Tax Foundation (2022 data) Colorado statewide 0.45% (https://taxfoundation.org/data/all/state/property-taxes-by-state-county-2024/). ATTOM 2025 report did not list Denver. Cross-checks: ValuePenguin Colorado $3,331 at $350K dwelling; Zillow August 2026 Denver ZHVI $562,732, ZORI $1,922. Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
+ "notes": "1987-2025 continuous. Tax Foundation (2022 data) Colorado statewide 0.45% (https://taxfoundation.org/data/all/state/property-taxes-by-state-county-2024/). Zillow August 2026 Denver ZHVI $562,732, ZORI $1,922. Home-price index: FHFA purchase-only (replaced Case-Shiller/FHFA all-transactions on 2026-10-22).",
  "rent_hist": {
   "growth_pct": {
    "1987": 4.741,
