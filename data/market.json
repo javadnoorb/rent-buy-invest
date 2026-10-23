@@ -1,5 +1,5 @@
 {
- "fetched_utc": "2026-10-23T11:37:56Z",
+ "fetched_utc": "2026-10-23T11:59:42Z",
  "treasury": {
   "date": "2026-10-22",
   "y10": 4.96,
@@ -115,5 +115,12 @@
    "https://files.zillowstatic.com/research/public_csvs/zhvi/Metro_zhvi_uc_sfrcondo_tier_0.33_0.67_sm_sa_month.csv",
    "https://files.zillowstatic.com/research/public_csvs/zori/Metro_zori_uc_sfrcondomfr_sm_month.csv"
   ]
+ },
+ "cpi": {
+  "month": "2026-09",
+  "yoy": 3.7,
+  "core_yoy": 2.6,
+  "source_title": "BLS Consumer Price Index (CPI-U and core, not seasonally adjusted)",
+  "source_url": "https://www.bls.gov/cpi/"
  }
 }
