@@ -1,6 +1,13 @@
-import re, urllib.request
+import subprocess, sys, urllib.request
+sys.path.insert(0, 'scripts'); import xlsx_lite
+subprocess.run([sys.executable, 'scripts/fetch_forecasts.py', '/tmp/fp.json']); print(open('/tmp/fp.json').read())
 H = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36'}
-t = urllib.request.urlopen(urllib.request.Request('https://www.philadelphiafed.org/surveys-and-data/real-time-data-research/spf-q1-2026', headers=H), timeout=60).read().decode('utf-8', 'replace')
-i = t.find('Stock Returns'); j = t.rfind('<table', 0, i); k = t.find('</table>', i)
-print(t[j:k+8])
-for m in re.finditer(r'(?i)10 years|ten years|10-year', t): print('CTX', re.sub(r'<[^>]+>', ' ', t[max(0, m.start()-300):m.end()+300]).replace('\n', ' ')[:600])
+for y in (2024, 2023):
+    try:
+        b = urllib.request.urlopen(urllib.request.Request(f'https://www.bls.gov/cex/tables/calendar-year/mean-item-share-average-standard-error/cu-housing-tenure-{y}.xlsx', headers=H), timeout=60).read()
+        rows = xlsx_lite.rows(b); print(y, len(rows))
+        for i, r in enumerate(rows):
+            s = str(r)
+            if i < 6 or 'nsurance' in s or 'enter' in s: print(i, r[:10])
+        break
+    except Exception as e: print('CE', y, e)
