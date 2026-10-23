@@ -3,7 +3,8 @@
 
 For every U.S. county: median home value (B25077), median contract rent (B25058) and median real-estate taxes paid
 (B25103). The national medians are stored too, so the app can scale each county to today's national Zillow figures.
-Uses the public Census API (no key needed at this volume). Keeps the existing file if the download fails or looks short.
+Tries the Census API first, then the ACS table-based summary files on www2.census.gov (no key; the API often refuses
+requests from shared CI runners). Keeps the existing file if both fail or the result looks short.
 Run: python3 scripts/fetch_counties.py [out.json]
 """
 import json, os, sys, time, urllib.request
@@ -14,7 +15,46 @@ API = 'https://api.census.gov/data/{y}/acs/acs5?get=' + VARS + '&for={geo}'
 
 def get(url):
     req = urllib.request.Request(url, headers={'User-Agent': 'rent-buy-invest data refresh'})
-    with urllib.request.urlopen(req, timeout=120) as r: return json.loads(r.read().decode('utf-8'))
+    with urllib.request.urlopen(req, timeout=120) as r: body = r.read().decode('utf-8', 'replace')
+    try: return json.loads(body)
+    except ValueError: raise ValueError('not JSON: ' + body[:200].replace('\n', ' '))
+
+SF = 'https://www2.census.gov/programs-surveys/acs/summary_file/{y}/table-based-SF/'
+def sf_lines(url, prefixes):
+    """Header plus the rows whose GEO_ID starts with one of prefixes, streamed (the files cover every geography)."""
+    req = urllib.request.Request(url, headers={'User-Agent': 'rent-buy-invest data refresh'})
+    with urllib.request.urlopen(req, timeout=600) as r:
+        hdr = None; rows = []
+        for raw in r:
+            line = raw.decode('utf-8', 'replace').rstrip('\r\n')
+            if hdr is None: hdr = line.split('|'); ig = hdr.index('GEO_ID'); continue
+            if not any(p in line for p in prefixes): continue  # most lines are tracts and block groups
+            f = line.split('|')
+            if f[ig].startswith(prefixes): rows.append(f)
+    return hdr, rows
+
+def fetch_sf(year):
+    """Same figures from the 5-year summary files: one file per table, plus the geography file for county names."""
+    pre = ('0500000US', '0100000US'); vals = {}
+    for t, col in (('b25077', 'B25077_E001'), ('b25058', 'B25058_E001'), ('b25103', 'B25103_E001')):
+        hdr, rows = sf_lines(SF.format(y=year) + f'data/5YRData/acsdt5y{year}-{t}.dat', pre)
+        i = hdr.index(col)
+        for r in rows: vals.setdefault(r[0], {})[col] = r[i]
+    hdr, rows = sf_lines(SF.format(y=year) + f'documentation/Geos{year}5YR.txt', ('0500000US',))
+    ig, iname = hdr.index('GEO_ID'), hdr.index('NAME'); names = {r[ig]: r[iname] for r in rows}
+    out = []
+    for g, v in vals.items():
+        if not g.startswith('0500000US') or g not in names: continue
+        P, rent, tax = num(v.get('B25077_E001')), num(v.get('B25058_E001')), num(v.get('B25103_E001'))
+        if P: out.append([g[-5:], names[g], round(P), round(rent) if rent else None, round(tax) if tax else None])
+    u = vals.get('0100000US', {})
+    return {'year': year, 'span': f'{year - 4}–{year}',
+            'source_title': f'U.S. Census Bureau, American Community Survey 5-year estimates {year - 4}–{year}, tables B25077, B25058, B25103 (summary files)',
+            'source_url': SF.format(y=year),
+            'fetched_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+            'us': {'P': num(u.get('B25077_E001')), 'rent': num(u.get('B25058_E001')), 'tax': num(u.get('B25103_E001'))},
+            'fields': ['fips', 'name', 'medianValue', 'medianContractRent', 'medianTax'],
+            'rows': sorted(out, key=lambda r: r[0])}
 
 def num(x):
     try: v = float(x)
@@ -41,12 +81,15 @@ def fetch(year):
 
 this_year = time.gmtime().tm_year
 for y in range(this_year - 1, this_year - 5, -1):  # newest release first (5-year data come out each December)
-    try:
-        d = fetch(y)
-    except Exception as e:
-        print(f'ACS 5-year {y}: {e}'); continue
-    if len(d['rows']) < 3000 or not d['us']['P']:
-        print(f'ACS 5-year {y}: only {len(d["rows"])} counties, skipping'); continue
+    d = None
+    for how, fn in (('API', fetch), ('summary files', fetch_sf)):
+        try:
+            d = fn(y)
+        except Exception as e:
+            print(f'ACS 5-year {y} via {how}: {e}'); continue
+        if len(d['rows']) >= 3000 and d['us']['P']: break
+        print(f'ACS 5-year {y} via {how}: only {len(d["rows"])} counties'); d = None
+    if not d: continue
     json.dump(d, open(OUT, 'w'), separators=(',', ':'))
     print(f'wrote {OUT}: {len(d["rows"])} counties, ACS {d["span"]}')
     break
