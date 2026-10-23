@@ -51,10 +51,13 @@ for fn in (treasury, treasury_fred):
 try:
     body = json.dumps({'seriesid': ['CUUR0000SA0', 'CUUR0000SA0L1E'], 'startyear': str(now.tm_year - 2), 'endyear': str(now.tm_year)}).encode()
     res = json.loads(get('https://api.bls.gov/publicAPI/v1/timeseries/data/', body, {'Content-Type': 'application/json'}))
-    ser = {s['seriesID']: {f"{d['year']}-{d['period'][1:]}": float(d['value']) for d in s['data'] if d['period'].startswith('M') and d['period'] != 'M13'}
+    # a month BLS did not publish (e.g. October 2025, during the shutdown) comes as '-': skip it
+    num = lambda v: float(v) if re.fullmatch(r'-?\d+(\.\d+)?', str(v).strip()) else None
+    ser = {s['seriesID']: {f"{d['year']}-{d['period'][1:]}": num(d['value']) for d in s['data'] if d['period'].startswith('M') and d['period'] != 'M13'}
            for s in res['Results']['series']}
     head, core = ser['CUUR0000SA0'], ser['CUUR0000SA0L1E']
-    m = max(k for k in head if k in core); prev = f'{int(m[:4]) - 1}{m[4:]}'
+    py = lambda k: f'{int(k[:4]) - 1}{k[4:]}'
+    m = max(k for k in head if all(x.get(y) for x in (head, core) for y in (k, py(k)))); prev = py(m)
     out['cpi'] = {'month': m, 'yoy': round((head[m] / head[prev] - 1) * 100, 1), 'core_yoy': round((core[m] / core[prev] - 1) * 100, 1),
                   'source_title': 'BLS Consumer Price Index (CPI-U and core, not seasonally adjusted)', 'source_url': 'https://www.bls.gov/cpi/'}
     print('cpi', out['cpi'])

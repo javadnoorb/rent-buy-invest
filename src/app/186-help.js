@@ -146,6 +146,7 @@ const HELP={
 /* Chart purpose, keyed by plot id (the "How to read this" note under each chart has the details). */
 const CHART_HELP={
  nw:'How much each household would have each year if it sold everything. The main answer over time.',
+ gap:'What makes up the difference between buying and renting at your horizon: each part of owning and renting, adding up exactly to the answer.',
  flow:'Where the owner\'s monthly money goes, compared with rent.',
  unrec:'Money that builds no wealth each year, for owner and renter: the fairest yearly cost comparison.',
  comp:'How much of the buyer\'s wealth is in the house vs. invested.',

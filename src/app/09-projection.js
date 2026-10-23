@@ -2,6 +2,7 @@
 function yearlyRows(o){const rows=[];for(let k=0;k<o.buy.length;k++){const f=o.flow[k-1]||{};rows.push({year:k,home:o.H[k],balance:o.bal[k],netEquity:o.eq[k],buyerPortfolio:o.pB[k],buyNW:o.buy[k],renterNW:o.inv[k],cashNW:o.cash[k],ownerMonthly:k?f.own:null,rentMonthly:k?f.rent:null,hti:k&&o.income[k-1]?f.own/(o.income[k-1]/12):null,taxSaving:k?-f.tax*12:null,mortRate:o.rateAt[k],cpiIndex:o.cpi[k]})}return rows}
 function renderProj(){
   const t=theme(),o=simulate(P,constPath(P,P.N),{detail:true}),x=o.buy.map((_,k)=>k);
+  renderGap(o);
   const tr=(arr,name,col,dash)=>({x,y:arr.map((v,k)=>adj(v,o.cpi[k])),name,mode:'lines',line:{color:col,width:2.6,dash},hovertemplate:'%{y:$,.0f}'});
   const be=breakevenYear(o);
   const data=[tr(o.buy,'Buy',t.buy),tr(o.inv,'Rent + invest',t.inv),tr(o.cash,'Rent + T-bills',t.cash,'dot')];

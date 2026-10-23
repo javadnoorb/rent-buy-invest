@@ -130,6 +130,20 @@ const ROOT = path.join(__dirname, '..');
   await reloadWith({ v: 5, metro: 'us', beds: '3', P: '800000', rent0: String(typUS), rentMode: 'manual' });
   ok(await page.inputValue('#rentMode') === 'manual', 'a current save that chose "my own" is kept');
 
+  /* where the gap comes from: the parts add up to the headline gap, in today's and nominal dollars */
+  const gapSums = await page.evaluate(() => [true, false].map(r => { REAL = r; const o = simulate(P, constPath(P, P.N), { detail: true }), g = gapParts(P, o);
+    const d = Math.abs(g.parts.reduce((a, x) => a + x[1], 0) - adj(o.buy[P.N] - o.inv[P.N], o.cpi[P.N])); return [d, g.parts.find(x => /Inflation/.test(x[0]))]; }));
+  await page.evaluate(() => { REAL = true; });
+  ok(gapSums.every(([d]) => d < 1), 'gap parts add up to the answer');
+  ok(gapSums[0][1] && gapSums[0][1][1] > 0 && !gapSums[1][1], 'inflation shrinks the loan in today\'s dollars only');
+
+  /* affordability: the highest price sits at the limit that binds */
+  const aff = await page.evaluate(() => { const p = Object.assign({}, P, { income: 120000, debt: 500 }), cash = 1e6, c = maxPrice(p, cash, 0.28, 0.36), l = maxPrice(p, cash, 0.43, 0.43), inc = p.income / 12;
+    const tight = maxPrice(p, 10000, 0.28, 0.36); return { c: c && Math.max(c.piti / inc / 0.28, (c.piti + p.debt) / inc / 0.36), l: l && (l.piti + p.debt) / inc, cl: c && c.limit, tl: tight && tight.limit, order: c && l && l.P > c.P }; });
+  ok(aff.c > 0.98 && aff.c <= 1 && aff.cl === 'income', 'comfortable price uses the 28/36 limit when cash is plentiful', JSON.stringify(aff));
+  ok(aff.l > 0.425 && aff.l <= 0.43 && aff.order, 'lender-limit price uses 43% and is higher');
+  ok(aff.tl === 'cash', 'with little cash, the cash limits the price');
+
   ok(!errors.length, 'no page errors', errors.join(' | '));
   await browser.close(); server.close();
   console.log(`${pass} passed, ${fail} failed`); if (fail) { fails.forEach(f => console.log('  FAIL ' + f)); process.exit(1); }

@@ -80,6 +80,14 @@ function buildMethod(){
 
   <p>A sale that brings in less than the mortgage leaves a shortfall. It is held as a negative balance that grows at the T-bill rate plus 3 points a year, \\(V_{t+1} = V_t\\,(1 + r^{bill}_t + 0.03/12)\\) while \\(V_t \\lt 0\\), and later savings pay it down before anything is invested.</p>
 
+  <h3>Where the gap comes from</h3>
+  <p>With both households spending the same each month, the gap at year \\(N\\) splits exactly into</p>
+  \\[ \\begin{aligned} \\text{gap}_N = {}& (H_N - P) - s H_N - T^{sale} \\\\ &- (cP + \\text{move-in} + \\text{points}) \\\\ &- \\textstyle\\sum_y (I_y + \\tau_p A_y + \\text{Ins}_y + \\text{HOA}_y \\\\ &\\qquad + \\text{PMI}_y + U_y + \\psi H_y) \\\\ &+ \\textstyle\\sum_y S_y + \\sum_y R^{hh}_y + \\sum_y \\text{Rent}_y \\\\ &+ \\big(L - \\textstyle\\sum_y \\text{Prin}_y - B_N\\big) - (G^{R} - G^{B}) \\end{aligned} \\]
+  <p>Each flow is in the chosen dollars of its year. The loan term is the gain from repaying a fixed loan with dollars inflation has shrunk (zero in nominal dollars, apart from FHA's financed upfront premium). \\(G^R - G^B\\), what the renter's portfolio earned beyond the buyer's after taxes, is the remainder, so the parts always add up. Principal payments move money into the house without changing net worth, so they do not appear.</p>
+
+  <h3>Affordability</h3>
+  <p>The payment lenders count is principal, interest, property tax, insurance (scaled with the price), HOA and mortgage insurance. Comfortable: that payment \\(\\le 28\\%\\) of gross monthly income and, with other debt payments, \\(\\le 36\\%\\). Lender limit: all debt \\(\\le 43\\%\\). Cash pays the down payment plus closing costs, transfer taxes and move-in costs, with at least 3% down (3.5% FHA). The highest price is found by bisection; the income needed for a price is \\(\\max(\\text{PITI}/0.28,\\ (\\text{PITI}+\\text{debt})/0.36)\\times 12\\).</p>
+
   <h3>Counties</h3>
   <p>Picking a county uses Census ACS 5-year medians: home value \\(\\times k_P\\) (the U.S. median's change to today's Zillow typical value) and property tax ÷ value. Rent is HUD's Fair Market Rent for the bedrooms chosen (the 40th-percentile rent of recent movers, including utilities) \\(\\times\\) the county's ACS median contract rent ÷ median gross rent, to leave utilities out; without a HUD figure it is the ACS median contract rent scaled to today's Zillow typical U.S. rent. Price history is FHFA's annual all-transactions county index (developmental; Bogin, Doerner &amp; Larson 2016), scaled like the metro indexes with the median metro volatility ratio. Insurance is the state average where a metro file has one, else the U.S. average; transfer taxes are not available for counties.</p>
 

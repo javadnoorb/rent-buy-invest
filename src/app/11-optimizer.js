@@ -1,5 +1,5 @@
 /* ===================== Optimizer ===================== */
-function renderOpt(){
+function renderOpt(){renderAfford();
   const t=theme(),p=P,DP=[0,3.5,5,10,15,20,25,30,40,50,60,80,100],H=[...Array(30)].map((_,k)=>k+1);
   const q0=Object.assign({},p,{term:OPT_TERM,rate:OPT_TERM===15?p.rate15:p.rate30});
   const res=DP.map(dp=>{const q=Object.assign({},q0,{dp:dp/100});const o=simulate(q,constPath(q,30),{N:30});return H.map(h=>100*adj(o.buy[h]-o.inv[h],o.cpi[h])/p.P)});

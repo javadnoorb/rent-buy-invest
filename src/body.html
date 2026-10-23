@@ -78,6 +78,11 @@
       <div class="controls"><label><input type="checkbox" id="nwBand" checked> Show 25–75% range from simulated paths</label></div><div class="plot tall" id="p-nw"></div>
       <div class="takeaway" id="tk-nw"></div>
       <details class="how"><summary>How to read this</summary><dl class="read"><dt>What you see</dt><dd>x: years from today. y: what each household would have if it sold everything that year, after the sale commission, paying off the mortgage, and taxes. Shaded bands, when shown, hold the middle 50% of simulated futures.</dd><dt>What to look for</dt><dd>Where the green line crosses the blue one (dashed line) is the break-even year. The vertical gap at your horizon is the dollar answer. If the green and blue bands overlap a lot, the outcome is uncertain even though the lines differ.</dd><dt>Keep in mind</dt><dd>The lines assume your growth rates hold exactly every year. The buyer starts lower because closing costs and the eventual selling costs are lost up front.</dd></dl></details></div>
+    <div class="card"><h2>Where the gap comes from</h2><p class="cap">The difference between buying and renting at your horizon, split into what adds to it (green, in buying's favor) and what takes from it (blue, in renting's favor). The parts add up exactly to the answer above.</p>
+      <div class="plot tall" id="p-gap"></div>
+      <div class="takeaway" id="tk-gap"></div>
+      <details class="how"><summary>How to read this</summary><dl class="read"><dt>What you see</dt><dd>Each bar starts where the previous one ended, so the bars walk from zero to the final gap at the bottom. Both households spend the same each month; whoever pays less invests the difference.</dd><dt>The parts</dt><dd>Home price change, selling costs and any tax on the sale are what the house itself returns. Buying costs, mortgage interest, property tax, insurance and upkeep are what owning costs. Tax savings and house-hack income offset them. Rent is what the renter pays instead. The renter's investment returns are what the down payment and the monthly differences earned, net of the buyer's own investments and of taxes on both portfolios.</dd><dt>What to look for</dt><dd>Usually the race is between the home price change and the renter's investment returns, with interest and rent the largest costs on each side. Principal payments don't appear: they move money from cash into the house without changing net worth.</dd></dl></details>
+    </div>
     <div class="two">
       <div class="card"><h2>Monthly outlay</h2><p class="cap">Owner's cost by component (stacked) against rent. Whoever pays less each month invests the difference. Tax savings are credited once a year.</p><div class="plot" id="p-flow"></div>
       <div class="takeaway" id="tk-flow"></div>
@@ -116,6 +121,12 @@
 
   <!-- OPTIMIZER -->
   <section class="panel" id="tab-opt" hidden>
+    <div class="card"><h2>How much house can you afford?</h2>
+      <p class="cap">The highest price your income and cash allow under common lending limits, at your mortgage rate, term, loan type, property tax, insurance and HOA. Lenders count principal, interest, tax, insurance, HOA and mortgage insurance; the full monthly cost adds upkeep and utilities. Income and other debts come from the settings (Taxes &amp; income).</p>
+      <div class="controls"><label>Cash for down payment and closing <span class="inp" style="display:inline-flex;max-width:150px"><span class="pre">$</span><input id="affCash" type="text" inputmode="decimal" autocomplete="off" data-money="1"></span></label></div>
+      <div class="aff" id="affT"></div>
+      <div class="takeaway" id="tk-aff"></div>
+    </div>
     <div class="card"><h2>Best down payment and term</h2>
       <p class="cap">Buy minus rent-and-invest for every down payment and horizon, with the renter investing the same cash. 15-year loans use the 15-year rate in Home &amp; mortgage.</p>
       <div class="controls"><span class="seg" role="group" aria-label="Loan term"><button id="opt30" aria-pressed="true">30-year</button><button id="opt15" aria-pressed="false">15-year</button></span></div>

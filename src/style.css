@@ -391,3 +391,9 @@ table.loct td:first-child{min-width:150px}
 /* "est." / "use est." next to the rent in the top card */
 .qtag{font-size:10.5px;font-weight:500;color:var(--muted);margin-left:2px}
 .qlink{font:inherit;color:var(--accent);background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
+.aff{display:grid;gap:8px;margin:8px 0}
+.affrow{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.affrow.hl{border-color:var(--accent)}
+.affrow .k{font-weight:600;font-size:13px}.affrow .k .sub{font-weight:400}
+.affrow .v{font-family:var(--mono,monospace);font-size:20px;margin:2px 0;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.affrow .v .qlink{font-family:var(--body,inherit);font-size:12px}
