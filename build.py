@@ -193,14 +193,26 @@ if os.path.exists(cf):
     c = json.load(open(cf))
     us = c['us']; kP = snap['values']['zhvi'] / us['P']; kR = snap['values']['zori'] / us['rent'] if us.get('rent') else 1
     state_ins = {}
-    for mf in glob.glob(D('data', 'metro_*.json')):
+    for mf in sorted(glob.glob(D('data', 'metro_*.json'))):
         ins = json.load(open(mf)).get('ins') or {}
         if ins.get('geography') and ins.get('annual_usd'): state_ins[ins['geography']] = [ins['annual_usd'], ins.get('source_url')]
     # the page gets only these scaling figures; the installed build fetches data/counties.json the first time someone
     # picks a county (it is served next to the page), while the artifact build, which cannot fetch files, embeds the rows
+    # HUD Fair Market Rents by bedrooms (data/county_fmr.json) and FHFA county price indexes (data/county_hpi/<state>.json)
+    # are optional; the installed build fetches them with the county list, the artifact build embeds the rents only.
+    # Rents: FMRs include utilities, so each is scaled by the county's ACS contract-to-gross rent ratio (U.S. ratio if
+    # missing). Price indexes get the median of the metros' FHFA-to-Case-Shiller volatility ratios.
+    ff = D('data', 'county_fmr.json'); fmr = json.load(open(ff)) if os.path.exists(ff) else None
+    vks = sorted(x for x in ((json.load(open(f)).get('hpi') or {}).get('volK') for f in sorted(glob.glob(D('data', 'metro_*.json')))) if x)
+    hpi_dir = D('data', 'county_hpi'); hpi_meta = None
+    if os.path.isdir(hpi_dir) and glob.glob(os.path.join(hpi_dir, '*.json')):
+        hpi_meta = json.load(open(sorted(glob.glob(os.path.join(hpi_dir, '*.json')))[0]))['meta']
     COUNTIES = {'t': c['source_title'], 'u': c['source_url'], 'span': c['span'], 'kP': round(kP, 4), 'kR': round(kR, 4),
+                'cg': round(us['rent'] / us['gross'], 3) if us.get('rent') and us.get('gross') else 0.85,
                 'insU': next((v[1] for v in state_ins.values() if v[1]), None), 'stateIns': {k: v[0] for k, v in state_ins.items()},
-                'file': 'data/counties.json' if PWA else None, 'rows': None if PWA else c['rows']}
+                'file': 'data/counties.json' if PWA else None, 'rows': None if PWA else c['rows'],
+                'fmr': ({'fy': fmr['fiscal_year'], 'u': fmr['source_url'], 'file': 'data/county_fmr.json' if PWA else None, 'rows': None if PWA else fmr['rows']} if fmr else None),
+                'hpi': ({'t': hpi_meta['source_title'], 'u': hpi_meta['source_url'], 'dir': 'data/county_hpi/', 'volK': vks[len(vks) // 2] if vks else 1} if hpi_meta and PWA else None)}
 
 # the installed (PWA) build serves pinned copies from vendor/; the artifact build can only load from public CDNs
 VENDOR = {'plotly': 'vendor/plotly-cartesian-2.35.2.min.js', 'mathjax': 'vendor/mathjax-3.2.2-tex-svg-full.js'}

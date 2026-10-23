@@ -6,8 +6,13 @@ const fs = require('fs'), path = require('path'), http = require('http');
 const { chromium } = require(process.env.PLAYWRIGHT_PATH || 'playwright');
 // county scaling figures in the page, and the raw list the page fetches on first use: King County comes out at
 // 850,000 × 1.2 = $1,020,000, tax 7,225 ÷ 850,000 = 0.85%, Washington insurance $1,404
-const META = { t: 'test counties', u: 'https://api.census.gov/', span: '2020–2024', kP: 1.2, kR: 1.5, insU: null, stateIns: { Washington: 1404 }, file: 'data/counties.json', rows: null };
-const ROWS = { rows: [['53033', 'King County, Washington', 850000, 1750, 7225], ['01001', 'Autauga County, Alabama', 190000, null, 703]] };
+// HUD rents for King County: 2,600 for 3 bedrooms with utilities × (1,750 contract ÷ 2,000 gross) = 2,275 → $2,280;
+// Autauga has no HUD row and no ACS rent, so it falls back to the U.S. typical rent. Price history for King from its state file.
+const META = { t: 'test counties', u: 'https://api.census.gov/', span: '2020–2024', kP: 1.2, kR: 1.5, cg: 0.85, insU: null, stateIns: { Washington: 1404 }, file: 'data/counties.json', rows: null,
+  fmr: { fy: 2026, u: 'https://www.huduser.gov/', file: 'data/county_fmr.json', rows: null }, hpi: { t: 'test index', u: 'https://www.fhfa.gov/', dir: 'data/county_hpi/', volK: 1.1 } };
+const ROWS = { rows: [['53033', 'King County, Washington', 850000, 1750, 7225, 2000], ['01001', 'Autauga County, Alabama', 190000, null, 703, null]] };
+const FMR = { rows: { '53033': [1500, 1700, 2000, 2600, 3000] } };
+const HPI53 = { meta: {}, counties: { '53033': Object.fromEntries([...Array(36)].map((_, i) => [String(1990 + i), Math.round(100 * Math.pow(1.05, i) * 100) / 100])) } };
 const ROOT = path.join(__dirname, '..');
 (async () => {
   const browser = await chromium.launch(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {});
@@ -20,7 +25,9 @@ const ROOT = path.join(__dirname, '..');
   const server = http.createServer((req, res) => {
     const u = decodeURIComponent(req.url.split('?')[0]);
     if (u === '/' || u === '/index.html') { res.writeHead(200, { 'Content-Type': 'text/html' }); return res.end(html); }
-    if (u === '/data/counties.json') { countyFetches++; res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(ROWS)); }
+    const json = { '/data/counties.json': ROWS, '/data/county_fmr.json': FMR, '/data/county_hpi/53.json': HPI53 }[u];
+    if (u === '/data/counties.json') countyFetches++;
+    if (json) { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(json)); }
     const f = path.join(ROOT, path.normalize(u));
     if (!f.startsWith(ROOT) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); return res.end(); }
     res.writeHead(200); fs.createReadStream(f).pipe(res);
@@ -79,6 +86,11 @@ const ROOT = path.join(__dirname, '..');
   ok(await page.inputValue('#metro') === 'cty:53033', 'county selected');
   ok(await page.evaluate(() => numOf('P') === 1020000 && numOf('ptax') === 0.85 && numOf('ins') === 1404), 'county fills price, tax and state insurance');
   ok(await page.evaluate(() => !locRows().some(r => r.m.county)), 'counties stay out of the Locations comparison');
+  ok(await page.evaluate(() => numOf('rent0')) === 2280, 'county rent from HUD by bedrooms, without utilities', String(await page.evaluate(() => numOf('rent0'))));
+  await set({ beds: '1' }); ok(await page.evaluate(() => numOf('rent0')) === 1490, 'HUD 1-bedroom rent', String(await page.evaluate(() => numOf('rent0')))); await set({ beds: '3' });
+  await page.waitForFunction(() => !document.getElementById('metroPreset').hidden, null, { timeout: 5000 }).catch(() => {});
+  ok(/King County, Washington 1991–2025 avg/.test(await page.textContent('#metroPreset')) && await page.evaluate(() => !!curMetro().hpi), 'county price history loads and offers its own preset');
+  ok(await page.evaluate(() => { const a = metroAnnual(curMetro(), true); return Math.abs(a[2000 - Y0] - 5) < 0.01 && a[1990 - Y0] == null; }), 'county yearly price changes come from its index');
   await page.waitForTimeout(400); await page.reload(); await page.waitForFunction(() => document.getElementById('vhead').textContent !== 'Computing…');
   await page.waitForFunction(() => document.getElementById('metro').value === 'cty:53033', null, { timeout: 5000 }).catch(() => {});
   ok(await page.inputValue('#metro') === 'cty:53033' && await page.evaluate(() => numOf('P')) === 1020000, 'a saved county is restored after reloading');

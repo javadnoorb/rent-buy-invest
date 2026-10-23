@@ -4,7 +4,7 @@ let MC_REQ=0,WORKER=null,WORKER_OK=null;
 function mcControls(){return {n:Math.max(200,Math.min(10000,parseInt(document.getElementById('mc-n').value)||1500)),bl:Math.max(1,parseInt(document.getElementById('mc-b').value)||5),
   from:parseInt(document.getElementById('mc-w').value),rc:document.getElementById('mc-rc').checked}}
 // the horizon and risk aversion are read from finished results (any year up to 30), so changing them doesn't re-simulate
-function mcKey(){const r=getRaw();delete r.N;delete r.gamma;return JSON.stringify(r)+REAL+JSON.stringify(mcControls())}
+function mcKey(){const r=getRaw();delete r.N;delete r.gamma;return JSON.stringify(r)+REAL+JSON.stringify(mcControls())+(curMetro().hpi?'h':'')}
 function mcSync(){if(!MC||!MC.pMoveH)return;const h=Math.max(1,Math.min(P.N,MC.N));if(MC.h===h)return;MC.h=h;MC.pMove=MC.pMoveH[h];MC.pForced=MC.pForcedH[h];mcHorizon(MC.res,h)}
 function getWorker(){if(WORKER_OK===false)return null;if(WORKER)return WORKER;
   try{const src=document.getElementById('model-script').textContent+"\nonmessage=e=>{const {id,p,cfg}=e.data;try{postMessage({id,r:mcCore(p,cfg)})}catch(err){postMessage({id,err:String(err)})}}";

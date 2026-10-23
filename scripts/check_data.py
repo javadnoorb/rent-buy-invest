@@ -79,7 +79,7 @@ if c:
     if len(rows) < 3000: bad(f'counties: only {len(rows)} rows')
     us = c.get('us') or {}
     if not 100000 <= (us.get('P') or 0) <= 1500000: bad(f"counties: U.S. median value {us.get('P')}")
-    for fips, name, P, rent, tax in rows:
+    for fips, name, P, rent, tax, *rest in rows:
         if not 10000 <= P <= 5000000: bad(f'counties {name}: median value {P}')
         if rent is not None and not 100 <= rent <= 6000: bad(f'counties {name}: median rent {rent}')
         if tax is not None and tax / P > 0.06: bad(f'counties {name}: tax {tax} on value {P}')
@@ -91,6 +91,41 @@ if c:
         both = [(r, prev[r[0]]) for r in rows if r[0] in prev]
         jumps = [r[1] for r, p in both if abs(r[2] / p[2] - 1) > 0.5]
         if both and len(jumps) > 0.02 * len(both): bad(f'counties: {len(jumps)} of {len(both)} median values changed by more than 50% (e.g. {", ".join(jumps[:3])})')
+
+# ---- HUD Fair Market Rents by county ----
+fm, fm0 = load('data/county_fmr.json'), old('data/county_fmr.json')
+if fm:
+    r = fm.get('rows') or {}
+    if len(r) < 3000: bad(f'county FMRs: only {len(r)} counties')
+    for fips, v in r.items():
+        if len(v) != 5 or not all(150 <= x <= 12000 for x in v): bad(f'county FMRs {fips}: {v}')
+        elif not v[0] <= v[2] * 1.2 or not v[2] <= v[4] * 1.05: bad(f'county FMRs {fips}: bedroom rents out of order {v}')
+    if fm0:
+        r0 = fm0.get('rows') or {}
+        if len(r) < 0.95 * len(r0): bad(f'county FMRs: {len(r0)} counties before, {len(r)} now')
+        both = [k for k in r if k in r0 and r0[k][2]]
+        jumps = [k for k in both if abs(r[k][2] / r0[k][2] - 1) > 0.4]
+        if both and len(jumps) > 0.02 * len(both): bad(f'county FMRs: {len(jumps)} of {len(both)} 2-bedroom rents changed by more than 40%')
+
+# ---- FHFA county price indexes (one file per state) ----
+hp_files = sorted(glob.glob(os.path.join(ROOT, 'data', 'county_hpi', '*.json')))
+if hp_files:
+    n = 0
+    for f in hp_files:
+        rel = os.path.relpath(f, ROOT); d, d0 = json.load(open(f)).get('counties') or {}, (old(rel) or {}).get('counties') or {}
+        n += len(d)
+        if len(d) < 0.95 * len(d0): bad(f'{rel}: {len(d0)} counties before, {len(d)} now')
+        for fips, v in d.items():
+            ys = sorted(v, key=int)
+            for a, b in zip(ys, ys[1:]):
+                if int(b) == int(a) + 1 and v[a] and not -0.45 <= v[b] / v[a] - 1 <= 0.7: bad(f'{rel} {fips}: prices {v[b] / v[a] - 1:+.0%} in {b}')
+            p = d0.get(fips) or {}
+            lost = [y for y in p if y not in v]
+            if len(lost) > 2: bad(f'{rel} {fips}: lost years {lost[:5]}')
+            # compare yearly changes, not levels, so a new base year is not a revision
+            rev = [b for a, b in zip(ys, ys[1:]) if a in p and b in p and p[a] and v[a] and abs((v[b] / v[a]) - (p[b] / p[a])) > 0.05]
+            if len(rev) > 3: bad(f'{rel} {fips}: {len(rev)} past yearly changes revised by more than 5 points')
+    if n < 2500: bad(f'county price indexes: only {n} counties')
 
 if problems:
     print(f'data check failed ({len(problems)} problem{"s" if len(problems) > 1 else ""}):')

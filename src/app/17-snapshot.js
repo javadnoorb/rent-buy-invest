@@ -5,7 +5,7 @@ function buildSnap(){
   staleNotice();
   document.querySelectorAll('.use').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const v=a.dataset.f==='rent0'?Math.round(a.dataset.v*bedRatio(null,document.getElementById('beds').value)/10)*10:a.dataset.v;if(a.dataset.f==='rent0')rentTyped();document.getElementById(a.dataset.f).value=v;update()}));
 }
-function bedRatio(m,b){if(b==='any')return 1;const k=b==='4'?'4':b;const r=(m&&m.acs&&m.acs.beds&&m.acs.beds[k])||(D0.bedRatio&&D0.bedRatio[k]);return r||1}
+function bedRatio(m,b){if(b==='any')return 1;const k=b==='4'?'4':b;const r=(m&&m.beds&&m.beds[k])||(m&&m.acs&&m.acs.beds&&m.acs.beds[k])||(D0.bedRatio&&D0.bedRatio[k]);return r||1}
 function selMetro(){return METROS.find(x=>x.slug===document.getElementById('metro').value)||METROS[0]}
 /* Rent estimated from the home price: the location's typical rent for the chosen bedrooms, scaled by (price ÷ the
    location's typical price)^RENT_ELAST. Across U.S. counties (Census ACS 2020–2024) rent rises about 0.65% per 1% of
@@ -30,21 +30,37 @@ function buildMetroSelect(){const sel=document.getElementById('metro');sel.inner
   (COUNTIES?'<option value="__county">Any U.S. county…</option>':'')}
 /* ---- counties: any of ~3,200 counties from Census ACS, added to the location list as they are picked ----
    The list is loaded on first use (fetched from data/counties.json, or embedded in the artifact build) and scaled here:
-   value × kP and rent × kR (the U.S. median's change to today's Zillow figures), tax ÷ value, and the state's insurance. */
-let COUNTY_ROWS=null,COUNTY_LOAD=null;
-function loadCounties(){if(COUNTY_ROWS)return Promise.resolve(COUNTY_ROWS);if(COUNTY_LOAD)return COUNTY_LOAD;const C=COUNTIES;
-  const src=C.rows?Promise.resolve({rows:C.rows}):fetch(C.file).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()});
-  COUNTY_LOAD=src.then(d=>COUNTY_ROWS=d.rows.map(([fips,name,P,rent,tax])=>[fips,name,Math.round(P*C.kP/100)*100,rent?Math.round(rent*C.kR/10)*10:null,
-    tax?Math.round(tax/P*1e4)/100:null,(C.stateIns||{})[name.split(', ').pop()]||null])).catch(e=>{COUNTY_LOAD=null;throw e});return COUNTY_LOAD}
+   value × kP (the U.S. median's change to today's Zillow typical value), tax ÷ value, and the state's insurance.
+   Rent: HUD's Fair Market Rents by bedrooms when available (they include utilities, so × the county's contract-to-gross
+   rent ratio), else the ACS median contract rent × kR. Price history: FHFA's county index, loaded per state on pick. */
+let COUNTY_ROWS=null,COUNTY_LOAD=null;const COUNTY_HPI={};
+const getJSON=u=>fetch(u).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()});
+function loadCounties(){if(COUNTY_ROWS)return Promise.resolve(COUNTY_ROWS);if(COUNTY_LOAD)return COUNTY_LOAD;const C=COUNTIES,F=C.fmr;
+  const rows=C.rows?Promise.resolve({rows:C.rows}):getJSON(C.file);
+  const fmr=!F?Promise.resolve(null):F.rows?Promise.resolve({rows:F.rows}):getJSON(F.file).catch(()=>null);
+  COUNTY_LOAD=Promise.all([rows,fmr]).then(([d,f])=>COUNTY_ROWS=d.rows.map(([fips,name,P,rent,tax,gross])=>{
+    const h=f&&f.rows[fips],cg=rent&&gross?Math.min(1,Math.max(0.6,rent/gross)):C.cg;
+    return [fips,name,Math.round(P*C.kP/100)*100,rent?Math.round(rent*C.kR/10)*10:null,tax?Math.round(tax/P*1e4)/100:null,
+      (C.stateIns||{})[name.split(', ').pop()]||null,h&&h[2]?h.map(x=>Math.round(x*cg/10)*10):null,cg]})).catch(e=>{COUNTY_LOAD=null;throw e});return COUNTY_LOAD}
 function countyMetro(slug){if(!COUNTIES||!COUNTY_ROWS||!/^cty:/.test(slug||''))return null;const have=METROS.find(m=>m.slug===slug);if(have)return have;
-  const r=COUNTY_ROWS.find(x=>x[0]===slug.slice(4));if(!r)return null;const [fips,name,Pc,rent,ptax,ins]=r,us=METROS[0],C=COUNTIES;
-  const m={slug,county:true,name,P:Pc,rent:rent||us.rent,ptax:ptax!=null?ptax:us.ptax,ins:ins||us.ins,ptaxCap:0,hpi:null,acs:null,tt:null,ttSrc:[],
+  const r=COUNTY_ROWS.find(x=>x[0]===slug.slice(4));if(!r)return null;const [fips,name,Pc,rent,ptax,ins,fmr,cg]=r,us=METROS[0],C=COUNTIES;
+  const m={slug,county:true,name,P:Pc,rent:fmr?fmr[2]:rent||us.rent,ptax:ptax!=null?ptax:us.ptax,ins:ins||us.ins,ptaxCap:0,hpi:null,acs:null,tt:null,ttSrc:[],
+    beds:fmr?{'0':fmr[0]/fmr[2],'1':fmr[1]/fmr[2],'2':1,'3':fmr[3]/fmr[2],'4':fmr[4]/fmr[2]}:null,
     src:{price:{t:`median home value, Census ACS ${C.span}, × ${C.kP.toFixed(3)} (the U.S. median's change to today's Zillow typical value)`,u:C.u},
-      rent:{t:rent?`median contract rent, Census ACS ${C.span}, × ${C.kR.toFixed(3)} (scaled to today's Zillow typical U.S. rent)`:'no county rent estimate; U.S. typical rent',u:C.u},
+      rent:fmr?{t:`HUD Fair Market Rent FY${C.fmr.fy} for the bedrooms chosen (2-bedroom $${fmr[2].toLocaleString('en-US')} without utilities: HUD's figure includes them, × ${cg.toFixed(2)}, the county's ACS contract-to-gross rent ratio)`,u:C.fmr.u}
+        :{t:rent?`median contract rent, Census ACS ${C.span}, × ${C.kR.toFixed(3)} (scaled to today's Zillow typical U.S. rent)`:'no county rent estimate; U.S. typical rent',u:C.u},
       ptax:{t:ptax!=null?`median tax ÷ median value, Census ACS ${C.span}`:'U.S. effective rate',u:C.u},
       ins:{t:ins?`${name.split(', ').pop()} average premium (Insurify)`:'U.S. average premium',u:ins?C.insU:null}}};
   METROS.push(m);const sel=document.getElementById('metro'),o=document.createElement('option');o.value=slug;o.textContent=name;
-  sel.insertBefore(o,sel.querySelector('option[value="__county"]'));return m}
+  sel.insertBefore(o,sel.querySelector('option[value="__county"]'));loadCountyHpi(m);return m}
+/* FHFA county index for a county, from its state's file; once it arrives the backtest, Monte Carlo and the
+   "<county> 19xx–2025 avg" preset use it like a metro's history */
+function loadCountyHpi(m){const H=COUNTIES.hpi;if(!H||m.hpi)return;const st=m.slug.slice(4,6);
+  (COUNTY_HPI[st]=COUNTY_HPI[st]||getJSON(H.dir+st+'.json').catch(()=>{delete COUNTY_HPI[st];return null})).then(d=>{
+    const v=d&&d.counties[m.slug.slice(4)];if(!v||Object.keys(v).length<10)return;
+    m.hpi={values:v,basis:'all-transactions',volK:H.volK};m.hpiSrc={t:`FHFA county index, ${m.name} (all-transactions, developmental); volatility ratio ${H.volK} (metro median)`,u:H.u};m.src.hpi=m.hpiSrc;
+    if(selMetro()!==m)return;const ms=metroStart(m),btn=document.getElementById('metroPreset');btn.hidden=!ms;if(ms)btn.textContent=`${m.name} ${ms}–2025 avg`;
+    MC=null;LAST_KEY='';update()})}
 /* a saved or shared setup whose location is a county: load the list, then select it */
 function restoreCounty(slug){if(!COUNTIES||!/^cty:/.test(slug||'')||countyMetro(slug))return;
   loadCounties().then(()=>{const m=countyMetro(slug);if(!m)return;document.getElementById('metro').value=slug;updateMetroHints(m);update()}).catch(()=>{})}
@@ -72,7 +88,7 @@ function updateMetroHints(m){
   hint('ptax',`${m.src.ptax?m.src.ptax.t:''} ${srcObj(m.src.ptax)}`);
   hint('ins',`${m.src.ins?m.src.ins.t:''} ${srcObj(m.src.ins)}`);
   if(m.acs&&m.acs.rate!=null)hint('ptax',`${m.acs.name}: median tax ÷ median value, Census ACS ${m.acs.year} ${linkTo(m.acs.u)}${m.src.ptax?` · main county: ${m.src.ptax.t} ${srcObj(m.src.ptax)}`:''}`);
-  hint('rent0',`${m.name}: ${m.src.rent?m.src.rent.t:''}${d(m.src.rent)} ${srcObj(m.src.rent)} × Census ratio for the chosen bedrooms`);
+  hint('rent0',`${m.name}: ${m.src.rent?m.src.rent.t:''}${d(m.src.rent)} ${srcObj(m.src.rent)}${m.beds?'':' × Census ratio for the chosen bedrooms'}`);
   const tts=document.getElementById('ttBuy').closest('.f').querySelector('.hint');if(tts)tts.innerHTML=m.county?'not available for counties; set to manual and enter your state and local rates':m.ttSrc&&m.ttSrc.length?`${m.name}: `+m.ttSrc.map(x=>`${x.t} ${linkTo(x.u)}`).join(' · '):'no transfer taxes found for this location';
 }
 

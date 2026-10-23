@@ -80,6 +80,9 @@ function buildMethod(){
 
   <p>A sale that brings in less than the mortgage leaves a shortfall. It is held as a negative balance that grows at the T-bill rate plus 3 points a year, \\(V_{t+1} = V_t\\,(1 + r^{bill}_t + 0.03/12)\\) while \\(V_t \\lt 0\\), and later savings pay it down before anything is invested.</p>
 
+  <h3>Counties</h3>
+  <p>Picking a county uses Census ACS 5-year medians: home value \\(\\times k_P\\) (the U.S. median's change to today's Zillow typical value) and property tax ÷ value. Rent is HUD's Fair Market Rent for the bedrooms chosen (the 40th-percentile rent of recent movers, including utilities) \\(\\times\\) the county's ACS median contract rent ÷ median gross rent, to leave utilities out; without a HUD figure it is the ACS median contract rent scaled to today's Zillow typical U.S. rent. Price history is FHFA's annual all-transactions county index (developmental; Bogin, Doerner &amp; Larson 2016), scaled like the metro indexes with the median metro volatility ratio. Insurance is the state average where a metro file has one, else the U.S. average; transfer taxes are not available for counties.</p>
+
   <h3>Rent estimated from the home price</h3>
   <p>With the rent setting on <em>Estimate from home price</em>: \\(\\text{rent}_0 = \\bar R_{loc}\\, b_{beds} \\,(P / \\bar P_{loc})^{0.65}\\), where \\(\\bar R_{loc}\\) and \\(\\bar P_{loc}\\) are the location's typical rent and home value and \\(b_{beds}\\) the Census rent ratio for the bedrooms chosen. The exponent is the slope of log median rent on log median home value across about 3,200 U.S. counties (Census ACS 2020–2024): pricier homes rent for less relative to their price. It is measured across places, so within one market the true slope may differ; a real comparable rental is better.</p>
 
