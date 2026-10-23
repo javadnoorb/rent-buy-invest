@@ -156,7 +156,10 @@ function buildMethod(){
   document.getElementById('srclist').innerHTML=Object.values(SRC).map(s=>`<li><a target="_blank" rel="noopener" href="${s.u}">${s.t}</a></li>`).join('')+
     METROS.filter(m=>m.slug!=='us'&&!m.county).map(m=>`<li>${m.name}: ${['price','rent','ptax','ins','hpi'].map(k=>m.src&&m.src[k]?`<a target="_blank" rel="noopener" href="${m.src[k].u}">${({price:'price',rent:'rent',ptax:'property tax',ins:'insurance',hpi:'home-price index'})[k]}</a>`:null).filter(Boolean).join(' · ')}</li>`).join('');
 }
-function typeset(el,tries=0){if(window.MathJax&&MathJax.typesetPromise){MathJax.typesetPromise([el]).catch(()=>{})}else if(tries<40)setTimeout(()=>typeset(el,tries+1),250)}
+/* MathJax (2.3 MB) is loaded the first time a tab with formulas opens, not with the page */
+function typeset(el,tries=0){if(window.MathJax&&MathJax.typesetPromise){MathJax.typesetPromise([el]).catch(()=>{});return}
+  if(!document.getElementById('mathjax-lib')){const sc=document.createElement('script');sc.id='mathjax-lib';sc.src=MATHJAX_SRC;sc.async=true;document.head.appendChild(sc)}
+  if(tries<120)setTimeout(()=>typeset(el,tries+1),250)}
 
 
 /* Formula page layout: sections become collapsible cards with a one-line summary, a sticky contents bar and a filter. */

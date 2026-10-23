@@ -80,7 +80,8 @@ function init(){
 }
 function loadScript(u){return new Promise((res,rej)=>{const sc=document.createElement('script');sc.src=u;sc.onload=res;sc.onerror=rej;document.head.appendChild(sc)})}
 (async()=>{
-  const urls=LOCAL_LIBS.concat(['https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js','https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js','https://unpkg.com/plotly.js-dist-min@2.35.2/plotly.min.js']);
+  // the cartesian build (scatter, bar, heatmap, contour, histogram) is all the app draws: about 1.4 MB instead of 4.6 MB
+  const urls=LOCAL_LIBS.concat(['https://cdn.jsdelivr.net/npm/plotly.js-cartesian-dist-min@2.35.2/plotly-cartesian.min.js','https://unpkg.com/plotly.js-cartesian-dist-min@2.35.2/plotly-cartesian.min.js','https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js']);
   for(const u of urls){if(window.Plotly)break;try{await loadScript(u)}catch(e){}}
   if(!window.Plotly){window.Plotly={react(){throw new Error('the charting library did not load; check your connection and reload')}}}
   init();

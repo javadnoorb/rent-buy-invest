@@ -1,21 +1,33 @@
 #!/usr/bin/env node
-/* UI logic tests: loads the built index.html with a stubbed chart library and a small county list swapped in, then checks
+/* UI logic tests: serves the built index.html locally with a stubbed chart library and a small county list swapped in, then checks
    the headline wording, ties, break-even search, affordability colors, the undo bar, the county picker, the Monte Carlo
    cache and chart descriptions. Run: node tests/ui.js   (needs playwright or playwright-core, like tests/smoke.js) */
-const fs = require('fs'), path = require('path');
+const fs = require('fs'), path = require('path'), http = require('http');
 const { chromium } = require(process.env.PLAYWRIGHT_PATH || 'playwright');
-const FIXTURE = { t: 'test counties', u: 'https://api.census.gov/', span: '2020–2024', kP: 1.2, kR: 1.5, insU: null,
-  rows: [['53033', 'King County, Washington', 1020000, 2600, 0.85, 1404], ['01001', 'Autauga County, Alabama', 228000, null, 0.37, null]] };
+// county scaling figures in the page, and the raw list the page fetches on first use: King County comes out at
+// 850,000 × 1.2 = $1,020,000, tax 7,225 ÷ 850,000 = 0.85%, Washington insurance $1,404
+const META = { t: 'test counties', u: 'https://api.census.gov/', span: '2020–2024', kP: 1.2, kR: 1.5, insU: null, stateIns: { Washington: 1404 }, file: 'data/counties.json', rows: null };
+const ROWS = { rows: [['53033', 'King County, Washington', 850000, 1750, 7225], ['01001', 'Autauga County, Alabama', 190000, null, 703]] };
+const ROOT = path.join(__dirname, '..');
 (async () => {
   const browser = await chromium.launch(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {});
   const page = await browser.newPage({ viewport: { width: 412, height: 900 } });
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
   await page.route('**/*plotly*', r => r.fulfill({ contentType: 'text/javascript', body: 'window.Plotly={react(el){el.innerHTML="<svg class=main-svg></svg>"},Fx:{unhover(){}},Plots:{resize(){}}}' }));
-  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8').replace(/const COUNTIES=[^;]*;/, 'const COUNTIES=' + JSON.stringify(FIXTURE) + ';');
-  await page.route('**/index.html', r => r.fulfill({ contentType: 'text/html', body: html }));
-  await page.addInitScript(() => { try { localStorage.clear(); localStorage.setItem('rbi-wz', '1'); } catch (e) {} });
-  await page.goto('file://' + path.join(__dirname, '..', 'index.html'));
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8').replace(/const COUNTIES=[^;]*;/, 'const COUNTIES=' + JSON.stringify(META) + ';');
+  let countyFetches = 0;
+  const server = http.createServer((req, res) => {
+    const u = decodeURIComponent(req.url.split('?')[0]);
+    if (u === '/' || u === '/index.html') { res.writeHead(200, { 'Content-Type': 'text/html' }); return res.end(html); }
+    if (u === '/data/counties.json') { countyFetches++; res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(ROWS)); }
+    const f = path.join(ROOT, path.normalize(u));
+    if (!f.startsWith(ROOT) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); return res.end(); }
+    res.writeHead(200); fs.createReadStream(f).pipe(res);
+  }).listen(0);
+  const base = `http://127.0.0.1:${server.address().port}/`;
+  await page.addInitScript(() => { try { if (!sessionStorage.getItem('init')) { localStorage.clear(); sessionStorage.setItem('init', '1'); } localStorage.setItem('rbi-wz', '1'); } catch (e) {} });
+  await page.goto(base + 'index.html');
   await page.waitForFunction(() => document.getElementById('vhead').textContent !== 'Computing…', null, { timeout: 30000 });
   let pass = 0, fail = 0; const fails = [];
   const ok = (c, name, detail) => { if (c) pass++; else { fail++; fails.push(name + (detail ? ' — ' + detail : '')); } };
@@ -56,14 +68,20 @@ const FIXTURE = { t: 'test counties', u: 'https://api.census.gov/', span: '2020�
   ok(await page.isHidden('#undoBar'), 'single edits with recalculated fields do not show the undo bar');
   ok(await page.evaluate(() => settingValue('P', '1500000') === '$1,500,000' && settingValue('dp', '20') === '20%' && settingValue('loanType', 'fha').startsWith('FHA')), 'setting values formatted for the undo bar');
 
-  /* county picker (choosing a location goes back to the price-based rent estimate) */
+  /* county picker (choosing a location goes back to the price-based rent estimate); the list loads on first use */
   await set({ metro: 'us' }); ok(await page.inputValue('#rentMode') === 'auto', 'a location change goes back to the estimate');
+  ok(countyFetches === 0, 'the county list is not downloaded until a county is wanted');
   await page.selectOption('#metro', '__county');
   ok(await page.isVisible('#countyQ') && await page.inputValue('#metro') === 'us', 'picking "Any county" opens the search and keeps the location');
+  await page.waitForFunction(() => document.getElementById('countyList').options.length > 0, null, { timeout: 5000 });
+  ok(countyFetches === 1, 'the county list is downloaded once when needed');
   await page.fill('#countyQ', 'king county, washington'); await page.press('#countyQ', 'Enter'); await page.waitForTimeout(500);
   ok(await page.inputValue('#metro') === 'cty:53033', 'county selected');
   ok(await page.evaluate(() => numOf('P') === 1020000 && numOf('ptax') === 0.85 && numOf('ins') === 1404), 'county fills price, tax and state insurance');
   ok(await page.evaluate(() => !locRows().some(r => r.m.county)), 'counties stay out of the Locations comparison');
+  await page.waitForTimeout(400); await page.reload(); await page.waitForFunction(() => document.getElementById('vhead').textContent !== 'Computing…');
+  await page.waitForFunction(() => document.getElementById('metro').value === 'cty:53033', null, { timeout: 5000 }).catch(() => {});
+  ok(await page.inputValue('#metro') === 'cty:53033' && await page.evaluate(() => numOf('P')) === 1020000, 'a saved county is restored after reloading');
 
   /* Monte Carlo results survive a horizon or risk-aversion change, not a model input change */
   await page.waitForFunction(() => MC && MC.key === mcKey(), null, { timeout: 30000 });
@@ -81,6 +99,6 @@ const FIXTURE = { t: 'test counties', u: 'https://api.census.gov/', span: '2020�
   ok(await page.evaluate(() => /HOA/.test(document.getElementById('printInputs').textContent) && /King County/.test(document.getElementById('printInputs').textContent)), 'print report lists changed settings');
 
   ok(!errors.length, 'no page errors', errors.join(' | '));
-  await browser.close();
+  await browser.close(); server.close();
   console.log(`${pass} passed, ${fail} failed`); if (fail) { fails.forEach(f => console.log('  FAIL ' + f)); process.exit(1); }
 })().catch(e => { console.error(e); process.exit(1); });

@@ -28,21 +28,33 @@ function applyTT(){const auto=document.getElementById('ttAuto').value==='auto',e
   const t=transferTaxes(m.tt,P,L);eb.value=P?(t.buyer/P*100).toFixed(3):0;es.value=P?(t.seller/P*100).toFixed(3):0}
 function buildMetroSelect(){const sel=document.getElementById('metro');sel.innerHTML=METROS.map(m=>`<option value="${m.slug}">${m.name}</option>`).join('')+
   (COUNTIES?'<option value="__county">Any U.S. county…</option>':'')}
-/* ---- counties: any of ~3,200 counties from Census ACS, added to the location list as they are picked ---- */
-function countyMetro(slug){if(!COUNTIES||!/^cty:/.test(slug||''))return null;const have=METROS.find(m=>m.slug===slug);if(have)return have;
-  const r=COUNTIES.rows.find(x=>x[0]===slug.slice(4));if(!r)return null;const [fips,name,Pc,rent,ptax,ins]=r,us=METROS[0],C=COUNTIES;
+/* ---- counties: any of ~3,200 counties from Census ACS, added to the location list as they are picked ----
+   The list is loaded on first use (fetched from data/counties.json, or embedded in the artifact build) and scaled here:
+   value × kP and rent × kR (the U.S. median's change to today's Zillow figures), tax ÷ value, and the state's insurance. */
+let COUNTY_ROWS=null,COUNTY_LOAD=null;
+function loadCounties(){if(COUNTY_ROWS)return Promise.resolve(COUNTY_ROWS);if(COUNTY_LOAD)return COUNTY_LOAD;const C=COUNTIES;
+  const src=C.rows?Promise.resolve({rows:C.rows}):fetch(C.file).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()});
+  COUNTY_LOAD=src.then(d=>COUNTY_ROWS=d.rows.map(([fips,name,P,rent,tax])=>[fips,name,Math.round(P*C.kP/100)*100,rent?Math.round(rent*C.kR/10)*10:null,
+    tax?Math.round(tax/P*1e4)/100:null,(C.stateIns||{})[name.split(', ').pop()]||null])).catch(e=>{COUNTY_LOAD=null;throw e});return COUNTY_LOAD}
+function countyMetro(slug){if(!COUNTIES||!COUNTY_ROWS||!/^cty:/.test(slug||''))return null;const have=METROS.find(m=>m.slug===slug);if(have)return have;
+  const r=COUNTY_ROWS.find(x=>x[0]===slug.slice(4));if(!r)return null;const [fips,name,Pc,rent,ptax,ins]=r,us=METROS[0],C=COUNTIES;
   const m={slug,county:true,name,P:Pc,rent:rent||us.rent,ptax:ptax!=null?ptax:us.ptax,ins:ins||us.ins,ptaxCap:0,hpi:null,acs:null,tt:null,ttSrc:[],
-    src:{price:{t:`median home value, Census ACS ${C.span}, × ${C.kP} (the U.S. median's change to today's Zillow typical value)`,u:C.u},
-      rent:{t:rent?`median contract rent, Census ACS ${C.span}, × ${C.kR} (scaled to today's Zillow typical U.S. rent)`:'no county rent estimate; U.S. typical rent',u:C.u},
+    src:{price:{t:`median home value, Census ACS ${C.span}, × ${C.kP.toFixed(3)} (the U.S. median's change to today's Zillow typical value)`,u:C.u},
+      rent:{t:rent?`median contract rent, Census ACS ${C.span}, × ${C.kR.toFixed(3)} (scaled to today's Zillow typical U.S. rent)`:'no county rent estimate; U.S. typical rent',u:C.u},
       ptax:{t:ptax!=null?`median tax ÷ median value, Census ACS ${C.span}`:'U.S. effective rate',u:C.u},
       ins:{t:ins?`${name.split(', ').pop()} average premium (Insurify)`:'U.S. average premium',u:ins?C.insU:null}}};
   METROS.push(m);const sel=document.getElementById('metro'),o=document.createElement('option');o.value=slug;o.textContent=name;
   sel.insertBefore(o,sel.querySelector('option[value="__county"]'));return m}
+/* a saved or shared setup whose location is a county: load the list, then select it */
+function restoreCounty(slug){if(!COUNTIES||!/^cty:/.test(slug||'')||countyMetro(slug))return;
+  loadCounties().then(()=>{const m=countyMetro(slug);if(!m)return;document.getElementById('metro').value=slug;updateMetroHints(m);update()}).catch(()=>{})}
 function wireCounty(){if(!COUNTIES)return;const sel=document.getElementById('metro'),q=document.getElementById('countyQ'),dl=document.getElementById('countyList');let prev=sel.value;
   sel.addEventListener('focus',()=>{prev=sel.value});
   sel.addEventListener('change',e=>{if(sel.value!=='__county'){prev=sel.value;return}e.stopImmediatePropagation();sel.value=prev;
-    if(!dl.options.length)dl.innerHTML=COUNTIES.rows.map(r=>`<option value="${r[1]}"></option>`).join('');q.hidden=false;q.value='';q.focus()},true);
-  const pick=()=>{const r=COUNTIES.rows.find(x=>x[1].toLowerCase()===q.value.trim().toLowerCase());if(!r)return;const m=countyMetro('cty:'+r[0]);
+    q.hidden=false;q.value='';q.placeholder='Loading counties…';q.focus();
+    loadCounties().then(rows=>{if(!dl.options.length)dl.innerHTML=rows.map(r=>`<option value="${r[1]}"></option>`).join('');q.placeholder='Type a county name'})
+      .catch(()=>{q.placeholder='Could not load the county list; check your connection'})},true);
+  const pick=()=>{const r=(COUNTY_ROWS||[]).find(x=>x[1].toLowerCase()===q.value.trim().toLowerCase());if(!r)return;const m=countyMetro('cty:'+r[0]);
     q.hidden=true;sel.value=m.slug;prev=m.slug;applyMetro(m.slug);update()};
   q.addEventListener('change',pick);q.addEventListener('keydown',e=>{if(e.key==='Enter')pick();if(e.key==='Escape')q.hidden=true})}
 function applyMetro(slug){const m=METROS.find(x=>x.slug===slug);if(!m)return;

@@ -115,7 +115,7 @@ function getRaw(){const o={N:document.getElementById('N').value,metro:document.g
 function fmtMoneyEl(el){if(document.activeElement===el)return;const v=unfmt(el.value);if(v===''||!isFinite(parseFloat(v)))return;el.value=Number(v).toLocaleString('en-US',{maximumFractionDigits:2})}
 function formatMoneyAll(){document.querySelectorAll('[data-money]').forEach(fmtMoneyEl)}
 function setRaw(o){if(o.rent0!=null&&o.rentMode==null)o=Object.assign({},o,{rentMode:'manual'});// saved before the estimate existed: keep the rent as entered
-  F.forEach(f=>{if(o[f[1]]!=null)document.getElementById(f[1]).value=o[f[1]]});if(o.N)document.getElementById('N').value=o.N;if(o.metro!=null)countyMetro(o.metro);if(o.metro!=null&&METROS.some(m=>m.slug===o.metro))document.getElementById('metro').value=o.metro}
+  F.forEach(f=>{if(o[f[1]]!=null)document.getElementById(f[1]).value=o[f[1]]});if(o.N)document.getElementById('N').value=o.N;if(o.metro!=null&&!countyMetro(o.metro))restoreCounty(o.metro);if(o.metro!=null&&METROS.some(m=>m.slug===o.metro))document.getElementById('metro').value=o.metro}
 function parseP(raw){
   const n=id=>{const x=parseFloat(raw[id]);return isFinite(x)?x:DEF[id]};
   const pc=id=>n(id)/100;

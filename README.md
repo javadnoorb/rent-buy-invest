@@ -53,7 +53,7 @@ It then opens full-screen from its own icon, and works offline after the first v
 | `data/monthly_processed.json` | Monthly returns used by the monthly backtest |
 | `build.py` | Assembles `index.html` from `src/` and `data/` |
 | `manifest.webmanifest`, `sw.js`, `icons/` | Home-screen install and offline support |
-| `vendor/` | Pinned copies of Plotly 2.35.2 (MIT) and MathJax 3.2.2 (Apache-2.0) used by the installed build, with their licenses |
+| `vendor/` | Pinned copies of Plotly 2.35.2, cartesian build (MIT) and MathJax 3.2.2 (Apache-2.0) used by the installed build, with their licenses |
 | `make_icons.py` | Draws the app icons |
 | `prep_monthly.py` | Converts `monthly.json` into `monthly_processed.json` |
 
@@ -81,7 +81,7 @@ Everything runs with the Python standard library and Node; no install is needed 
 3. Run `npm run build` and commit `index.html` with your change (CI fails if it is out of date).
 4. Push. GitHub Pages serves the new version within a minute or two.
 
-The GitHub Pages build loads Plotly (charts) and MathJax (formulas) from `vendor/` and precaches them for offline use; only Google Fonts comes from a CDN. The artifact build loads both libraries from public CDNs. To upgrade a library, replace its file in `vendor/`, update the paths in `build.py` and `sw.js`, and bump `CACHE` in `sw.js`.
+The GitHub Pages build loads Plotly (charts, the 1.4 MB cartesian build) and MathJax (formulas) from `vendor/` and precaches them for offline use; only Google Fonts comes from a CDN. MathJax loads the first time a tab with formulas opens, and the county list (`data/counties.json`) the first time someone picks a county; data files are fetched network-first so monthly refreshes show up. The artifact build loads both libraries from public CDNs. To upgrade a library, replace its file in `vendor/`, update the paths in `build.py` and `sw.js`, and bump `CACHE` in `sw.js`.
 
 ## Refreshing data
 

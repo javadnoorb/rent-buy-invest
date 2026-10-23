@@ -196,16 +196,14 @@ if os.path.exists(cf):
     for mf in glob.glob(D('data', 'metro_*.json')):
         ins = json.load(open(mf)).get('ins') or {}
         if ins.get('geography') and ins.get('annual_usd'): state_ins[ins['geography']] = [ins['annual_usd'], ins.get('source_url')]
-    rows = []
-    for fips, name, P, rent, tax in c['rows']:
-        st = name.rsplit(', ', 1)[-1]
-        rows.append([fips, name, round(P * kP, -2), round(rent * kR, -1) if rent else None,
-                     round(tax / P * 100, 2) if tax else None, (state_ins.get(st) or [None])[0]])
-    COUNTIES = {'t': c['source_title'], 'u': c['source_url'], 'span': c['span'], 'kP': round(kP, 3), 'kR': round(kR, 3),
-                'insU': next((v[1] for v in state_ins.values() if v[1]), None), 'rows': rows}
+    # the page gets only these scaling figures; the installed build fetches data/counties.json the first time someone
+    # picks a county (it is served next to the page), while the artifact build, which cannot fetch files, embeds the rows
+    COUNTIES = {'t': c['source_title'], 'u': c['source_url'], 'span': c['span'], 'kP': round(kP, 4), 'kR': round(kR, 4),
+                'insU': next((v[1] for v in state_ins.values() if v[1]), None), 'stateIns': {k: v[0] for k, v in state_ins.items()},
+                'file': 'data/counties.json' if PWA else None, 'rows': None if PWA else c['rows']}
 
 # the installed (PWA) build serves pinned copies from vendor/; the artifact build can only load from public CDNs
-VENDOR = {'plotly': 'vendor/plotly-2.35.2.min.js', 'mathjax': 'vendor/mathjax-3.2.2-tex-svg-full.js'}
+VENDOR = {'plotly': 'vendor/plotly-cartesian-2.35.2.min.js', 'mathjax': 'vendor/mathjax-3.2.2-tex-svg-full.js'}
 data_js = (f"const LOCAL_LIBS={json.dumps([VENDOR['plotly']] if PWA else [])};\n"
            "const SNAP=JSON.parse(document.getElementById('snapshot-data').textContent);\n"
            f"const RES={json.dumps(RES)};\nconst D0={json.dumps(D0)};\nconst FCST={json.dumps(FCST)};\n"
@@ -224,9 +222,9 @@ head = '''<title>Rent, Buy or Invest</title>
 mj = '''<script>
 window.MathJax={tex:{inlineMath:[['\\\\(','\\\\)']],displayMath:[['\\\\[','\\\\]']]},options:{enableMenu:false},svg:{fontCache:'global'},startup:{typeset:false}};
 </script>
-<script src="MATHJAX_SRC" async></script>
+<script>const MATHJAX_SRC="__MJ_SRC__";</script>
 '''
-mj = mj.replace('MATHJAX_SRC', VENDOR['mathjax'] if PWA else 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js')
+mj = mj.replace('__MJ_SRC__', VENDOR['mathjax'] if PWA else 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js')
 if PWA:
     head = ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
             '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
