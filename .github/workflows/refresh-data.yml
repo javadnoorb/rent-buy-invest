@@ -1,12 +1,12 @@
 name: Refresh data
-# Runs on the 4th of each month and on demand (Actions tab → Refresh data → Run workflow).
-# Downloads public data (FHFA incl. county indexes, BLS, Census incl. county figures, HUD Fair Market Rents, Freddie Mac), merges it into data/ and rebuilds
+# Runs every Friday (Freddie Mac publishes mortgage rates on Thursdays) and on demand (Actions tab → Refresh data → Run workflow).
+# Downloads public data (Treasury yields, CPI, Zillow typical value and rent, FHFA incl. county indexes, BLS, Census incl. county figures, HUD Fair Market Rents, Freddie Mac), merges it into data/ and rebuilds
 # index.html for the tests. Then scripts/check_data.py compares the new data with main and stops the run on anything implausible
 # (lost months, large revisions, jumps in rates or prices, a short county file), and the tests run. Only if both pass
 # and something changed are the data files committed to main; the Deploy site workflow then rebuilds the live page.
 on:
   schedule:
-    - cron: '23 14 4 * *'
+    - cron: '23 14 * * 5'
   workflow_dispatch:
 permissions:
   contents: write
@@ -25,6 +25,7 @@ jobs:
       - name: Fetch
         run: |
           python scripts/fetch_fhfa.py /tmp/fhfa_extract.json
+          python scripts/fetch_market.py || echo "::warning::Treasury/CPI/Zillow fetch failed; keeping the existing data/market.json"
           python scripts/fetch_public.py /tmp/public_extract.json
           python scripts/fetch_counties.py || echo "::warning::county fetch failed; keeping the existing data/counties.json"
           python scripts/fetch_fmr.py || echo "::warning::HUD Fair Market Rent fetch failed; keeping the existing data/county_fmr.json"

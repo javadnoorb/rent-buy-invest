@@ -127,6 +127,34 @@ if hp_files:
             if len(rev) > 3: bad(f'{rel} {fips}: {len(rev)} past yearly changes revised by more than 5 points')
     if n < 2500: bad(f'county price indexes: only {n} counties')
 
+# ---- header-card figures (Treasury, CPI, Zillow) ----
+mk, mk0 = load('data/market.json') or {}, old('data/market.json') or {}
+t, t0 = mk.get('treasury'), mk0.get('treasury') or {}
+if t:
+    for k in ('y10', 'bill3m'):
+        if not 0 <= t[k] <= 15: bad(f'Treasury {k}: {t[k]}% outside 0–15%')
+        if t0.get(k) is not None and abs(t[k] - t0[k]) > 1.5: bad(f'Treasury {k}: moved {t0[k]} → {t[k]}')
+    if t0.get('date') and t['date'] < t0['date']: bad(f"Treasury date went back {t0['date']} → {t['date']}")
+c_, c0_ = mk.get('cpi'), mk0.get('cpi') or {}
+if c_:
+    for k in ('yoy', 'core_yoy'):
+        if not -5 <= c_[k] <= 20: bad(f'CPI {k}: {c_[k]}% outside -5–20%')
+    if c0_.get('month') and c_['month'] < c0_['month']: bad(f"CPI month went back {c0_['month']} → {c_['month']}")
+z, z0 = mk.get('zillow'), mk0.get('zillow') or {}
+if z:
+    u, u0 = z['us'], z0.get('us') or {}
+    if not 100000 <= u['zhvi'] <= 2000000 or not 500 <= u['zori'] <= 8000: bad(f'Zillow U.S.: value {u["zhvi"]}, rent {u["zori"]}')
+    for k in ('zhvi', 'zori'):
+        if u0.get(k) and abs(u[k] / u0[k] - 1) > 0.05: bad(f'Zillow U.S. {k}: {u0[k]} → {u[k]}')
+    full = {k: v for k, v in z['metros'].items() if v.get('zhvi') and v.get('zori')}
+    if len(full) < 20: bad(f'Zillow: only {len(full)} metros matched')
+    for k, v in full.items():
+        p = (z0.get('metros') or {}).get(k) or {}
+        if not 50000 <= v['zhvi'] <= 5000000 or not 300 <= v['zori'] <= 10000: bad(f'Zillow {k}: value {v["zhvi"]}, rent {v["zori"]}')
+        for q in ('zhvi', 'zori'):
+            if p.get(q) and abs(v[q] / p[q] - 1) > 0.08: bad(f'Zillow {k} {q}: {p[q]} → {v[q]}')
+    if z0.get('month') and z['month'] < z0['month']: bad(f"Zillow month went back {z0['month']} → {z['month']}")
+
 if problems:
     print(f'data check failed ({len(problems)} problem{"s" if len(problems) > 1 else ""}):')
     for p in problems[:60]: print('  ' + p)

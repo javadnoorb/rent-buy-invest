@@ -21,6 +21,35 @@ if '--watch' in sys.argv:
         time.sleep(0.5)
 
 snap = json.load(open(D('data', 'snapshot.json')))
+
+# ---------- header-card figures fetched by scripts/fetch_market.py (data/market.json) ----------
+# Treasury yields, CPI and Zillow's typical value and rent replace the hand-entered snapshot figures when present, each
+# with its own date and source; "data as of" becomes the newest automatic date (mortgage rates or Treasury yields).
+MARKET = json.load(open(D('data', 'market.json'))) if os.path.exists(D('data', 'market.json')) else {}
+import datetime as _dt
+def _mon(ym): return _dt.date(int(ym[:4]), int(ym[5:7]), 1).strftime('%b %Y')
+def _card(k, **kw):
+    for it in snap['items']:
+        if it['k'] == k: it.update(kw)
+tr, cp, zw = MARKET.get('treasury'), MARKET.get('cpi'), MARKET.get('zillow')
+if tr:
+    day = _dt.date.fromisoformat(tr['date']).strftime('%b %-d %Y')
+    snap['values'].update(tsy10=tr['y10'], tbill=tr['bill3m'])
+    _card('10-yr Treasury', v=f"{tr['y10']:.2f}%", s=day, val=tr['y10'])
+    snap['sources']['tsy'] = {'t': f"{tr['source_title']}: 10-year {tr['y10']:.2f}%, 3-month {tr['bill3m']:.2f}%, {day}", 'u': tr['source_url']}
+if cp:
+    snap['values'].update(cpiYoY=cp['yoy'], coreYoY=cp['core_yoy'])
+    _card('CPI inflation', v=f"{cp['yoy']}% YoY", s=f"{_mon(cp['month'])}, core {cp['core_yoy']}%", val=cp['yoy'])
+    snap['sources']['cpi'] = {'t': f"{cp['source_title']}, 12 months to {_mon(cp['month'])}", 'u': cp['source_url']}
+if zw:
+    u = zw['us']; snap['values'].update(zhvi=u['zhvi'], zori=u['zori'], zoriYoY=u['zori_yoy'])
+    _card('Typical home value', v=f"${u['zhvi']:,}", s=f"{_mon(zw['month'])}, Zillow", val=u['zhvi'])
+    _card('Typical rent', v=f"${u['zori']:,}/mo", s=f"{_mon(zw['month'])}, {u['zori_yoy']:+.1f}% YoY", val=u['zori'])
+    snap['sources']['zillow'] = {'t': f"{zw['source_title']}, {_mon(zw['month'])}", 'u': zw['source_url']}
+_dates = [snap.get('asOf')] + ([tr['date']] if tr else [])
+try: _dates.append(_dt.datetime.strptime(snap.get('rateDate', ''), '%b %d %Y').date().isoformat())
+except ValueError: pass
+snap['asOf'] = max(d for d in _dates if d)
 res_raw = json.load(open(D('data', 'research.json')))
 
 # ---------- research -> RES (display) + D0 (defaults) ----------
@@ -122,6 +151,12 @@ for slug in order:
                    'hpiSrc': {'t': f"FHFA purchase-only index, {h.get('area')} ({h.get('basis')}); volatility ratio {h.get('volK')}", 'u': h.get('source_url')} if h.get('source_url') else None,
                    'src': {k: s(k) for k in ('price', 'rent', 'ptax', 'ins')}})
     METROS[-1]['src']['hpi'] = METROS[-1]['hpiSrc']
+    z = ((MARKET.get('zillow') or {}).get('metros') or {}).get(slug) or {}
+    if z.get('zhvi') and z.get('zori'):
+        mo = _mon(MARKET['zillow']['month']); zs = MARKET['zillow']['source_url']
+        METROS[-1].update(P=z['zhvi'], rent=z['zori'])
+        METROS[-1]['src'].update(price={'t': f"Zillow typical home value (ZHVI), {m['name']}", 'u': zs, 'd': mo},
+                                 rent={'t': f"Zillow typical rent (ZORI), {m['name']}", 'u': zs, 'd': mo})
 
 # ---------- national public data and loan rules ----------
 NATP = json.load(open(D('data', 'national_public.json'))) if os.path.exists(D('data', 'national_public.json')) else {}
