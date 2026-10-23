@@ -12,7 +12,7 @@
   "cpiYoY": 3.7,
   "coreYoY": 2.6,
   "ptaxUS": 0.94,
-  "insUS": 3057
+  "insUS": 1700
  },
  "items": [
   {
@@ -90,11 +90,11 @@
    "u": "https://www.bls.gov/news.release/cpi.nr0.htm"
   },
   "ins": {
-   "t": "Insurify projection: $3,057 average homeowners premium in 2026",
-   "u": "https://agencychecklists.com/2026/03/23/insurify-projects-home-insurance-premiums-to-reach-3057-in-2026-80649/"
+   "t": "Census ACS 2024 microdata: median yearly insurance paid by owners of one-family homes, U.S. ($1,500), brought to today with the BLS homeowners-insurance price index",
+   "u": "https://www.census.gov/programs-surveys/acs/microdata.html"
   },
   "ptaxUS": {
-   "t": "Census ACS 5-year 2020\u20132024: U.S. median real-estate taxes \u00f7 median home value",
+   "t": "Census ACS 5-year 2020–2024: U.S. median real-estate taxes ÷ median home value",
    "u": "https://www.census.gov/programs-surveys/acs/data/summary-file.html"
   }
  }
