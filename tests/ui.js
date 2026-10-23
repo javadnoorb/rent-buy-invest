@@ -20,7 +20,7 @@ const ROOT = path.join(__dirname, '..');
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
   await page.route('**/*plotly*', r => r.fulfill({ contentType: 'text/javascript', body: 'window.Plotly={react(el){el.innerHTML="<svg class=main-svg></svg>"},Fx:{unhover(){}},Plots:{resize(){}}}' }));
-  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8').replace(/const COUNTIES=[^;]*;/, 'const COUNTIES=' + JSON.stringify(META) + ';');
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8').replace(/const COUNTIES=.*;\n/, () => 'const COUNTIES=' + JSON.stringify(META) + ';\n');  // the build writes it on one line; titles can contain ';'
   let countyFetches = 0;
   const server = http.createServer((req, res) => {
     const u = decodeURIComponent(req.url.split('?')[0]);
