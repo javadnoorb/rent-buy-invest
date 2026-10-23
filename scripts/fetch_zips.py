@@ -46,7 +46,10 @@ for y in range(now.tm_year - 1, now.tm_year - 5, -1):
         for t, col in (('b25077', 'B25077_E001'), ('b25058', 'B25058_E001'), ('b25103', 'B25103_E001'), ('b25064', 'B25064_E001')):
             hdr, rows = sf_lines(SF.format(y=y) + f'data/5YRData/acsdt5y{y}-{t}.dat', ('860Z200US',))
             i = hdr.index(col)
-            for r in rows: vals.setdefault(r[0][-5:], {})[col] = num(r[i])
+            # the ACS codes a median below its lowest bracket as the bracket edge (value 9,999 means "under $10,000",
+            # rent 99 "under $100"): treat those as missing so the county's figure is used instead
+            low = 10000 if t == 'b25077' else 100
+            for r in rows: v = num(r[i]); vals.setdefault(r[0][-5:], {})[col] = v if v and v >= low else None
         if len(vals) > 25000: acs, span, acs_url = vals, f'{y - 4}–{y}', SF.format(y=y); break
         print(f'ACS {y}: only {len(vals)} ZCTAs')
     except Exception as e: print(f'ACS {y}: {e}')
