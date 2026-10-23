@@ -153,6 +153,9 @@ if _ins.get('states') and _ins.get('us'):
     snap['values']['insUS'] = INS['us']
     snap['sources']['ins'] = INS['src'](None)
 
+# state rules applied by a location's state: assessment caps (data/state_rules.json, compiled from official state sources)
+STATE_RULES = json.load(open(D('data', 'state_rules.json'))) if os.path.exists(D('data', 'state_rules.json')) else {}
+STATE_RULES['names'] = {n: a for a, n in _ABBR.items()}
 METROS = [{'slug': 'us', 'name': 'United States', 'P': snap['values']['zhvi'], 'rent': snap['values']['zori'],
            'ptax': snap['values']['ptaxUS'], 'ins': snap['values']['insUS'], 'ptaxCap': 0, 'hpi': None, 'src': {}}]
 order = ['boston', 'new-york', 'washington-dc', 'philadelphia', 'raleigh', 'charlotte', 'atlanta', 'tampa', 'miami',
@@ -169,11 +172,12 @@ for slug in order:
         if not e.get('source_url'): return None
         t = e.get('what') or e.get('source_title')
         return {'t': t, 'u': e['source_url'], 'd': e.get('date')}
-    cap = 2 if slug in ('los-angeles', 'san-diego', 'san-francisco') else 0
+    _cap = (STATE_RULES.get('caps') or {}).get(_abbr(m)) or {}
+    cap = _cap.get('cap', 0)
     METROS.append({'slug': slug, 'name': m['name'] + (' metro' if False else ''),
                    'P': (m.get('price') or {}).get('value'), 'rent': (m.get('rent') or {}).get('value'),
                    'ptax': (m.get('acs') or {}).get('eff_tax_pct'), 'ins': INS['by_abbr'].get(_abbr(m)) or INS['us'],
-                   'ptaxCap': cap,
+                   'ptaxCap': cap, 'ptaxCapCPI': bool(_cap.get('cpi')), 'st': _abbr(m),
                    'acs': ({'rate': (m.get('acs') or {}).get('eff_tax_pct'), 'year': (m.get('acs') or {}).get('year'), 'name': (m.get('acs') or {}).get('name'),
                             'beds': (m.get('acs') or {}).get('rent_ratio_by_bedrooms'), 'u': (m.get('acs') or {}).get('source_url')} if m.get('acs') else None),
                    'rentG': ((m.get('rent_hist') or {}).get('growth_pct')),
@@ -280,6 +284,10 @@ if os.path.exists(cf):
                 'fmr': ({'fy': fmr['fiscal_year'], 'u': fmr['source_url'], 'file': 'data/county_fmr.json' if PWA else None, 'rows': None if PWA else fmr['rows']} if fmr else None),
                 'zip': ({'dir': 'data/zip/'} if PWA and glob.glob(D('data', 'zip', '*.json')) else None),
                 'hpi': ({'t': hpi_meta['source_title'], 'u': hpi_meta['source_url'], 'dir': 'data/county_hpi/', 'volK': vks[len(vks) // 2] if vks else 1} if hpi_meta and PWA else None)}
+    # counties inside one of the app's metros borrow its BLS rent history (data/county_metro.json, scripts/fetch_county_metro.py)
+    _cm = json.load(open(D('data', 'county_metro.json'))) if os.path.exists(D('data', 'county_metro.json')) else {}
+    COUNTIES['metroOf'] = _cm.get('counties') or {}
+    COUNTIES['metroOfU'] = _cm.get('source_url')
 
 # the installed (PWA) build serves pinned copies from vendor/; the artifact build can only load from public CDNs
 VENDOR = {'plotly': 'vendor/plotly-cartesian-2.35.2.min.js', 'mathjax': 'vendor/mathjax-3.2.2-tex-svg-full.js'}
@@ -287,6 +295,8 @@ data_js = (f"const LOCAL_LIBS={json.dumps([VENDOR['plotly']] if PWA else [])};\n
            "const SNAP=JSON.parse(document.getElementById('snapshot-data').textContent);\n"
            f"const RES={json.dumps(RES)};\nconst D0={json.dumps(D0)};\nconst FCST={json.dumps(FCST)};\n"
            f"const COUNTIES={json.dumps(COUNTIES, separators=(',', ':'))};\n"
+           f"const I18N_ES={'null' if PWA else open(D('src', 'i18n', 'es.json')).read()};\n"
+           f"const STATE_RULES={json.dumps({k: v for k, v in STATE_RULES.items() if not k.startswith('_')}, separators=(',', ':'))};\n"
            f"const METROS={json.dumps(METROS, separators=(',', ':'))};\nconst MONTHLY={json.dumps(MONTHLY, separators=(',', ':'))};\n")
 
 css = open(D('src', 'style.css')).read()

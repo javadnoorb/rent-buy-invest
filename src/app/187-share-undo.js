@@ -10,7 +10,7 @@ function settingValue(id,v){if(id==='N')return nY(+v);if(id==='metro'){const m=M
   const u=(f[2].match(/\(([^)]*)\)\s*$/)||[])[1]||'',x=parseFloat(v);if(!isFinite(x))return String(v);
   if(/^\$/.test(u))return '$'+x.toLocaleString('en-US',{maximumFractionDigits:2});return x.toLocaleString('en-US',{maximumFractionDigits:3})+(/^%/.test(u)?'%':'')}
 // fields the app fills in itself (automatic tax rates, transfer taxes, rent from bedrooms) don't count as changes
-function rawDiff(a,b){const derived={rent0:b.rentMode==='auto',mu:b.muMode==='auto',ltcg:b.ltcgMode==='auto',ttBuy:b.ttAuto==='auto',ttSell:b.ttAuto==='auto'};
+function rawDiff(a,b){const derived={rent0:b.rentMode==='auto',mu:b.muMode==='auto',ltcg:b.ltcgMode==='auto',ttBuy:b.ttAuto==='auto',ttSell:b.ttAuto==='auto',stTax:(b.stMode||'auto')==='auto',stRate:(b.stMode||'auto')==='auto',stDed:(b.stMode||'auto')==='auto'};
   return Object.keys(b).filter(k=>!derived[k]&&String(a[k])!==String(b[k]))}
 function noteBulkChange(prev,cur){const ch=rawDiff(prev,cur);if(ch.length<3)return;
   UNDO_RAW=prev;const bar=document.getElementById('undoBar'),list=ch.slice(0,4).map(k=>`${settingLabel(k)} ${settingValue(k,prev[k])} → ${settingValue(k,cur[k])}`);

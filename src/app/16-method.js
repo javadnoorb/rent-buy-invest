@@ -1,6 +1,7 @@
 /* ===================== Method ===================== */
 function buildMethod(){
-  document.getElementById('methodCard').innerHTML=`
+  if(LANG==='es')document.getElementById('tab-method').lang='en';
+  document.getElementById('methodCard').innerHTML=(LANG==='es'?'<p class="note" lang="es">Esta sección técnica (fórmulas, supuestos y fuentes) está en inglés.</p>':'')+`
   <h2>How the model works</h2>
   <p>The model runs month by month for each of the three households (and the optional fourth). Both main households spend the same amount each month: the larger of the owner's cost and the renter's cost. Whichever is cheaper that month invests the difference. Every symbol is defined under the equation where it first appears; the full list is in <a href="#notation" class="src">Notation</a> at the end.</p>
 

@@ -17,14 +17,16 @@ const HELP={
  pmiAppr:['Remove PMI with an appraisal','Lenders drop PMI early if a new appraisal shows the loan at or below 75% of the home\'s current value after 2 years, or 80% after 5 years. Helps most when prices rise. You pay for the appraisal (a few hundred dollars, not modeled).'],
  extraPay:['Extra each month','Money added to the buyer\'s monthly budget on top of the regular costs. To keep the comparison fair, the renter invests the same amount. Set where it goes below.'],
  extraMode:['Put the extra toward','Mortgage principal pays the loan off sooner and saves interest at your loan rate, risk-free. Buyer\'s portfolio invests it instead, which usually earns more but is taxed and can fall. The summary shows how much the choice is worth.'],
- pmi:['PMI','Private mortgage insurance, charged on conventional loans with under 20% down until the balance falls to 78% of the original price. It protects the lender, not you.'],
+ pmi:['PMI','Private mortgage insurance, charged on conventional loans with under 20% down until the balance falls to 78% of the original price. It protects the lender, not you. Enter the yearly rate for 3–5% down; with a larger down payment the app scales it down (see the next setting). Actual quotes depend heavily on your credit score.'],
+ pmiScale:['Lower PMI with more down','Lenders require less mortgage insurance coverage when you put more down, so the premium is lower. The app scales your PMI rate by Fannie Mae\'s required coverage. Real premiums fall somewhat faster, so this errs on the high side. Choose No to use the same rate at every down payment.'],
  refiOn:['Refinancing','If on, the buyer refinances whenever market rates fall far enough below the loan rate, paying refinance costs. Lower future rates then help the buyer.'],
  rateLR:['Expected market rate later','Where you expect 30-year mortgage rates to settle. The projection moves rates from today toward this level; the simulations pull rates toward it at the historical pace.'],
  glide:['Years to reach that rate','How many years the projection takes to move from today\'s rate to your expected later rate.'],
  refiTh:['Refinance trigger','How far market rates must fall below your loan rate before refinancing. A common rule of thumb is 0.75 to 1.5 points.'],
  refiCost:['Refinance cost','Closing costs of a refinance as a share of the remaining balance, paid in cash.'],
  ptax:['Property tax','Yearly property tax as a share of the home\'s value. Location presets use the metro-wide effective rate from the Census survey (median tax ÷ median value); your town may differ a lot.'],
- ptaxCap:['Assessment growth cap','Some states limit how fast the taxed value can rise (California: 2% a year). Then your tax grows more slowly than the home\'s value. 0 = no cap.'],
+ ptaxCap:['Assessment growth cap','Some states limit how fast the taxed value of a home can rise each year (California 2%, Florida 3%, Texas 10% for homesteads). Then your tax grows more slowly than the home\'s value. The cap resets when the home is sold, so it starts from your price. Picking a location sets its state\'s statewide cap; local limits are not included. 0 = no cap.'],
+ ptaxCapCPI:['Cap also limited to inflation','In some states the taxed value rises by the lower of the cap or inflation (California, Florida, Michigan), or by inflation only (Georgia\'s homestead exemption; set the cap to 0).'],
  ins:['Home insurance','Yearly homeowners insurance premium. Location presets use state averages; coastal and wildfire areas can cost much more.'],
  maint:['Maintenance','Average yearly upkeep and repairs as a share of home value. The simulations make repairs lumpy (some years much more, some less).'],
  hoa:['HOA dues','Monthly homeowners-association or condo fees, growing with inflation.'],
@@ -37,6 +39,7 @@ const HELP={
  floodIns:['Flood / earthquake insurance','Separate policies that standard homeowners insurance does not cover. Check the FEMA flood map or get a quote if you are in a risk zone.'],
  moveIn:['Move-in costs','One-time costs of buying beyond closing: furniture for a bigger home, immediate repairs, and so on. The renter invests this money instead.'],
  impShare:['Improvements share','Part of upkeep that counts as capital improvements (a new roof, a kitchen). It is added to the home\'s tax basis and lowers capital-gains tax when you sell.'],
+ stMode:['State income tax','"From the location\'s state" estimates your state income tax from the 2026 brackets of the state you picked: your income minus the state\'s standard deduction, taxed at its rates. It also sets the state rate on investment income and whether the state lets you deduct mortgage interest and property tax. Personal exemptions, credits and city or county income taxes (New York City, Maryland counties, Ohio cities) are left out, so check it against last year\'s return. Choose manual to enter your own figures.'],
  rins:['Renter\'s insurance','Yearly renter\'s insurance premium. The default is what renters spend on average (BLS Consumer Expenditure Survey), which counts renters without a policy, so a quote for your own policy is likely higher. A small cost, but it counts against renting.'],
  rMove:['Renter moves per year','Share of renters who move each year. Each move costs money and resets rent to the market level.'],
  rMoveCost:['Cost per move','Movers, application fees, deposits lost to timing and overlapping rent each time a renter moves.'],
@@ -113,7 +116,7 @@ const HELP={
  pre_modern:['1972–2025 averages','Averages since 1972, the era of modern mortgage data and higher inflation.'],
  pre_fcst:['Forecasts','Median 10-year forecasts from the Federal Reserve Bank of Philadelphia\'s Survey of Professional Forecasters for stocks, bonds (the 10-year Treasury rate), cash and inflation. Homes and rent grow at the forecast inflation plus their own growth above inflation in 1972–2025, since nobody publishes a 10-year forecast for them. Lower stock returns than history.'],
  pre_now:['Current year-over-year','Uses the latest one-year changes in home prices, rents and inflation. Short-term figures are noisy; better as a stress test than a forecast.'],
- pre_metro:['Location history','Uses the chosen metro\'s own historical home-price growth.'],
+ pre_metro:['Location history','Uses the chosen location\'s own historical home-price growth, and its rent growth where BLS publishes a rent index (the larger metros, and counties inside them).'],
  aq:['Find a setting','Type part of a setting\'s name or description to show only matching settings.'],
  nwBand:['Range from simulated paths','Shades where the middle half of simulated futures end up, to show uncertainty around the single projected line.'],
  shareNative:['Share','Opens your phone\'s share sheet with a summary and a link that opens the app with your inputs.'],
@@ -184,7 +187,7 @@ function addHelp(el,key,title,where){if(!el||el.querySelector(':scope > .hlp'))r
 let POP=null,POP_FOR=null;
 function closeHelp(){if(POP){POP.hidden=true;POP_FOR=null}}
 function openHelp(btn){const k=btn.dataset.h;let t,b;
-  if(k.startsWith('chart:')){const id=k.slice(6);t=btn.closest('.card').querySelector('h2').childNodes[0].textContent.trim();b=CHART_HELP[id]+' <em>See "How to read this" below the chart for details.</em>'}
+  if(k.startsWith('chart:')){const id=k.slice(6);t=tr(enText(btn.closest('.card').querySelector('h2')).trim());b=CHART_HELP[id]+' <em>See "How to read this" below the chart for details.</em>'}
   else if(k.startsWith('card:')){t=k.slice(5);b=CARD_HELP[t]||''}
   else{const h=HELP[k];if(!h)return;[t,b]=h}
   if(!POP){POP=document.createElement('div');POP.className='hpop';POP.setAttribute('role','dialog');POP.setAttribute('aria-live','polite');document.body.appendChild(POP)}
@@ -200,7 +203,7 @@ function wireHelp(){
   // top card
   [['metro','metro'],['q-P','P'],['q-rent0','rent0'],['q-dp','dp'],['q-rate','rate']].forEach(([el,k])=>{const lab=document.querySelector(`label[for="${el}"]`);addHelp(lab,k,HELP[k][0])});
   addHelp(document.querySelector('label[for="N"]'),'N',HELP.N[0]);
-  document.querySelector('.seg[aria-label="Dollar basis"]').insertAdjacentHTML('afterend',helpBtn('basis',HELP.basis[0]));
+  document.querySelector('#realBtn').closest('.seg').insertAdjacentHTML('afterend',helpBtn('basis',HELP.basis[0]));
   document.querySelector('.vtop').insertAdjacentHTML('beforeend',`<div class="vhelp">${helpBtn('verdict','What comes out ahead means')}<span class="sub">what this means</span> ${helpBtn('conf','How sure')}<span class="sub">how sure</span> ${helpBtn('paths','The paths')}<span class="sub">the paths</span></div>`);
   // presets and controls
   const pr=document.querySelector('.presets');if(pr)pr.insertAdjacentHTML('beforeend',helpBtn('presets','About presets'));
@@ -222,8 +225,8 @@ function wireHelp(){
 const STAT_HELP={'Buying pulls ahead':'st_pull','Owning, month 1':'st_own1','Cash to buy':'st_cash','Housing / income':'st_hti','Break-even rent':'st_beRent','Break-even home growth':'st_beG','Rent + T-bills':'st_cashpath'};
 const RISK_HELP={'Mean':'r_mean','Median':'r_med','5th percentile':'r_p5','95th percentile':'r_p95','Expected shortfall (worst 5%)':'r_es','Standard deviation':'r_sd','Liquid < 3 months of costs (first 5 yrs)':'r_lq'};
 function decorateHelp(){
-  document.querySelectorAll('.stat .k').forEach(k=>{if(k.querySelector('.hlp'))return;const txt=k.textContent.trim();const key=STAT_HELP[txt]||(txt.startsWith('Expected gap')?'st_exp':null);if(key)k.insertAdjacentHTML('beforeend',' '+helpBtn(key,HELP[key][0]))});
-  document.querySelectorAll('.chip .k').forEach(k=>{if(k.querySelector('.hlp'))return;const t=k.textContent.trim();if(CARD_HELP[t])k.insertAdjacentHTML('beforeend',' '+helpBtn('card:'+t,t))});
+  document.querySelectorAll('.stat .k').forEach(k=>{if(k.querySelector('.hlp'))return;const txt=enText(k).trim();const key=STAT_HELP[txt]||(txt.startsWith('Expected gap')?'st_exp':null);if(key)k.insertAdjacentHTML('beforeend',' '+helpBtn(key,HELP[key][0]))});
+  document.querySelectorAll('.chip .k').forEach(k=>{if(k.querySelector('.hlp'))return;const t=enText(k).trim();if(CARD_HELP[t])k.insertAdjacentHTML('beforeend',' '+helpBtn('card:'+t,t))});
   const w=document.getElementById('why');if(w&&w.textContent.trim()&&!w.querySelector('.hlp'))w.insertAdjacentHTML('afterbegin',helpBtn('why',HELP.why[0])+' ');
-  document.querySelectorAll('#riskT tbody tr td:first-child').forEach(td=>{if(td.querySelector('.hlp'))return;const t=td.textContent.trim();const key=RISK_HELP[t]||(t.startsWith('Certainty equivalent')?'r_ce':null);if(key)td.insertAdjacentHTML('beforeend',' '+helpBtn(key,HELP[key][0]))});
+  document.querySelectorAll('#riskT tbody tr td:first-child').forEach(td=>{if(td.querySelector('.hlp'))return;const t=enText(td).trim();const key=RISK_HELP[t]||(t.startsWith('Certainty equivalent')?'r_ce':null);if(key)td.insertAdjacentHTML('beforeend',' '+helpBtn(key,HELP[key][0]))});
 }

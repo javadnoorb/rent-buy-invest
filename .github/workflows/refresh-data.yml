@@ -36,6 +36,7 @@ jobs:
           python scripts/fetch_county_hpi.py || echo "::warning::FHFA county index fetch failed; keeping the existing data/county_hpi/"
           python scripts/fetch_zips.py || echo "::warning::ZIP code fetch failed; keeping the existing data/zip/"
           python scripts/fetch_insurance.py || echo "::warning::insurance fetch failed; keeping the existing data/insurance.json"
+          python scripts/fetch_county_metro.py || echo "::warning::county-to-metro fetch failed; keeping the existing data/county_metro.json"
           python scripts/fetch_forecasts.py || echo "::warning::forecast/mover/renters-insurance fetch failed; keeping the existing data/forecasts_public.json"
       - name: Merge and rebuild
         run: |

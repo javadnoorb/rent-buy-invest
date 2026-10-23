@@ -7,11 +7,17 @@ function showTab(k){CUR=k;document.querySelectorAll('.tabs button').forEach(b=>{
 function tabFade(){const t=document.querySelector('.tabs');if(!t)return;t.classList.toggle('more-l',t.scrollLeft>4);t.classList.toggle('more-r',t.scrollLeft+t.clientWidth<t.scrollWidth-4)}
 const QUICK=['P','rent0','dp','rate'];
 function syncQuick(){QUICK.forEach(k=>{const q=document.getElementById('q-'+k),m=document.getElementById(k);if(document.activeElement!==q){q.value=unfmt(m.value);if(q.dataset.money!=null)fmtMoneyEl(q)}})}
-function persist(){try{localStorage.setItem('rbi-inputs',JSON.stringify(Object.assign(getRaw(),{REAL,v:6})));document.getElementById('saved').textContent='saved on this device'}catch(e){}}
-function restore(){try{const o=JSON.parse(localStorage.getItem('rbi-inputs')||'null');if(!o||![4,5,6].includes(o.v))return;
+function persist(){try{localStorage.setItem('rbi-inputs',JSON.stringify(Object.assign(getRaw(),{REAL,v:7})));document.getElementById('saved').textContent='saved on this device'}catch(e){}}
+function restore(){try{const o=JSON.parse(localStorage.getItem('rbi-inputs')||'null');if(!o||![4,5,6,7].includes(o.v))return;
   // saves before v6 hold the old defaults for renter's insurance ($0) and the chance of moving (5.6%, Redfin): use the new ones
   if(o.v<6){if(+o.rins===0)delete o.rins;if(+o.hz===5.6)delete o.hz}
-  setRaw(o,o.v===4);if(o.REAL===false)REAL=false;const m=METROS.find(x=>x.slug===o.metro);if(m){const ms=metroStart(m),btn=document.getElementById('metroPreset');btn.hidden=!ms;if(ms)btn.textContent=`${m.name} ${ms}–2025 avg`;updateMetroHints(m)}}catch(e){}}
+  // saves before v7: PMI was 0.5% at any down payment, and only California metros had an assessment cap; an untouched
+  // value takes the new default (the location's state cap is applied once the location is known)
+  if(o.v<7){if(+o.pmi===0.5)delete o.pmi;const old=['los-angeles','san-diego','san-francisco'].includes(o.metro)?2:0;
+    if(o.ptaxCap==null||+o.ptaxCap===old){delete o.ptaxCap;delete o.ptaxCapCPI;CAP_FROM_LOC=true}
+    // state income tax: an untouched default ($8,000, 0%, no deduction) becomes "from the location's state"; edited figures stay manual
+    if(o.stMode==null)o.stMode=(o.stTax==null||+unfmt(String(o.stTax))===8000)&&(o.stRate==null||+o.stRate===0)&&(o.stDed==null||+o.stDed===0)?'auto':'manual'}
+  setRaw(o,o.v===4);if(o.REAL===false)REAL=false;const m=METROS.find(x=>x.slug===o.metro);if(m){const ms=metroStart(m),btn=document.getElementById('metroPreset');btn.hidden=!ms;if(ms)btn.textContent=`${m.name} ${ms}–2025 avg`;updateMetroHints(m);if(CAP_FROM_LOC)applyStateCap(m)}}catch(e){}}
 function validate(){document.querySelectorAll('aside input[type=number],aside input[data-money]').forEach(el=>{const v=unfmt(el.value);el.classList.toggle('bad',v===''||!isFinite(parseFloat(v)))})}
 let timer=null;
 function syncLoanFields(){const t=document.getElementById('loanType').value;
@@ -21,7 +27,10 @@ function syncLoanFields(){const t=document.getElementById('loanType').value;
 let LAST_KEY='';
 function update(){clearTimeout(timer);timer=setTimeout(()=>{VOLADJ=document.getElementById('volAdj').value!=='0';applyTT();applyRentMode();syncLoanFields();formatMoneyAll();markChanged();const raw=getRaw(),key=JSON.stringify(raw)+REAL;if(key===LAST_KEY&&P)return;LAST_KEY=key;if(LAST_RAW)noteBulkChange(LAST_RAW,raw);LAST_RAW=raw;validate();syncQuick();persist();P=readP();
   {const muEl=document.getElementById('mu');const auto=P.muMode==='auto';muEl.disabled=auto;if(auto)muEl.value=Math.round(P.mu*100);
-   const lgEl=document.getElementById('ltcg'),lgAuto=P.ltcgMode==='auto';lgEl.disabled=lgAuto;if(lgAuto)lgEl.value=Math.round(P.ltcg*100);}document.getElementById('Nlab').textContent=P.N+' year'+(P.N>1?'s':'');
+   const lgEl=document.getElementById('ltcg'),lgAuto=P.ltcgMode==='auto';lgEl.disabled=lgAuto;if(lgAuto)lgEl.value=Math.round(P.ltcg*100);
+   const sa=P.stAutoOn;['stTax','stRate','stDed'].forEach(id=>document.getElementById(id).disabled=sa);
+   if(sa){const e=document.getElementById('stTax');e.value=P.stTax;fmtMoneyEl(e);document.getElementById('stRate').value=+(P.stRate*100).toFixed(2);document.getElementById('stDed').value=P.stDed?'1':'0'}
+   stateTaxHint();}document.getElementById('Nlab').textContent=P.N+' year'+(P.N>1?'s':'');
   BASE=simulate(P,constPath(P,P.N));if(MC&&MC.key!==mcKey())MC=null;
   summary();RENDER[CUR]();if(CUR!=='mc'&&!mcFresh(false))startMC(false)},150)}
 function encodeState(){return btoa(unescape(encodeURIComponent(JSON.stringify(Object.assign(getRaw(),{REAL})))))}
@@ -31,6 +40,7 @@ function copyText(txt,msgEl,okMsg){const done=()=>{msgEl.textContent=okMsg;setTi
 const STANDALONE_SITE=(()=>{try{return window.top===window.self&&/^https?:$/.test(location.protocol)}catch(e){return false}})();
 function setBasis(){document.getElementById('realBtn').setAttribute('aria-pressed',REAL);document.getElementById('nomBtn').setAttribute('aria-pressed',!REAL);update()}
 function init(){
+  {const lb=document.getElementById('langBtn');if(LANG==='es'){lb.textContent='English';lb.lang='en';lb.setAttribute('aria-label','View in English')}lb.addEventListener('click',()=>setLang(LANG==='es'?'en':'es'))}
   buildInputs();buildMetroSelect();buildSnap();buildMethod();const hadSaved=(()=>{try{return !!localStorage.getItem('rbi-inputs')}catch(e){return false}})();restore();wireWizard();wireSettings();wireLoc();wireHelp();wireMini();wireShareUndo();wireCounty();wireRentTag();wireAfford();{const tb=document.querySelector('.tabs'),sn=document.getElementById('snap');const sf=()=>sn.classList.toggle('more-r',sn.scrollLeft+sn.clientWidth<sn.scrollWidth-4);tb.addEventListener('scroll',tabFade,{passive:true});sn.addEventListener('scroll',sf,{passive:true});addEventListener('resize',()=>{tabFade();sf()});tabFade();sf()}
   if(STANDALONE_SITE){const sp=new URLSearchParams(location.search).get('s');const st=sp&&decodeState(sp);if(st){setRaw(st);if(st.REAL===false)REAL=false;const m=METROS.find(x=>x.slug===st.metro);if(m)updateMetroHints(m);history.replaceState(null,'',location.pathname)}}
   const shareBtn=document.getElementById('shareLink');shareBtn.hidden=!STANDALONE_SITE;
@@ -54,7 +64,9 @@ function init(){
   addEventListener('keydown',e=>{if(e.key==='Escape')sheet(false)});
   aside.addEventListener('input',update);aside.addEventListener('change',e=>{if(e.target.tagName==='SELECT'||e.target.type==='checkbox')update()});
   document.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>{let pr=PRESETS[b.dataset.preset];
-    if(b.dataset.preset==='metro'){const m=curMetro(),ms=metroStart(m);if(!ms)return;pr={gh:r2(geo(HOME.map((v,i)=>{const a=metroAnnual(curMetro(),true);return a&&a[i]!=null?a[i]:v}),ms))}}
+    if(b.dataset.preset==='metro'){const m=curMetro(),ms=metroStart(m);if(!ms)return;pr={gh:r2(geo(HOME.map((v,i)=>{const a=metroAnnual(curMetro(),true);return a&&a[i]!=null?a[i]:v}),ms))};
+      // local rent history too, where BLS has one (metros, and counties inside them)
+      if(m.rentG)pr.gr=r2(geo(rentSeries(true),ms))}
     Object.keys(pr).forEach(k=>document.getElementById(k).value=pr[k]);update()}));
   document.getElementById('reset').addEventListener('click',()=>{F.forEach(f=>document.getElementById(f[1]).value=String(f[3]));document.getElementById('N').value=10;document.getElementById('metro').value='us';applyMetro('us');try{localStorage.removeItem('rbi-inputs')}catch(e){}update()});
   document.getElementById('realBtn').addEventListener('click',()=>{REAL=true;setBasis()});
@@ -94,7 +106,8 @@ function loadScript(u){return new Promise((res,rej)=>{const sc=document.createEl
 (async()=>{
   // the cartesian build (scatter, bar, heatmap, contour, histogram) is all the app draws: about 1.4 MB instead of 4.6 MB
   const urls=LOCAL_LIBS.concat(['https://cdn.jsdelivr.net/npm/plotly.js-cartesian-dist-min@2.35.2/plotly-cartesian.min.js','https://unpkg.com/plotly.js-cartesian-dist-min@2.35.2/plotly-cartesian.min.js','https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js']);
-  // the numbers render right away; charts are drawn when the library has loaded
+  // the numbers render right away; charts are drawn when the library has loaded. Spanish needs its dictionary first.
+  await i18nInit();i18nStart();
   init();
   for(const u of urls){if(window.Plotly)break;try{await loadScript(u)}catch(e){}}
   if(!window.Plotly){window.Plotly={react(){throw new Error('the charting library did not load; check your connection and reload')}}}

@@ -2,7 +2,7 @@
 // The charting library is a pinned copy in vendor/, precached with the page so the installed app works with no connection.
 // The formula library (2.3 MB, only for the Method tab) is cached the first time it is used instead. Bump CACHE when a
 // vendor file changes.
-const CACHE = 'rbi-v5';
+const CACHE = 'rbi-v6';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png',
   './vendor/plotly-cartesian-2.35.2.min.js'];
 self.addEventListener('install', e => {
@@ -16,7 +16,7 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   // the page and data files (refreshed monthly, e.g. data/counties.json) are network-first, so updates show up
-  const isPage = req.mode === 'navigate' || (url.origin === location.origin && (url.pathname.endsWith('.html') || url.pathname.includes('/data/')));
+  const isPage = req.mode === 'navigate' || (url.origin === location.origin && (url.pathname.endsWith('.html') || (url.pathname.includes('/data/') || url.pathname.includes('/i18n/'))));
   if (isPage) {
     e.respondWith(fetch(req).then(r => { const c = r.clone(); caches.open(CACHE).then(cc => cc.put(req, c)); return r; })
       .catch(() => caches.match(req).then(r => r || (req.mode === 'navigate' ? caches.match('./index.html') : Response.error()))));

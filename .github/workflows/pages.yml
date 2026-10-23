@@ -40,6 +40,7 @@ jobs:
           mkdir -p _site/data
           cp index.html manifest.webmanifest sw.js _site/
           cp -r icons vendor _site/
+          mkdir -p _site/i18n && cp src/i18n/es.json _site/i18n/
           # files the page fetches on demand
           cp data/counties.json _site/data/ 2>/dev/null || true
           [ -d data/county_hpi ] && cp -r data/county_hpi _site/data/ || true

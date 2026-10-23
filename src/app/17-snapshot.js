@@ -8,6 +8,26 @@ function buildSnap(){
   document.querySelectorAll('.use').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const v=a.dataset.f==='rent0'?Math.round(a.dataset.v*bedRatio(null,document.getElementById('beds').value)/10)*10:a.dataset.v;if(a.dataset.f==='rent0')rentTyped();document.getElementById(a.dataset.f).value=v;update()}));
 }
 function bedRatio(m,b){if(b==='any')return 1;const k=b==='4'?'4':b;const r=(m&&m.beds&&m.beds[k])||(m&&m.acs&&m.acs.beds&&m.acs.beds[k])||(D0.bedRatio&&D0.bedRatio[k]);return r||1}
+/* the state a location is in (metros carry it; counties and ZIPs end their name with the state) and its rules */
+function stateOf(m){if(!m)return null;if(m.st)return m.st;const n=(m.cname||m.name||'').split(', ').pop();return (STATE_RULES.names||{})[n]||null}
+function stateCap(st){const c=st&&(STATE_RULES.caps||{})[st];return c?{cap:c.cap||0,cpi:!!c.cpi,src:c}:{cap:0,cpi:false,src:null}}
+/* state income tax from the state's 2026 brackets (data/state_rules.json): taxable income = gross income − the state's
+   standard deduction; exemptions, credits and local income taxes are left out. Returns the tax, the marginal rate and
+   whether the state lets you itemize mortgage interest and property tax. */
+function stateIncomeTax(st,income,filing){const r=st&&(STATE_RULES.income||{})[st];if(!r)return null;const mfj=filing==='mfj';
+  const b=(mfj?r.married:r.single)||[[0,0]],x=Math.max(0,income-((r.std||[])[mfj?1:0]||0));let tax=0,rate=0;
+  b.forEach((q,i)=>{const lo=q[0],hi=i+1<b.length?b[i+1][0]:Infinity;if(x>lo){tax+=(Math.min(x,hi)-lo)*q[1];rate=q[1]}});
+  return {tax:Math.round(tax),rate,itemize:!!r.itemize,src:r}}
+/* state-level transfer taxes for counties and ZIPs (metros carry their own state and local rules) */
+function stateTT(st){const r=st&&(STATE_RULES.transfer||{})[st];return r?{tt:r.taxes,ttSrc:r.taxes.filter(x=>x.source_url).map(x=>({t:x.name+(x.scope==='statewide county rate'?' (statewide county rate)':''),u:x.source_url})),note:r.note}:null}
+function stateTaxHint(){const el=document.getElementById('stMode'),h=el&&el.closest('.f').querySelector('.hint');if(!h)return;
+  const m=selMetro(),st=stateOf(m),r=st&&(STATE_RULES.income||{})[st];
+  if(P.stMode!=='auto'){h.innerHTML='your own figures below';return}
+  if(!r){h.innerHTML=m&&m.slug==='us'?'the whole U.S. has no single state: enter your state\'s figures (set to manual)':'no state data for this location: enter your figures (set to manual)';return}
+  h.innerHTML=r.none?`${st}: no income tax on wages${r.cg&&!/^(none|n\/a)/i.test(r.cg)?'. '+r.cg.split(/(?<=\.)\s/)[0]:''} ${linkTo(r.u)}`:
+    `${st} ${r.year}: about ${fmtFull(P.stTax)} a year at your income, ${pct(P.stRate,2)} on extra income; ${r.itemize?'deducts':'does not deduct'} mortgage interest and property tax${r.partial?' (partly)':''}. Exemptions, credits and local income taxes are not included${r.local&&!/^none/i.test(r.local)?' ('+r.local.split(/[.;]/)[0]+')':''}. ${linkTo(r.u)}`}
+let CAP_FROM_LOC=false;
+function applyStateCap(m){CAP_FROM_LOC=false;document.getElementById('ptaxCap').value=m.ptaxCap||0;document.getElementById('ptaxCapCPI').value=m.ptaxCapCPI?'1':'0'}
 function selMetro(){return METROS.find(x=>x.slug===document.getElementById('metro').value)||METROS[0]}
 /* Rent estimated from the home price: the location's typical rent for the chosen bedrooms, scaled by (price ÷ the
    location's typical price)^RENT_ELAST. Across U.S. counties (Census ACS 2020–2024) rent rises about 0.65% per 1% of
@@ -51,14 +71,19 @@ function loadCounties(){if(COUNTY_ROWS)return Promise.resolve(COUNTY_ROWS);if(CO
       (C.stateIns||{})[name.split(', ').pop()]||null,h&&h[2]?h.map(x=>Math.round(x*cg/10)*10):null,cg]})).catch(e=>{COUNTY_LOAD=null;throw e});return COUNTY_LOAD}
 function countyMetro(slug){if(!COUNTIES||!COUNTY_ROWS)return null;if(/^zip:/.test(slug||''))return zipMetro(slug);if(!/^cty:/.test(slug||''))return null;const have=METROS.find(m=>m.slug===slug);if(have)return have;
   const r=COUNTY_ROWS.find(x=>x[0]===slug.slice(4));if(!r)return null;const [fips,name,Pc,rent,ptax,ins,fmr,cg]=r,us=METROS[0],C=COUNTIES;
-  const m={slug,fips,county:true,name,P:Pc,rent:fmr?fmr[2]:rent||us.rent,ptax:ptax!=null?ptax:us.ptax,ins:ins||us.ins,ptaxCap:0,hpi:null,acs:null,tt:null,ttSrc:[],
+  const st=(STATE_RULES.names||{})[name.split(', ').pop()]||null,sc=stateCap(st);
+  const stt=stateTT(st);
+  const m={slug,fips,county:true,name,st,P:Pc,rent:fmr?fmr[2]:rent||us.rent,ptax:ptax!=null?ptax:us.ptax,ins:ins||us.ins,ptaxCap:sc.cap,ptaxCapCPI:sc.cpi,hpi:null,acs:null,tt:stt?stt.tt:null,ttSrc:stt?stt.ttSrc:[],ttState:true,
     beds:fmr?{'0':fmr[0]/fmr[2],'1':fmr[1]/fmr[2],'2':1,'3':fmr[3]/fmr[2],'4':fmr[4]/fmr[2]}:null,
     src:{price:{t:`median home value, Census ACS ${C.span}, × ${C.kP.toFixed(3)} (the U.S. median's change to today's Zillow typical value)`,u:C.u},
       rent:fmr?{t:`HUD Fair Market Rent FY${C.fmr.fy} for the bedrooms chosen (2-bedroom $${fmr[2].toLocaleString('en-US')} without utilities: HUD's figure includes them, × ${cg.toFixed(2)}, the county's ACS contract-to-gross rent ratio)`,u:C.fmr.u}
         :{t:rent?`median contract rent, Census ACS ${C.span}, × ${C.kR.toFixed(3)} (scaled to today's Zillow typical U.S. rent)`:'no county rent estimate; U.S. typical rent',u:C.u},
       ptax:{t:ptax!=null?`median tax ÷ median value, Census ACS ${C.span}`:'U.S. effective rate',u:C.u},
       ins:{t:ins?`median paid by owners of one-family homes, ${name.split(', ').pop()} (Census ACS microdata, brought to today with the BLS insurance price index)`:'U.S. figure',u:ins?C.insU:null}}};
-  addLocation(m);return m}
+  inheritMetroRent(m);addLocation(m);return m}
+/* a county inside one of the app's metros uses that metro's BLS rent history (only metros have one) */
+function inheritMetroRent(m){const slug=(COUNTIES.metroOf||{})[m.fips],mm=slug&&METROS.find(x=>x.slug===slug);if(!mm||!mm.rentG)return;
+  m.rentG=mm.rentG;m.rentSrc={t:`${mm.rentSrc?mm.rentSrc.t:'BLS rent index'}, for ${mm.name} (this county is in the metro: Census CBSA delineation)`,u:mm.rentSrc?mm.rentSrc.u:COUNTIES.metroOfU};m.inMetro=mm.name}
 function addLocation(m){METROS.push(m);const sel=document.getElementById('metro'),o=document.createElement('option');o.value=m.slug;o.textContent=m.name;
   sel.insertBefore(o,sel.querySelector('option[value="__county"]'));loadCountyHpi(m)}
 /* ---- ZIP codes: Census ACS by ZIP Code Tabulation Area for value, rent and tax, HUD Small Area FMRs for rent by
@@ -73,7 +98,7 @@ function zipMetro(slug){const have=METROS.find(m=>m.slug===slug);if(have)return 
   const cm=countyMetro('cty:'+fips);
   const m={slug,fips,zip:z,county:true,name:`ZIP ${z} · ${cname}`,P:val?Math.round(val*C.kP/100)*100:cP,ptax:tax&&val?Math.round(tax/val*1e4)/100:cptax!=null?cptax:us.ptax,
     rent:adjR?adjR[2]:cm.rent,beds:adjR?{'0':adjR[0]/adjR[2],'1':adjR[1]/adjR[2],'2':1,'3':adjR[3]/adjR[2],'4':adjR[4]/adjR[2]}:cm.beds,
-    ins:cm.ins,ptaxCap:0,hpi:null,acs:null,tt:null,ttSrc:[],
+    ins:cm.ins,st:cm.st,ptaxCap:cm.ptaxCap,ptaxCapCPI:cm.ptaxCapCPI,hpi:null,acs:null,tt:cm.tt,ttSrc:cm.ttSrc,ttState:true,rentG:cm.rentG,rentSrc:cm.rentSrc,inMetro:cm.inMetro,
     src:{price:val?{t:`median home value, ZIP ${z}, ${M.acs.t.split(',')[0]}, × ${C.kP.toFixed(3)} (the U.S. median's change to today's Zillow typical value)`,u:M.acs.u}:cm.src.price,
       rent:adjR?{t:`${M.safmr.t}, ZIP ${z}, for the bedrooms chosen (2-bedroom $${adjR[2].toLocaleString('en-US')} without utilities: HUD's figure includes them, × ${cg.toFixed(2)}, the ZIP's ACS contract-to-gross rent ratio)`,u:M.safmr.u}:cm.src.rent,
       ptax:tax&&val?{t:`median tax ÷ median value, ZIP ${z}, ${M.acs.t.split(',')[0]}`,u:M.acs.u}:cm.src.ptax,ins:cm.src.ins}};
@@ -88,7 +113,7 @@ function loadCountyHpi(m){const H=COUNTIES.hpi;if(!H||m.hpi)return;const st=m.fi
     MC=null;LAST_KEY='';update()})}
 /* a saved or shared setup whose location is a county: load the list, then select it */
 function restoreCounty(slug){if(!COUNTIES||!/^(cty|zip):/.test(slug||'')||countyMetro(slug))return;
-  (/^zip:/.test(slug)?ensureZip(slug.slice(4)):loadCounties()).then(()=>{const m=countyMetro(slug);if(!m)return;document.getElementById('metro').value=slug;updateMetroHints(m);update()}).catch(()=>{})}
+  (/^zip:/.test(slug)?ensureZip(slug.slice(4)):loadCounties()).then(()=>{const m=countyMetro(slug);if(!m)return;document.getElementById('metro').value=slug;updateMetroHints(m);if(CAP_FROM_LOC)applyStateCap(m);update()}).catch(()=>{})}
 function wireCounty(){if(!COUNTIES)return;const sel=document.getElementById('metro'),q=document.getElementById('countyQ'),dl=document.getElementById('countyList');let prev=sel.value;
   sel.addEventListener('focus',()=>{prev=sel.value});
   sel.addEventListener('change',e=>{if(sel.value!=='__county'){prev=sel.value;return}e.stopImmediatePropagation();sel.value=prev;
@@ -102,12 +127,13 @@ function wireCounty(){if(!COUNTIES)return;const sel=document.getElementById('met
   q.addEventListener('change',pick);q.addEventListener('keydown',e=>{if(e.key==='Enter')pick();if(e.key==='Escape')q.hidden=true})}
 function applyMetro(slug){const m=METROS.find(x=>x.slug===slug);if(!m)return;
   const set=(id,v)=>{if(v!=null&&isFinite(v))document.getElementById(id).value=v};
-  set('P',m.P);set('ptax',m.acs&&m.acs.rate!=null?m.acs.rate:m.ptax);set('ins',m.ins);set('ptaxCap',m.ptaxCap||0);document.getElementById('rentMode').value='auto';applyRentMode();
+  set('P',m.P);set('ptax',m.acs&&m.acs.rate!=null?m.acs.rate:m.ptax);set('ins',m.ins);set('ptaxCap',m.ptaxCap||0);document.getElementById('ptaxCapCPI').value=m.ptaxCapCPI?'1':'0';document.getElementById('rentMode').value='auto';applyRentMode();
   const ms=metroStart(m),btn=document.getElementById('metroPreset');btn.hidden=!ms;if(ms)btn.textContent=`${m.name} ${ms}–2025 avg`;
   updateMetroHints(m);}
 function updateMetroHints(m){
   const hint=(id,html)=>{const el=document.getElementById(id);const h=el&&el.closest('.f').querySelector('.hint');if(h)h.innerHTML=html};
   const base=Object.fromEntries(F.map(f=>[f[1],f[5]]));
+  {const c=stateCap(stateOf(m)).src;hint('ptaxCap',c?`${stateOf(m)}: ${c.note} ${linkTo(c.u)}`:(m.slug==='us'?base.ptaxCap:`no statewide cap found for ${stateOf(m)||'this location'}; local limits may apply`))}
   if(m.slug==='us'){['P','rent0','ptax','ins'].forEach(k=>hint(k,base[k]));return}
   const d=x=>x&&x.d?` (${x.d})`:'';
   hint('P',`${m.name}: ${m.src.price?m.src.price.t:''}${d(m.src.price)} ${srcObj(m.src.price)}`);
@@ -116,7 +142,7 @@ function updateMetroHints(m){
   hint('ins',`${m.src.ins?m.src.ins.t:''} ${srcObj(m.src.ins)}`);
   if(m.acs&&m.acs.rate!=null)hint('ptax',`${m.acs.name}: median tax ÷ median value, Census ACS ${m.acs.year} ${linkTo(m.acs.u)}${m.src.ptax?` · main county: ${m.src.ptax.t} ${srcObj(m.src.ptax)}`:''}`);
   hint('rent0',`${m.name}: ${m.src.rent?m.src.rent.t:''}${d(m.src.rent)} ${srcObj(m.src.rent)}${m.beds?'':' × Census ratio for the chosen bedrooms'}`);
-  const tts=document.getElementById('ttBuy').closest('.f').querySelector('.hint');if(tts)tts.innerHTML=m.county?'not available for counties; set to manual and enter your state and local rates':m.ttSrc&&m.ttSrc.length?`${m.name}: `+m.ttSrc.map(x=>`${x.t} ${linkTo(x.u)}`).join(' · '):'no transfer taxes found for this location';
+  const tts=document.getElementById('ttBuy').closest('.f').querySelector('.hint');if(tts)tts.innerHTML=m.ttState?(m.tt&&m.tt.length?`${stateOf(m)} state-level taxes: `+m.ttSrc.map(x=>`${x.t} ${linkTo(x.u)}`).join(' · ')+'. County and city transfer taxes are not included; set to manual to add them.':`no state transfer tax in ${stateOf(m)||'this state'}; county or city taxes may apply`):m.ttSrc&&m.ttSrc.length?`${m.name}: `+m.ttSrc.map(x=>`${x.t} ${linkTo(x.u)}`).join(' · '):'no transfer taxes found for this location';
 }
 
 

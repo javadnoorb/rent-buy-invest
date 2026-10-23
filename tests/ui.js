@@ -32,6 +32,7 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
     const json = { '/data/counties.json': ROWS, '/data/county_fmr.json': FMR, '/data/county_hpi/53.json': HPI53, '/data/zip/98.json': ZIP98 }[u];
     if (u === '/data/counties.json') countyFetches++;
     if (json) { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(json)); }
+    if (u === '/i18n/es.json') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(fs.readFileSync(path.join(ROOT, 'src/i18n/es.json'))); }
     const f = path.join(ROOT, path.normalize(u));
     if (!f.startsWith(ROOT) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); return res.end(); }
     res.writeHead(200); fs.createReadStream(f).pipe(res);
@@ -196,6 +197,37 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
 
   /* header line with the data date */
   ok(/Market data updated .+ refreshed weekly/.test(await page.textContent('#asof')), 'header shows when the data was updated');
+
+  /* state rules follow the location: income tax (Massachusetts flat), inflation-linked cap (Florida), county transfer taxes (Washington) */
+  await page.evaluate(() => { localStorage.removeItem('rbi-inputs'); });
+  await set({ metro: 'boston' }); await page.waitForTimeout(500);
+  const ma = await page.evaluate(() => [P.stMode, P.stRate, P.stDed, P.stTax, document.getElementById('stTax').disabled]);
+  ok(ma[0] === 'auto' && Math.abs(ma[1] - 0.05) < 1e-9 && ma[2] === false && ma[3] > 0 && ma[4], 'Massachusetts: 5% state tax, no deduction, fields locked', JSON.stringify(ma));
+  await set({ metro: 'miami' }); await page.waitForTimeout(500);
+  const fl = await page.evaluate(() => [P.stTax, P.stRate, P.ptaxCap, P.ptaxCapCPI]);
+  ok(fl[0] === 0 && fl[1] === 0 && Math.abs(fl[2] - 0.03) < 1e-9 && fl[3] === true, 'Florida: no income tax; 3% or inflation assessment cap', JSON.stringify(fl));
+  await set({ stMode: 'manual' }); await page.waitForTimeout(400);
+  ok(await page.evaluate(() => P.stMode === 'manual' && !document.getElementById('stTax').disabled), 'manual state tax unlocks the fields');
+  await set({ stMode: 'auto' });
+  const wa = await page.evaluate(() => loadCounties().then(() => { const m = countyMetro('cty:53033'); return [m.st, m.ptaxCap, m.tt && m.tt.length, transferTaxes(m.tt, 600000, 480000).seller]; }));
+  ok(wa[0] === 'WA' && wa[1] === 0 && wa[2] > 0 && Math.abs(wa[3] - (525000 * 0.011 + 75000 * 0.0128)) < 1, 'King County: Washington state transfer tax, no cap', JSON.stringify(wa));
+  await set({ metro: 'us' }); await page.waitForTimeout(300);
+
+  /* Spanish: ?lang=es loads the dictionary and translates the page as it renders; the choice is remembered */
+  await page.goto(base + 'index.html?lang=es');
+  await page.waitForFunction(() => document.getElementById('vhead').textContent !== 'Computing…' && /años|año/.test(document.getElementById('vhead').textContent), null, { timeout: 30000 });
+  const es = await page.evaluate(() => ({ lang: document.documentElement.lang, head: document.getElementById('vhead').textContent, tabs: [...document.querySelectorAll('[role=tab]')].map(t => t.textContent),
+    btn: document.getElementById('langBtn').textContent, sumry: document.querySelector('aside details summary').textContent, method: document.getElementById('tab-method').lang }));
+  ok(es.lang === 'es' && /(Comprar|Alquilar).*(sale ganando|empatados)/.test(es.head), 'Spanish headline', JSON.stringify(es));
+  ok(es.tabs.includes('Proyección') && es.tabs.includes('Ubicaciones') && es.btn === 'English', 'Spanish tabs and the switch back', es.tabs.join(','));
+  ok(/Vivienda e hipoteca/.test(es.sumry) && es.method === 'en', 'settings translated; Method tab marked as English');
+  await page.click('.hlp[data-h="hz"], .hlp'); await page.waitForTimeout(300);
+  ok(await page.evaluate(() => { const p = document.querySelector('.pop:not([hidden]), [role=dialog]:not([hidden])'); return !p || !/\b(the|and|your)\b/.test(p.textContent) }), 'help popup in Spanish');
+  await page.evaluate(() => closeHelp && closeHelp());
+  await page.goto(base + 'index.html'); await page.waitForTimeout(800);
+  ok(await page.evaluate(() => LANG === 'es'), 'Spanish is remembered without ?lang');
+  await page.evaluate(() => setLang('en')); await page.waitForTimeout(1500);
+  ok(await page.evaluate(() => LANG === 'en' && document.documentElement.lang === 'en'), 'switching back to English');
 
   ok(!errors.length, 'no page errors', errors.join(' | '));
   await browser.close(); server.close();

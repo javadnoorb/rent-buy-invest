@@ -15,7 +15,8 @@ const AXE = require.resolve(process.env.AXE_PATH || 'axe-core/axe.min.js');
     await page.goto('file://' + path.join(__dirname, '..', 'index.html'));
     await page.waitForTimeout(800);
     await page.addScriptTag({ path: AXE });
-    const check = async (where) => {
+    const check = async (where) => { const t0 = Date.now(); try { return await check1(where) } finally { if (process.env.A11Y_TIMES) console.log(`  ${scheme} ${width} ${where}: ${Date.now() - t0} ms`) } };
+    const check1 = async (where) => {
       const res = await page.evaluate(() => axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] }, resultTypes: ['violations'] }));
       for (const v of res.violations) {
         failed++;
@@ -30,8 +31,7 @@ const AXE = require.resolve(process.env.AXE_PATH || 'axe-core/axe.min.js');
     await page.evaluate(() => document.querySelectorAll('aside details').forEach(d => d.open = true));
     await check('all settings open');
     const tabs = await page.$$eval('[role="tab"]', t => t.map(e => e.dataset.tab));
-    // every tab at desktop width; the phone pass checks the first view and the settings sheet
-    if (width > 700) for (const k of tabs) { await page.click(`[role="tab"][data-tab="${k}"]`); await page.waitForTimeout(k === 'mc' ? 3000 : 600); await check('tab ' + k); }
+    for (const k of tabs) { await page.click(`[role="tab"][data-tab="${k}"]`); await page.waitForTimeout(k === 'mc' ? 3000 : 600); await check('tab ' + k); }
     await page.close();
   }
   await browser.close();

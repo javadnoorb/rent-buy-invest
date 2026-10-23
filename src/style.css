@@ -407,3 +407,5 @@ table.loct td:first-child{min-width:150px}
 .sbs-pick button{min-height:38px}
 table.sbs td:not(:first-child),table.sbs th:not(:first-child){text-align:right;white-space:nowrap}
 table.sbs tr.sbs-head td{font-weight:600}
+
+.hbtns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}

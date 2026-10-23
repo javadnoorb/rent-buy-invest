@@ -159,4 +159,20 @@ module.exports=function({M,base,run,ok,near}){
   {const q=Object.assign({},p0,{gh:0.04,rs:0.08,rb:0.04,rc:0.03,inf:0.025,N:10});
    const a=M.mcCore(q,{n:50,bl:10,from:2016,rc:false,home:M.HOME,real:false});
    ok(a.res.buy.every(r=>r.every(isFinite)),'short history with long blocks still fills 30 years')}
+
+  /* assessment caps: fixed (Texas-style), inflation-linked (California/Florida), inflation only (Georgia) */
+  {const pt=y=>o=>o.flow[y].ptax*12;
+   const go=over=>run(base(Object.assign({ptax:0.01,gh:0.05,inf:0.01,N:4},over)),4,{detail:true});
+   const P=300000;
+   near(pt(1)(go({})),P*1.05*0.01,1e-9,'no cap: taxed on market value');
+   near(pt(1)(go({ptaxCap:0.02})),P*1.02*0.01,1e-9,'2% cap: taxed value grows 2%');
+   near(pt(1)(go({ptaxCap:0.02,ptaxCapCPI:true})),P*1.01*0.01,1e-9,'cap or inflation, lower: grows 1%');
+   near(pt(3)(go({ptaxCap:0,ptaxCapCPI:true})),P*Math.pow(1.01,3)*0.01,1e-9,'inflation only: grows 1% a year');
+   near(pt(1)(go({ptaxCap:0.02,ptaxCapCPI:true,inf:0.04})),P*1.02*0.01,1e-9,'cap binds when inflation is higher');}
+  /* PMI scaled by down payment (Fannie Mae coverage 35/30/25/12%) */
+  {const r=(dp,sc)=>M.pmiRate?M.pmiRate(base({pmi:0.006,pmiScale:sc}),dp):null;
+   ok(M.pmiRate,'pmiRate exported');
+   if(M.pmiRate){near(r(0.035,true),0.006,1e-12,'3.5% down: full PMI rate');near(r(0.07,true),0.006*30/35,1e-12,'7% down: 30/35 of it');
+     near(r(0.12,true),0.006*25/35,1e-12,'12% down: 25/35');near(r(0.18,true),0.006*12/35,1e-12,'18% down: 12/35');
+     ok(r(0.2,true)===0,'20% down: no PMI');near(r(0.18,false),0.006,1e-12,'unscaled: same rate')}}
 };

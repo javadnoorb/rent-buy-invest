@@ -36,6 +36,11 @@ const RATE_AR=(()=>{const X=[],Y=[],idx=[];YEARS.forEach((y,i)=>{if(DM_OBS[i]!=n
 const SER={gh:HOME,gr:RENTG,rs:STK,rb:BOND,rc:BILL,inf:INF};
 function geo(a,from,to){const i0=from-Y0,i1=(to||2025)-Y0;let lp=0,n=0;for(let i=i0;i<=i1;i++){if(a[i]==null)continue;lp+=Math.log(1+a[i]/100);n++}return (Math.exp(lp/n)-1)*100}
 const r2=x=>Math.round(x*100)/100;
+/* PMI by down payment: the PMI setting is the rate at 3–5% down; with more down it is scaled by Fannie Mae's standard
+   required mortgage-insurance coverage for 30-year fixed loans (Selling Guide B7-1-02: 35% of the loan above 95% LTV,
+   30% at 90–95, 25% at 85–90, 12% at 80–85). Premiums fall faster than coverage in practice, so this errs high. */
+const PMI_COV=[[0.95,35],[0.90,30],[0.85,25],[0.80,12]];
+function pmiRate(p,dp){if(dp>=0.2)return 0;if(p.pmiScale===false)return p.pmi;const ltv=1-dp,c=PMI_COV.find(([l])=>ltv>l+1e-9);return p.pmi*(c?c[1]:12)/35}
 
 /* ===================== Metro home-price series ===================== */
 /* Metro yearly % changes. FHFA indexes swing less than Case-Shiller (no jumbo loans), so unless raw is set
@@ -71,10 +76,13 @@ function pmt(B,i,n){if(B<=0||n<=0)return 0;return i>0?B*i/(1-Math.pow(1+i,-n)):B
    ("mansion" style), or marginal brackets; paid by buyer, seller, or split evenly. Returns dollars. */
 function transferTaxes(rules,P,L){let buyer=0,seller=0;
   (rules||[]).forEach(r=>{const x=r.base==='mortgage'?L:P;let t=0;
+    // a second schedule for lower prices (New Jersey: consideration up to $350,000)
+    const tiers=r.alt_tiers&&r.alt_tiers.applies_if_price_lte!=null&&P<=r.alt_tiers.applies_if_price_lte?r.alt_tiers.tiers:r.tiers;
     if(r.structure==='flat')t=(r.rate||0)*x;
-    else if(r.structure==='whole_price_tiers'){const tr=(r.tiers||[]).find(q=>x>=q.from&&(q.to==null||x<q.to));t=tr?tr.rate*x:0}
-    else if(r.structure==='marginal_tiers'){(r.tiers||[]).forEach(q=>{const hi=q.to==null?x:Math.min(x,q.to);if(hi>q.from)t+=(hi-q.from)*q.rate})}
-    if(r.payer==='buyer')buyer+=t;else if(r.payer==='seller')seller+=t;else{buyer+=t/2;seller+=t/2}});
+    else if(r.structure==='whole_price_tiers'){const tr=(tiers||[]).find(q=>x>=q.from&&(q.to==null||x<q.to));t=tr?tr.rate*x:0}
+    else if(r.structure==='marginal_tiers'){(tiers||[]).forEach(q=>{const hi=q.to==null?x:Math.min(x,q.to);if(hi>q.from)t+=(hi-q.from)*q.rate})}
+    if(r.cap!=null&&isFinite(r.cap))t=Math.min(t,r.cap);
+    const b=r.payer==='buyer'?1:r.payer==='seller'?0:(r.buyer_share!=null?r.buyer_share:0.5);buyer+=t*b;seller+=t*(1-b)});
   return {buyer,seller}}
 /* Loan setup shared by the simulation and the summary.
    fixed: conventional with PMI under 20% down. fha: 1.75% upfront MIP financed, annual MIP by loan size/LTV/term
@@ -127,7 +135,7 @@ function simulate(p,path,opt){
     o.lqB.push(lb);o.lqR.push(lr);o.lqC.push(pC);o.budget.push(budgetY);o.rateAt.push(owned?rate:null);o.H.push(owned?H:0);o.income.push(income);o.own1.push(ownY);
     if(detail){o.eq.push(homeNet(H,bal,y));o.pB.push(lb);o.bal.push(owned?bal:0)}};
   snap(0);
-  let ghPrev=0;
+  let ghPrev=0,infPrev=0;
   const lev=p.lev,ws=p.ws,wb=p.wb,wc=Math.max(0,1-p.ws-p.wb);
   for(let y=0;y<N;y++){
     let ghY,grY,infY;
@@ -142,7 +150,10 @@ function simulate(p,path,opt){
         if(cash>Pcur)[pB,bB]=dep(pB,bB,cash-Pcur);if(cash<0)[pB,bB]=dep(pB,bB,cash);
         dpCur=dp2/Pcur;Lcur=Pcur-dp2;armOn=false;fha=false;bal=Lcur;i=rate/12;Mp=pmt(Lcur,i,nTot);f750=Lcur>0?Math.min(1,750000/Lcur):1;
         basis=Pcur*(1+p.close);purchY=y;mSince=0;imp=0;A=Pcur;lastRefi=-999;pmiOff=false;shk=opt.saleShock2||1}}
-    if(owned&&y>0&&y!==purchY){A=p.ptaxCap>0?Math.min(H,A*(1+Math.min(ghPrev,p.ptaxCap))):H}
+    // assessed value: market value, or with a cap it grows by at most the cap (and, for inflation-linked caps such as
+    // California's and Florida's, by at most last year's inflation); resets to the price on purchase
+    if(owned&&y>0&&y!==purchY){const capped=p.ptaxCap>0||p.ptaxCapCPI;
+      A=capped?Math.min(H,A*(1+Math.min(ghPrev,p.ptaxCap>0?p.ptaxCap:Infinity,p.ptaxCapCPI?Math.max(0,infPrev):Infinity))):H}
     const Hy=H,insM=owned?(p.ins+p.floodIns)*insIdx/12:0,hoa=owned?p.hoa*infIdx:0,ptY=owned?p.ptax*A:0;
     const maintY=owned?p.maint*Hy*(mShock?mShock[y]:1):0,utilM=owned?p.utilDiff*infIdx:0;
     const mktIdx=mkt/p.rent0;
@@ -174,7 +185,7 @@ function simulate(p,path,opt){
         // conventional PMI: ends at 78% of the original price on schedule, or with an appraisal at 75% of today's value
         // after 2 years / 80% after 5 years (Fannie Mae servicing guide B-1.1-04)
         if(p.pmiAppr&&!fha&&!pmiOff&&dpCur<0.2&&mSince>=24&&balPrev<=(mSince>=60?0.8:0.75)*H)pmiOff=true;
-        const pmi=fha?(mSince<mipMonths&&balPrev>0.005?mipRate*balPrev/12:0):((dpCur<0.2&&!pmiOff&&balPrev>0.78*Pcur)?p.pmi*Lcur/12:0);pmiY+=pmi;
+        const pmi=fha?(mSince<mipMonths&&balPrev>0.005?mipRate*balPrev/12:0):((dpCur<0.2&&!pmiOff&&balPrev>0.78*Pcur)?pmiRate(p,dpCur)*Lcur/12:0);pmiY+=pmi;
         own=pay+xPay+ptY/12+maintY/12+insM+hoa+utilM+pmi+refiCost-hhInc;
         if(m===11&&tx){const std=std0*infIdx,cap=saltCapFor(y,income,p.y0),own_s=1-(p.hhRent>0?p.hhShare:0);
           const dB=Math.max(std,Math.min(cap,p.stTax+ptY*own_s)+(intY*f750+(y===0?LS.ptsCost:0))*own_s+p.oth),dR=Math.max(std,Math.min(cap,p.stTax)+p.oth);
@@ -210,7 +221,7 @@ function simulate(p,path,opt){
       const opp=eqStart*Rsum;
       o.unrec.push({own:owned?intY+ptY+maintY+insM*12+hoa*12+utilM*12+pmiY+refiY-benefit-(hhInc*12-hhTax)+opp:rentM*12,opp:owned?opp:0,rent:rentM*12,cpi});
     }
-    ghPrev=ghY;
+    ghPrev=ghY;infPrev=infY;
     // rent: market rent grows; the sitting tenant renews at (growth − gap) and resets to market when moving
     mkt*=1+grY;const eta=Math.min(1,Math.max(0,p.rMove));lease=(1-eta)*lease*(1+grY-renewGap)+eta*mkt;
     infIdx*=1+infY;insIdx*=1+infY+(p.insG||0);income*=1+incG;setRates();

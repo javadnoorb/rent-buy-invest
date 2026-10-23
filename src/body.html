@@ -1,6 +1,6 @@
 <div class="wrap">
 <header>
-  <div class="hrow"><h1>Rent, Buy or Invest</h1><button id="openWizard" class="ghost">Quick setup</button></div>
+  <div class="hrow"><h1>Rent, Buy or Invest</h1><span class="hbtns"><button id="langBtn" class="ghost" translate="no" lang="es" aria-label="Ver en español">Español</button><button id="openWizard" class="ghost">Quick setup</button></span></div>
   <p class="lede">Compares buying a home with renting and investing the difference, on the same monthly budget. Results are what you'd have if you sold everything, after costs and taxes. Every figure links to its source.</p>
   <p class="asof muted" id="asof"></p>
 </header>
@@ -210,7 +210,7 @@
         <dt>The table</dt><dd>Each row runs the full model for one location with your household. The last column is the headline answer there: positive (green) means buying ends ahead of renting and investing after your horizon. <em>Price ÷ yearly rent</em> is the classic rule of thumb: above about 20 renting tends to win, below about 15 buying does.</dd>
         <dt>Growth modes</dt><dd><b>Same</b>: your home and rent growth for every location, so differences come only from today's prices, rents and local costs. <b>Yours + local</b>: your growth plus how much faster or slower each location grew than the U.S. over the same years (FHFA home prices since about 1991, BLS rents). <b>Local history</b>: each location's own historical averages. Past local booms need not repeat, so treat the last two as what-ifs.</dd>
         <dt>Housing ÷ income</dt><dd>Month-1 owning cost over your gross monthly income. Green up to 28%, amber to 36%, red above: the same household may not qualify for a mortgage everywhere.</dd>
-        <dt>Not modeled</dt><dd>Local pay differences, state income tax (kept at your setting) and local homestead exemptions.</dd></dl></details>
+        <dt>Not modeled</dt><dd>Local pay differences, city and county income taxes, county and city transfer taxes for counties and ZIP codes, and local homestead exemptions. State income tax follows each location's state unless you enter it manually.</dd></dl></details>
     </div>
     <div class="card"><h2>Side by side</h2>
       <p class="cap">Any two places, including counties and ZIP codes, with your household and settings. The growth mode above applies here too.</p>
@@ -220,6 +220,7 @@
       <p class="sub" id="sbsMsg" role="status"></p>
       <div class="takeaway" id="tk-sbs"></div>
       <div class="tablewrap" style="max-height:none"><table class="kv sbs" id="sbsT"></table></div>
+      <div class="plot" id="p-sbs"></div>
     </div>
     <div class="card"><h2>Buy advantage over time, by location</h2><p class="cap">Buy minus rent-and-invest each year for the ticked locations; the thicker line is your current location.</p><div class="plot tall" id="p-loc"></div></div>
     <div class="card"><h2>Price-to-rent ratio vs. the answer</h2><p class="cap">Each dot is a location: how expensive homes are relative to rent, against the buy advantage at your horizon. Green dots: buying wins.</p><div class="plot" id="p-locsc"></div></div>

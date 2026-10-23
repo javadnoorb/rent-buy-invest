@@ -12,9 +12,10 @@ function locParams(base,m){
   const raw=getRaw();const q=Object.assign({},base);
   q.P=m.P||base.P;q.rent0=m.rent?Math.round(m.rent*bedRatio(m,raw.beds||'3')/10)*10:base.rent0;
   const pt=m.acs&&m.acs.rate!=null?m.acs.rate:m.ptax;if(pt!=null&&isFinite(pt))q.ptax=pt/100;
-  if(m.ins!=null&&isFinite(m.ins))q.ins=m.ins;q.ptaxCap=(m.ptaxCap||0)/100;
+  if(m.ins!=null&&isFinite(m.ins))q.ins=m.ins;q.ptaxCap=(m.ptaxCap||0)/100;q.ptaxCapCPI=!!m.ptaxCapCPI;
   if(raw.ttAuto==='auto'){const t=m.tt?transferTaxes(m.tt,q.P,q.P*(1-q.dp)):{buyer:0,seller:0};q.ttBuy=t.buyer/q.P;q.ttSell=t.seller/q.P;q.close=q.closeBase+q.ttBuy;q.sell=q.sellBase+q.ttSell}
   q.metro=m.slug;
+  if((raw.stMode||'auto')==='auto'){const sti=stateIncomeTax(stateOf(m),q.income,q.filing);if(sti){q.stTax=sti.tax;q.stRate=sti.rate;q.stDed=sti.itemize}}
   const g=LOC_MODE==='same'?null:locGrowth(m);
   if(g){if(LOC_MODE==='hist'){q.gh=g.gh;if(g.gr!=null)q.gr=g.gr}else{q.gh=base.gh+(g.gh-g.ghN);if(g.gr!=null)q.gr=base.gr+(g.gr-g.grN)}}
   return {q,g}}
@@ -44,7 +45,7 @@ function renderLoc(){
     document.getElementById('locMsg').textContent='';try{localStorage.setItem('rbi-loc',JSON.stringify(LOC_SEL))}catch(e){}drawLoc(rows)});
   const g=rows.filter(r=>r.gap>=0).length,best=[...rows].sort((a,b)=>b.gap-a.gap)[0],worst=[...rows].sort((a,b)=>a.gap-b.gap)[0];
   const corr=(()=>{const x=rows.map(r=>r.ptr),y=rows.map(r=>r.gap),mx=x.reduce((a,b)=>a+b)/x.length,my=y.reduce((a,b)=>a+b)/y.length;let sxy=0,sx=0,sy=0;x.forEach((v,i)=>{sxy+=(v-mx)*(y[i]-my);sx+=(v-mx)**2;sy+=(y[i]-my)**2});return sxy/Math.sqrt(sx*sy)})();
-  document.getElementById('loc-cap').innerHTML=`Same household in every location: your income, savings rate, down payment share, loan, tax settings and horizon (${N} years). What changes: home price, comparable ${P.beds==='any'?'':P.beds+'-bedroom '}rent, property tax, insurance${getRaw().ttAuto==='auto'?', transfer taxes':''}${LOC_MODE==='same'?'':', and home and rent growth'}. State income tax stays at your setting.`;
+  document.getElementById('loc-cap').innerHTML=`Same household in every location: your income, savings rate, down payment share, loan, federal tax settings and horizon (${N} years). What changes: home price, comparable ${P.beds==='any'?'':P.beds+'-bedroom '}rent, property tax, insurance${getRaw().ttAuto==='auto'?', transfer taxes':''}${(getRaw().stMode||'auto')==='auto'?', state income tax':''}${LOC_MODE==='same'?'':', and home and rent growth'}.`;
   document.getElementById('tk-loc').innerHTML=`<strong>Buying comes out ahead in ${g} of ${rows.length} locations</strong> at ${N} years. Best for buying: ${best.m.name} (${best.gap>=0?'+':'−'}${fmt(Math.abs(best.gap))}); best for renting: ${worst.m.name} (${worst.gap>=0?'+':'−'}${fmt(Math.abs(worst.gap))}). `+
     (isFinite(corr)?`Across locations the price-to-rent ratio and the buy advantage correlate at ${corr.toFixed(2)}: ${corr<-0.5?'where homes are expensive relative to rent, renting tends to win':'the ratio alone does not decide it here'}.`:'');
   drawLoc(rows);renderSbs()}

@@ -159,5 +159,17 @@ class AcsSummaryFile(unittest.TestCase):
         self.assertEqual([r[1] for r in rows], ['0100000US', '0500000US01001'])
 
 
+class CountyMetro(unittest.TestCase):
+    def test_parse(self):
+        C = load('fetch_county_metro')
+        rows = [['List 1. CORE BASED STATISTICAL AREAS (CBSAs), METROPOLITAN DIVISIONS, AND COMBINED STATISTICAL AREAS (CSAs)'], ['July 2023'],
+                ['CBSA Code', 'Metropolitan Division Code', 'CSA Code', 'CBSA Title', 'Metropolitan/Micropolitan Statistical Area', 'Metropolitan Division Title',
+                 'CSA Title', 'County/County Equivalent', 'State Name', 'FIPS State Code', 'FIPS County Code', 'Central/Outlying County'],
+                ['14460', '14454', '148', 'Boston-Cambridge-Newton, MA-NH', 'Metropolitan Statistical Area', 'Boston, MA', '', 'Suffolk County', 'Massachusetts', '25', '025', 'Central'],
+                [42660.0, None, None, 'Seattle', 'Metropolitan Statistical Area', None, None, 'King County', 'Washington', 53.0, 33.0, 'Central'],
+                ['10100', None, None, 'Aberdeen, SD', 'Micropolitan Statistical Area', None, None, 'Brown County', 'South Dakota', '46', '013', 'Central']]
+        self.assertEqual(C['parse'](make_xlsx(rows), {'14460': 'boston', '42660': 'seattle'}), {'25025': 'boston', '53033': 'seattle'})
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=1)
