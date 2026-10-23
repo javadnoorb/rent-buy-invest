@@ -34,6 +34,7 @@ const HELP={
  floodIns:['Flood / earthquake insurance','Separate policies that standard homeowners insurance does not cover. Check the FEMA flood map or get a quote if you are in a risk zone.'],
  moveIn:['Move-in costs','One-time costs of buying beyond closing: furniture for a bigger home, immediate repairs, and so on. The renter invests this money instead.'],
  impShare:['Improvements share','Part of upkeep that counts as capital improvements (a new roof, a kitchen). It is added to the home\'s tax basis and lowers capital-gains tax when you sell.'],
+ rins:['Renter\'s insurance','Yearly renter\'s insurance premium, typically $150–300. A small cost, but it counts against renting.'],
  rMove:['Renter moves per year','Share of renters who move each year. Each move costs money and resets rent to the market level.'],
  rMoveCost:['Cost per move','Movers, application fees, deposits lost to timing and overlapping rent each time a renter moves.'],
  broker:['Broker fee','Some cities (e.g. New York, Boston) charge tenants about one month of rent per move. 0 elsewhere.'],

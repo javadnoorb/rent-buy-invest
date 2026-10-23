@@ -4,6 +4,21 @@ import json, glob, os, math, sys
 PWA = '--pwa' in sys.argv
 ROOT = os.path.dirname(os.path.abspath(__file__))
 D = lambda *p: os.path.join(ROOT, *p)
+# --out PATH writes somewhere other than index.html (e.g. dist/artifact.html for the Claude artifact build)
+OUT = sys.argv[sys.argv.index('--out') + 1] if '--out' in sys.argv else D('index.html')
+if '--watch' in sys.argv:
+    # rebuild whenever anything under src/ or data/ changes (Ctrl-C to stop)
+    import subprocess, time
+    args = [a for a in sys.argv[1:] if a != '--watch']
+    stamp = lambda: max(os.path.getmtime(p) for p in glob.glob(D('src', '**', '*'), recursive=True) + glob.glob(D('data', '*.json')) + [D('build.py')])
+    last = None
+    while True:
+        s = stamp()
+        if s != last:
+            last = s
+            r = subprocess.run([sys.executable, __file__] + args, capture_output=True, text=True)
+            print(time.strftime('%H:%M:%S'), (r.stdout or r.stderr).strip().splitlines()[-1])
+        time.sleep(0.5)
 
 snap = json.load(open(D('data', 'snapshot.json')))
 res_raw = json.load(open(D('data', 'research.json')))
@@ -185,5 +200,6 @@ out = (head + '<style>' + css + '</style>\n' + body +
        '\n<!-- SNAPSHOT: current market figures. Weekly refresh edits only this block. -->\n'
        '<script id="snapshot-data" type="application/json">\n' + json.dumps(snap, indent=1) + '\n</script>\n' + mj +
        '<script id="model-script">\n"use strict";\nconst MORT_OVERRIDE=' + json.dumps(MORT_OVERRIDE) + ';\n' + model + '\n</script>\n<script>\n"use strict";\n' + data_js + app + '\n</script>\n' + tail)
-open(D('index.html'), 'w').write(out)
+os.makedirs(os.path.dirname(os.path.abspath(OUT)), exist_ok=True)
+open(OUT, 'w').write(out)
 print('built', len(out), 'bytes; metros', len(METROS), '; monthly', bool(MONTHLY))

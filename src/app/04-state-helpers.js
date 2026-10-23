@@ -41,5 +41,12 @@ const X=(t)=>({...layout().xaxis,title:{text:t,font:{size:11}}});
 const Yd=(t)=>({...layout().yaxis,title:{text:t,font:{size:11}},tickprefix:'$',tickformat:'~s'});
 const Yt=(t,extra)=>({...layout().yaxis,title:{text:t,font:{size:11}},...(extra||{})});
 const basisLabel=()=>REAL?"today's $":'nominal $';
-const divScale=t=>[[0,t.inv],[0.5,t.bg],[1,t.buy]];
+/* Diverging scale for "renting wins" (blue, negative) vs "buying wins" (green, positive): 9 steps, darker and more
+   saturated toward the extremes, a light neutral at zero that differs from the card background, and a dark-mode version. */
+const isDark=t=>{const h=(t.bg||'#fff').replace('#','');const n=parseInt(h.length===3?h.split('').map(c=>c+c).join(''):h,16);return ((n>>16&255)*.299+(n>>8&255)*.587+(n&255)*.114)<128};
+const DIV_LIGHT=['#0b2a73','#2449b8','#5b7fe0','#a9bdf3','#eceee9','#a8e0c1','#4fb784','#1d8452','#08502c'];
+const DIV_DARK=['#c7d3ff','#8ea6ff','#5a78e6','#2c4291','#2b3230','#23664a','#3aa775','#7fdcae','#c9f3dd'];
+const divScale=t=>{const c=isDark(t)?DIV_DARK:DIV_LIGHT;return c.map((v,i)=>[i/(c.length-1),v])};
+/* break-even line (z = 0) drawn over a heatmap */
+const zeroContour=(x,y,z,t)=>({x,y,z,type:'contour',showscale:false,hoverinfo:'skip',contours:{coloring:'none',start:0,end:0,size:1,showlabels:false},line:{color:t.ink,width:2,dash:'dot'},connectgaps:false,name:'break-even',showlegend:false});
 

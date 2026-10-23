@@ -60,7 +60,7 @@ function drawMC(){if(!MC)return;
   plot('p-mchist',[{x:d,type:'histogram',nbinsx:60,marker:{color:d.map(v=>v>0?hexA(t.buy,.75):hexA(t.inv,.75))},hovertemplate:'%{x}<br>%{y} paths<extra></extra>'}],
     {hovermode:'closest',bargap:0.02,showlegend:false,xaxis:{...X('Buy − rent&invest, '+basisLabel()),tickprefix:'$',tickformat:'~s'},yaxis:Yt('Paths'),shapes:[{type:'line',x0:0,x1:0,yref:'paper',y0:0,y1:1,line:{color:t.ink,width:1.5}}]});
   const dm=Math.max(1,...d.map(Math.abs));
-  plot('p-mcsc',[{x:res.gH,y:res.gP,mode:'markers',type:'scatter',marker:{size:4,color:d,cmin:-dm,cmax:dm,colorscale:[[0,t.inv],[0.5,t.muted],[1,t.buy]],opacity:.7,
+  plot('p-mcsc',[{x:res.gH,y:res.gP,mode:'markers',type:'scatter',marker:{size:4,color:d,cmin:-dm,cmax:dm,colorscale:divScale(t).map(([k,c],i)=>[k,i===4?t.muted:c]),opacity:.8,
     colorbar:{title:{text:'advantage',side:'right'},thickness:10,outlinewidth:0,tickprefix:'$',tickformat:'~s'}},hovertemplate:'home %{x:.1f}%/yr, portfolio %{y:.1f}%/yr<br>%{marker.color:$,.0f}<extra></extra>'}],
     {hovermode:'closest',xaxis:X(`Own-home appreciation, annualized over ${h} yr (%)`),yaxis:Yt('Portfolio return, annualized (%)')});
   const yr=[...Array(N)].map((_,k)=>k+1),rq=f=>yr.map((_,k)=>100*q(res.rates.map(a=>a[k]),f));

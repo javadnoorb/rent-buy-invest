@@ -35,7 +35,7 @@ function renderHist(){
   const win=runs.filter(r=>r.adv.length>p.N),share=win.filter(r=>r.adv[p.N]>0).length/(win.length||1);
   plot('p-hheat',[{x:xs,y:H,z,type:'heatmap',zmin:-zmax,zmax,colorscale:divScale(t),hoverongaps:false,colorbar:{title:{text:'% of price',side:'right'},thickness:10,outlinewidth:0},
     customdata:H.map(()=>runs.map(r=>r.lab)),hovertemplate:'bought %{customdata}, after %{y} yr: %{z:.0f}%<extra></extra>'},
-    {x:xs,y:H,z,type:'contour',contours:{start:0,end:0,size:1,coloring:'none'},line:{color:t.ink,width:1.5},showscale:false,hoverinfo:'skip'}],
+    zeroContour(xs,H,z,t)],
     {hovermode:'closest',xaxis:X(`Start · buying won in ${(share*100).toFixed(0)}% of ${win.length} starts at ${p.N} yr`),yaxis:Yt('Horizon (years)')});
   {const at=win.map(r=>({lab:r.lab,v:r.adv[p.N]})).sort((a,b)=>a.v-b.v);
    if(at.length){const md=at[Math.floor(at.length/2)].v,w=at[0],bst=at.at(-1);

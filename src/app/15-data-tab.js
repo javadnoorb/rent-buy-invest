@@ -28,7 +28,7 @@ function renderData(){
   const getS=k=>k==='dm'?DM_OBS:SER[k];
   const corr=(a,b)=>{const pr=[];a.forEach((v,i)=>{if(v!=null&&b[i]!=null)pr.push([v,b[i]])});const n=pr.length,ma=pr.reduce((s,v)=>s+v[0],0)/n,mb=pr.reduce((s,v)=>s+v[1],0)/n;let sab=0,sa=0,sb=0;pr.forEach(([u,v])=>{sab+=(u-ma)*(v-mb);sa+=(u-ma)**2;sb+=(v-mb)**2});return sab/Math.sqrt(sa*sb)};
   const z=ks.map(([,a])=>ks.map(([,b])=>corr(getS(a),getS(b))));
-  plot('p-corr',[{x:ks.map(k=>k[0]),y:ks.map(k=>k[0]),z,type:'heatmap',zmin:-1,zmax:1,colorscale:divScale(t),text:z.map(r=>r.map(v=>v.toFixed(2))),texttemplate:'%{text}',textfont:{family:'IBM Plex Mono',size:10,color:t.ink},showscale:false,hovertemplate:'%{y} × %{x}: %{z:.2f}<extra></extra>'}],
+  plot('p-corr',[{x:ks.map(k=>k[0]),y:ks.map(k=>k[0]),z,type:'heatmap',zmin:-1,zmax:1,colorscale:divScale(t),text:z.map(r=>r.map(v=>v.toFixed(2))),texttemplate:'%{text}',textfont:{family:'IBM Plex Mono',size:10},showscale:false,hovertemplate:'%{y} × %{x}: %{z:.2f}<extra></extra>'}],
     {hovermode:'closest',margin:{l:76,r:10,t:10,b:60},yaxis:{autorange:'reversed',tickfont:{color:t.ink}},xaxis:{tickfont:{color:t.ink},tickangle:-40}});
   {const ci=ks.findIndex(k=>k[1]==='gh'),si=ks.findIndex(k=>k[1]==='rs'),ii=ks.findIndex(k=>k[1]==='inf');
    tk('corr',`Home prices and stocks: ${z[ci][si].toFixed(2)} (close to unrelated). Home prices and inflation: ${z[ci][ii].toFixed(2)}, a partial inflation hedge.`,'What stands out:')}

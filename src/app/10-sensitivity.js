@@ -13,7 +13,7 @@ function renderSens(){
   const zmax=Math.max(1,...z.flat().map(Math.abs));
   plot('p-heat',[
     {x:G,y:R,z,type:'heatmap',zmin:-zmax,zmax,colorscale:divScale(t),colorbar:{title:{text:'% of price',side:'right'},thickness:10,outlinewidth:0},hovertemplate:'home %{x}%, portfolio %{y}%<br>advantage %{z:.0f}% of price<extra></extra>'},
-    {x:G,y:R,z,type:'contour',contours:{start:0,end:0,size:1,coloring:'none',showlabels:false},line:{color:t.ink,width:2},showscale:false,hoverinfo:'skip'},
+    zeroContour(G,R,z,t),
     {x:[p.gh*100],y:[mix(p.rs)*100],mode:'markers',marker:{size:12,color:t.ink,symbol:'x'},name:'You',hovertemplate:'your assumption<extra></extra>'}],
     {hovermode:'closest',showlegend:false,xaxis:X('Home appreciation, % / yr'),yaxis:Yt('Portfolio return before fees, % / yr')});
   {const beG=bisect(g=>advAt(p,{gh:g}),-0.15,0.25);

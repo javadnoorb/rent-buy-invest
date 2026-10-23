@@ -363,6 +363,14 @@ table.loct td:first-child{min-width:150px}
 #locMode{flex-wrap:nowrap}
 @media (max-width:600px){#locMode button{padding:6px 9px;font-size:12.5px;white-space:nowrap}table.loct td:first-child{min-width:128px;max-width:140px;white-space:normal}}
 .stale{margin:0 0 10px;padding:9px 12px;border-radius:10px;border:1px solid var(--cash);background:color-mix(in srgb,var(--cash) 12%,var(--surface));font-size:13px;line-height:1.45}
+/* tab bar: fade the edge that has more tabs off-screen */
+.tabs.more-r{-webkit-mask-image:linear-gradient(to right,#000 85%,transparent);mask-image:linear-gradient(to right,#000 85%,transparent)}
+.tabs.more-l{-webkit-mask-image:linear-gradient(to left,#000 85%,transparent);mask-image:linear-gradient(to left,#000 85%,transparent)}
+.tabs.more-l.more-r{-webkit-mask-image:linear-gradient(to right,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(to right,transparent,#000 12%,#000 88%,transparent)}
+/* chart placeholder while the chart library loads */
+.plot:empty{border-radius:10px;background:linear-gradient(90deg,var(--sunk) 0%,var(--surface) 50%,var(--sunk) 100%) 0 0/200% 100%;animation:shimmer 1.4s linear infinite}
+@keyframes shimmer{to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.plot:empty{animation:none}}
 </style>
 <div class="wrap">
 <header>
@@ -1229,7 +1237,14 @@ const X=(t)=>({...layout().xaxis,title:{text:t,font:{size:11}}});
 const Yd=(t)=>({...layout().yaxis,title:{text:t,font:{size:11}},tickprefix:'$',tickformat:'~s'});
 const Yt=(t,extra)=>({...layout().yaxis,title:{text:t,font:{size:11}},...(extra||{})});
 const basisLabel=()=>REAL?"today's $":'nominal $';
-const divScale=t=>[[0,t.inv],[0.5,t.bg],[1,t.buy]];
+/* Diverging scale for "renting wins" (blue, negative) vs "buying wins" (green, positive): 9 steps, darker and more
+   saturated toward the extremes, a light neutral at zero that differs from the card background, and a dark-mode version. */
+const isDark=t=>{const h=(t.bg||'#fff').replace('#','');const n=parseInt(h.length===3?h.split('').map(c=>c+c).join(''):h,16);return ((n>>16&255)*.299+(n>>8&255)*.587+(n&255)*.114)<128};
+const DIV_LIGHT=['#0b2a73','#2449b8','#5b7fe0','#a9bdf3','#eceee9','#a8e0c1','#4fb784','#1d8452','#08502c'];
+const DIV_DARK=['#c7d3ff','#8ea6ff','#5a78e6','#2c4291','#2b3230','#23664a','#3aa775','#7fdcae','#c9f3dd'];
+const divScale=t=>{const c=isDark(t)?DIV_DARK:DIV_LIGHT;return c.map((v,i)=>[i/(c.length-1),v])};
+/* break-even line (z = 0) drawn over a heatmap */
+const zeroContour=(x,y,z,t)=>({x,y,z,type:'contour',showscale:false,hoverinfo:'skip',contours:{coloring:'none',start:0,end:0,size:1,showlabels:false},line:{color:t.ink,width:2,dash:'dot'},connectgaps:false,name:'break-even',showlegend:false});
 
 /* ===================== Analysis helpers ===================== */
 function runConst(p,over,N){const q=Object.assign({},p,over||{});const n=N||q.N;return {q,o:simulate(q,constPath(q,n),{N:n})}}
@@ -1405,7 +1420,7 @@ function renderSens(){
   const zmax=Math.max(1,...z.flat().map(Math.abs));
   plot('p-heat',[
     {x:G,y:R,z,type:'heatmap',zmin:-zmax,zmax,colorscale:divScale(t),colorbar:{title:{text:'% of price',side:'right'},thickness:10,outlinewidth:0},hovertemplate:'home %{x}%, portfolio %{y}%<br>advantage %{z:.0f}% of price<extra></extra>'},
-    {x:G,y:R,z,type:'contour',contours:{start:0,end:0,size:1,coloring:'none',showlabels:false},line:{color:t.ink,width:2},showscale:false,hoverinfo:'skip'},
+    zeroContour(G,R,z,t),
     {x:[p.gh*100],y:[mix(p.rs)*100],mode:'markers',marker:{size:12,color:t.ink,symbol:'x'},name:'You',hovertemplate:'your assumption<extra></extra>'}],
     {hovermode:'closest',showlegend:false,xaxis:X('Home appreciation, % / yr'),yaxis:Yt('Portfolio return before fees, % / yr')});
   {const beG=bisect(g=>advAt(p,{gh:g}),-0.15,0.25);
@@ -1487,7 +1502,7 @@ function renderHist(){
   const win=runs.filter(r=>r.adv.length>p.N),share=win.filter(r=>r.adv[p.N]>0).length/(win.length||1);
   plot('p-hheat',[{x:xs,y:H,z,type:'heatmap',zmin:-zmax,zmax,colorscale:divScale(t),hoverongaps:false,colorbar:{title:{text:'% of price',side:'right'},thickness:10,outlinewidth:0},
     customdata:H.map(()=>runs.map(r=>r.lab)),hovertemplate:'bought %{customdata}, after %{y} yr: %{z:.0f}%<extra></extra>'},
-    {x:xs,y:H,z,type:'contour',contours:{start:0,end:0,size:1,coloring:'none'},line:{color:t.ink,width:1.5},showscale:false,hoverinfo:'skip'}],
+    zeroContour(xs,H,z,t)],
     {hovermode:'closest',xaxis:X(`Start · buying won in ${(share*100).toFixed(0)}% of ${win.length} starts at ${p.N} yr`),yaxis:Yt('Horizon (years)')});
   {const at=win.map(r=>({lab:r.lab,v:r.adv[p.N]})).sort((a,b)=>a.v-b.v);
    if(at.length){const md=at[Math.floor(at.length/2)].v,w=at[0],bst=at.at(-1);
@@ -1568,7 +1583,7 @@ function drawMC(){if(!MC)return;
   plot('p-mchist',[{x:d,type:'histogram',nbinsx:60,marker:{color:d.map(v=>v>0?hexA(t.buy,.75):hexA(t.inv,.75))},hovertemplate:'%{x}<br>%{y} paths<extra></extra>'}],
     {hovermode:'closest',bargap:0.02,showlegend:false,xaxis:{...X('Buy − rent&invest, '+basisLabel()),tickprefix:'$',tickformat:'~s'},yaxis:Yt('Paths'),shapes:[{type:'line',x0:0,x1:0,yref:'paper',y0:0,y1:1,line:{color:t.ink,width:1.5}}]});
   const dm=Math.max(1,...d.map(Math.abs));
-  plot('p-mcsc',[{x:res.gH,y:res.gP,mode:'markers',type:'scatter',marker:{size:4,color:d,cmin:-dm,cmax:dm,colorscale:[[0,t.inv],[0.5,t.muted],[1,t.buy]],opacity:.7,
+  plot('p-mcsc',[{x:res.gH,y:res.gP,mode:'markers',type:'scatter',marker:{size:4,color:d,cmin:-dm,cmax:dm,colorscale:divScale(t).map(([k,c],i)=>[k,i===4?t.muted:c]),opacity:.8,
     colorbar:{title:{text:'advantage',side:'right'},thickness:10,outlinewidth:0,tickprefix:'$',tickformat:'~s'}},hovertemplate:'home %{x:.1f}%/yr, portfolio %{y:.1f}%/yr<br>%{marker.color:$,.0f}<extra></extra>'}],
     {hovermode:'closest',xaxis:X(`Own-home appreciation, annualized over ${h} yr (%)`),yaxis:Yt('Portfolio return, annualized (%)')});
   const yr=[...Array(N)].map((_,k)=>k+1),rq=f=>yr.map((_,k)=>100*q(res.rates.map(a=>a[k]),f));
@@ -1665,7 +1680,7 @@ function renderData(){
   const getS=k=>k==='dm'?DM_OBS:SER[k];
   const corr=(a,b)=>{const pr=[];a.forEach((v,i)=>{if(v!=null&&b[i]!=null)pr.push([v,b[i]])});const n=pr.length,ma=pr.reduce((s,v)=>s+v[0],0)/n,mb=pr.reduce((s,v)=>s+v[1],0)/n;let sab=0,sa=0,sb=0;pr.forEach(([u,v])=>{sab+=(u-ma)*(v-mb);sa+=(u-ma)**2;sb+=(v-mb)**2});return sab/Math.sqrt(sa*sb)};
   const z=ks.map(([,a])=>ks.map(([,b])=>corr(getS(a),getS(b))));
-  plot('p-corr',[{x:ks.map(k=>k[0]),y:ks.map(k=>k[0]),z,type:'heatmap',zmin:-1,zmax:1,colorscale:divScale(t),text:z.map(r=>r.map(v=>v.toFixed(2))),texttemplate:'%{text}',textfont:{family:'IBM Plex Mono',size:10,color:t.ink},showscale:false,hovertemplate:'%{y} × %{x}: %{z:.2f}<extra></extra>'}],
+  plot('p-corr',[{x:ks.map(k=>k[0]),y:ks.map(k=>k[0]),z,type:'heatmap',zmin:-1,zmax:1,colorscale:divScale(t),text:z.map(r=>r.map(v=>v.toFixed(2))),texttemplate:'%{text}',textfont:{family:'IBM Plex Mono',size:10},showscale:false,hovertemplate:'%{y} × %{x}: %{z:.2f}<extra></extra>'}],
     {hovermode:'closest',margin:{l:76,r:10,t:10,b:60},yaxis:{autorange:'reversed',tickfont:{color:t.ink}},xaxis:{tickfont:{color:t.ink},tickangle:-40}});
   {const ci=ks.findIndex(k=>k[1]==='gh'),si=ks.findIndex(k=>k[1]==='rs'),ii=ks.findIndex(k=>k[1]==='inf');
    tk('corr',`Home prices and stocks: ${z[ci][si].toFixed(2)} (close to unrelated). Home prices and inflation: ${z[ci][ii].toFixed(2)}, a partial inflation hedge.`,'What stands out:')}
@@ -2086,6 +2101,7 @@ const HELP={
  floodIns:['Flood / earthquake insurance','Separate policies that standard homeowners insurance does not cover. Check the FEMA flood map or get a quote if you are in a risk zone.'],
  moveIn:['Move-in costs','One-time costs of buying beyond closing: furniture for a bigger home, immediate repairs, and so on. The renter invests this money instead.'],
  impShare:['Improvements share','Part of upkeep that counts as capital improvements (a new roof, a kitchen). It is added to the home\'s tax basis and lowers capital-gains tax when you sell.'],
+ rins:['Renter\'s insurance','Yearly renter\'s insurance premium, typically $150–300. A small cost, but it counts against renting.'],
  rMove:['Renter moves per year','Share of renters who move each year. Each move costs money and resets rent to the market level.'],
  rMoveCost:['Cost per move','Movers, application fees, deposits lost to timing and overlapping rent each time a renter moves.'],
  broker:['Broker fee','Some cities (e.g. New York, Boston) charge tenants about one month of rent per move. 0 elsewhere.'],
@@ -2273,7 +2289,9 @@ function decorateHelp(){
 const RENDER={proj:renderProj,sens:renderSens,opt:renderOpt,hist:renderHist,mc:()=>{renderMC();typeset(document.getElementById('tab-mc'))},loc:renderLoc,scen:renderScen,data:renderData,method:()=>typeset(document.getElementById('tab-method'))};
 function showTab(k){CUR=k;document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===k));
   Object.keys(RENDER).forEach(t=>document.getElementById('tab-'+t).hidden=t!==k);try{localStorage.setItem('rbi-tab',k)}catch(e){}
+  const ab=document.querySelector(`.tabs button[data-tab="${k}"]`),tb=ab&&ab.parentElement;if(tb&&tb.scrollTo)tb.scrollTo({left:ab.offsetLeft-(tb.clientWidth-ab.offsetWidth)/2,behavior:'smooth'});
   requestAnimationFrame(()=>RENDER[k]())}
+function tabFade(){const t=document.querySelector('.tabs');if(!t)return;t.classList.toggle('more-l',t.scrollLeft>4);t.classList.toggle('more-r',t.scrollLeft+t.clientWidth<t.scrollWidth-4)}
 const QUICK=['P','rent0','dp','rate'];
 function syncQuick(){QUICK.forEach(k=>{const q=document.getElementById('q-'+k),m=document.getElementById(k);if(document.activeElement!==q){q.value=unfmt(m.value);if(q.dataset.money!=null)fmtMoneyEl(q)}})}
 function persist(){try{localStorage.setItem('rbi-inputs',JSON.stringify(Object.assign(getRaw(),{REAL,v:4})));document.getElementById('saved').textContent='saved on this device'}catch(e){}}
@@ -2296,7 +2314,7 @@ function copyText(txt,msgEl,okMsg){const done=()=>{msgEl.textContent=okMsg;setTi
 const STANDALONE_SITE=(()=>{try{return window.top===window.self&&/^https?:$/.test(location.protocol)}catch(e){return false}})();
 function setBasis(){document.getElementById('realBtn').setAttribute('aria-pressed',REAL);document.getElementById('nomBtn').setAttribute('aria-pressed',!REAL);update()}
 function init(){
-  buildInputs();buildMetroSelect();buildSnap();buildMethod();const hadSaved=(()=>{try{return !!localStorage.getItem('rbi-inputs')}catch(e){return false}})();restore();wireWizard();wireSettings();wireLoc();wireHelp();
+  buildInputs();buildMetroSelect();buildSnap();buildMethod();const hadSaved=(()=>{try{return !!localStorage.getItem('rbi-inputs')}catch(e){return false}})();restore();wireWizard();wireSettings();wireLoc();wireHelp();{const tb=document.querySelector('.tabs');tb.addEventListener('scroll',tabFade,{passive:true});addEventListener('resize',tabFade);tabFade()}
   if(STANDALONE_SITE){const sp=new URLSearchParams(location.search).get('s');const st=sp&&decodeState(sp);if(st){setRaw(st);if(st.REAL===false)REAL=false;const m=METROS.find(x=>x.slug===st.metro);if(m)updateMetroHints(m);history.replaceState(null,'',location.pathname)}}
   const shareBtn=document.getElementById('shareLink');shareBtn.hidden=!STANDALONE_SITE;
   shareBtn.addEventListener('click',()=>copyText(location.origin+location.pathname+'?s='+encodeURIComponent(encodeState()),document.getElementById('actMsg'),'Link copied. Anyone opening it sees these inputs.'));

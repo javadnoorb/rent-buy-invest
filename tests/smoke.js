@@ -19,7 +19,9 @@ const { chromium } = require(process.env.PLAYWRIGHT_PATH || 'playwright');
   const failed = [];
   for (const tab of ['proj', 'sens', 'opt', 'hist', 'mc', 'loc', 'scen', 'data', 'method']) {
     await page.click(`[data-tab=${tab}]`);
-    await page.waitForTimeout(tab === 'mc' ? 6000 : 1500);
+    await page.waitForFunction(t => [...document.querySelectorAll(`#tab-${t} .plot`)].every(el => el.querySelector('svg.main-svg') || el.dataset.err),
+      tab, { timeout: tab === 'mc' ? 30000 : 10000 }).catch(() => {});
+    await page.waitForTimeout(150);
     const bad = await page.evaluate(t => [...document.querySelectorAll(`#tab-${t} .plot`)].filter(el => !el.querySelector('svg.main-svg') || el.dataset.err).map(el => el.id), tab);
     if (bad.length) failed.push(`${tab}: ${bad.join(', ')}`);
   }

@@ -340,3 +340,11 @@ table.loct td:first-child{min-width:150px}
 #locMode{flex-wrap:nowrap}
 @media (max-width:600px){#locMode button{padding:6px 9px;font-size:12.5px;white-space:nowrap}table.loct td:first-child{min-width:128px;max-width:140px;white-space:normal}}
 .stale{margin:0 0 10px;padding:9px 12px;border-radius:10px;border:1px solid var(--cash);background:color-mix(in srgb,var(--cash) 12%,var(--surface));font-size:13px;line-height:1.45}
+/* tab bar: fade the edge that has more tabs off-screen */
+.tabs.more-r{-webkit-mask-image:linear-gradient(to right,#000 85%,transparent);mask-image:linear-gradient(to right,#000 85%,transparent)}
+.tabs.more-l{-webkit-mask-image:linear-gradient(to left,#000 85%,transparent);mask-image:linear-gradient(to left,#000 85%,transparent)}
+.tabs.more-l.more-r{-webkit-mask-image:linear-gradient(to right,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(to right,transparent,#000 12%,#000 88%,transparent)}
+/* chart placeholder while the chart library loads */
+.plot:empty{border-radius:10px;background:linear-gradient(90deg,var(--sunk) 0%,var(--surface) 50%,var(--sunk) 100%) 0 0/200% 100%;animation:shimmer 1.4s linear infinite}
+@keyframes shimmer{to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.plot:empty{animation:none}}

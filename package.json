@@ -1,0 +1,19 @@
+{
+  "name": "rent-buy-invest",
+  "private": true,
+  "description": "Static app comparing buying a home, renting and investing.",
+  "scripts": {
+    "build": "python3 build.py --pwa",
+    "build:artifact": "python3 build.py --out dist/artifact.html",
+    "watch": "python3 build.py --pwa --watch",
+    "serve": "python3 -m http.server 8000",
+    "lint": "node tests/lint.js",
+    "test": "node tests/lint.js && node tests/run.js",
+    "smoke": "node tests/smoke.js",
+    "smoke:offline": "STUB_PLOTLY=1 node tests/smoke.js",
+    "check": "npm run build && npm test && npm run smoke:offline"
+  },
+  "devDependencies": {
+    "playwright": "1.47.2"
+  }
+}

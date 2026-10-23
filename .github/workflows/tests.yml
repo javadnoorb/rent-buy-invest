@@ -1,23 +1,34 @@
 name: Tests
-# Runs on every push and pull request: model math tests, a rebuild check, and a browser smoke test.
+# Runs on every push and pull request. Two jobs in parallel:
+#   checks — static lint, model math tests, and that index.html matches src/ and data/ (seconds)
+#   smoke  — the built page in the runner's preinstalled Chrome with the real chart and formula libraries
 on: [push, pull_request]
+concurrency: { group: tests-${{ github.ref }}, cancel-in-progress: true }
 jobs:
-  test:
+  checks:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
-        with: { node-version: '20' }
+        with: { node-version: '22' }
       - uses: actions/setup-python@v6
         with: { python-version: '3.12' }
+      - name: Lint
+        run: node tests/lint.js
       - name: Model tests
         run: node tests/run.js
       - name: index.html is up to date with src/ and data/
         run: |
           python3 build.py --pwa
-          git diff --exit-code index.html || (echo "index.html is stale: run python3 build.py --pwa and commit" && exit 1)
-      - name: Browser smoke test
+          git diff --exit-code index.html || (echo "::error::index.html is stale: run npm run build and commit" && exit 1)
+  smoke:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: '22' }
+      - name: Browser smoke test (phone width, touch, formulas)
+        env: { PLAYWRIGHT_PATH: playwright-core, CHROME_PATH: /usr/bin/google-chrome }
         run: |
-          npm i --no-save playwright@1.47.2
-          npx playwright install --with-deps chromium
+          npm i --no-save --no-audit --no-fund playwright-core@1.47.2
           node tests/smoke.js
