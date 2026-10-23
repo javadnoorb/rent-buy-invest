@@ -110,6 +110,26 @@ const ROOT = path.join(__dirname, '..');
   await set({ hoa: 250 }); await page.evaluate(() => dispatchEvent(new Event('beforeprint')));
   ok(await page.evaluate(() => /HOA/.test(document.getElementById('printInputs').textContent) && /King County/.test(document.getElementById('printInputs').textContent)), 'print report lists changed settings');
 
+  /* the top card says whether the rent is estimated, and offers the estimate back after a typed rent */
+  await set({ metro: 'us' }); ok((await page.textContent('#rentTag')).trim() === 'est.', 'top card marks the rent as estimated');
+  await page.click('#q-rent0'); await page.keyboard.press('Control+A'); await page.keyboard.type('2500'); await page.waitForTimeout(400);
+  ok(await page.isVisible('#rentTag [data-act="rent-est"]'), 'after typing a rent, the top card offers the estimate');
+  await page.click('#rentTag [data-act="rent-est"]'); await page.waitForTimeout(400);
+  ok(await page.inputValue('#rentMode') === 'auto' && await page.evaluate(() => numOf('rent0')) !== 2500, '"use est." goes back to the estimate');
+
+  /* setups saved before the estimate, or marked "my own" by the first version: an untouched rent becomes the estimate */
+  const reloadWith = async state => { await page.evaluate(st => localStorage.setItem('rbi-inputs', JSON.stringify(st)), state); await page.reload();
+    await page.waitForFunction(() => document.getElementById('vhead').textContent !== 'Computing…'); await page.waitForTimeout(300); };
+  const typUS = await page.evaluate(() => Math.round(METROS[0].rent * bedRatio(METROS[0], '3') / 10) * 10);
+  await reloadWith({ v: 4, metro: 'us', beds: '3', P: '800000', rent0: String(typUS) });
+  ok(await page.inputValue('#rentMode') === 'auto' && await page.evaluate(() => numOf('rent0')) > typUS, 'old save with the default rent: estimated from its price');
+  await reloadWith({ v: 4, metro: 'us', beds: '3', P: '800000', rent0: String(typUS), rentMode: 'manual' });
+  ok(await page.inputValue('#rentMode') === 'auto', 'v4 save marked "my own" with the default rent: estimated');
+  await reloadWith({ v: 4, metro: 'us', beds: '3', P: '800000', rent0: '2777', rentMode: 'manual' });
+  ok(await page.inputValue('#rentMode') === 'manual' && await page.evaluate(() => numOf('rent0')) === 2777, 'a typed rent in an old save is kept');
+  await reloadWith({ v: 5, metro: 'us', beds: '3', P: '800000', rent0: String(typUS), rentMode: 'manual' });
+  ok(await page.inputValue('#rentMode') === 'manual', 'a current save that chose "my own" is kept');
+
   ok(!errors.length, 'no page errors', errors.join(' | '));
   await browser.close(); server.close();
   console.log(`${pass} passed, ${fail} failed`); if (fail) { fails.forEach(f => console.log('  FAIL ' + f)); process.exit(1); }

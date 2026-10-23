@@ -114,7 +114,11 @@ function numOf(id){return parseFloat(unfmt(document.getElementById(id).value))}
 function getRaw(){const o={N:document.getElementById('N').value,metro:document.getElementById('metro').value};F.forEach(f=>o[f[1]]=unfmt(document.getElementById(f[1]).value));return o}
 function fmtMoneyEl(el){if(document.activeElement===el)return;const v=unfmt(el.value);if(v===''||!isFinite(parseFloat(v)))return;el.value=Number(v).toLocaleString('en-US',{maximumFractionDigits:2})}
 function formatMoneyAll(){document.querySelectorAll('[data-money]').forEach(fmtMoneyEl)}
-function setRaw(o){if(o.rent0!=null&&o.rentMode==null)o=Object.assign({},o,{rentMode:'manual'});// saved before the estimate existed: keep the rent as entered
+/* Setups saved or shared before the rent estimate existed (and v4 saves, which marked them all "my own"): use the
+   estimate when the saved rent is just the location's typical rent, i.e. nobody typed it; keep a typed rent. */
+function rentWasDefault(o){const m=METROS.find(x=>x.slug===o.metro);if(!m||!m.rent)return false;
+  return Math.abs(parseFloat(unfmt(o.rent0))-Math.round(m.rent*bedRatio(m,o.beds||'3')/10)*10)<=10}
+function setRaw(o,legacy){if(o.rent0!=null&&(o.rentMode==null||(legacy&&o.rentMode==='manual')))o=Object.assign({},o,{rentMode:rentWasDefault(o)?'auto':'manual'});
   F.forEach(f=>{if(o[f[1]]!=null)document.getElementById(f[1]).value=o[f[1]]});if(o.N)document.getElementById('N').value=o.N;if(o.metro!=null&&!countyMetro(o.metro))restoreCounty(o.metro);if(o.metro!=null&&METROS.some(m=>m.slug===o.metro))document.getElementById('metro').value=o.metro}
 function parseP(raw){
   const n=id=>{const x=parseFloat(raw[id]);return isFinite(x)?x:DEF[id]};

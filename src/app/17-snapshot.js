@@ -15,12 +15,17 @@ function rentEstimate(m,P,beds){m=m||selMetro();if(!m.rent||!(P>0))return null;
   return Math.round(m.rent*bedRatio(m,beds)*Math.pow(P/(m.P||P),RENT_ELAST)/10)*10}
 function applyRentMode(){const m=selMetro(),auto=document.getElementById('rentMode').value==='auto',beds=document.getElementById('beds').value,P=numOf('P'),est=rentEstimate(m,P,beds);
   const h=document.getElementById('rentMode').closest('.f').querySelector('.hint');
+  const tag=document.getElementById('rentTag');
+  if(tag){tag.title=est?(auto?`Estimated from the home price (${m.name}); type a rent to use your own`:`Estimate from price: $${est.toLocaleString('en-US')}/mo`):'';
+    tag.innerHTML=!est?'':auto?'est.':'<button type="button" class="qlink" data-act="rent-est">use est.</button>'}
   if(!est){if(h)h.textContent='';return}
   if(auto)document.getElementById('rent0').value=est;
   const typ=Math.round(m.rent*bedRatio(m,beds)/10)*10,$=x=>'$'+Math.round(x).toLocaleString('en-US');
   if(h)h.textContent=`${auto?'Estimate':'Estimate from price would be'} ${$(est)}/mo: ${m.name} typical ${$(typ)} × (price ÷ ${$(m.P)})^${RENT_ELAST}`}
 function setRentFromBeds(){applyRentMode()}
 function rentTyped(){document.getElementById('rentMode').value='manual'}
+function wireRentTag(){document.getElementById('rentTag').addEventListener('click',e=>{if(!e.target.closest('[data-act="rent-est"]'))return;
+  e.preventDefault();document.getElementById('rentMode').value='auto';update()})}
 function applyTT(){const auto=document.getElementById('ttAuto').value==='auto',eb=document.getElementById('ttBuy'),es=document.getElementById('ttSell');
   eb.disabled=es.disabled=auto;if(!auto)return;const m=selMetro();
   if(!m||!m.tt){eb.value=0;es.value=0;return}
