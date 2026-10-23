@@ -17,7 +17,7 @@ The whole app is one static page, `index.html`. Open it in a browser or serve it
 - **iPhone (Safari):** open the link, tap **Share**, then **Add to Home Screen**.
 - **Android (Chrome):** open the link, tap the **⋮** menu, then **Install app** (or **Add to Home screen**).
 
-It then opens full-screen from its own icon, and works offline after the first visit (charts need one online load to cache the charting library).
+It then opens full-screen from its own icon, and works offline after the first visit.
 
 ## Features
 
@@ -48,6 +48,7 @@ It then opens full-screen from its own icon, and works offline after the first v
 | `data/monthly_processed.json` | Monthly returns used by the monthly backtest |
 | `build.py` | Assembles `index.html` from `src/` and `data/` |
 | `manifest.webmanifest`, `sw.js`, `icons/` | Home-screen install and offline support |
+| `vendor/` | Pinned copies of Plotly 2.35.2 (MIT) and MathJax 3.2.2 (Apache-2.0) used by the installed build, with their licenses |
 | `make_icons.py` | Draws the app icons |
 | `prep_monthly.py` | Converts `monthly.json` into `monthly_processed.json` |
 
@@ -74,7 +75,7 @@ Everything runs with the Python standard library and Node; no install is needed 
 3. Run `npm run build` and commit `index.html` with your change (CI fails if it is out of date).
 4. Push. GitHub Pages serves the new version within a minute or two.
 
-In the browser, the page loads Plotly (charts), MathJax (formulas) and Google Fonts from public CDNs; the installed app keeps copies for offline use.
+The GitHub Pages build loads Plotly (charts) and MathJax (formulas) from `vendor/` and precaches them for offline use; only Google Fonts comes from a CDN. The artifact build loads both libraries from public CDNs. To upgrade a library, replace its file in `vendor/`, update the paths in `build.py` and `sw.js`, and bump `CACHE` in `sw.js`.
 
 ## Refreshing data
 
@@ -82,7 +83,7 @@ The **Refresh data** workflow (Actions tab → Refresh data → Run workflow) do
 
 ## Tests
 
-`npm test` runs `tests/lint.js` (static checks) and `tests/run.js`, which checks the model math (74 checks) (mortgage amortization against the closed form, tax brackets, SALT cap, home-sale exclusion, PMI, refinancing, annual vs. monthly paths, directional sanity checks, and each realism feature). Run it after any change to `src/model.js`. `tests/smoke.js` opens every tab at phone width and fails on page errors, charts that don't draw, formulas that don't render, anything wider than the screen, or a chart readout that doesn't close on a second tap. Both run in parallel on every push (Tests workflow, about a minute).
+`npm test` runs `tests/lint.js` (static checks) and `tests/run.js`, with `tests/run_new.js`, which check the model math (mortgage amortization against the closed form, tax brackets, SALT cap, home-sale exclusion, PMI, refinancing, annual vs. monthly paths, directional sanity checks, each realism feature, underwater sales, tax-year indexing, and property checks over random inputs: results stay finite, monthly and annual paths agree, and higher home or stock growth never hurts the matching path). Run it after any change to `src/model.js`. `tests/smoke.js` opens every tab at phone width and fails on page errors, charts that don't draw, formulas that don't render, anything wider than the screen, or a chart readout that doesn't close on a second tap. Both run in parallel on every push (Tests workflow, about a minute).
 
 ## Data sources
 

@@ -390,6 +390,9 @@ table.loct td:first-child{min-width:150px}
 .ticks span{position:absolute;transform:translateX(-50%);top:0}
 /* floating assumptions button */
 .fab{gap:7px;align-items:center;transition:transform .25s ease,opacity .25s ease}
+.fabtxt{display:flex;flex-direction:column;align-items:flex-start;line-height:1.15}
+.fabsub{font-size:11px;font-weight:500;opacity:.85;font-family:var(--mono,monospace)}
+.fabsub:empty{display:none}
 .fab.tuck{transform:translateY(calc(100% + 24px));opacity:0}
 @media (prefers-reduced-motion:reduce){.fab{transition:none}}
 </style>
@@ -668,7 +671,7 @@ table.loct td:first-child{min-width:150px}
     <div class="wz-foot"><span class="wz-dots" id="wz-dots"></span><span style="display:flex;gap:8px"><button id="wz-back" class="ghost">Back</button><button id="wz-next" class="primary">Next</button></span></div>
   </div>
 </div>
-<button class="fab" id="fab" aria-controls="aside"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg><span>Assumptions</span></button>
+<button class="fab" id="fab" aria-controls="aside"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg><span class="fabtxt"><span>Assumptions</span><span class="fabsub" id="fabSub"></span></span></button>
 
 <!-- SNAPSHOT: current market figures. Weekly refresh edits only this block. -->
 <script id="snapshot-data" type="application/json">
@@ -803,7 +806,7 @@ table.loct td:first-child{min-width:150px}
 <script>
 window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{enableMenu:false},svg:{fontCache:'global'},startup:{typeset:false}};
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+<script src="vendor/mathjax-3.2.2-tex-svg-full.js" async></script>
 <script id="model-script">
 "use strict";
 const MORT_OVERRIDE=[7.38, 8.04, 9.19, 9.05, 8.87, 8.85, 9.64, 11.2, 13.74, 16.64, 16.04, 13.24, 13.88, 12.43, 10.19, 10.21, 10.34, 10.32, 10.13, 9.25, 8.39, 7.31, 8.38, 7.93, 7.81, 7.6, 6.94, 7.44, 8.05, 6.97, 6.54, 5.83, 5.84, 5.87, 6.41, 6.34, 6.03, 5.04, 4.69, 4.45, 3.66, 3.98, 4.17, 3.85, 3.65, 3.99, 4.54, 3.94, 3.11, 2.96, 5.34, 6.81, 6.72, 6.6];
@@ -858,13 +861,16 @@ function metroStart(m){const a=metroAnnual(m);if(!a)return null;const i=a.findIn
  path: annual arrays (decimal rates) gh,gr,rs,rb,rc,inf, optional mkt (market mortgage rate, decimal)
        or monthly arrays with path.monthly=true (monthly decimal returns; mkt monthly)
 */
-function saltCap(y){const cy=2026+y;if(cy>=2030)return 10000;return 40400*Math.pow(1.01,cy-2026)}
+/* Tax figures below are for TAX_YEAR. A projection starting later (p.y0) indexes the inflation-adjusted ones (brackets,
+   standard deduction) by the assumed inflation; the SALT cap follows its own calendar-year schedule. */
+const TAX_YEAR=2026;
+function taxIndex(p){return Math.pow(1+(p.inf||0),Math.max(0,(p.y0||TAX_YEAR)-TAX_YEAR))}
 /* SALT cap with the high-income phase-out: cap falls by 30% of MAGI above the threshold, floor $10,000; cap and threshold rise 1%/yr through 2029 */
-function saltCapFor(y,magi){const cy=2026+y;if(cy>=2030)return 10000;const g=Math.pow(1.01,cy-2026);return Math.max(10000,40400*g-0.3*Math.max(0,(magi||0)-505000*g))}
+function saltCapFor(y,magi,y0){const cy=(y0||TAX_YEAR)+y;if(cy>=2030)return 10000;const g=Math.pow(1.01,cy-2026);return Math.max(10000,40400*g-0.3*Math.max(0,(magi||0)-505000*g))}
 /* 2026 federal brackets (IRS IR-2025-103): marginal rate on taxable income */
 const BRACKETS={single:[[12400,.10],[50400,.12],[105700,.22],[201775,.24],[256225,.32],[640600,.35],[Infinity,.37]],
   mfj:[[24800,.10],[100800,.12],[211400,.22],[403550,.24],[512450,.32],[768700,.35],[Infinity,.37]]};
-function marginalRate(income,filing){const std=filing==='mfj'?32200:16100,ti=Math.max(0,income-std);for(const [top,r] of BRACKETS[filing==='mfj'?'mfj':'single'])if(ti<=top)return r;return .37}
+function marginalRate(income,filing,k){income/=k||1;const std=filing==='mfj'?32200:16100,ti=Math.max(0,income-std);for(const [top,r] of BRACKETS[filing==='mfj'?'mfj':'single'])if(ti<=top)return r;return .37}
 function pmt(B,i,n){if(B<=0||n<=0)return 0;return i>0?B*i/(1-Math.pow(1+i,-n)):B/n}
 /* Transfer taxes from a list of rules: base price or mortgage; flat rate, a rate set by the bracket of the whole amount
    ("mansion" style), or marginal brackets; paid by buyer, seller, or split evenly. Returns dollars. */
@@ -888,10 +894,12 @@ function loanSetup(p,rateIn){
     else mip=big?(ltv>0.9?0.0065:ltv>0.78?0.004:0.0015):(ltv>0.9?0.004:0.0015);
     mipMonths=ltv<=0.9?132:p.term*12}
   return {type,L,rate,mip,mipMonths,ptsCost:pts/100*base,ltv}}
+/* a household whose savings go negative (e.g. selling underwater) carries the shortfall as debt at T-bills + this */
+const BORROW_PREM=0.03;
 function simulate(p,path,opt){
   opt=opt||{};const N=opt.N||p.N,detail=!!opt.detail,M=!!path.monthly;
   const LS=loanSetup(p,opt.rate!=null?opt.rate:p.rate);let rate=LS.rate;
-  const nTot=p.term*12,excl=p.filing==='mfj'?500000:250000,std0=p.filing==='mfj'?32200:16100,niitThr=p.filing==='mfj'?250000:200000;
+  const nTot=p.term*12,tk=taxIndex(p),excl=p.filing==='mfj'?500000:250000,std0=(p.filing==='mfj'?32200:16100)*tk,niitThr=p.filing==='mfj'?250000:200000;
   const tx=p.taxOn,taxable=tx&&p.acct==='taxable',share=p.investShare,mShock=opt.maintShock;
   const muAuto=p.muMode==='auto'&&tx,incG=p.incGrowth||0,renewGap=p.renewGap||0;
   // ---- buyer's home state (can change at a planned move) ----
@@ -901,12 +909,13 @@ function simulate(p,path,opt){
   let lease=p.rent0,mkt=p.rent0,income=p.income;
   // per-year tax rates (income can grow, so brackets and NIIT can change)
   let mu=p.mu,niit=p.niit,ltcgE=0,muE=0;
-  const setRates=()=>{mu=muAuto?marginalRate(income/infIdx,p.filing):p.mu;niit=p.niitAuto?(tx&&income>niitThr?0.038:0):(p.niit||0);ltcgE=p.ltcg+niit+p.stRate;muE=mu+niit+p.stRate};
+  const setRates=()=>{mu=muAuto?marginalRate(income/infIdx,p.filing,tk):p.mu;niit=p.niitAuto?(tx&&income>niitThr?0.038:0):(p.niit||0);ltcgE=p.ltcg+niit+p.stRate;muE=mu+niit+p.stRate};
   setRates();
   // ---- optional fourth household: rents its home, owns a rental property ----
   const RO=!!p.rentalOn;let Pr=0,Hr=0,balR=0,iR=0,MpR=0,accDep=0,impR=0,susp=0,pX=0,bX=0,depBasis=0,yieldR=0,basisR=0;
   if(RO){const C0=p.P*(p.dp+p.close)+p.moveIn;Pr=C0/(p.dpR+p.close);Hr=Pr;balR=Pr*(1-p.dpR);iR=(p.rate30+p.ratePrem)/12;MpR=pmt(balR,iR,360);
     depBasis=Pr*(1+p.close)*(1-p.landShare);basisR=Pr*(1+p.close);yieldR=p.rent0*12/p.P}
+  const dep=(V,b,x)=>{const V1=V+x;return [V1,V1<=0?0:V<0?V1:b+Math.max(0,x)]};
   const liq=(V,b)=>taxable?V-ltcgE*Math.max(0,V-b):V;
   const homeNet=(H,bal,y)=>{if(!owned)return 0;const held=y-purchY;const sale=H*(held>0?shk:1)*(1-p.sell);const gain=sale-basis-imp-(held>=2?excl:0);return sale-bal-(tx?ltcgE*Math.max(0,gain):0)};
   const rentalNet=()=>{if(!RO)return 0;const sale=Hr*(1-p.sell),gain=sale-(basisR+impR-accDep);let t=0;
@@ -929,10 +938,10 @@ function simulate(p,path,opt){
     // ---- planned move at the start of year y ----
     if(owned&&p.moveMode&&p.moveMode!=='none'&&p.moveYear>0&&y===p.moveYear){
       const proceeds=homeNet(H,bal,y);o.moved={year:y,mode:p.moveMode};lease=mkt;
-      if(p.moveMode==='rent'){owned=false;pB+=proceeds;bB+=Math.max(0,proceeds);bal=0;H=0}
+      if(p.moveMode==='rent'){owned=false;[pB,bB]=dep(pB,bB,proceeds);bal=0;H=0}
       else{const mr=(M?path.mkt&&path.mkt[y*12]:path.mkt&&path.mkt[y]);rate=mr!=null?mr:rate;
         Pcur=H;const cash=proceeds-p.close*Pcur;let dp2=Math.min(Pcur,Math.max(0,cash));
-        if(cash>Pcur){pB+=cash-Pcur;bB+=cash-Pcur}if(cash<0){pB+=cash}
+        if(cash>Pcur)[pB,bB]=dep(pB,bB,cash-Pcur);if(cash<0)[pB,bB]=dep(pB,bB,cash);
         dpCur=dp2/Pcur;Lcur=Pcur-dp2;armOn=false;fha=false;bal=Lcur;i=rate/12;Mp=pmt(Lcur,i,nTot);f750=Lcur>0?Math.min(1,750000/Lcur):1;
         basis=Pcur*(1+p.close);purchY=y;mSince=0;imp=0;A=Pcur;lastRefi=-999;shk=opt.saleShock2||1}}
     if(owned&&y>0&&y!==purchY){A=p.ptaxCap>0?Math.min(H,A*(1+Math.min(ghPrev,p.ptaxCap))):H}
@@ -963,7 +972,7 @@ function simulate(p,path,opt){
         if(bal>0.005){const it=bal*i;const pr=Math.min(Mp-it,bal);pay=it+pr;bal-=pr;intY+=it;prinY+=pr}
         const pmi=fha?(mSince<mipMonths&&balPrev>0.005?mipRate*balPrev/12:0):((dpCur<0.2&&balPrev>0.78*Pcur)?p.pmi*Lcur/12:0);pmiY+=pmi;
         own=pay+ptY/12+maintY/12+insM+hoa+utilM+pmi+refiCost-hhInc;
-        if(m===11&&tx){const std=std0*infIdx,cap=saltCapFor(y,income),own_s=1-(p.hhRent>0?p.hhShare:0);
+        if(m===11&&tx){const std=std0*infIdx,cap=saltCapFor(y,income,p.y0),own_s=1-(p.hhRent>0?p.hhShare:0);
           const dB=Math.max(std,Math.min(cap,p.stTax+ptY*own_s)+(intY*f750+(y===0?LS.ptsCost:0))*own_s+p.oth),dR=Math.max(std,Math.min(cap,p.stTax)+p.oth);
           benefit=mu*(dB-dR)+(p.stDed?p.stRate*(intY*f750+ptY)*own_s:0);own-=benefit;
           if(p.hhRent>0){const sh=p.hhShare,taxable=hhInc*12-sh*(intY+ptY+insM*12+maintY*(1-p.impShare)+utilM*12);hhTax=Math.max(0,taxable)*(mu+p.stRate);own+=hhTax}}
@@ -973,10 +982,11 @@ function simulate(p,path,opt){
       const ret=lev*g-(lev-1)*((fC-1)+p.spread/12)-p.fee/12;Rsum+=ret;
       let taxR=0,inc=0;
       if(taxable){inc=lev*(ws*p.dy/12+wb*(fB-1)+wc*(fC-1));taxR=lev*(ws*p.dy/12*ltcgE+(wb*(fB-1)+wc*(fC-1))*muE)}
-      const grow=(V,b)=>{const V0=V;V=V0*(1+ret)-V0*taxR;if(taxable)b+=V0*(inc-taxR);if(V<0)V=0;return [V,b]};
+      const grow=(V,b)=>{const V0=V;if(V0<0)return [V0*(1+(fC-1)+BORROW_PREM/12),0];
+        V=V0*(1+ret)-V0*taxR;if(taxable)b+=V0*(inc-taxR);if(V<0)V=0;return [V,b]};
       [pB,bB]=grow(pB,bB);[pR,bR]=grow(pR,bR);
       pC*=1+(fC-1)*(tx?1-muE:1);
-      if(RO){if(pX>=0){[pX,bX]=grow(pX,bX)}else pX*=1+(fC-1)+0.03/12;
+      if(RO){if(pX>=0){[pX,bX]=grow(pX,bX)}else pX*=1+(fC-1)+BORROW_PREM/12;
         let payR=0;if(balR>0.005){const it=balR*iR,pr=Math.min(MpR-it,balR);payR=it+pr;balR-=pr;intRY+=it}
         const cf=incR-payR-ptR/12-insR-hoaR-maintR/12;
         if(m===11&&tx){const dep=Math.min(depBasis/27.5,Math.max(0,depBasis-accDep));accDep+=dep;
@@ -987,7 +997,7 @@ function simulate(p,path,opt){
         const xInv=Math.max(0,own-rentM)*share+cf;pX+=xInv;if(xInv>0)bX+=xInv;}
       H*=fH;if(RO)Hr*=fH;cpi*=fI;mE++;mSince++;
       const d=own-rentM;
-      if(d>0){const x=d*share;pR+=x;bR+=x;pC+=x}else{const x=-d*share;pB+=x;bB+=x}
+      if(d>0){const x=d*share;pR+=x;bR+=x;pC+=x}else[pB,bB]=dep(pB,bB,-d*share);
     }
     ownY=ownSum/12;budgetY=Math.max(ownY,rentM);if(owned)imp+=p.impShare*maintY;if(RO)impR+=p.impShare*maintR;
     if(detail){
@@ -1020,7 +1030,7 @@ function mcCore(p,cfg){
   const LOG={},SH={};keys.forEach(k=>{LOG[k]=src[k].slice(i0).map(v=>Math.log(1+v/100));const m=LOG[k].reduce((a,b)=>a+b,0)/W;SH[k]=rc?Math.log(1+p[k])-m:0});
   const r=rng(12345),res={buy:[],inv:[],cash:[],rental:[],gH:[],gP:[],lqMinB:[],lqMinR:[],refis:[],rates:[],T:[],forced:[],HT:[]};
   for(let s=0;s<n;s++){
-    const idx=[];while(idx.length<N){const st=Math.floor(r()*W);for(let j=0;j<bl&&idx.length<N;j++)idx.push((st+j)%W)}
+    const idx=[];while(idx.length<N){const st=Math.floor(r()*W);for(let j=0;j<bl&&idx.length<N&&st+j<W;j++)idx.push(st+j)}
     const path={};keys.forEach(k=>path[k]=idx.map(j=>Math.exp(LOG[k][j]+SH[k])-1));
     let saleShock=1,saleShock2=1;if(iv>0){if(p.idioMode==='yearly')path.gh=path.gh.map(g=>(1+g)*Math.exp(iv*gauss(r)-iv*iv/2)-1);else{saleShock=Math.exp(iv*gauss(r)-iv*iv/2);saleShock2=Math.exp(iv*gauss(r)-iv*iv/2)}}
     let m=p.rate*100;const mbar=(p.rateLR||p.rate)*100,K=Math.min(1,Math.max(0,RATE_AR.kappa));
@@ -1029,7 +1039,8 @@ function mcCore(p,cfg){
     const kk=1/(MAINT_CV*MAINT_CV),maintShock=idx.map(()=>gammaS(kk,r)/kk);
     const o=simulate(p,path,{N,saleShock,saleShock2,maintShock});
     res.buy.push(o.buy.map((v,k)=>adj(v,o.cpi[k])));res.inv.push(o.inv.map((v,k)=>adj(v,o.cpi[k])));res.cash.push(o.cash.map((v,k)=>adj(v,o.cpi[k])));
-    const h=Math.min(p.N,N);let lh=0,lp=0;for(let y=0;y<h;y++){lh+=Math.log(1+path.gh[y]);lp+=Math.log(Math.max(0.01,1+p.ws*path.rs[y]+p.wb*path.rb[y]+(1-p.ws-p.wb)*path.rc[y]-p.fee))}
+    const h=Math.min(p.N,N);let lh=0,lp=0;for(let y=0;y<h;y++){lh+=Math.log(1+path.gh[y]);const g=p.ws*path.rs[y]+p.wb*path.rb[y]+(1-p.ws-p.wb)*path.rc[y],lv=p.lev!=null?p.lev:1;
+      lp+=Math.log(Math.max(0.01,1+lv*g-(lv-1)*(path.rc[y]+(p.spread||0))-p.fee))}
     res.gH.push((Math.exp(lh/h)-1)*100);res.gP.push((Math.exp(lp/h)-1)*100);
     let mb=Infinity,mr=Infinity;for(let y=1;y<=Math.min(5,N);y++){const bud=o.budget[y]||1;mb=Math.min(mb,o.lqB[y]/bud);mr=Math.min(mr,o.lqR[y]/bud)}
     res.lqMinB.push(mb);res.lqMinR.push(mr);res.refis.push(o.refis);res.rates.push(path.mkt);
@@ -1046,6 +1057,7 @@ function mcCore(p,cfg){
 </script>
 <script>
 "use strict";
+const LOCAL_LIBS=["vendor/plotly-2.35.2.min.js"];
 const SNAP=JSON.parse(document.getElementById('snapshot-data').textContent);
 const RES={"idio": {"u": "https://sites.socsci.uci.edu/~jkbrueck/course%20readings/flavin-yamashita.pdf", "h": "Flavin &amp; Yamashita (2002): single-house return s.d. \u2248 14%/yr vs 4\u20136% for city indexes; Giacoletti (2021): 10\u201318% one-time resale shock"}, "hazard": {"u": "https://www.businesswire.com/news/home/20260303313454/en", "h": "Redfin: typical owner stays 12 years (implies \u22485.6%/yr); NAR 2025 median seller tenure 11 yrs"}, "dy": {"u": "https://www.multpl.com/s-p-500-dividend-yield", "h": "S&amp;P 500 trailing yield 1.05% (2026-10-21, multpl estimate)"}, "spread": {"u": "https://www.interactivebrokers.com/en/trading/margin-rates.php", "h": "Interactive Brokers Pro margin: benchmark + 1.5% under $100k, + 1.0% to $1M"}, "mortSpread": {"u": "https://blog.firstam.com/economics/mind-the-gap-between-mortgage-rates-and-the-10-year-treasury-yield"}, "rMove": {"u": "https://www2.census.gov/programs-surveys/demo/tables/geographic-mobility/time-series/historic/hst_mig_a_4.xlsx", "h": "Census CPS 2023: 16.2% of renters moved (owners 4.1%)"}, "sell": {"u": "https://www.opendoor.com/articles/heres-how-much-it-costs-to-sell-a-house", "h": "commissions \u2248 5\u20135.5% (Redfin via Opendoor) plus 1\u20133% other seller costs"}, "close": {"u": null, "h": "<span class=\"tag\">assumption</span> typically 2\u20135%"}, "maint": {"u": "https://census.gov/library/stories/2023/10/older-home-costs.html", "h": "Census AHS 2021: median upkeep + improvements 0.6\u20131.5% of value; rule of thumb 1\u20133%"}, "sources": {"r_idio_vol_0": {"t": "Flavin & Yamashita (2002), 'Owner-Occupied Housing and the Composition of the Household Portfolio', American Economic Review 92(1):345-362", "u": "https://sites.socsci.uci.edu/~jkbrueck/course%20readings/flavin-yamashita.pdf"}, "r_idio_vol_1": {"t": "Case & Shiller (1987/1989), 'The Efficiency of the Market for Single-Family Homes', NBER WP 2506 / AER 79(1)", "u": "https://www.nber.org/papers/w2506.pdf"}, "r_idio_vol_2": {"t": "Giacoletti (2021), 'Idiosyncratic Risk in Housing Markets', Review of Financial Studies 34(8):3695, doi:10.1093/rfs/hhab033 (job-market-paper version)", "u": "https://finance.unibocconi.eu/sites/default/files/files/media/attachments/MarcoGiacolettiJMP20170116082355.pdf"}, "r_idio_vol_3": {"t": "Gan, Wan & Xu (2024 draft), 'It is Not Easy Being a Flipper' (Hong Kong, 1993-2021)", "u": "https://www.efmaefm.org/0EFMAMEETINGS/EFMA%20ANNUAL%20MEETINGS/2024-Lisbon/papers/IdiosyncraticRisk_draft_20240114.pdf"}, "r_idio_vol_4": {"t": "Sagi (2021), 'Asset-Level Risk and Return in Real Estate Investments', RFS 34(8):3647, doi:10.1093/rfs/hhaa122 (commercial real estate)", "u": "https://haas.berkeley.edu/wp-content/uploads/Asset-Level-Risk-and-Return-in-Real-Estate-Investments.pdf"}, "r_idio_vol_5": {"t": "Unison 2019 Volatility Index (Brodie Gay), industry", "u": "https://contentimages.o-prod.unison.com/images/downloads/Volatility_Index_Short_Paper_final.pdf"}, "r_idio_vol": {"t": "Flavin & Yamashita (2002); Case & Shiller (1989); Giacoletti (2021)", "u": "https://sites.socsci.uci.edu/~jkbrueck/course%20readings/flavin-yamashita.pdf"}, "r_tenure_7": {"t": "NAR, Top 10 takeaways from NAR's 2025 Profile of Home Buyers and Sellers", "u": "https://www.nar.realtor/blogs/economists-outlook/top-10-takeaways-from-nars-2025-profile-of-home-buyers-and-sellers"}, "r_tenure_8": {"t": "Redfin press release (Business Wire, 2026-03-03)", "u": "https://www.businesswire.com/news/home/20260303313454/en"}, "r_tenure_9": {"t": "HomeSnacks, citing Census CPS Historical Geographic Mobility Table A-4", "u": "https://www.homesnacks.com/moving-statistics/"}, "r_tenure_10": {"t": "Census CPS Table A-4 (xlsx; could not be parsed directly)", "u": "https://www2.census.gov/programs-surveys/demo/tables/geographic-mobility/time-series/historic/hst_mig_a_4.xlsx"}, "r_tenure_11": {"t": "Harvard JCHS, household mobility fell to record low in 2024", "u": "https://www.jchs.harvard.edu/blog/household-mobility-fell-record-low-2024"}, "r_tenure": {"t": "NAR 2025 Profile of Home Buyers and Sellers; Redfin 2026; Census CPS Table A-4", "u": "https://www.nar.realtor/blogs/economists-outlook/top-10-takeaways-from-nars-2025-profile-of-home-buyers-and-sellers"}, "r_div_yield": {"t": "multpl.com S&P 500 Dividend Yield", "u": "https://www.multpl.com/s-p-500-dividend-yield"}, "r_zori": {"t": "keepingupwithinflation.com rent tracker (ZORI, January snapshots); Zillow monthly rent reports; Zillow September 2026 Market Report", "u": "https://keepingupwithinflation.com/tracker/rent/"}, "r_mortgage_annual": {"t": "Freddie Mac PMMS, annual average of weekly 30-year fixed rates", "u": "https://www.freddiemac.com/pmms"}, "r_margin_rate": {"t": "Interactive Brokers margin rates", "u": "https://www.interactivebrokers.com/en/trading/margin-rates.php"}, "r_mortgage_spread": {"t": "First American, 'Mind the Gap Between Mortgage Rates and the 10-Year Treasury Yield' (Odeta Kushi, 2023-05-24)", "u": "https://blog.firstam.com/economics/mind-the-gap-between-mortgage-rates-and-the-10-year-treasury-yield"}, "r_sell_costs_18": {"t": "Opendoor, How Much Does It Cost to Sell a House in 2026?", "u": "https://www.opendoor.com/articles/heres-how-much-it-costs-to-sell-a-house"}, "r_sell_costs_19": {"t": "Redfin, real estate commissions May 2025 (Q1 2025: 2.40% buyer agent)", "u": "https://www.redfin.com/news/real-estate-commissions-may-2025/"}, "r_sell_costs_20": {"t": "MortgagePoint, Redfin Q3 2025 buyer agent commission 2.42% (2025-12-31)", "u": "https://themortgagepoint.com/?p=19327"}, "r_sell_costs": {"t": "Opendoor 2026 cost-to-sell guide; Redfin commission reports", "u": "https://www.opendoor.com/articles/heres-how-much-it-costs-to-sell-a-house"}, "r_maintenance_22": {"t": "U.S. Census Bureau, 'Cost of Improving and Maintaining Older Homes Higher for New Owners' (Oct 2023, 2021 AHS)", "u": "https://census.gov/library/stories/2023/10/older-home-costs.html"}, "r_maintenance_23": {"t": "HomeLight, average home maintenance costs (NAHB $950/yr from 2019 AHS; Angi 2020 $3,192/yr; Porch 2021 $9,820/yr; rule of thumb 1-3%)", "u": "https://www.homelight.com/blog/average-home-maintenance-costs/"}, "r_maintenance_24": {"t": "PearlScore home maintenance cost report 2026 (Bankrate-based $8,808/yr in 2025)", "u": "https://pearlscore.com/news/home-maintenance-cost-annual-report-2026"}, "r_maintenance": {"t": "U.S. Census Bureau AHS 2021 story", "u": "https://census.gov/library/stories/2023/10/older-home-costs.html"}, "rz_investment_rate_premium_26": {"t": "Fannie Mae Eligibility Matrix", "u": "https://singlefamily.fanniemae.com/media/20786/display"}, "rz_investment_rate_premium_27": {"t": "Investment Property Mortgage Rates (The Mortgage Reports)", "u": "https://www.themortgagereports.com/27698/investment-property-mortgage-rates-how-much-more-will-you-pay"}, "rz_investment_rate_premium_28": {"t": "Current Investment Property Mortgage Rates (LendingTree)", "u": "https://www.lendingtree.com/mortgage/buying-and-financing-investment-property-article"}, "rz_investment_rate_premium": {"t": "Fannie Mae Eligibility Matrix; The Mortgage Reports; LendingTree", "u": "https://singlefamily.fanniemae.com/media/20786/display"}, "rz_rental_vacancy": {"t": "Census Bureau, Quarterly Residential Vacancies and Homeownership, Second Quarter 2026", "u": "https://www.census.gov/housing/hvs/current/index.html"}, "rz_mgmt_fee": {"t": "Baselane - Property Management Fee Statistics", "u": "https://www.baselane.com/resources/property-management-fee-statistics"}, "rz_depreciation_tax_32": {"t": "IRS Publication 527 (2025), Residential Rental Property", "u": "https://www.irs.gov/publications/p527"}, "rz_depreciation_tax_33": {"t": "IRS Publication 527 (2025) PDF", "u": "https://www.irs.gov/pub/irs-pdf/p527.pdf"}, "rz_depreciation_tax_34": {"t": "IRS Topic no. 409, Capital gains and losses", "u": "https://www.irs.gov/taxtopics/tc409"}, "rz_depreciation_tax_35": {"t": "IRS Publication 925 (2025), Passive Activity and At-Risk Rules", "u": "https://www.irs.gov/publications/p925"}, "rz_depreciation_tax": {"t": "IRS Pub 527 / Topic 409 / Pub 925", "u": "https://www.irs.gov/publications/p527"}, "rz_house_hacking_tax_37": {"t": "IRS Publication 523 (2025), Selling Your Home", "u": "https://www.irs.gov/publications/p523"}, "rz_house_hacking_tax_38": {"t": "IRS Topic no. 701, Sale of your home", "u": "https://www.irs.gov/taxtopics/tc701"}, "rz_house_hacking_tax_39": {"t": "IRS Tax Tip 2011-45, Seven Tips About Rental Income and Expenses (historical)", "u": "https://irs.gov/zh-hant/newsroom/seven-tips-about-rental-income-and-expenses"}, "rz_house_hacking_tax": {"t": "IRS Pub 523 / Topic 701", "u": "https://www.irs.gov/publications/p523"}, "rz_renewal_vs_new_lease_41": {"t": "Resident Retention Fuels Renewal Lease Pricing Power (Greg Willett, LeaseLock; RealPage data)", "u": "https://leaselock.com/greg-willett-signposts-multifamily-resident-retention-renewal-pricing-power/"}, "rz_renewal_vs_new_lease_42": {"t": "Renewal Lease Rent Growth Holds Solid in 2025, Outpacing Move-In Pricing (LeaseLock; RealPage data)", "u": "https://leaselock.com/renewal-lease-rent-growth-2025"}, "rz_renewal_vs_new_lease_43": {"t": "When Will a Decline in Asking Rents Be Reflected in Rent CPI? (John O'Trakoun, Richmond Fed Macro Minute)", "u": "https://www.richmondfed.org/research/national_economy/macro_minute/2023/mm_04_04_23"}, "rz_renewal_vs_new_lease_44": {"t": "NLIHC summary of Cleveland Fed WP 22-38 'Disentangling Rent Index Differences: Data, Methods, and Scope'", "u": "https://nlihc.org/resource/research-attributes-discrepancies-between-rent-inflation-indices-rent-growth-among-new"}, "rz_renewal_vs_new_lease_45": {"t": "Boston Fed: housing cost index (Larry Bean)", "u": "https://www.bostonfed.org/news-and-events/news/2023/02/housing-cost-index-rise-consumer-price-index-inflation-boston-fed-chris-cotton.aspx"}, "rz_renewal_vs_new_lease": {"t": "LeaseLock/RealPage; Richmond Fed", "u": "https://leaselock.com/greg-willett-signposts-multifamily-resident-retention-renewal-pricing-power/"}, "rz_wage_growth": {"t": "Atlanta Fed Wage Growth Tracker; FRED series FRBATLWGT3MMAUMHWGO", "u": "https://www.atlantafed.org/chcs/wage-growth-tracker"}, "rz_forced_sales_48": {"t": "Campbell, Giglio & Pathak, 'Forced Sales and House Prices', American Economic Review 101(5): 2108-2131 (2011)", "u": "https://dash.harvard.edu/server/api/core/bitstreams/7312037c-ae02-6bd4-e053-0100007fdf3b/content"}, "rz_forced_sales_49": {"t": "Calculated Risk: NAR: Distressed Sales Accounted for 45%", "u": "https://www.calculatedriskblog.com/2009/02/nar-distressed-sales-accounted-for-45.html"}, "rz_forced_sales_50": {"t": "Special Report: Distressed Sales Nearly Nonexistent in Housing Today (Houston Agent Magazine, NAR data)", "u": "https://houstonagentmagazine.com/2015/01/22/special-report-distressed-sales-nearly-nonexistent-housing-today/"}, "rz_forced_sales_51": {"t": "Gerardi, Herkenhoff, Ohanian & Willen, 'Can't Pay or Won't Pay? Unemployment, Negative Equity, and Strategic Default', NBER WP 21630", "u": "https://www.nber.org/papers/w21630"}, "rz_forced_sales_52": {"t": "Demyanyk, Hryshko, Luengo-Prado & Sorensen, 'Keeping the House or Moving for a Job', Cleveland Fed Economic Commentary 2013-09", "u": "https://www.clevelandfed.org/publications/economic-commentary/2013/ec-201309-keeping-the-house-or-moving-for-a-job"}, "rz_forced_sales": {"t": "Campbell, Giglio & Pathak (AER 2011)", "u": "https://dash.harvard.edu/server/api/core/bitstreams/7312037c-ae02-6bd4-e053-0100007fdf3b/content"}, "rz_rent_vs_market_turnover": {"t": "CPS (previously collected; not re-fetched); renewal rate from LeaseLock/RealPage", "u": "https://leaselock.com/greg-willett-signposts-multifamily-resident-retention-renewal-pricing-power/"}, "lr_fha": {"t": "HUD Mortgagee Letter 2023-05 (MIP); HUD press release No. 25-145 (2026 loan limits); HUD Mortgagee Letter 2026-11 (credit score methodology)", "u": ["https://archives.hud.gov/news/2024/2023-05hsgml.pdf", "https://hud.gov/news/hud-no-25-145", "https://www.hud.gov/sites/default/files/hudclips/documents/2026-11hsgml.pdf"]}, "lr_arm": {"t": "Fannie Mae Selling Guide B2-1.4-02 Adjustable-Rate Mortgages (12/10/2025); MGIC 'Getting Comfortable with ARMs' handout (04.10.26); Mortgage News Daily on MBA weekly survey (2026-10-16)", "u": ["https://selling-guide.fanniemae.com/sel/b2-1.4-02/adjustable-rate-mortgages-arms", "https://pages.mgic.com/rs/881-WYO-555/images/Handout-Getting-Comfortable-with-ARMS_04.10.26.pdf", "https://www.mortgagenewsdaily.com/news/10162026-mortgage-applications-mba"]}, "lr_points": {"t": "Freddie Mac PMMS; CFPB 'What are discount points?' (Ask CFPB); CFPB newsroom 2024-04-05 'CFPB finds Americans are paying upfront fees...'", "u": ["https://www.freddiemac.com/pmms", "https://www.consumerfinance.gov/ask-cfpb/what-are-discount-points-en-136/", "https://www.consumerfinance.gov/about-us/newsroom/cfpb-finds-americans-are-paying-upfront-fees-seeking-to-lower-interest-rates-on-mortgages"]}, "lr_sofr": {"t": "NY Fed Markets Data API (rates/all/latest); NY Fed SOFR Averages and Index page; NY Fed Terms of Use", "u": ["https://markets.newyorkfed.org/api/rates/all/latest.json", "https://www.newyorkfed.org/markets/reference-rates/sofr-averages-and-index", "https://www.newyorkfed.org/privacy/termsofuse"]}, "ppi_ins": {"t": "BLS PPI: homeowners insurance premiums (PCU5241265241262)", "u": "https://data.bls.gov/timeseries/PCU5241265241262"}, "acs": {"t": "Census ACS 2024 1-year summary file (property tax, home value, rent by bedrooms, bedrooms by tenure)", "u": "https://www.census.gov/programs-surveys/acs/data/summary-file.html"}}, "zori": {"years": [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025], "yoy": [4.8, 3.5, 4.4, 4.2, 4.0, 2.0, 15.4, 6.4, 3.0, 2.9], "u": "https://keepingupwithinflation.com/tracker/rent/", "t": "ZORI, January-to-January"}, "renew": {"u": "https://leaselock.com/greg-willett-signposts-multifamily-resident-retention-renewal-pricing-power/", "h": "0 = renewals track market. RealPage 2026: renewals +3.5% vs move-ins +1.9% (renewals above market lately; no long-run average published)"}, "wage": {"u": "https://www.atlantafed.org/chcs/wage-growth-tracker", "h": "Atlanta Fed Wage Growth Tracker 3.9% (2026-09); job stayers 3.4%"}, "stress": {"u": "https://www.calculatedriskblog.com/2009/02/nar-distressed-sales-accounted-for-45.html", "h": "<span class=\"tag\">assumption</span> distressed sales were 49% of sales in March 2009 vs 9% in late 2014 (NAR)"}, "forced": {"u": "https://dash.harvard.edu/server/api/core/bitstreams/7312037c-ae02-6bd4-e053-0100007fdf3b/content", "h": "Campbell, Giglio &amp; Pathak (AER 2011): 5\u20137% after a death, 3% after bankruptcy, 27% for foreclosures"}, "vac": {"u": "https://www.census.gov/housing/hvs/current/index.html", "h": "Census U.S. rental vacancy 7.3% (2026Q2)"}, "dpR": {"u": "https://singlefamily.fanniemae.com/media/20786/display", "h": "Fannie Mae minimum 15% for 1 unit, 25% for 2\u20134 units; mortgage insurance not modeled, so 20%+ is realistic"}, "ratePrem": {"u": "https://www.themortgagereports.com/27698/investment-property-mortgage-rates-how-much-more-will-you-pay", "h": "lenders quote 0.5\u20131.0 points above owner-occupied rates"}, "mgmt": {"u": "https://www.baselane.com/resources/property-management-fee-statistics", "h": "typically 8\u201312% of rent, 10% most cited; 0 if self-managed"}, "dep": {"u": "https://www.irs.gov/publications/p527", "h": ""}, "hhTax": {"u": "https://www.irs.gov/publications/p523", "h": "IRS Pub 523: no gain split if the rented space is inside your home"}, "insG": {"u": "https://data.bls.gov/timeseries/PCU5241265241262", "h": "homeowners insurance prices (BLS PPI) rose 3.95%/yr vs CPI 2.56% since 1998: 1.39 pts faster (0.63 pts over the last 10 years)"}, "fha": {"u": ["https://archives.hud.gov/news/2024/2023-05hsgml.pdf", "https://hud.gov/news/hud-no-25-145", "https://www.hud.gov/sites/default/files/hudclips/documents/2026-11hsgml.pdf"], "h": "HUD ML 2023-05: 1.75% upfront (financed); 0.55% a year at >95% LTV (0.50% at \u226495%), for the full term above 90% LTV, 11 years at \u226490%; 3.5% minimum down"}, "arm": {"u": ["https://selling-guide.fanniemae.com/sel/b2-1.4-02/adjustable-rate-mortgages-arms", "https://pages.mgic.com/rs/881-WYO-555/images/Handout-Getting-Comfortable-with-ARMS_04.10.26.pdf", "https://www.mortgagenewsdaily.com/news/10162026-mortgage-applications-mba"], "h": "MBA survey: 5/1 ARM 6.54% vs 30-yr fixed 7.50% (week ending 2026-10-09), a 0.96-pt discount applied to today's Freddie Mac rate. Resets every 6 months to 30-day SOFR + margin; the model uses the T-bill rate as the index"}, "armMargin": {"u": ["https://selling-guide.fanniemae.com/sel/b2-1.4-02/adjustable-rate-mortgages-arms", "https://pages.mgic.com/rs/881-WYO-555/images/Handout-Getting-Comfortable-with-ARMS_04.10.26.pdf", "https://www.mortgagenewsdaily.com/news/10162026-mortgage-applications-mba"], "h": "Fannie Mae allows up to 3%; 2\u20133% typical. <span class=\"tag\">assumption</span>"}, "pts": {"u": ["https://www.freddiemac.com/pmms", "https://www.consumerfinance.gov/ask-cfpb/what-are-discount-points-en-136/", "https://www.consumerfinance.gov/about-us/newsroom/cfpb-finds-americans-are-paying-upfront-fees-seeking-to-lower-interest-rates-on-mortgages"], "h": "CFPB: a point has no fixed value in rate terms; ask lenders. <span class=\"tag\">assumption</span>"}, "beds": {"u": "https://www.census.gov/programs-surveys/acs/data/summary-file.html", "h": "48% of owner-occupied homes have 3 bedrooms (ACS 2024); rent is scaled by the area's median rent for that size vs. all units"}};
 const D0={"rMove": 16.2, "close": 3, "maint": 1.0, "sell": 6.5, "dy": 1.05, "spread": 1.5, "hz": 5.6, "idio": 12, "renewGap": 0, "incGrowth": 3.9, "stressMult": 2, "forcedDisc": 5, "vacR": 7.3, "dpR": 25, "ratePrem": 0.75, "mgmt": 10, "insG": 1.39, "bedRatio": {"0": 0.888, "1": 0.875, "2": 1.002, "3": 1.128, "4": 1.391}, "armRate": 6.36, "armMargin": 2.75, "ptsCut": 0.25};
@@ -1201,6 +1213,8 @@ function parseP(raw){
   const term=parseInt(raw.term)||30,loanType=raw.loanType||'fixed',armYears=parseInt(raw.armYears)||5;
   let dp=Math.min(1,Math.max(0,pc('dp')));if(loanType==='fha')dp=Math.max(0.035,dp);
   const ttB=Math.max(0,pc('ttBuy')),ttS=Math.max(0,pc('ttSell'));
+  // the projection starts in the snapshot's year; tax figures after TAX_YEAR are indexed by the inflation setting
+  const y0=Math.max(TAX_YEAR,parseInt(SNAP.asOf)||TAX_YEAR),tk=taxIndex({y0,inf:pc('inf')});
   return {loanType,armYears,armRate:pc('armRate'),armMargin:pc('armMargin'),armCapInit:armYears>=7?0.05:0.02,armCapPer:0.01,armCapLife:0.05,pts:Math.max(0,n('pts')),ptsCut:pc('ptsCut'),
     insG:pc('insG'),ttBuy:ttB,ttSell:ttS,closeBase:pc('close'),sellBase:pc('sell'),beds:raw.beds||'3',
     P:Math.max(1,n('P')),dp,rate:term===15?pc('rate15'):pc('rate'),rate30:pc('rate'),rate15:pc('rate15'),term,close:pc('close')+ttB,pmi:pc('pmi'),
@@ -1208,14 +1222,14 @@ function parseP(raw){
     ptax:pc('ptax'),ptaxCap:Math.max(0,pc('ptaxCap')),ins:n('ins'),maint:pc('maint'),hoa:n('hoa'),sell:pc('sell')+ttS,rent0:Math.max(0,n('rent0')),rins:n('rins'),
     gh:pc('gh'),gr:pc('gr'),inf:pc('inf'),rs:pc('rs'),rb:pc('rb'),rc:pc('rc'),ws,wb,
     acct:raw.acct||'taxable',dy:pc('dy'),fee:pc('fee'),lev:Math.max(0,n('lev')),spread:pc('spread'),
-    taxOn:raw.taxOn==='1'||raw.taxOn===1,filing:raw.filing||'single',income:Math.max(0,n('income')),debt:Math.max(0,n('debt')),muMode:raw.muMode||'auto',mu:(raw.muMode||'auto')==='auto'?marginalRate(Math.max(0,n('income')),raw.filing||'single'):pc('mu'),stTax:n('stTax'),oth:n('oth'),ltcg:pc('ltcg'),
+    taxOn:raw.taxOn==='1'||raw.taxOn===1,filing:raw.filing||'single',income:Math.max(0,n('income')),debt:Math.max(0,n('debt')),muMode:raw.muMode||'auto',mu:(raw.muMode||'auto')==='auto'?marginalRate(Math.max(0,n('income')),raw.filing||'single',tk):pc('mu'),stTax:n('stTax'),oth:n('oth'),ltcg:pc('ltcg'),
     utilDiff:n('utilDiff'),floodIns:Math.max(0,n('floodIns')),moveIn:Math.max(0,n('moveIn')),impShare:Math.min(1,Math.max(0,pc('impShare'))),rMove:Math.max(0,pc('rMove')),rMoveCost:Math.max(0,n('rMoveCost')),broker:Math.max(0,n('broker')),
     investShare:Math.min(1,Math.max(0,pc('investShare'))),stRate:Math.max(0,pc('stRate')),stDed:raw.stDed==='1'||raw.stDed===1,
     volAdj:raw.volAdj!=='0',niitAuto:true,niit:0,renewGap:pc('renewGap'),incGrowth:pc('incGrowth'),moveMode:raw.moveMode||'none',moveYear:Math.max(0,Math.round(n('moveYear'))),
     stressMult:Math.max(1,n('stressMult')),forcedDisc:Math.min(0.9,Math.max(0,pc('forcedDisc'))),hhRent:Math.max(0,n('hhRent')),hhShare:Math.min(0.9,Math.max(0,pc('hhShare'))),hhVac:Math.min(1,Math.max(0,pc('hhVac'))),
     rentalOn:raw.rentalOn==='1'||raw.rentalOn===1,dpR:Math.min(1,Math.max(0.05,pc('dpR'))),ratePrem:pc('ratePrem'),vacR:Math.min(1,Math.max(0,pc('vacR'))),mgmt:Math.min(0.5,Math.max(0,pc('mgmt'))),landShare:Math.min(0.9,Math.max(0,pc('landShare'))),
     hz:Math.min(0.99,Math.max(0,pc('hz'))),idio:Math.max(0,pc('idio')),idioMode:raw.idioMode||'sale',gamma:Math.max(0,n('gamma')),
-    N:Math.max(1,Math.min(30,parseInt(raw.N)||10)),metro:raw.metro||'us'};
+    N:Math.max(1,Math.min(30,parseInt(raw.N)||10)),metro:raw.metro||'us',y0};
 }
 const readP=()=>parseP(getRaw());
 
@@ -1294,17 +1308,20 @@ function summary(){
   const p=P,o=BASE,N=p.N,c=o.cpi[N];
   const b=adj(o.buy[N],c),iv=adj(o.inv[N],c),ca=adj(o.cash[N],c),d=b-iv;
   const own1=month1Cost(p);
+  // a gap under 2% of the larger outcome (or 0.5% of the price) is within the noise of the assumptions: call it even
+  const even=Math.abs(d)<Math.max(0.005*p.P,0.02*Math.max(Math.abs(b),Math.abs(iv)));
   const beY=breakevenYear(o);
   const beRent=bisect(r=>advAt(p,{rent0:r}),10,Math.max(500,p.rent0*6));
   const beG=bisect(g=>advAt(p,{gh:g}),-0.15,0.25);
   const o30=simulate(Object.assign({},p,{N:Math.max(N,1)}),constPath(p,N),{N});
   const ex=expectedWithMoving(o30,p);
-  document.getElementById('vhead').innerHTML=Math.abs(d)<0.005*p.P?`After ${N} year${N>1?'s':''}, buying and renting end up about even <span class="vamt">(${d>=0?'+':'−'}${fmt(Math.abs(d))} for buying)</span>`:
+  document.getElementById('vhead').innerHTML=even?`After ${N} year${N>1?'s':''}, buying and renting end up about even <span class="vamt">(${d>=0?'+':'−'}${fmt(Math.abs(d))} for buying)</span>`:
     `${d>=0?'<span class="who buy">Buying</span>':'<span class="who inv">Renting and investing</span>'} comes out ahead by <span class="vamt">${fmt(Math.abs(d))}</span> after ${N} year${N>1?'s':''}`;
   const rp=p.rentalOn&&o.rental[N]!=null?adj(o.rental[N],c):null;
   const opts=[['buy','Buy',b],['inv','Rent + invest',iv],['cash','Rent + T-bills',ca]].concat(rp!=null?[['rp','Rent + rental property',rp]]:[]),mx=Math.max(...opts.map(o=>o[2]),1),top=Math.max(...opts.map(o=>o[2]));
   document.getElementById('bars').innerHTML=opts.map(([k,lab,v])=>`<div class="bar ${v===top?'win':''}"><span class="lab">${lab}${v===top?'<span class="pill">best</span>':''}</span><span class="track"><span class="fill" style="display:block;width:${Math.max(0,v/mx*100).toFixed(1)}%;background:var(--${k})"></span></span><span class="val">${fmt(v)}</span></div>`).join('');
-  document.getElementById('miniSum').innerHTML=Math.abs(d)<0.005*p.P?`About even at year ${N}`:`<span class="who ${d>=0?'buy':'inv'}">${d>=0?'Buying':'Renting'}</span> ahead by <strong>${fmt(Math.abs(d))}</strong> at year ${N}`;document.getElementById('miniN').textContent=N+' yr';
+  document.getElementById('miniSum').innerHTML=even?`About even at year ${N}`:`<span class="who ${d>=0?'buy':'inv'}">${d>=0?'Buying':'Renting'}</span> ahead by <strong>${fmt(Math.abs(d))}</strong> at year ${N}`;document.getElementById('miniN').textContent=N+' yr';
+  document.getElementById('fabSub').textContent=`${pct(p.dp,0)} down · ${pct(p.rate,2)} · ${N} yr`;
   document.getElementById('sheetlive').innerHTML=`Year ${N}: buy ${fmt(b)} · rent+invest ${fmt(iv)} · gap <strong style="color:var(${d>=0?'--buy':'--inv'})">${d>=0?'+':''}${fmt(d)}</strong>`;
   const stat=([k,v,h])=>`<div class="stat"${h?` title="${h}"`:''}><div class="k">${k}</div><div class="v">${v}</div></div>`;
   document.getElementById('vgrid').innerHTML=[
@@ -1985,10 +2002,10 @@ function structureMethod(){
 }
 /* ===================== Snapshot ===================== */
 function buildSnap(){
-  document.getElementById('snap').innerHTML=SNAP.items.map(c=>`<div class="chip"><span class="k"><span class="kt" title="${c.k}">${c.k}</span></span><span class="v">${c.v}</span><span class="s muted">${c.s} · ${sl(c.src)}${c.field?` · <a href="#" class="use" data-f="${c.field}" data-v="${c.val}">use</a>`:''}</span></div>`).join('')+
+  document.getElementById('snap').innerHTML=SNAP.items.map(c=>`<div class="chip"><span class="k"><span class="kt" title="${c.k}">${c.k}</span></span><span class="v">${c.v}</span><span class="s muted">${c.s}${c.field==='rent0'?' · all home sizes; “use” scales it to your bedrooms':''} · ${sl(c.src)}${c.field?` · <a href="#" class="use" data-f="${c.field}" data-v="${c.val}">use</a>`:''}</span></div>`).join('')+
     `<div class="chip"><span class="k"><span class="kt">Data as of</span></span><span class="v">${SNAP.asOf}</span><span class="s muted">${dataAgeText()}</span></div>`;
   staleNotice();
-  document.querySelectorAll('.use').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();document.getElementById(a.dataset.f).value=a.dataset.v;update()}));
+  document.querySelectorAll('.use').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const v=a.dataset.f==='rent0'?Math.round(a.dataset.v*bedRatio(null,document.getElementById('beds').value)/10)*10:a.dataset.v;document.getElementById(a.dataset.f).value=v;update()}));
 }
 function bedRatio(m,b){if(b==='any')return 1;const k=b==='4'?'4':b;const r=(m&&m.acs&&m.acs.beds&&m.acs.beds[k])||(D0.bedRatio&&D0.bedRatio[k]);return r||1}
 function selMetro(){return METROS.find(x=>x.slug===document.getElementById('metro').value)||METROS[0]}
@@ -2152,7 +2169,7 @@ const HELP={
  debt:['Other debt payments','Monthly car, student-loan and card payments. Used for the total debt-to-income ratio lenders check.'],
  taxOn:['Model taxes','Turn off to compare before taxes. On is more realistic.'],
  filing:['Filing status','Single or married filing jointly. Changes the standard deduction, brackets, the home-sale exclusion ($250k / $500k) and tax thresholds.'],
- muMode:['Marginal rate','Automatic picks your federal bracket from income and 2026 tax brackets. Choose manual to enter it yourself.'],
+ muMode:['Marginal rate','Automatic picks your federal bracket from income and 2026 tax brackets (indexed by your inflation setting in later years). Choose manual to enter it yourself.'],
  mu:['Marginal federal rate','Tax rate on your last dollar of income. Sets the value of mortgage-interest and property-tax deductions and the tax on interest income.'],
  stTax:['State & local income tax','Yearly state and local income tax. It counts toward the $40,400 cap on deducting state and local taxes, together with property tax.'],
  oth:['Other itemized deductions','Charitable gifts and other deductions. They help decide whether itemizing beats the standard deduction.'],
@@ -2391,7 +2408,7 @@ function init(){
 }
 function loadScript(u){return new Promise((res,rej)=>{const sc=document.createElement('script');sc.src=u;sc.onload=res;sc.onerror=rej;document.head.appendChild(sc)})}
 (async()=>{
-  const urls=['https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js','https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js','https://unpkg.com/plotly.js-dist-min@2.35.2/plotly.min.js'];
+  const urls=LOCAL_LIBS.concat(['https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js','https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js','https://unpkg.com/plotly.js-dist-min@2.35.2/plotly.min.js']);
   for(const u of urls){if(window.Plotly)break;try{await loadScript(u)}catch(e){}}
   if(!window.Plotly){window.Plotly={react(){throw new Error('the charting library did not load; check your connection and reload')}}}
   init();

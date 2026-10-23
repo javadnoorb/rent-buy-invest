@@ -158,7 +158,10 @@ mf = D('data', 'monthly_processed.json')
 if os.path.exists(mf):
     MONTHLY = json.load(open(mf))
 
-data_js = ("const SNAP=JSON.parse(document.getElementById('snapshot-data').textContent);\n"
+# the installed (PWA) build serves pinned copies from vendor/; the artifact build can only load from public CDNs
+VENDOR = {'plotly': 'vendor/plotly-2.35.2.min.js', 'mathjax': 'vendor/mathjax-3.2.2-tex-svg-full.js'}
+data_js = (f"const LOCAL_LIBS={json.dumps([VENDOR['plotly']] if PWA else [])};\n"
+           "const SNAP=JSON.parse(document.getElementById('snapshot-data').textContent);\n"
            f"const RES={json.dumps(RES)};\nconst D0={json.dumps(D0)};\nconst FCST={json.dumps(FCST)};\n"
            f"const METROS={json.dumps(METROS, separators=(',', ':'))};\nconst MONTHLY={json.dumps(MONTHLY, separators=(',', ':'))};\n")
 
@@ -174,8 +177,9 @@ head = '''<title>Rent, Buy or Invest</title>
 mj = '''<script>
 window.MathJax={tex:{inlineMath:[['\\\\(','\\\\)']],displayMath:[['\\\\[','\\\\]']]},options:{enableMenu:false},svg:{fontCache:'global'},startup:{typeset:false}};
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+<script src="MATHJAX_SRC" async></script>
 '''
+mj = mj.replace('MATHJAX_SRC', VENDOR['mathjax'] if PWA else 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js')
 if PWA:
     head = ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
             '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'

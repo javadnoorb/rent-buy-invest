@@ -116,6 +116,8 @@ function parseP(raw){
   const term=parseInt(raw.term)||30,loanType=raw.loanType||'fixed',armYears=parseInt(raw.armYears)||5;
   let dp=Math.min(1,Math.max(0,pc('dp')));if(loanType==='fha')dp=Math.max(0.035,dp);
   const ttB=Math.max(0,pc('ttBuy')),ttS=Math.max(0,pc('ttSell'));
+  // the projection starts in the snapshot's year; tax figures after TAX_YEAR are indexed by the inflation setting
+  const y0=Math.max(TAX_YEAR,parseInt(SNAP.asOf)||TAX_YEAR),tk=taxIndex({y0,inf:pc('inf')});
   return {loanType,armYears,armRate:pc('armRate'),armMargin:pc('armMargin'),armCapInit:armYears>=7?0.05:0.02,armCapPer:0.01,armCapLife:0.05,pts:Math.max(0,n('pts')),ptsCut:pc('ptsCut'),
     insG:pc('insG'),ttBuy:ttB,ttSell:ttS,closeBase:pc('close'),sellBase:pc('sell'),beds:raw.beds||'3',
     P:Math.max(1,n('P')),dp,rate:term===15?pc('rate15'):pc('rate'),rate30:pc('rate'),rate15:pc('rate15'),term,close:pc('close')+ttB,pmi:pc('pmi'),
@@ -123,14 +125,14 @@ function parseP(raw){
     ptax:pc('ptax'),ptaxCap:Math.max(0,pc('ptaxCap')),ins:n('ins'),maint:pc('maint'),hoa:n('hoa'),sell:pc('sell')+ttS,rent0:Math.max(0,n('rent0')),rins:n('rins'),
     gh:pc('gh'),gr:pc('gr'),inf:pc('inf'),rs:pc('rs'),rb:pc('rb'),rc:pc('rc'),ws,wb,
     acct:raw.acct||'taxable',dy:pc('dy'),fee:pc('fee'),lev:Math.max(0,n('lev')),spread:pc('spread'),
-    taxOn:raw.taxOn==='1'||raw.taxOn===1,filing:raw.filing||'single',income:Math.max(0,n('income')),debt:Math.max(0,n('debt')),muMode:raw.muMode||'auto',mu:(raw.muMode||'auto')==='auto'?marginalRate(Math.max(0,n('income')),raw.filing||'single'):pc('mu'),stTax:n('stTax'),oth:n('oth'),ltcg:pc('ltcg'),
+    taxOn:raw.taxOn==='1'||raw.taxOn===1,filing:raw.filing||'single',income:Math.max(0,n('income')),debt:Math.max(0,n('debt')),muMode:raw.muMode||'auto',mu:(raw.muMode||'auto')==='auto'?marginalRate(Math.max(0,n('income')),raw.filing||'single',tk):pc('mu'),stTax:n('stTax'),oth:n('oth'),ltcg:pc('ltcg'),
     utilDiff:n('utilDiff'),floodIns:Math.max(0,n('floodIns')),moveIn:Math.max(0,n('moveIn')),impShare:Math.min(1,Math.max(0,pc('impShare'))),rMove:Math.max(0,pc('rMove')),rMoveCost:Math.max(0,n('rMoveCost')),broker:Math.max(0,n('broker')),
     investShare:Math.min(1,Math.max(0,pc('investShare'))),stRate:Math.max(0,pc('stRate')),stDed:raw.stDed==='1'||raw.stDed===1,
     volAdj:raw.volAdj!=='0',niitAuto:true,niit:0,renewGap:pc('renewGap'),incGrowth:pc('incGrowth'),moveMode:raw.moveMode||'none',moveYear:Math.max(0,Math.round(n('moveYear'))),
     stressMult:Math.max(1,n('stressMult')),forcedDisc:Math.min(0.9,Math.max(0,pc('forcedDisc'))),hhRent:Math.max(0,n('hhRent')),hhShare:Math.min(0.9,Math.max(0,pc('hhShare'))),hhVac:Math.min(1,Math.max(0,pc('hhVac'))),
     rentalOn:raw.rentalOn==='1'||raw.rentalOn===1,dpR:Math.min(1,Math.max(0.05,pc('dpR'))),ratePrem:pc('ratePrem'),vacR:Math.min(1,Math.max(0,pc('vacR'))),mgmt:Math.min(0.5,Math.max(0,pc('mgmt'))),landShare:Math.min(0.9,Math.max(0,pc('landShare'))),
     hz:Math.min(0.99,Math.max(0,pc('hz'))),idio:Math.max(0,pc('idio')),idioMode:raw.idioMode||'sale',gamma:Math.max(0,n('gamma')),
-    N:Math.max(1,Math.min(30,parseInt(raw.N)||10)),metro:raw.metro||'us'};
+    N:Math.max(1,Math.min(30,parseInt(raw.N)||10)),metro:raw.metro||'us',y0};
 }
 const readP=()=>parseP(getRaw());
 

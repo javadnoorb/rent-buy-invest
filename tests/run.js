@@ -4,7 +4,7 @@
 const fs=require('fs'),path=require('path'),vm=require('vm');
 const ROOT=path.join(__dirname,'..');
 const src=fs.readFileSync(path.join(ROOT,'src/model.js'),'utf8');
-const EXPORTS=['transferTaxes','loanSetup','metroAnnual','simulate','pmt','marginalRate','saltCapFor','constPath','mcCore','HOME','RENTG','INF','YEARS','MORT','Y0','NY'];
+const EXPORTS=['transferTaxes','loanSetup','metroAnnual','simulate','pmt','marginalRate','saltCapFor','constPath','mcCore','taxIndex','TAX_YEAR','HOME','RENTG','INF','YEARS','MORT','Y0','NY'];
 const extra=fs.existsSync(path.join(ROOT,'src/model.js'))&&/function simulateRental/.test(src)?['simulateRental']:[];
 const M=vm.runInNewContext('const MORT_OVERRIDE=null;\n'+src+'\n;({'+EXPORTS.concat(extra).join(',')+'})',{Math,Array,Object,JSON,Number,Infinity,isFinite});
 
@@ -92,5 +92,5 @@ near(M.saltCapFor(4,100000),10000,1e-12,'SALT cap returns to $10k in 2030');
 
 if(typeof module!=='undefined')module.exports={M,base,run,ok,near};
 if(require.main===module){
-  try{require('./run_new.js')({M,base,run,ok,near})}catch(e){if(e.code!=='MODULE_NOT_FOUND')throw e}
+  require('./run_new.js')({M,base,run,ok,near});
   console.log(`${pass} passed, ${fail} failed`);if(fail){fails.forEach(f=>console.log('  FAIL '+f));process.exit(1)}}

@@ -91,4 +91,45 @@ module.exports=function({M,base,run,ok,near}){
   {const q=Object.assign({},p0,{hz:0.06,stressMult:3,forcedDisc:0.1,gh:0.04,rs:0.08,rb:0.04,rc:0.03,inf:0.025,N:10});
    const cfg={n:300,bl:5,from:1928,rc:true,home:M.HOME,real:true},a=M.mcCore(q,cfg),b=M.mcCore(Object.assign({},q,{stressMult:1,forcedDisc:0}),cfg);
    ok(a.pForced>0,'some moves happen in bad years');ok(a.pMove<=b.pMove,'forced sales in downturns lower the win rate with moving')}
+
+  /* Selling underwater: the shortfall is carried as debt, not forgiven */
+  {const q=Object.assign({},p0,{dp:0.03,gh:-0.1,gr:0,rs:0,rc:0,inf:0,rent0:1500,moveYear:3,moveMode:'rent',N:6}),o=run(q,6,{detail:true});
+   ok(o.buy[4]<0&&o.buy[6]<o.buy[4],'an underwater sale leaves debt that keeps growing');
+   near(o.buy[5]/o.buy[4],Math.pow(1+0.03/12,12),1e-9,'the debt grows at T-bills + 3% with no other cash flows');
+   const r=run(Object.assign({},q,{moveMode:'buy'}),6,{detail:true});
+   ok(r.buy.every(isFinite)&&r.buy[6]<r.buy[3]+1,'underwater sell-and-rebuy also carries the shortfall');
+   const z=Object.assign({},q,{gh:0,rent0:4000}),oz=run(z,6,{detail:true});
+   ok(oz.pB[6]>0,'later savings pay the debt down and then grow')}
+
+  /* Start year: tax figures for later years are indexed, and the SALT cap follows the calendar */
+  {ok(M.taxIndex({y0:M.TAX_YEAR,inf:0.03})===1,'no indexing in the tax year');
+   near(M.taxIndex({y0:M.TAX_YEAR+2,inf:0.03}),1.0609,1e-12,'two years of inflation indexing');
+   ok(M.saltCapFor(0,0,2030)===10000&&M.saltCapFor(4,0)===10000&&M.saltCapFor(0,0)>40000,'SALT cap reverts in 2030 from any start year');
+   ok(M.marginalRate(68000,'single',1.1)<M.marginalRate(68000,'single'),'indexed brackets lower the rate on the same nominal income')}
+
+  /* Monthly paths equal to the annual ones give the same answer */
+  {const q=Object.assign({},p0,{taxOn:true,acct:'taxable',dy:0.015,muMode:'manual',mu:0.24,ltcg:0.15,ptax:0.012,ins:1500,rb:0.04,ws:0.6,wb:0.3,N:8});
+   const a=run(q,8),c=M.constPath(q,8),mo={monthly:true,mkt:[]};
+   ['gh','gr','rs','rb','rc','inf'].forEach(k=>mo[k]=[].concat(...c[k].map(r=>Array(12).fill(Math.pow(1+r,1/12)-1))));
+   c.mkt.forEach(r=>{for(let m=0;m<12;m++)mo.mkt.push(r)});
+   const b=M.simulate(q,mo,{N:8});
+   near(b.buy[8],a.buy[8],1e-9,'monthly and annual paths agree (buy)');near(b.inv[8],a.inv[8],1e-9,'monthly and annual paths agree (rent + invest)')}
+
+  /* Random inputs: results stay finite and move the right way with home prices and stock returns */
+  {let s=7;const u=()=>((s=Math.imul(s,48271)%2147483647)&0x7fffffff)/2147483647;
+   let fin=true,mono=true;
+   for(let t=0;t<150;t++){
+     const q=Object.assign({},p0,{dp:0.03+0.5*u(),rate:0.03+0.06*u(),gh:-0.05+0.12*u(),gr:0.05*u(),rs:-0.02+0.12*u(),rc:0.04*u(),inf:0.04*u(),
+       rent0:800+3000*u(),maint:0.02*u(),ptax:0.02*u(),taxOn:u()<0.5,acct:u()<0.5?'taxable':'sheltered',lev:1+u(),spread:0.01,
+       moveMode:['none','rent','buy'][Math.floor(3*u())],moveYear:1+Math.floor(10*u()),N:15});
+     const o=run(q,15);if(![...o.buy,...o.inv,...o.cash].every(isFinite))fin=false;
+     const hiH=run(Object.assign({},q,{gh:q.gh+0.01}),15),hiS=run(Object.assign({},q,{rs:q.rs+0.01}),15);
+     if(hiH.buy[15]<o.buy[15]-1e-6||hiS.inv[15]<o.inv[15]-1e-6)mono=false}
+   ok(fin,'150 random setups: every result is finite');
+   ok(mono,'150 random setups: faster home growth never lowers the buyer, faster stocks never lower the renter')}
+
+  /* Monte Carlo blocks never join the last data year to the first */
+  {const q=Object.assign({},p0,{gh:0.04,rs:0.08,rb:0.04,rc:0.03,inf:0.025,N:10});
+   const a=M.mcCore(q,{n:50,bl:10,from:2016,rc:false,home:M.HOME,real:false});
+   ok(a.res.buy.every(r=>r.every(isFinite)),'short history with long blocks still fills 30 years')}
 };

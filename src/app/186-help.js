@@ -59,7 +59,7 @@ const HELP={
  debt:['Other debt payments','Monthly car, student-loan and card payments. Used for the total debt-to-income ratio lenders check.'],
  taxOn:['Model taxes','Turn off to compare before taxes. On is more realistic.'],
  filing:['Filing status','Single or married filing jointly. Changes the standard deduction, brackets, the home-sale exclusion ($250k / $500k) and tax thresholds.'],
- muMode:['Marginal rate','Automatic picks your federal bracket from income and 2026 tax brackets. Choose manual to enter it yourself.'],
+ muMode:['Marginal rate','Automatic picks your federal bracket from income and 2026 tax brackets (indexed by your inflation setting in later years). Choose manual to enter it yourself.'],
  mu:['Marginal federal rate','Tax rate on your last dollar of income. Sets the value of mortgage-interest and property-tax deductions and the tax on interest income.'],
  stTax:['State & local income tax','Yearly state and local income tax. It counts toward the $40,400 cap on deducting state and local taxes, together with property tax.'],
  oth:['Other itemized deductions','Charitable gifts and other deductions. They help decide whether itemizing beats the standard deduction.'],
