@@ -43,6 +43,7 @@ jobs:
           # files the page fetches on demand
           cp data/counties.json _site/data/ 2>/dev/null || true
           [ -d data/county_hpi ] && cp -r data/county_hpi _site/data/ || true
+          [ -d data/zip ] && cp -r data/zip _site/data/ || true
           du -sh _site
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

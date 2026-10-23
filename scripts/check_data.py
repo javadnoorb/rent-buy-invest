@@ -155,6 +155,25 @@ if z:
             if p.get(q) and abs(v[q] / p[q] - 1) > 0.08: bad(f'Zillow {k} {q}: {p[q]} → {v[q]}')
     if z0.get('month') and z['month'] < z0['month']: bad(f"Zillow month went back {z0['month']} → {z['month']}")
 
+# ---- ZIP codes (one file per first two digits) ----
+zf = sorted(glob.glob(os.path.join(ROOT, 'data', 'zip', '*.json')))
+if zf:
+    n = nr = jumps = both = 0
+    for f in zf:
+        rel = os.path.relpath(f, ROOT); d, d0 = json.load(open(f)).get('zips') or {}, (old(rel) or {}).get('zips') or {}
+        n += len(d)
+        if len(d) < 0.9 * len(d0): bad(f'{rel}: {len(d0)} ZIPs before, {len(d)} now')
+        for z, (c, val, rent, tax, gross, sa) in d.items():
+            if val is not None and not 10000 <= val <= 10000000: bad(f'{rel} {z}: median value {val}')
+            if sa:
+                nr += 1
+                if not all(150 <= x <= 15000 for x in sa): bad(f'{rel} {z}: HUD rents {sa}')
+                p = (d0.get(z) or [None] * 6)[5]
+                if p and p[2]: both += 1; jumps += abs(sa[2] / p[2] - 1) > 0.4
+    if n < 25000: bad(f'ZIP codes: only {n}')
+    if nr and nr < 15000: bad(f'ZIP codes: only {nr} with HUD rents')
+    if both and jumps > 0.02 * both: bad(f'ZIP codes: {jumps} of {both} 2-bedroom rents changed by more than 40%')
+
 if problems:
     print(f'data check failed ({len(problems)} problem{"s" if len(problems) > 1 else ""}):')
     for p in problems[:60]: print('  ' + p)

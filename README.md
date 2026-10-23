@@ -34,6 +34,7 @@ It then opens full-screen from its own icon, and works offline after the first v
 - **Presets:** 1928–2025 and 1972–2025 historical averages, current year-over-year figures, and 2026 published forecasts (Horizon Actuarial survey of 43 firms; Pulsenomics home-price expectations).
 - **Any county:** pick "Any U.S. county…" in Location to fill price and property tax for any of about 3,200 counties from Census ACS 5-year data (values scaled to today's national Zillow figure), rent by bedrooms from HUD Fair Market Rents (without utilities), and local price history from FHFA's county indexes for the backtest, Monte Carlo and a local-average preset.
 - **Rent from price:** by default the comparable rent is estimated from the home price (the location's typical rent × (price ÷ typical price)^0.65, from Census county data), so pricier homes don't get an unrealistically low rent; typing a rent uses yours instead.
+- **ZIP codes:** type a 5-digit ZIP in the county search for that ZIP's median value and property tax (Census ACS by ZIP Code Tabulation Area) and rent by bedrooms (HUD Small Area Fair Market Rents, without utilities), with its county's insurance and price history.
 - **Mortgage choices:** extra monthly payments toward principal or invested instead (with the difference shown in the summary), PMI removal by appraisal, and a home-equity line counted as an emergency reserve.
 - **Locations:** the same household in all 23 metros at once: verdict, monthly cost, cash needed, affordability and break-even year, sortable, with growth set the same everywhere, adjusted by each metro's history, or taken from it.
 - **Scenarios:** save named setups in the browser and compare them.
@@ -51,6 +52,7 @@ It then opens full-screen from its own icon, and works offline after the first v
 | `data/metro_*.json` | Per-metro price, rent, tax, insurance and home-price index, with source URLs |
 | `data/counties.json` | County median home value, contract and gross rent, and real-estate tax (Census ACS 5-year), written by `scripts/fetch_counties.py` |
 | `data/county_fmr.json` | HUD Fair Market Rents by county and bedrooms, written by `scripts/fetch_fmr.py` |
+| `data/zip/` | ZIP-code values, rents, taxes, HUD Small Area FMRs and county, one file per first two digits, written by `scripts/fetch_zips.py` |
 | `data/county_hpi/` | FHFA annual county price indexes, one file per state, written by `scripts/fetch_county_hpi.py` |
 | `data/research.json` | Sourced parameters (single-house volatility, tenure, dividend yield, costs, annual mortgage averages) |
 | `data/monthly.json` | Raw monthly series, 1987–2026 |
@@ -102,6 +104,7 @@ The **Refresh data** workflow runs every Friday and on demand (Actions tab → R
 - **Mortgage rates:** Freddie Mac PMMS (used with attribution).
 - **Treasury rates:** Federal Reserve H.15 (public domain).
 - **County rents:** HUD Fair Market Rents (public), the 40th-percentile rent with utilities paid by recent movers, by bedrooms; converted to rent without utilities with each county's Census ratio of contract to gross rent.
+- **ZIP codes:** HUD Small Area Fair Market Rents (public), Census ACS 5-year by ZIP Code Tabulation Area and the Census 2020 ZCTA-to-county relationship file (public domain).
 - **County price history:** FHFA annual all-transactions county indexes (public; developmental; cite Bogin, Doerner & Larson 2016, FHFA Working Paper 16-01), scaled by the metros' median volatility ratio.
 - **Home-price indexes:** FHFA purchase-only indexes (public), downloaded from fhfa.gov by `scripts/fetch_fhfa.py` (run by hand via the *Fetch FHFA house price data* workflow). Case-Shiller data are not stored; one volatility ratio per location is.
 - **S&P 500 monthly:** total returns only, computed from Robert Shiller's monthly data (index levels not stored).

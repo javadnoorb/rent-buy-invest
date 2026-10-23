@@ -19,19 +19,8 @@ def get(url):
     try: return json.loads(body)
     except ValueError: raise ValueError('not JSON: ' + body[:200].replace('\n', ' '))
 
-SF = 'https://www2.census.gov/programs-surveys/acs/summary_file/{y}/table-based-SF/'
-def sf_lines(url, prefixes):
-    """Header plus the rows whose GEO_ID starts with one of prefixes, streamed (the files cover every geography)."""
-    req = urllib.request.Request(url, headers={'User-Agent': 'rent-buy-invest data refresh'})
-    with urllib.request.urlopen(req, timeout=600) as r:
-        hdr = None; rows = []
-        for raw in r:
-            line = raw.decode('utf-8', 'replace').rstrip('\r\n')
-            if hdr is None: hdr = line.split('|'); ig = hdr.index('GEO_ID'); continue
-            if not any(p in line for p in prefixes): continue  # most lines are tracts and block groups
-            f = line.split('|')
-            if f[ig].startswith(prefixes): rows.append(f)
-    return hdr, rows
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from acs_sf import SF, sf_lines
 
 def fetch_sf(year):
     """Same figures from the 5-year summary files: one file per table, plus the geography file for county names."""

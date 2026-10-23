@@ -9,8 +9,11 @@ const { chromium } = require(process.env.PLAYWRIGHT_PATH || 'playwright');
 // HUD rents for King County: 2,600 for 3 bedrooms with utilities × (1,750 contract ÷ 2,000 gross) = 2,275 → $2,280;
 // Autauga has no HUD row and no ACS rent, so it falls back to the U.S. typical rent. Price history for King from its state file.
 const META = { t: 'test counties', u: 'https://api.census.gov/', span: '2020–2024', kP: 1.2, kR: 1.5, cg: 0.85, insU: null, stateIns: { Washington: 1404 }, file: 'data/counties.json', rows: null,
-  fmr: { fy: 2026, u: 'https://www.huduser.gov/', file: 'data/county_fmr.json', rows: null }, hpi: { t: 'test index', u: 'https://www.fhfa.gov/', dir: 'data/county_hpi/', volK: 1.1 } };
+  fmr: { fy: 2026, u: 'https://www.huduser.gov/', file: 'data/county_fmr.json', rows: null }, zip: { dir: 'data/zip/' }, hpi: { t: 'test index', u: 'https://www.fhfa.gov/', dir: 'data/county_hpi/', volK: 1.1 } };
 const ROWS = { rows: [['53033', 'King County, Washington', 850000, 1750, 7225, 2000], ['01001', 'Autauga County, Alabama', 190000, null, 703, null]] };
+// ZIP 98101 in King County: value 700,000 × 1.2 = $840,000; tax 6,300 ÷ 700,000 = 0.9%; HUD 3BR 3,200 × (1,800 ÷ 2,000) = $2,880
+const ZIP98 = { meta: { acs: { t: 'Census ACS 5-year 2020–2024, ZIP Code Tabulation Areas', u: 'https://www.census.gov/' }, safmr: { t: 'HUD Small Area Fair Market Rents FY2027', u: 'https://www.huduser.gov/' } },
+  zips: { '98101': ['53033', 700000, 1800, 6300, 2000, [1600, 1900, 2400, 3200, 3700]] } };
 const FMR = { rows: { '53033': [1500, 1700, 2000, 2600, 3000] } };
 const HPI53 = { meta: {}, counties: { '53033': Object.fromEntries([...Array(36)].map((_, i) => [String(1990 + i), Math.round(100 * Math.pow(1.05, i) * 100) / 100])) } };
 const ROOT = path.join(__dirname, '..');
@@ -25,7 +28,7 @@ const ROOT = path.join(__dirname, '..');
   const server = http.createServer((req, res) => {
     const u = decodeURIComponent(req.url.split('?')[0]);
     if (u === '/' || u === '/index.html') { res.writeHead(200, { 'Content-Type': 'text/html' }); return res.end(html); }
-    const json = { '/data/counties.json': ROWS, '/data/county_fmr.json': FMR, '/data/county_hpi/53.json': HPI53 }[u];
+    const json = { '/data/counties.json': ROWS, '/data/county_fmr.json': FMR, '/data/county_hpi/53.json': HPI53, '/data/zip/98.json': ZIP98 }[u];
     if (u === '/data/counties.json') countyFetches++;
     if (json) { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(json)); }
     const f = path.join(ROOT, path.normalize(u));
@@ -109,6 +112,22 @@ const ROOT = path.join(__dirname, '..');
   /* printed inputs list the main settings and every changed one */
   await set({ hoa: 250 }); await page.evaluate(() => dispatchEvent(new Event('beforeprint')));
   ok(await page.evaluate(() => /HOA/.test(document.getElementById('printInputs').textContent) && /King County/.test(document.getElementById('printInputs').textContent)), 'print report lists changed settings');
+
+  /* ZIP codes: value, tax and HUD rent for the ZIP, county price history; restored after reload */
+  await set({ metro: 'us' }); await page.selectOption('#metro', '__county');
+  await page.waitForFunction(() => document.getElementById('countyList').options.length > 0, null, { timeout: 5000 });
+  await page.fill('#countyQ', '98101'); await page.press('#countyQ', 'Enter');
+  await page.waitForFunction(() => document.getElementById('metro').value === 'zip:98101', null, { timeout: 5000 }).catch(() => {}); await page.waitForTimeout(400);
+  ok(await page.inputValue('#metro') === 'zip:98101' && /ZIP 98101 · King County/.test(await page.evaluate(() => curMetro().name)), 'a ZIP code becomes the location');
+  ok(await page.evaluate(() => numOf('P') === 840000 && numOf('ptax') === 0.9 && numOf('ins') === 1404 && numOf('rent0') === 2880), 'ZIP fills value, tax, county insurance and HUD 3-bedroom rent', JSON.stringify(await page.evaluate(() => [numOf('P'), numOf('ptax'), numOf('ins'), numOf('rent0')])));
+  await page.waitForFunction(() => curMetro().hpi, null, { timeout: 5000 }).catch(() => {});
+  ok(await page.evaluate(() => !!curMetro().hpi), 'ZIP uses its county price history');
+  await page.waitForTimeout(400); await page.reload(); await page.waitForFunction(() => document.getElementById('vhead').textContent !== 'Computing…');
+  await page.waitForFunction(() => document.getElementById('metro').value === 'zip:98101', null, { timeout: 5000 }).catch(() => {});
+  ok(await page.inputValue('#metro') === 'zip:98101', 'a saved ZIP is restored after reloading');
+  await page.selectOption('#metro', '__county'); await page.fill('#countyQ', '99999'); await page.press('#countyQ', 'Enter'); await page.waitForTimeout(500);
+  ok(/No data for ZIP 99999/.test(await page.getAttribute('#countyQ', 'placeholder')), 'an unknown ZIP says so');
+  await page.press('#countyQ', 'Escape');
 
   /* the top card says whether the rent is estimated, and offers the estimate back after a typed rent */
   await set({ metro: 'us' }); ok((await page.textContent('#rentTag')).trim() === 'est.', 'top card marks the rent as estimated');

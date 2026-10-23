@@ -247,6 +247,7 @@ if os.path.exists(cf):
                 'insU': next((v[1] for v in state_ins.values() if v[1]), None), 'stateIns': {k: v[0] for k, v in state_ins.items()},
                 'file': 'data/counties.json' if PWA else None, 'rows': None if PWA else c['rows'],
                 'fmr': ({'fy': fmr['fiscal_year'], 'u': fmr['source_url'], 'file': 'data/county_fmr.json' if PWA else None, 'rows': None if PWA else fmr['rows']} if fmr else None),
+                'zip': ({'dir': 'data/zip/'} if PWA and glob.glob(D('data', 'zip', '*.json')) else None),
                 'hpi': ({'t': hpi_meta['source_title'], 'u': hpi_meta['source_url'], 'dir': 'data/county_hpi/', 'volK': vks[len(vks) // 2] if vks else 1} if hpi_meta and PWA else None)}
 
 # the installed (PWA) build serves pinned copies from vendor/; the artifact build can only load from public CDNs
