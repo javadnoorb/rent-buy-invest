@@ -1,0 +1,13 @@
+name: probe
+on:
+  push:
+    branches: [ccr-cc45a5a9-cgrtuy]
+    paths: [.github/workflows/probe.yml, scripts/probe.py]
+jobs:
+  p:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: { python-version: '3.12' }
+      - run: python scripts/probe.py
