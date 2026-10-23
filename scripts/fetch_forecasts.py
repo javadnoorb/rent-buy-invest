@@ -4,7 +4,8 @@
 - 10-year annual-average forecasts from the Federal Reserve Bank of Philadelphia's Survey of Professional Forecasters.
   Only first-quarter surveys ask for them: S&P 500 returns, the 10-year Treasury rate, 3-month bill returns, CPI inflation.
 - How often owners and renters move: Census Current Population Survey, Table A-4 (annual geographic mobility by tenure).
-- What renters spend on tenant's insurance: BLS Consumer Expenditure Survey, table by housing tenure.
+- What renters spend on tenant's insurance: BLS Consumer Expenditure Survey (series CXU350110LB1705M: item 350110
+  tenant's insurance, housing tenure = renter), through the BLS public API.
 Keeps the existing values of any part that fails.
 Run: python3 scripts/fetch_forecasts.py [out.json]
 """
@@ -15,12 +16,15 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'data', 'forecasts_public.json')
 SPF = 'https://www.philadelphiafed.org/surveys-and-data/real-time-data-research/spf-q1-{y}'
 CPS = 'https://www2.census.gov/programs-surveys/demo/tables/geographic-mobility/time-series/historic/hst_mig_a_4.xlsx'
-CE = 'https://www.bls.gov/cex/tables/calendar-year/mean-item-share-average-standard-error/cu-housing-tenure-{y}.xlsx'
+CE = 'CXU350110LB1705M'
+CE_URL = 'https://data.bls.gov/timeseries/CXU350110LB1705M'
 H = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36 rent-buy-invest',
      'Accept': 'text/html,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,*/*;q=0.8', 'Accept-Language': 'en-US,en;q=0.9'}
 
 def get(url):
     with urllib.request.urlopen(urllib.request.Request(url, headers=H), timeout=120) as r: return r.read()
+def get_api(url, body):
+    with urllib.request.urlopen(urllib.request.Request(url, body, {'Content-Type': 'application/json', 'User-Agent': 'rent-buy-invest data refresh'}), timeout=120) as r: return r.read()
 def text(h): return re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', h))).strip()
 
 def parse_spf(page):
@@ -61,18 +65,12 @@ def parse_cps(data):
     if year is None or len(got) < 2: raise ValueError('table layout changed')
     return year, got['owner'], got['renter']
 
-def parse_ce(data):
-    """Average yearly tenant's insurance of renter households in the CE housing-tenure table."""
-    rows = xlsx_lite.rows(data)
-    hi = next(i for i, r in enumerate(rows[:40]) if r and any('renter' in str(c or '').lower() for c in r))
-    col = next(j for j, c in enumerate(rows[hi]) if 'renter' in str(c or '').lower())
-    seen = False
-    for r in rows[hi + 1:]:
-        a = str((r or [None])[0] or '').strip().lower()
-        if "tenant's insurance" in a or 'tenants insurance' in a: seen = True
-        if seen and len(r) > col and isinstance(r[col], (int, float)): return float(r[col])
-        if seen and len(r) > 1 and str(r[1] or '').strip().lower() == 'mean' and len(r) > col and isinstance(r[col], (int, float)): return float(r[col])
-    raise ValueError("no tenant's insurance row")
+def parse_ce(res):
+    """(year, dollars) of the latest year in a BLS API response for the CE renter tenant's-insurance series."""
+    data = [d for d in res['Results']['series'][0]['data'] if re.fullmatch(r'\d+(\.\d+)?', d['value'])]
+    if not data: raise ValueError('no data')
+    d = max(data, key=lambda d: d['year'])
+    return int(d['year']), float(d['value'])
 
 if __name__ == '__main__':
     old = json.load(open(OUT)) if os.path.exists(OUT) else {}
@@ -92,14 +90,14 @@ if __name__ == '__main__':
                          'title': f'Census Current Population Survey, Table A-4: share of people in owner- and renter-occupied homes who moved in the past year ({y})'}
         print('CPS', out['movers'])
     except Exception as e: print(f'CPS: {e}')
-    for y in range(now.tm_year - 1, now.tm_year - 4, -1):
-        try:
-            v = parse_ce(get(CE.format(y=y)))
-            if 20 < v < 2000:
-                out['renters_ins'] = {'year': y, 'value': round(v), 'url': CE.format(y=y),
-                                      'title': f"BLS Consumer Expenditure Survey {y}, by housing tenure: average tenant's insurance of renter households"}
-                print('CE', out['renters_ins']); break
-            print(f'CE {y}: implausible {v}')
-        except Exception as e: print(f'CE {y}: {e}')
+    try:
+        body = json.dumps({'seriesid': [CE], 'startyear': str(now.tm_year - 4), 'endyear': str(now.tm_year)}).encode()
+        y, v = parse_ce(json.loads(get_api('https://api.bls.gov/publicAPI/v1/timeseries/data/', body)))
+        if 20 < v < 2000:
+            out['renters_ins'] = {'year': y, 'value': round(v), 'url': CE_URL,
+                                  'title': f"BLS Consumer Expenditure Survey {y}: average yearly tenant's insurance of renter households (series {CE})"}
+            print('CE', out['renters_ins'])
+        else: print(f'CE {y}: implausible {v}')
+    except Exception as e: print(f'CE: {e}')
     out['fetched_utc'] = time.strftime('%Y-%m-%dT%H:%M:%SZ', now)
     json.dump(out, open(OUT, 'w'), indent=1); print('wrote', OUT)
