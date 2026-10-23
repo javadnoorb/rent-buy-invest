@@ -185,6 +185,19 @@ if ic.get('states'):
     pp = ic.get('ppi') or {}
     if pp.get('latest') and pp.get('base_year_avg') and not 0.7 <= pp['latest'] / pp['base_year_avg'] <= 1.8: bad(f"insurance price index ratio {pp['latest'] / pp['base_year_avg']:.2f}")
 
+# ---- public forecasts, mover rates, renters insurance ----
+fp, fp0 = load('data/forecasts_public.json') or {}, old('data/forecasts_public.json') or {}
+sp, sp0 = fp.get('spf') or {}, fp0.get('spf') or {}
+for k, lo, hi in (('stocks', 2, 14), ('bond_rate', 0.5, 10), ('bills', 0, 9), ('cpi', 0.5, 6)):
+    v = sp.get(k)
+    if sp and (v is None or not lo <= v <= hi): bad(f'forecast {k}: {v}')
+    if v is not None and sp0.get(k) is not None and abs(v - sp0[k]) > 2.5: bad(f'forecast {k}: {sp0[k]} → {v}')
+mv = fp.get('movers') or {}
+if mv and not (0.015 <= (mv.get('owner') or 0) <= 0.15 and 0.05 <= (mv.get('renter') or 0) <= 0.4): bad(f"mover rates: {mv.get('owner')}, {mv.get('renter')}")
+ri, ri0 = (fp.get('renters_ins') or {}).get('value'), (fp0.get('renters_ins') or {}).get('value')
+if fp.get('renters_ins') and not 20 <= (ri or 0) <= 1000: bad(f'renters insurance: {ri}/yr')
+if ri and ri0 and abs(ri / ri0 - 1) > 0.6: bad(f'renters insurance: {ri0} → {ri}')
+
 if problems:
     print(f'data check failed ({len(problems)} problem{"s" if len(problems) > 1 else ""}):')
     for p in problems[:60]: print('  ' + p)

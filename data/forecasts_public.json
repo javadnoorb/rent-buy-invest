@@ -1,0 +1,26 @@
+{
+ "spf": {
+  "stocks": 7.0,
+  "bond_rate": 4.0,
+  "bills": 3.0,
+  "cpi": 2.3,
+  "span": "2026\u20132035",
+  "year": 2026,
+  "url": "https://www.philadelphiafed.org/surveys-and-data/real-time-data-research/spf-q1-2026",
+  "title": "Federal Reserve Bank of Philadelphia, Survey of Professional Forecasters, first quarter 2026: median 10-year annual-average forecasts"
+ },
+ "movers": {
+  "year": 2023,
+  "owner": 0.0411,
+  "renter": 0.1617,
+  "url": "https://www2.census.gov/programs-surveys/demo/tables/geographic-mobility/time-series/historic/hst_mig_a_4.xlsx",
+  "title": "Census Current Population Survey, Table A-4: share of people in owner- and renter-occupied homes who moved in the past year (2023)"
+ },
+ "fetched_utc": "2026-10-23T20:37:06Z",
+ "renters_ins": {
+  "year": 2024,
+  "value": 104,
+  "url": "https://data.bls.gov/timeseries/CXU350110LB1705M",
+  "title": "BLS Consumer Expenditure Survey 2024: average yearly tenant's insurance of renter households (series CXU350110LB1705M)"
+ }
+}

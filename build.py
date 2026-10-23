@@ -63,18 +63,21 @@ def first_url(e):
 iv = res_raw['idio_vol']
 ten = res_raw['tenure']
 tv = ten['value']
-med_tenure = tv.get('redfin_median_tenure_2025') or 12
-hz = 1 - 0.5 ** (1 / med_tenure)
+# chance of moving: Census CPS Table A-4 mover rates by tenure (data/forecasts_public.json, from scripts/fetch_forecasts.py)
+FP = json.load(open(D('data', 'forecasts_public.json'))) if os.path.exists(D('data', 'forecasts_public.json')) else {}
+MV = FP.get('movers') or {'year': 2023, 'owner': tv.get('cps_owner_mover_rate_2023') or 0.041, 'renter': tv.get('cps_renter_mover_rate_2023') or 0.162,
+                          'url': 'https://www2.census.gov/programs-surveys/demo/tables/geographic-mobility/time-series/historic/hst_mig_a_4.xlsx'}
+hz = MV['owner']
+med_stay = math.log(2) / -math.log(1 - hz)
 RES = {
     'idio': {'u': 'https://academic.oup.com/rfs/article/34/8/3695/5974712' if False else first_url(iv),
              'h': 'Flavin &amp; Yamashita (2002): single-house return s.d. ≈ 14%/yr vs 4–6% for city indexes; Giacoletti (2021): 10–18% one-time resale shock'},
-    'hazard': {'u': (ten.get('sources') or [{}])[1].get('url') if len(ten.get('sources') or []) > 1 else first_url(ten),
-               'h': f'Redfin: typical owner stays {med_tenure:g} years (implies ≈{hz*100:.1f}%/yr); NAR 2025 median seller tenure {tv.get("nar_median_years_seller_tenure_2025")} yrs'},
+    'hazard': {'u': MV['url'],
+               'h': f'Census CPS {MV["year"]}: {hz*100:.1f}% of people in owner-occupied homes moved in the past year (a typical stay of about {med_stay:.0f} years at that rate)'},
     'dy': {'u': res_raw['div_yield']['source_url'], 'h': f'S&amp;P 500 trailing yield {res_raw["div_yield"]["value"]*100:.2f}% ({res_raw["div_yield"]["date"]}, multpl estimate)'},
     'spread': {'u': res_raw['margin_rate']['source_url'], 'h': 'Interactive Brokers Pro margin: benchmark + 1.5% under $100k, + 1.0% to $1M'},
     'mortSpread': {'u': res_raw['mortgage_spread']['source_url']},
-    'rMove': {'u': next((s['url'] for s in (ten.get('sources') or []) if 'census.gov' in s.get('url','')), None),
-              'h': f'Census CPS 2023: {tv.get("cps_renter_mover_rate_2023",0)*100:.1f}% of renters moved (owners {tv.get("cps_owner_mover_rate_2023",0)*100:.1f}%)'},
+    'rMove': {'u': MV['url'], 'h': f'Census CPS {MV["year"]}: {MV["renter"]*100:.1f}% of people in rented homes moved (owners {hz*100:.1f}%)'},
     'sell': {'u': first_url(res_raw['sell_costs']), 'h': 'commissions ≈ 5–5.5% (Redfin via Opendoor) plus 1–3% other seller costs'},
     'close': {'u': None, 'h': 'buyer closing costs typically 2–5%'},
     'maint': {'u': first_url(res_raw['maintenance']), 'h': 'Census AHS 2021: median upkeep + improvements 0.6–1.5% of value; rule of thumb 1–3%'},
@@ -107,13 +110,15 @@ def load(name):
         if os.path.exists(f): return json.load(open(f))
     return None
 REAL = load('realism.json') or {}
-FC = load('forecasts.json')
 exec(open(D('build_params.py')).read()) if os.path.exists(D('build_params.py')) else None
 D0_EXTRA = globals().get('D0_EXTRA', {'renewGap': 0, 'incGrowth': 3.0, 'stressMult': 2, 'forcedDisc': 3, 'vacR': 7, 'dpR': 25, 'ratePrem': 0.6, 'mgmt': 9})
 RES.update(globals().get('RES_EXTRA', {}))
 FCST = globals().get('FCST', None)
-D0 = {'rMove': round((tv.get('cps_renter_mover_rate_2023') or 0.162)*100,1), 'close': 3, 'maint': 1.0, 'sell': 6.5, 'dy': round(res_raw['div_yield']['value'] * 100, 2), 'spread': 1.5,
-      'hz': round(hz * 100, 1), 'idio': 12, **D0_EXTRA}
+D0 = {'rMove': round(MV['renter'] * 100, 1), 'close': 3, 'maint': 1.0, 'sell': 6.5, 'dy': round(res_raw['div_yield']['value'] * 100, 2), 'spread': 1.5,
+      'hz': round(hz * 100, 1), 'idio': 12, 'rins': (FP.get('renters_ins') or {}).get('value', 0), **D0_EXTRA}
+if FP.get('renters_ins'):
+    _ri = FP['renters_ins']
+    RES['rins'] = {'u': _ri['url'], 'h': f"BLS Consumer Expenditure Survey {_ri['year']}: renters spent ${_ri['value']}/yr on average, counting those without a policy; a policy typically costs more"}
 
 mort = res_raw['mortgage_annual']['value']
 MORT_OVERRIDE = [mort[str(y)] for y in range(1972, 2026)]
@@ -304,6 +309,7 @@ if PWA:
             '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
             '<meta name="description" content="Compare buying a home, renting and investing, with sourced market data, backtests and Monte Carlo.">\n'
             '<link rel="manifest" href="manifest.webmanifest">\n'
+            f'<link rel="preload" href="{VENDOR["plotly"]}" as="script">\n'
             '<meta name="color-scheme" content="light dark">\n'
             '<meta name="theme-color" content="#f3f5f4" media="(prefers-color-scheme: light)">\n'
             '<meta name="theme-color" content="#0e1312" media="(prefers-color-scheme: dark)">\n'

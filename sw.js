@@ -1,9 +1,10 @@
 // Offline support: the page itself is network-first (so updates show up), everything else cache-first.
-// The charting and formula libraries are pinned copies in vendor/, precached with the page so the installed app works
-// with no connection. Bump CACHE when a vendor file changes.
-const CACHE = 'rbi-v4';
+// The charting library is a pinned copy in vendor/, precached with the page so the installed app works with no connection.
+// The formula library (2.3 MB, only for the Method tab) is cached the first time it is used instead. Bump CACHE when a
+// vendor file changes.
+const CACHE = 'rbi-v5';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png',
-  './vendor/plotly-cartesian-2.35.2.min.js', './vendor/mathjax-3.2.2-tex-svg-full.js'];
+  './vendor/plotly-cartesian-2.35.2.min.js'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
 });

@@ -1,14 +1,17 @@
 /* ===================== Wiring ===================== */
 const RENDER={proj:renderProj,sens:renderSens,opt:renderOpt,hist:renderHist,mc:()=>{renderMC();typeset(document.getElementById('tab-mc'))},loc:renderLoc,scen:renderScen,data:renderData,method:()=>typeset(document.getElementById('tab-method'))};
-function showTab(k){CUR=k;document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===k));
+function showTab(k){CUR=k;document.querySelectorAll('.tabs button').forEach(b=>{b.setAttribute('aria-selected',b.dataset.tab===k);b.tabIndex=b.dataset.tab===k?0:-1});
   Object.keys(RENDER).forEach(t=>document.getElementById('tab-'+t).hidden=t!==k);try{localStorage.setItem('rbi-tab',k)}catch(e){}
   const ab=document.querySelector(`.tabs button[data-tab="${k}"]`),tb=ab&&ab.parentElement;if(tb&&tb.scrollTo)tb.scrollTo({left:ab.offsetLeft-(tb.clientWidth-ab.offsetWidth)/2,behavior:'smooth'});
   requestAnimationFrame(()=>RENDER[k]())}
 function tabFade(){const t=document.querySelector('.tabs');if(!t)return;t.classList.toggle('more-l',t.scrollLeft>4);t.classList.toggle('more-r',t.scrollLeft+t.clientWidth<t.scrollWidth-4)}
 const QUICK=['P','rent0','dp','rate'];
 function syncQuick(){QUICK.forEach(k=>{const q=document.getElementById('q-'+k),m=document.getElementById(k);if(document.activeElement!==q){q.value=unfmt(m.value);if(q.dataset.money!=null)fmtMoneyEl(q)}})}
-function persist(){try{localStorage.setItem('rbi-inputs',JSON.stringify(Object.assign(getRaw(),{REAL,v:5})));document.getElementById('saved').textContent='saved on this device'}catch(e){}}
-function restore(){try{const o=JSON.parse(localStorage.getItem('rbi-inputs')||'null');if(!o||(o.v!==4&&o.v!==5))return;setRaw(o,o.v===4);if(o.REAL===false)REAL=false;const m=METROS.find(x=>x.slug===o.metro);if(m){const ms=metroStart(m),btn=document.getElementById('metroPreset');btn.hidden=!ms;if(ms)btn.textContent=`${m.name} ${ms}–2025 avg`;updateMetroHints(m)}}catch(e){}}
+function persist(){try{localStorage.setItem('rbi-inputs',JSON.stringify(Object.assign(getRaw(),{REAL,v:6})));document.getElementById('saved').textContent='saved on this device'}catch(e){}}
+function restore(){try{const o=JSON.parse(localStorage.getItem('rbi-inputs')||'null');if(!o||![4,5,6].includes(o.v))return;
+  // saves before v6 hold the old defaults for renter's insurance ($0) and the chance of moving (5.6%, Redfin): use the new ones
+  if(o.v<6){if(+o.rins===0)delete o.rins;if(+o.hz===5.6)delete o.hz}
+  setRaw(o,o.v===4);if(o.REAL===false)REAL=false;const m=METROS.find(x=>x.slug===o.metro);if(m){const ms=metroStart(m),btn=document.getElementById('metroPreset');btn.hidden=!ms;if(ms)btn.textContent=`${m.name} ${ms}–2025 avg`;updateMetroHints(m)}}catch(e){}}
 function validate(){document.querySelectorAll('aside input[type=number],aside input[data-money]').forEach(el=>{const v=unfmt(el.value);el.classList.toggle('bad',v===''||!isFinite(parseFloat(v)))})}
 let timer=null;
 function syncLoanFields(){const t=document.getElementById('loanType').value;
@@ -36,7 +39,7 @@ function init(){
   document.getElementById('nwBand').addEventListener('change',()=>renderProj());
   document.getElementById('realBtn').setAttribute('aria-pressed',REAL);document.getElementById('nomBtn').setAttribute('aria-pressed',!REAL);
   document.getElementById('h-year').max=2025;
-  {const fb=document.getElementById('fcstPreset');fb.hidden=!PRESETS.fcst;if(PRESETS.fcst&&FCST.note){const h=document.createElement('div');h.className='hint muted';h.style.fontSize='11px';h.innerHTML=FCST.note;fb.parentElement.after(h)}}
+  {const fb=document.getElementById('fcstPreset');fb.hidden=!PRESETS.fcst;if(PRESETS.fcst&&FCST.note){const h=document.createElement('div');h.className='hint muted';h.style.fontSize='11px';h.innerHTML=FCST.note.replace('__GH__',PRESETS.fcst.gh).replace('__GR__',PRESETS.fcst.gr);fb.textContent=FCST.label||fb.textContent;fb.parentElement.after(h)}}
   if(!MONTHLY){const o=document.querySelector('#h-mode option[value=monthly]');o.disabled=true;o.textContent+=' (unavailable)'}
   QUICK.forEach(k=>document.getElementById('q-'+k).addEventListener('input',e=>{if(e.target.value==='')return;if(k==='rent0'&&e.isTrusted)rentTyped();document.getElementById(k).value=unfmt(e.target.value);update()}));
   document.addEventListener('focusin',e=>{if(e.target.dataset&&e.target.dataset.money!=null)e.target.value=unfmt(e.target.value)});
@@ -58,7 +61,16 @@ function init(){
   document.getElementById('nomBtn').addEventListener('click',()=>{REAL=false;setBasis()});
   document.getElementById('opt30').addEventListener('click',()=>{OPT_TERM=30;document.getElementById('opt30').setAttribute('aria-pressed',true);document.getElementById('opt15').setAttribute('aria-pressed',false);renderOpt()});
   document.getElementById('opt15').addEventListener('click',()=>{OPT_TERM=15;document.getElementById('opt15').setAttribute('aria-pressed',true);document.getElementById('opt30').setAttribute('aria-pressed',false);renderOpt()});
-  document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
+  /* tabs follow the ARIA tabs pattern: each tab names its panel, arrow keys / Home / End move between tabs */
+  const TABS=[...document.querySelectorAll('.tabs button')];
+  TABS.forEach((b,i)=>{const pn=document.getElementById('tab-'+b.dataset.tab);b.id='tb-'+b.dataset.tab;b.setAttribute('aria-controls',pn.id);
+    pn.setAttribute('role','tabpanel');pn.setAttribute('aria-labelledby',b.id);b.tabIndex=b.getAttribute('aria-selected')==='true'?0:-1;
+    b.addEventListener('click',()=>showTab(b.dataset.tab));
+    b.addEventListener('keydown',e=>{const j={ArrowRight:i+1,ArrowLeft:i-1,Home:0,End:TABS.length-1}[e.key];if(j==null)return;e.preventDefault();
+      const t=TABS[(j+TABS.length)%TABS.length];t.focus();showTab(t.dataset.tab)})});
+  /* scrollable tables can be scrolled from the keyboard and are announced by their card title */
+  document.querySelectorAll('.tablewrap').forEach(w=>{w.tabIndex=0;w.setAttribute('role','region');
+    const h=w.closest('.card')&&w.closest('.card').querySelector('h2,h3');w.setAttribute('aria-label',h?h.textContent.trim():'Table')});
   ['h-rate','h-year','h-mode','h-home'].forEach(id=>document.getElementById(id).addEventListener('change',()=>renderHist()));
   document.getElementById('mc-run').addEventListener('click',()=>{document.getElementById('mc-note').textContent='Running simulations…';startMC(true)});
   ['mc-n','mc-b','mc-w','mc-rc'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{if(CUR==='mc'){document.getElementById('mc-note').textContent='Running simulations…';startMC(true)}}));
@@ -82,9 +94,11 @@ function loadScript(u){return new Promise((res,rej)=>{const sc=document.createEl
 (async()=>{
   // the cartesian build (scatter, bar, heatmap, contour, histogram) is all the app draws: about 1.4 MB instead of 4.6 MB
   const urls=LOCAL_LIBS.concat(['https://cdn.jsdelivr.net/npm/plotly.js-cartesian-dist-min@2.35.2/plotly-cartesian.min.js','https://unpkg.com/plotly.js-cartesian-dist-min@2.35.2/plotly-cartesian.min.js','https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js']);
+  // the numbers render right away; charts are drawn when the library has loaded
+  init();
   for(const u of urls){if(window.Plotly)break;try{await loadScript(u)}catch(e){}}
   if(!window.Plotly){window.Plotly={react(){throw new Error('the charting library did not load; check your connection and reload')}}}
-  init();
+  plotFlush(!!window.Plotly.Plots);
 })();
 
 /* compact answer bar that appears once the main answer scrolls out of view, with a horizon stepper */

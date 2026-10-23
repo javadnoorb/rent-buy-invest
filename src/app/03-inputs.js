@@ -43,7 +43,7 @@ const F=[
  ['rent','rentMode','Rent','auto',null,'typical rent for the location, scaled to your home price','sel',[['auto','Estimate from home price'],['manual','Enter my own']]],
  ['rent','rent0','Rent ($ / month)',Math.round(V.zori*(D0.bedRatio['3']||1)/10)*10,10,`Zillow typical U.S. rent $${V.zori.toLocaleString('en-US')} × Census 3-bedroom ratio · ${sl('zillow')}`],
  ['rent','renewGap','Lease renewals below market growth (pts / yr)',D0.renewGap,0.25,resHint('renew')],
- ['rent','rins',"Renter's insurance ($ / yr)",0,10,''],
+ ['rent','rins',"Renter's insurance ($ / yr)",D0.rins||0,10,resHint('rins')],
  ['mkt','gh','Home appreciation (% / yr)',PRESETS.long.gh,0.1,`FHFA U.S. index ${V.hpiYoY>=0?'+':''}${V.hpiYoY}% over 12 months ${sl('fhfaUS')}`],
  ['mkt','gr','Rent growth (% / yr)',PRESETS.long.gr,0.1,`Zillow asking rents ${V.zoriYoY>=0?'+':''}${V.zoriYoY}% YoY ${sl('zillow')}`],
  ['mkt','inf','Inflation (% / yr)',PRESETS.long.inf,0.1,`CPI-U ${V.cpiYoY}% YoY ${sl('cpi')}`],

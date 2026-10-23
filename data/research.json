@@ -67,30 +67,15 @@
  },
  "tenure": {
   "value": {
-   "nar_median_years_seller_tenure_2025": 11,
-   "redfin_median_tenure_2025": 12.0,
-   "redfin_median_tenure_2024": 11.8,
    "cps_owner_mover_rate_2023": 0.041,
    "cps_renter_mover_rate_2023": 0.162,
    "cps_owner_mover_rate_1988": 0.095,
    "acs_overall_household_mobility_2024": 0.112
   },
-  "description": "NAR 2025 Profile: sellers' median tenure was 11 years, an all-time high. Redfin: the typical homeowner stayed 12 years in 2025, up from 11.8 in 2024. Census CPS Table A-4: 4.1% of owners moved in 2023, the lowest in the series since 1988; 16.2% of renters moved.",
+  "description": "Census CPS Table A-4: 4.1% of people in owner-occupied homes moved in 2023, the lowest since the series began in 1988 (9.5%); 16.2% of people in renter-occupied homes moved. The build now reads these from data/forecasts_public.json, fetched from the Census table each week.",
   "sources": [
    {
-    "title": "NAR, Top 10 takeaways from NAR's 2025 Profile of Home Buyers and Sellers",
-    "url": "https://www.nar.realtor/blogs/economists-outlook/top-10-takeaways-from-nars-2025-profile-of-home-buyers-and-sellers"
-   },
-   {
-    "title": "Redfin press release (Business Wire, 2026-03-03)",
-    "url": "https://www.businesswire.com/news/home/20260303313454/en"
-   },
-   {
-    "title": "HomeSnacks, citing Census CPS Historical Geographic Mobility Table A-4",
-    "url": "https://www.homesnacks.com/moving-statistics/"
-   },
-   {
-    "title": "Census CPS Table A-4 (xlsx; could not be parsed directly)",
+    "title": "Census CPS Historical Geographic Mobility, Table A-4 (xlsx)",
     "url": "https://www2.census.gov/programs-surveys/demo/tables/geographic-mobility/time-series/historic/hst_mig_a_4.xlsx"
    },
    {
@@ -98,9 +83,9 @@
     "url": "https://www.jchs.harvard.edu/blog/household-mobility-fell-record-low-2024"
    }
   ],
-  "source_title": "NAR 2025 Profile of Home Buyers and Sellers; Redfin 2026; Census CPS Table A-4",
-  "source_url": "https://www.nar.realtor/blogs/economists-outlook/top-10-takeaways-from-nars-2025-profile-of-home-buyers-and-sellers",
-  "notes": "The owner mover rate of 4.1% implies a mean stay of about 24 yrs under a constant hazard, which is longer than median seller tenure because tenure is right-censored and heterogeneous. The 4.1% figure comes via HomeSnacks' reading of Census Table A-4; the xlsx itself could not be parsed. JCHS reports owners under 45 at 9.8% in 2024 (ACS)."
+  "source_title": "Census CPS Table A-4",
+  "source_url": "https://www2.census.gov/programs-surveys/demo/tables/geographic-mobility/time-series/historic/hst_mig_a_4.xlsx",
+  "notes": "An owner mover rate of 4.1% a year, held constant, means a typical (median) stay of about 16½ years. It counts people, not homes, and includes moves that are not sales (for example a death in the household), so it is an approximation of the chance of selling."
  },
  "div_yield": {
   "value": 0.0105,

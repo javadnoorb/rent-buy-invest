@@ -33,7 +33,13 @@ if(TOUCH){
   addEventListener('touchend',e=>{const p=e.target.closest&&e.target.closest('.plot');if(!p)return;
     if(p._close){p._close=false;[0,60,250].forEach(d=>setTimeout(()=>clearHover(p),d));return}
     HOVERED.add(p);clearTimeout(p._ht);p._ht=setTimeout(()=>clearHover(p),2500)},{passive:true,capture:true})}
+/* The page renders before the charting library arrives: charts drawn meanwhile wait in PLOT_WAIT (latest call per chart)
+   and are drawn by plotFlush() once Plotly has loaded, or replaced by an error note if it never does. */
+let PLOTLY_STATE='loading';const PLOT_WAIT=new Map();
+function plotFlush(ok){PLOTLY_STATE=ok?'ready':'failed';const w=[...PLOT_WAIT];PLOT_WAIT.clear();w.forEach(([id,a])=>plot(id,...a))}
 function plot(id,data,lay){const el=document.getElementById(id);
+  if(PLOTLY_STATE==='loading'){PLOT_WAIT.set(id,[data,lay]);if(!el.dataset.wait){el.dataset.wait=1;el.innerHTML='<div class="note plotwait">Loading chart…</div>'}describeChart(el);return}
+  if(el.dataset.wait){el.innerHTML='';delete el.dataset.wait}
   try{if(el.dataset.err){el.innerHTML='';delete el.dataset.err}Plotly.react(el,data,layout(lay),CFG);describeChart(el)}
   catch(e){console.error(id,e);el.dataset.err=1;el.innerHTML=`<div class="note">This chart could not be drawn (${String(e.message||e).slice(0,160)}).</div>`}}
 const X=(t)=>({...layout().xaxis,title:{text:t,font:{size:11}}});

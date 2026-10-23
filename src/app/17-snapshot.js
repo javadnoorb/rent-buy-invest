@@ -2,6 +2,8 @@
 function buildSnap(){
   document.getElementById('snap').innerHTML=SNAP.items.map(c=>`<div class="chip"><span class="k"><span class="kt" title="${c.k}">${c.k}</span></span><span class="v">${c.v}</span><span class="s muted">${c.s}${c.field==='rent0'?' · all home sizes; “use” scales it to your bedrooms':''} · ${sl(c.src)}${c.field?` · <a href="#" class="use" data-f="${c.field}" data-v="${c.val}">use</a>`:''}</span></div>`).join('')+
     `<div class="chip"><span class="k"><span class="kt">Data as of</span></span><span class="v">${SNAP.asOf}</span><span class="s muted">${dataAgeText()}</span></div>`;
+  const when=new Date(SNAP.asOf+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  document.getElementById('asof').innerHTML=`Market data updated <time datetime="${SNAP.asOf}">${when}</time> (${dataAgeText()}) · refreshed weekly from public sources`;
   staleNotice();
   document.querySelectorAll('.use').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const v=a.dataset.f==='rent0'?Math.round(a.dataset.v*bedRatio(null,document.getElementById('beds').value)/10)*10:a.dataset.v;if(a.dataset.f==='rent0')rentTyped();document.getElementById(a.dataset.f).value=v;update()}));
 }

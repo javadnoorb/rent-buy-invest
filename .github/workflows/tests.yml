@@ -1,7 +1,8 @@
 name: Tests
 # Runs on every push and pull request. Two jobs in parallel:
 #   checks — static lint, model math tests, and that index.html matches src/ and data/ (seconds)
-#   smoke  — the built page in the runner's preinstalled Chrome with the real chart and formula libraries
+#   smoke  — the built page in the runner's preinstalled Chrome with the real chart and formula libraries, UI logic tests
+#            and an axe-core accessibility check
 on: [push, pull_request]
 concurrency:
   group: tests-${{ github.ref }}
@@ -34,10 +35,15 @@ jobs:
           PLAYWRIGHT_PATH: playwright-core
           CHROME_PATH: /usr/bin/google-chrome
         run: |
-          npm i --no-save --no-audit --no-fund playwright-core@1.47.2
+          npm i --no-save --no-audit --no-fund playwright-core@1.47.2 axe-core@4.10.2
           node tests/smoke.js
       - name: UI logic tests (headline, ties, undo, counties, chart descriptions)
         env:
           PLAYWRIGHT_PATH: playwright-core
           CHROME_PATH: /usr/bin/google-chrome
         run: node tests/ui.js
+      - name: Accessibility (axe-core, WCAG 2.1 AA)
+        env:
+          PLAYWRIGHT_PATH: playwright-core
+          CHROME_PATH: /usr/bin/google-chrome
+        run: node tests/a11y.js

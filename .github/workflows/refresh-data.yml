@@ -1,15 +1,19 @@
 name: Refresh data
 # Runs every Friday (Freddie Mac publishes mortgage rates on Thursdays) and on demand (Actions tab → Refresh data → Run workflow).
-# Downloads public data (Treasury yields, CPI, Zillow typical value and rent, FHFA incl. county indexes, BLS, Census incl. county figures, HUD Fair Market Rents, Freddie Mac), merges it into data/ and rebuilds
+# Downloads public data (Treasury yields, CPI, Zillow typical value and rent, FHFA incl. county indexes, BLS, Census incl. county figures, HUD Fair Market Rents, Freddie Mac,
+# Philadelphia Fed forecasts, Census mover rates, BLS renters insurance), merges it into data/ and rebuilds
 # index.html for the tests. Then scripts/check_data.py compares the new data with main and stops the run on anything implausible
 # (lost months, large revisions, jumps in rates or prices, a short county file), and the tests run. Only if both pass
 # and something changed are the data files committed to main; the Deploy site workflow then rebuilds the live page.
+# A failed run opens (or comments on) one GitHub issue labelled data-refresh, so it shows up in your notifications; the next
+# successful run closes it.
 on:
   schedule:
     - cron: '23 14 * * 5'
   workflow_dispatch:
 permissions:
   contents: write
+  issues: write
 concurrency:
   group: refresh-data
   cancel-in-progress: false
@@ -32,6 +36,7 @@ jobs:
           python scripts/fetch_county_hpi.py || echo "::warning::FHFA county index fetch failed; keeping the existing data/county_hpi/"
           python scripts/fetch_zips.py || echo "::warning::ZIP code fetch failed; keeping the existing data/zip/"
           python scripts/fetch_insurance.py || echo "::warning::insurance fetch failed; keeping the existing data/insurance.json"
+          python scripts/fetch_forecasts.py || echo "::warning::forecast/mover/renters-insurance fetch failed; keeping the existing data/forecasts_public.json"
       - name: Merge and rebuild
         run: |
           python scripts/apply_public.py /tmp/public_extract.json /tmp/fhfa_extract.json
@@ -56,3 +61,23 @@ jobs:
           git commit -m "Refresh public data $(date -u +%F)"
           # if main moved during the run, fail rather than merge over it; the next run starts from the new main
           git push origin HEAD:main || { echo "::error::main changed during the run; run Refresh data again"; exit 1; }
+      - name: Report failure as an issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh label create data-refresh --color d93f0b --description "Weekly data refresh failed" 2>/dev/null || true
+          body="The weekly data refresh failed on $(date -u +%F): $RUN
+          The live site keeps the previous data. Open the run, find the red step, and fix or re-run it (Actions → Refresh data → Run workflow). This issue closes itself after the next successful run."
+          n=$(gh issue list --label data-refresh --state open --json number --jq '.[0].number')
+          if [ -n "$n" ]; then gh issue comment "$n" --body "Failed again: $RUN"; else gh issue create --title "Data refresh failed" --label data-refresh --body "$body"; fi
+      - name: Close the failure issue after a successful run
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          for n in $(gh issue list --label data-refresh --state open --json number --jq '.[].number'); do
+            gh issue close "$n" --comment "Fixed: this run succeeded: $RUN"
+          done

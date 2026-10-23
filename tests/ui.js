@@ -17,6 +17,7 @@ const ZIP98 = { meta: { acs: { t: 'Census ACS 5-year 2020–2024, ZIP Code Tabul
 const FMR = { rows: { '53033': [1500, 1700, 2000, 2600, 3000] } };
 const HPI53 = { meta: {}, counties: { '53033': Object.fromEntries([...Array(36)].map((_, i) => [String(1990 + i), Math.round(100 * Math.pow(1.05, i) * 100) / 100])) } };
 const ROOT = path.join(__dirname, '..');
+const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_public.json'), 'utf8')).spf.stocks };
 (async () => {
   const browser = await chromium.launch(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {});
   const page = await browser.newPage({ viewport: { width: 412, height: 900 } });
@@ -162,6 +163,24 @@ const ROOT = path.join(__dirname, '..');
   ok(aff.c > 0.98 && aff.c <= 1 && aff.cl === 'income', 'comfortable price uses the 28/36 limit when cash is plentiful', JSON.stringify(aff));
   ok(aff.l > 0.425 && aff.l <= 0.43 && aff.order, 'lender-limit price uses 43% and is higher');
   ok(aff.tl === 'cash', 'with little cash, the cash limits the price');
+
+  /* saves from before v6 pick up the new defaults for renter's insurance and the chance of moving; later choices are kept */
+  const defs = await page.evaluate(() => [D0.rins, D0.hz]);
+  await reloadWith({ v: 5, metro: 'us', beds: '3', P: '500000', rins: '0', hz: '5.6' });
+  const mig = await page.evaluate(() => [numOf('rins'), numOf('hz')]);
+  ok(mig[0] === defs[0] && mig[1] === defs[1], 'old save: renter\'s insurance and moving chance take the new defaults', JSON.stringify([mig, defs]));
+  await reloadWith({ v: 6, metro: 'us', beds: '3', P: '500000', rins: '0', hz: '5.6' });
+  ok(await page.evaluate(() => numOf('rins') === 0 && numOf('hz') === 5.6), 'a v6 save keeps its own values');
+  ok(defs[0] > 20 && defs[1] > 1 && defs[1] < 15, 'defaults come from the public data', JSON.stringify(defs));
+
+  /* forecast preset: public 10-year forecasts, homes and rent = forecast inflation plus their own real growth */
+  const fc = await page.evaluate(() => { const f = PRESETS.fcst, real = a => (1 + geo(a, 1972) / 100) / (1 + geo(INF, 1972) / 100);
+    return f && { f, gh: ((1 + f.inf / 100) * real(HOME) - 1) * 100, note: document.getElementById('fcstPreset').parentElement.nextElementSibling.textContent }; });
+  ok(fc && fc.f.rs === FCSTV.rs && Math.abs(fc.f.gh - fc.gh) < 0.01, 'forecast preset uses the survey and real home growth', JSON.stringify(fc && fc.f));
+  ok(fc && !/__G[HR]__/.test(fc.note) && /Philadelphia Fed/.test(fc.note), 'forecast note names its source and fills in homes and rent');
+
+  /* header line with the data date */
+  ok(/Market data updated .+ refreshed weekly/.test(await page.textContent('#asof')), 'header shows when the data was updated');
 
   ok(!errors.length, 'no page errors', errors.join(' | '));
   await browser.close(); server.close();
