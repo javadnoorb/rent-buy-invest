@@ -80,6 +80,9 @@ function buildMethod(){
 
   <p>A sale that brings in less than the mortgage leaves a shortfall. It is held as a negative balance that grows at the T-bill rate plus 3 points a year, \\(V_{t+1} = V_t\\,(1 + r^{bill}_t + 0.03/12)\\) while \\(V_t \\lt 0\\), and later savings pay it down before anything is invested.</p>
 
+  <h3>Rent estimated from the home price</h3>
+  <p>With the rent setting on <em>Estimate from home price</em>: \\(\\text{rent}_0 = \\bar R_{loc}\\, b_{beds} \\,(P / \\bar P_{loc})^{0.65}\\), where \\(\\bar R_{loc}\\) and \\(\\bar P_{loc}\\) are the location's typical rent and home value and \\(b_{beds}\\) the Census rent ratio for the bedrooms chosen. The exponent is the slope of log median rent on log median home value across about 3,200 U.S. counties (Census ACS 2020–2024): pricier homes rent for less relative to their price. It is measured across places, so within one market the true slope may differ; a real comparable rental is better.</p>
+
   <h3>Extra payments, PMI removal, gains tax and home-equity line</h3>
   <p><em>Extra each month</em> \\(E\\) is added to the owner's monthly cost, so the renter invests the same amount. Toward principal: \\(B_{t+1} = B_t - (M - iB_t) - \\min(E, B_t)\\); once the loan is paid off early, the scheduled payment \\(M\\) keeps going into the buyer's portfolio until the original term ends, so both choices spend the same. Toward the portfolio: \\(E\\) is invested each month instead.</p>
   <p><em>PMI by appraisal</em> (conventional loans): PMI stops at the first month \\(t \\ge 24\\) with \\(B_t \\le 0.75\\,H_t\\), or \\(t \\ge 60\\) with \\(B_t \\le 0.80\\,H_t\\), besides the scheduled stop at \\(0.78\\,P\\). The appraisal fee is not modeled.</p>

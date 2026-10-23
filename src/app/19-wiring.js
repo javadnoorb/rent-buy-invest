@@ -16,7 +16,7 @@ function syncLoanFields(){const t=document.getElementById('loanType').value;
   document.getElementById('pmi').closest('.f').hidden=t==='fha';
   ['ttBuy','ttSell'].forEach(id=>document.getElementById(id).closest('.f').hidden=false)}
 let LAST_KEY='';
-function update(){clearTimeout(timer);timer=setTimeout(()=>{VOLADJ=document.getElementById('volAdj').value!=='0';applyTT();syncLoanFields();formatMoneyAll();markChanged();const raw=getRaw(),key=JSON.stringify(raw)+REAL;if(key===LAST_KEY&&P)return;LAST_KEY=key;if(LAST_RAW)noteBulkChange(LAST_RAW,raw);LAST_RAW=raw;validate();syncQuick();persist();P=readP();
+function update(){clearTimeout(timer);timer=setTimeout(()=>{VOLADJ=document.getElementById('volAdj').value!=='0';applyTT();applyRentMode();syncLoanFields();formatMoneyAll();markChanged();const raw=getRaw(),key=JSON.stringify(raw)+REAL;if(key===LAST_KEY&&P)return;LAST_KEY=key;if(LAST_RAW)noteBulkChange(LAST_RAW,raw);LAST_RAW=raw;validate();syncQuick();persist();P=readP();
   {const muEl=document.getElementById('mu');const auto=P.muMode==='auto';muEl.disabled=auto;if(auto)muEl.value=Math.round(P.mu*100);
    const lgEl=document.getElementById('ltcg'),lgAuto=P.ltcgMode==='auto';lgEl.disabled=lgAuto;if(lgAuto)lgEl.value=Math.round(P.ltcg*100);}document.getElementById('Nlab').textContent=P.N+' year'+(P.N>1?'s':'');
   BASE=simulate(P,constPath(P,P.N));if(MC&&MC.key!==mcKey())MC=null;
@@ -38,12 +38,13 @@ function init(){
   document.getElementById('h-year').max=2025;
   {const fb=document.getElementById('fcstPreset');fb.hidden=!PRESETS.fcst;if(PRESETS.fcst&&FCST.note){const h=document.createElement('div');h.className='hint muted';h.style.fontSize='11px';h.innerHTML=FCST.note;fb.parentElement.after(h)}}
   if(!MONTHLY){const o=document.querySelector('#h-mode option[value=monthly]');o.disabled=true;o.textContent+=' (unavailable)'}
-  QUICK.forEach(k=>document.getElementById('q-'+k).addEventListener('input',e=>{if(e.target.value==='')return;document.getElementById(k).value=unfmt(e.target.value);update()}));
+  QUICK.forEach(k=>document.getElementById('q-'+k).addEventListener('input',e=>{if(e.target.value==='')return;if(k==='rent0'&&e.isTrusted)rentTyped();document.getElementById(k).value=unfmt(e.target.value);update()}));
   document.addEventListener('focusin',e=>{if(e.target.dataset&&e.target.dataset.money!=null)e.target.value=unfmt(e.target.value)});
   document.addEventListener('focusout',e=>{if(e.target.dataset&&e.target.dataset.money!=null)fmtMoneyEl(e.target)});
   document.getElementById('N').addEventListener('input',update);
   document.getElementById('metro').addEventListener('change',e=>{applyMetro(e.target.value);update()});
   document.getElementById('beds').addEventListener('change',()=>{setRentFromBeds();update()});
+  document.getElementById('rent0').addEventListener('input',e=>{if(e.isTrusted)rentTyped()});
   const aside=document.getElementById('aside'),scrim=document.getElementById('scrim'),fab=document.getElementById('fab');
   const sheet=on=>{aside.classList.toggle('open',on);scrim.classList.toggle('on',on);fab.hidden=on;if(on)aside.scrollTop=0};
   fab.addEventListener('click',()=>sheet(true));scrim.addEventListener('click',()=>sheet(false));document.getElementById('closeSheet').addEventListener('click',()=>sheet(false));

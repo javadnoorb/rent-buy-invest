@@ -42,6 +42,7 @@ const HELP={
  rMoveCost:['Cost per move','Movers, application fees, deposits lost to timing and overlapping rent each time a renter moves.'],
  broker:['Broker fee','Some cities (e.g. New York, Boston) charge tenants about one month of rent per move. 0 elsewhere.'],
  beds:['Bedrooms','Sets the comparable rent. The rent for this bedroom count = Zillow\'s typical rent for the area × the Census ratio of rents for this size to all rentals. Compare like with like: the rent of a home similar to the one you would buy.'],
+ rentMode:['Rent','Estimate from home price uses your location\'s typical rent for the bedrooms chosen, scaled to your price: rent rises about 0.65% for each 1% of home value (Census county data), so a home twice the typical price rents for about 1.57 times the typical rent. Typing a rent switches to your own figure; a real comparable rental is always better than the estimate.'],
  rent0:['Comparable rent','Monthly rent for a home similar to the one you would buy. This is the single most important input; a real listing is best.'],
  renewGap:['Lease renewals vs. market','How much slower your rent rises when you renew than market rents. 0 means your rent tracks the market. Lately renewals have risen faster than new leases.'],
  gh:['Home appreciation','Average yearly rise in the home\'s value. Long-run U.S. average is about 4% a year, roughly inflation plus 1 point. One of the two biggest drivers of the result.'],

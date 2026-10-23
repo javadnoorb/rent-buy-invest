@@ -11,7 +11,7 @@ function wzShow(){document.querySelectorAll('.wz-step').forEach((el,i)=>el.hidde
 function closeWizard(apply){const w=document.getElementById('wizard');w.hidden=true;try{localStorage.setItem('rbi-wz','1')}catch(e){}
   if(!apply)return;const v=id=>document.getElementById(id).value;
   const set=(id,x)=>{x=unfmt(x);if(x!==''&&isFinite(parseFloat(x)))document.getElementById(id).value=x};
-  set('P',v('wz-P'));set('rent0',v('wz-rent'));set('dp',v('wz-dp'));set('income',v('wz-inc'));document.getElementById('N').value=v('wz-N');update()}
+  set('P',v('wz-P'));set('rent0',v('wz-rent'));rentTyped();set('dp',v('wz-dp'));set('income',v('wz-inc'));document.getElementById('N').value=v('wz-N');update()}
 function wireWizard(){
   document.getElementById('wz-metro').addEventListener('change',e=>{const m=METROS.find(x=>x.slug===e.target.value);document.getElementById('metro').value=e.target.value;applyMetro(e.target.value);
     if(m){document.getElementById('wz-P').value=m.P;document.getElementById('wz-rent').value=m.rent}});

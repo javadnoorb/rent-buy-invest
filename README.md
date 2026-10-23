@@ -31,6 +31,7 @@ It then opens full-screen from its own icon, and works offline after the first v
 - **Realism:** lease renewals vs. market rent with resets on moves, income growth with per-year tax brackets, a planned move (sell and rebuy, or sell and rent), and moves that are likelier in downturns with a forced-sale discount.
 - **Presets:** 1928–2025 and 1972–2025 historical averages, current year-over-year figures, and 2026 published forecasts (Horizon Actuarial survey of 43 firms; Pulsenomics home-price expectations).
 - **Any county:** pick "Any U.S. county…" in Location to fill price, rent and property tax for any of about 3,200 counties from Census ACS 5-year data, scaled to today's national Zillow figures (appears once the Refresh data workflow has fetched `data/counties.json`).
+- **Rent from price:** by default the comparable rent is estimated from the home price (the location's typical rent × (price ÷ typical price)^0.65, from Census county data), so pricier homes don't get an unrealistically low rent; typing a rent uses yours instead.
 - **Mortgage choices:** extra monthly payments toward principal or invested instead (with the difference shown in the summary), PMI removal by appraisal, and a home-equity line counted as an emergency reserve.
 - **Locations:** the same household in all 23 metros at once: verdict, monthly cost, cash needed, affordability and break-even year, sortable, with growth set the same everywhere, adjusted by each metro's history, or taken from it.
 - **Scenarios:** save named setups in the browser and compare them.

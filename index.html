@@ -1181,6 +1181,7 @@ const F=[
  ['other','rMoveCost','Cost per renter move ($)',2500,100,tag+' movers, applications, overlap rent'],
  ['other','broker','Broker fee per move (months of rent)',0,0.25,'some cities charge tenants about one month'],
  ['rent','beds','Bedrooms (sets comparable rent)','3',null,resHint('beds'),'sel',[['any','Any (typical rental)'],['1','1'],['2','2'],['3','3'],['4','4 or more']]],
+ ['rent','rentMode','Rent','auto',null,'typical rent for the location, scaled to your home price','sel',[['auto','Estimate from home price'],['manual','Enter my own']]],
  ['rent','rent0','Rent ($ / month)',Math.round(V.zori*(D0.bedRatio['3']||1)/10)*10,10,`Zillow typical U.S. rent $${V.zori.toLocaleString('en-US')} × Census 3-bedroom ratio · ${sl('zillow')}`],
  ['rent','renewGap','Lease renewals below market growth (pts / yr)',D0.renewGap,0.25,resHint('renew')],
  ['rent','rins',"Renter's insurance ($ / yr)",0,10,''],
@@ -1254,7 +1255,8 @@ function numOf(id){return parseFloat(unfmt(document.getElementById(id).value))}
 function getRaw(){const o={N:document.getElementById('N').value,metro:document.getElementById('metro').value};F.forEach(f=>o[f[1]]=unfmt(document.getElementById(f[1]).value));return o}
 function fmtMoneyEl(el){if(document.activeElement===el)return;const v=unfmt(el.value);if(v===''||!isFinite(parseFloat(v)))return;el.value=Number(v).toLocaleString('en-US',{maximumFractionDigits:2})}
 function formatMoneyAll(){document.querySelectorAll('[data-money]').forEach(fmtMoneyEl)}
-function setRaw(o){F.forEach(f=>{if(o[f[1]]!=null)document.getElementById(f[1]).value=o[f[1]]});if(o.N)document.getElementById('N').value=o.N;if(o.metro!=null)countyMetro(o.metro);if(o.metro!=null&&METROS.some(m=>m.slug===o.metro))document.getElementById('metro').value=o.metro}
+function setRaw(o){if(o.rent0!=null&&o.rentMode==null)o=Object.assign({},o,{rentMode:'manual'});// saved before the estimate existed: keep the rent as entered
+  F.forEach(f=>{if(o[f[1]]!=null)document.getElementById(f[1]).value=o[f[1]]});if(o.N)document.getElementById('N').value=o.N;if(o.metro!=null)countyMetro(o.metro);if(o.metro!=null&&METROS.some(m=>m.slug===o.metro))document.getElementById('metro').value=o.metro}
 function parseP(raw){
   const n=id=>{const x=parseFloat(raw[id]);return isFinite(x)?x:DEF[id]};
   const pc=id=>n(id)/100;
@@ -1947,6 +1949,9 @@ function buildMethod(){
 
   <p>A sale that brings in less than the mortgage leaves a shortfall. It is held as a negative balance that grows at the T-bill rate plus 3 points a year, \\(V_{t+1} = V_t\\,(1 + r^{bill}_t + 0.03/12)\\) while \\(V_t \\lt 0\\), and later savings pay it down before anything is invested.</p>
 
+  <h3>Rent estimated from the home price</h3>
+  <p>With the rent setting on <em>Estimate from home price</em>: \\(\\text{rent}_0 = \\bar R_{loc}\\, b_{beds} \\,(P / \\bar P_{loc})^{0.65}\\), where \\(\\bar R_{loc}\\) and \\(\\bar P_{loc}\\) are the location's typical rent and home value and \\(b_{beds}\\) the Census rent ratio for the bedrooms chosen. The exponent is the slope of log median rent on log median home value across about 3,200 U.S. counties (Census ACS 2020–2024): pricier homes rent for less relative to their price. It is measured across places, so within one market the true slope may differ; a real comparable rental is better.</p>
+
   <h3>Extra payments, PMI removal, gains tax and home-equity line</h3>
   <p><em>Extra each month</em> \\(E\\) is added to the owner's monthly cost, so the renter invests the same amount. Toward principal: \\(B_{t+1} = B_t - (M - iB_t) - \\min(E, B_t)\\); once the loan is paid off early, the scheduled payment \\(M\\) keeps going into the buyer's portfolio until the original term ends, so both choices spend the same. Toward the portfolio: \\(E\\) is invested each month instead.</p>
   <p><em>PMI by appraisal</em> (conventional loans): PMI stops at the first month \\(t \\ge 24\\) with \\(B_t \\le 0.75\\,H_t\\), or \\(t \\ge 60\\) with \\(B_t \\le 0.80\\,H_t\\), besides the scheduled stop at \\(0.78\\,P\\). The appraisal fee is not modeled.</p>
@@ -2075,12 +2080,24 @@ function buildSnap(){
   document.getElementById('snap').innerHTML=SNAP.items.map(c=>`<div class="chip"><span class="k"><span class="kt" title="${c.k}">${c.k}</span></span><span class="v">${c.v}</span><span class="s muted">${c.s}${c.field==='rent0'?' · all home sizes; “use” scales it to your bedrooms':''} · ${sl(c.src)}${c.field?` · <a href="#" class="use" data-f="${c.field}" data-v="${c.val}">use</a>`:''}</span></div>`).join('')+
     `<div class="chip"><span class="k"><span class="kt">Data as of</span></span><span class="v">${SNAP.asOf}</span><span class="s muted">${dataAgeText()}</span></div>`;
   staleNotice();
-  document.querySelectorAll('.use').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const v=a.dataset.f==='rent0'?Math.round(a.dataset.v*bedRatio(null,document.getElementById('beds').value)/10)*10:a.dataset.v;document.getElementById(a.dataset.f).value=v;update()}));
+  document.querySelectorAll('.use').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const v=a.dataset.f==='rent0'?Math.round(a.dataset.v*bedRatio(null,document.getElementById('beds').value)/10)*10:a.dataset.v;if(a.dataset.f==='rent0')rentTyped();document.getElementById(a.dataset.f).value=v;update()}));
 }
 function bedRatio(m,b){if(b==='any')return 1;const k=b==='4'?'4':b;const r=(m&&m.acs&&m.acs.beds&&m.acs.beds[k])||(D0.bedRatio&&D0.bedRatio[k]);return r||1}
 function selMetro(){return METROS.find(x=>x.slug===document.getElementById('metro').value)||METROS[0]}
-function setRentFromBeds(m){m=m||selMetro();const b=document.getElementById('beds').value,base=m.rent;if(!base)return;
-  document.getElementById('rent0').value=Math.round(base*bedRatio(m,b)/10)*10}
+/* Rent estimated from the home price: the location's typical rent for the chosen bedrooms, scaled by (price ÷ the
+   location's typical price)^RENT_ELAST. Across U.S. counties (Census ACS 2020–2024) rent rises about 0.65% per 1% of
+   home value, so pricier homes rent for less relative to their price. Typing a rent switches to the user's own figure. */
+const RENT_ELAST=0.65;
+function rentEstimate(m,P,beds){m=m||selMetro();if(!m.rent||!(P>0))return null;
+  return Math.round(m.rent*bedRatio(m,beds)*Math.pow(P/(m.P||P),RENT_ELAST)/10)*10}
+function applyRentMode(){const m=selMetro(),auto=document.getElementById('rentMode').value==='auto',beds=document.getElementById('beds').value,P=numOf('P'),est=rentEstimate(m,P,beds);
+  const h=document.getElementById('rentMode').closest('.f').querySelector('.hint');
+  if(!est){if(h)h.textContent='';return}
+  if(auto)document.getElementById('rent0').value=est;
+  const typ=Math.round(m.rent*bedRatio(m,beds)/10)*10,$=x=>'$'+Math.round(x).toLocaleString('en-US');
+  if(h)h.textContent=`${auto?'Estimate':'Estimate from price would be'} ${$(est)}/mo: ${m.name} typical ${$(typ)} × (price ÷ ${$(m.P)})^${RENT_ELAST}`}
+function setRentFromBeds(){applyRentMode()}
+function rentTyped(){document.getElementById('rentMode').value='manual'}
 function applyTT(){const auto=document.getElementById('ttAuto').value==='auto',eb=document.getElementById('ttBuy'),es=document.getElementById('ttSell');
   eb.disabled=es.disabled=auto;if(!auto)return;const m=selMetro();
   if(!m||!m.tt){eb.value=0;es.value=0;return}
@@ -2107,7 +2124,7 @@ function wireCounty(){if(!COUNTIES)return;const sel=document.getElementById('met
   q.addEventListener('change',pick);q.addEventListener('keydown',e=>{if(e.key==='Enter')pick();if(e.key==='Escape')q.hidden=true})}
 function applyMetro(slug){const m=METROS.find(x=>x.slug===slug);if(!m)return;
   const set=(id,v)=>{if(v!=null&&isFinite(v))document.getElementById(id).value=v};
-  set('P',m.P);set('ptax',m.acs&&m.acs.rate!=null?m.acs.rate:m.ptax);set('ins',m.ins);set('ptaxCap',m.ptaxCap||0);setRentFromBeds(m);
+  set('P',m.P);set('ptax',m.acs&&m.acs.rate!=null?m.acs.rate:m.ptax);set('ins',m.ins);set('ptaxCap',m.ptaxCap||0);document.getElementById('rentMode').value='auto';applyRentMode();
   const ms=metroStart(m),btn=document.getElementById('metroPreset');btn.hidden=!ms;if(ms)btn.textContent=`${m.name} ${ms}–2025 avg`;
   updateMetroHints(m);}
 function updateMetroHints(m){
@@ -2148,7 +2165,7 @@ function wzShow(){document.querySelectorAll('.wz-step').forEach((el,i)=>el.hidde
 function closeWizard(apply){const w=document.getElementById('wizard');w.hidden=true;try{localStorage.setItem('rbi-wz','1')}catch(e){}
   if(!apply)return;const v=id=>document.getElementById(id).value;
   const set=(id,x)=>{x=unfmt(x);if(x!==''&&isFinite(parseFloat(x)))document.getElementById(id).value=x};
-  set('P',v('wz-P'));set('rent0',v('wz-rent'));set('dp',v('wz-dp'));set('income',v('wz-inc'));document.getElementById('N').value=v('wz-N');update()}
+  set('P',v('wz-P'));set('rent0',v('wz-rent'));rentTyped();set('dp',v('wz-dp'));set('income',v('wz-inc'));document.getElementById('N').value=v('wz-N');update()}
 function wireWizard(){
   document.getElementById('wz-metro').addEventListener('change',e=>{const m=METROS.find(x=>x.slug===e.target.value);document.getElementById('metro').value=e.target.value;applyMetro(e.target.value);
     if(m){document.getElementById('wz-P').value=m.P;document.getElementById('wz-rent').value=m.rent}});
@@ -2240,6 +2257,7 @@ const HELP={
  rMoveCost:['Cost per move','Movers, application fees, deposits lost to timing and overlapping rent each time a renter moves.'],
  broker:['Broker fee','Some cities (e.g. New York, Boston) charge tenants about one month of rent per move. 0 elsewhere.'],
  beds:['Bedrooms','Sets the comparable rent. The rent for this bedroom count = Zillow\'s typical rent for the area × the Census ratio of rents for this size to all rentals. Compare like with like: the rent of a home similar to the one you would buy.'],
+ rentMode:['Rent','Estimate from home price uses your location\'s typical rent for the bedrooms chosen, scaled to your price: rent rises about 0.65% for each 1% of home value (Census county data), so a home twice the typical price rents for about 1.57 times the typical rent. Typing a rent switches to your own figure; a real comparable rental is always better than the estimate.'],
  rent0:['Comparable rent','Monthly rent for a home similar to the one you would buy. This is the single most important input; a real listing is best.'],
  renewGap:['Lease renewals vs. market','How much slower your rent rises when you renew than market rents. 0 means your rent tracks the market. Lately renewals have risen faster than new leases.'],
  gh:['Home appreciation','Average yearly rise in the home\'s value. Long-run U.S. average is about 4% a year, roughly inflation plus 1 point. One of the two biggest drivers of the result.'],
@@ -2435,7 +2453,7 @@ function settingValue(id,v){if(id==='N')return nY(+v);if(id==='metro'){const m=M
   const u=(f[2].match(/\(([^)]*)\)\s*$/)||[])[1]||'',x=parseFloat(v);if(!isFinite(x))return String(v);
   if(/^\$/.test(u))return '$'+x.toLocaleString('en-US',{maximumFractionDigits:2});return x.toLocaleString('en-US',{maximumFractionDigits:3})+(/^%/.test(u)?'%':'')}
 // fields the app fills in itself (automatic tax rates, transfer taxes, rent from bedrooms) don't count as changes
-function rawDiff(a,b){const derived={mu:b.muMode==='auto',ltcg:b.ltcgMode==='auto',ttBuy:b.ttAuto==='auto',ttSell:b.ttAuto==='auto'};
+function rawDiff(a,b){const derived={rent0:b.rentMode==='auto',mu:b.muMode==='auto',ltcg:b.ltcgMode==='auto',ttBuy:b.ttAuto==='auto',ttSell:b.ttAuto==='auto'};
   return Object.keys(b).filter(k=>!derived[k]&&String(a[k])!==String(b[k]))}
 function noteBulkChange(prev,cur){const ch=rawDiff(prev,cur);if(ch.length<3)return;
   UNDO_RAW=prev;const bar=document.getElementById('undoBar'),list=ch.slice(0,4).map(k=>`${settingLabel(k)} ${settingValue(k,prev[k])} → ${settingValue(k,cur[k])}`);
@@ -2478,7 +2496,7 @@ function syncLoanFields(){const t=document.getElementById('loanType').value;
   document.getElementById('pmi').closest('.f').hidden=t==='fha';
   ['ttBuy','ttSell'].forEach(id=>document.getElementById(id).closest('.f').hidden=false)}
 let LAST_KEY='';
-function update(){clearTimeout(timer);timer=setTimeout(()=>{VOLADJ=document.getElementById('volAdj').value!=='0';applyTT();syncLoanFields();formatMoneyAll();markChanged();const raw=getRaw(),key=JSON.stringify(raw)+REAL;if(key===LAST_KEY&&P)return;LAST_KEY=key;if(LAST_RAW)noteBulkChange(LAST_RAW,raw);LAST_RAW=raw;validate();syncQuick();persist();P=readP();
+function update(){clearTimeout(timer);timer=setTimeout(()=>{VOLADJ=document.getElementById('volAdj').value!=='0';applyTT();applyRentMode();syncLoanFields();formatMoneyAll();markChanged();const raw=getRaw(),key=JSON.stringify(raw)+REAL;if(key===LAST_KEY&&P)return;LAST_KEY=key;if(LAST_RAW)noteBulkChange(LAST_RAW,raw);LAST_RAW=raw;validate();syncQuick();persist();P=readP();
   {const muEl=document.getElementById('mu');const auto=P.muMode==='auto';muEl.disabled=auto;if(auto)muEl.value=Math.round(P.mu*100);
    const lgEl=document.getElementById('ltcg'),lgAuto=P.ltcgMode==='auto';lgEl.disabled=lgAuto;if(lgAuto)lgEl.value=Math.round(P.ltcg*100);}document.getElementById('Nlab').textContent=P.N+' year'+(P.N>1?'s':'');
   BASE=simulate(P,constPath(P,P.N));if(MC&&MC.key!==mcKey())MC=null;
@@ -2500,12 +2518,13 @@ function init(){
   document.getElementById('h-year').max=2025;
   {const fb=document.getElementById('fcstPreset');fb.hidden=!PRESETS.fcst;if(PRESETS.fcst&&FCST.note){const h=document.createElement('div');h.className='hint muted';h.style.fontSize='11px';h.innerHTML=FCST.note;fb.parentElement.after(h)}}
   if(!MONTHLY){const o=document.querySelector('#h-mode option[value=monthly]');o.disabled=true;o.textContent+=' (unavailable)'}
-  QUICK.forEach(k=>document.getElementById('q-'+k).addEventListener('input',e=>{if(e.target.value==='')return;document.getElementById(k).value=unfmt(e.target.value);update()}));
+  QUICK.forEach(k=>document.getElementById('q-'+k).addEventListener('input',e=>{if(e.target.value==='')return;if(k==='rent0'&&e.isTrusted)rentTyped();document.getElementById(k).value=unfmt(e.target.value);update()}));
   document.addEventListener('focusin',e=>{if(e.target.dataset&&e.target.dataset.money!=null)e.target.value=unfmt(e.target.value)});
   document.addEventListener('focusout',e=>{if(e.target.dataset&&e.target.dataset.money!=null)fmtMoneyEl(e.target)});
   document.getElementById('N').addEventListener('input',update);
   document.getElementById('metro').addEventListener('change',e=>{applyMetro(e.target.value);update()});
   document.getElementById('beds').addEventListener('change',()=>{setRentFromBeds();update()});
+  document.getElementById('rent0').addEventListener('input',e=>{if(e.isTrusted)rentTyped()});
   const aside=document.getElementById('aside'),scrim=document.getElementById('scrim'),fab=document.getElementById('fab');
   const sheet=on=>{aside.classList.toggle('open',on);scrim.classList.toggle('on',on);fab.hidden=on;if(on)aside.scrollTop=0};
   fab.addEventListener('click',()=>sheet(true));scrim.addEventListener('click',()=>sheet(false));document.getElementById('closeSheet').addEventListener('click',()=>sheet(false));

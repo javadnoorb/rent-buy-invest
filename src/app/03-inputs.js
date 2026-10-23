@@ -40,6 +40,7 @@ const F=[
  ['other','rMoveCost','Cost per renter move ($)',2500,100,tag+' movers, applications, overlap rent'],
  ['other','broker','Broker fee per move (months of rent)',0,0.25,'some cities charge tenants about one month'],
  ['rent','beds','Bedrooms (sets comparable rent)','3',null,resHint('beds'),'sel',[['any','Any (typical rental)'],['1','1'],['2','2'],['3','3'],['4','4 or more']]],
+ ['rent','rentMode','Rent','auto',null,'typical rent for the location, scaled to your home price','sel',[['auto','Estimate from home price'],['manual','Enter my own']]],
  ['rent','rent0','Rent ($ / month)',Math.round(V.zori*(D0.bedRatio['3']||1)/10)*10,10,`Zillow typical U.S. rent $${V.zori.toLocaleString('en-US')} × Census 3-bedroom ratio · ${sl('zillow')}`],
  ['rent','renewGap','Lease renewals below market growth (pts / yr)',D0.renewGap,0.25,resHint('renew')],
  ['rent','rins',"Renter's insurance ($ / yr)",0,10,''],
@@ -113,7 +114,8 @@ function numOf(id){return parseFloat(unfmt(document.getElementById(id).value))}
 function getRaw(){const o={N:document.getElementById('N').value,metro:document.getElementById('metro').value};F.forEach(f=>o[f[1]]=unfmt(document.getElementById(f[1]).value));return o}
 function fmtMoneyEl(el){if(document.activeElement===el)return;const v=unfmt(el.value);if(v===''||!isFinite(parseFloat(v)))return;el.value=Number(v).toLocaleString('en-US',{maximumFractionDigits:2})}
 function formatMoneyAll(){document.querySelectorAll('[data-money]').forEach(fmtMoneyEl)}
-function setRaw(o){F.forEach(f=>{if(o[f[1]]!=null)document.getElementById(f[1]).value=o[f[1]]});if(o.N)document.getElementById('N').value=o.N;if(o.metro!=null)countyMetro(o.metro);if(o.metro!=null&&METROS.some(m=>m.slug===o.metro))document.getElementById('metro').value=o.metro}
+function setRaw(o){if(o.rent0!=null&&o.rentMode==null)o=Object.assign({},o,{rentMode:'manual'});// saved before the estimate existed: keep the rent as entered
+  F.forEach(f=>{if(o[f[1]]!=null)document.getElementById(f[1]).value=o[f[1]]});if(o.N)document.getElementById('N').value=o.N;if(o.metro!=null)countyMetro(o.metro);if(o.metro!=null&&METROS.some(m=>m.slug===o.metro))document.getElementById('metro').value=o.metro}
 function parseP(raw){
   const n=id=>{const x=parseFloat(raw[id]);return isFinite(x)?x:DEF[id]};
   const pc=id=>n(id)/100;

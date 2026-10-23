@@ -22,6 +22,17 @@ const FIXTURE = { t: 'test counties', u: 'https://api.census.gov/', span: '2020โ
   const set = async (vals) => { await page.evaluate(v => { for (const [id, x] of Object.entries(v)) { const e = document.getElementById(id); e.value = x; e.dispatchEvent(new Event(e.tagName === 'SELECT' ? 'change' : 'input', { bubbles: true })); } }, vals); await page.waitForTimeout(400); };
   const text = id => page.textContent('#' + id);
 
+  /* rent estimated from price: scales with (price รท typical)^0.65 until a rent is typed */
+  const typ = await page.evaluate(() => numOf('rent0')), P0 = await page.evaluate(() => numOf('P'));
+  ok(await page.inputValue('#rentMode') === 'auto', 'rent starts as an estimate');
+  await set({ P: P0 * 2 });
+  ok(Math.abs(await page.evaluate(() => numOf('rent0')) - typ * Math.pow(2, 0.65)) <= 10, 'double the price: rent ร— 2^0.65', String(await page.evaluate(() => numOf('rent0'))));
+  await page.click('#q-rent0'); await page.keyboard.press('Control+A'); await page.keyboard.type('2500'); await page.waitForTimeout(400);
+  ok(await page.inputValue('#rentMode') === 'manual', 'typing a rent switches to your own');
+  await set({ P: P0 * 3 }); ok(await page.evaluate(() => numOf('rent0')) === 2500, 'your rent stays when the price changes');
+  ok(/Estimate from price would be/.test(await page.evaluate(() => document.getElementById('rentMode').closest('.f').querySelector('.hint').textContent)), 'the estimate is still shown for comparison');
+  await set({ P: P0, rentMode: 'manual' });
+
   /* headline: clear wins name the winner; a gap within 2% of the outcome reads "about even" with no "best" tag */
   await set({ rent0: 6000 }); ok(/^Buying comes out ahead/.test(await text('vhead')), 'high rent: buying ahead', await text('vhead'));
   await set({ rent0: 900 }); ok(/^Renting and investing comes out ahead/.test(await text('vhead')), 'low rent: renting ahead', await text('vhead'));
@@ -45,8 +56,8 @@ const FIXTURE = { t: 'test counties', u: 'https://api.census.gov/', span: '2020โ
   ok(await page.isHidden('#undoBar'), 'single edits with recalculated fields do not show the undo bar');
   ok(await page.evaluate(() => settingValue('P', '1500000') === '$1,500,000' && settingValue('dp', '20') === '20%' && settingValue('loanType', 'fha').startsWith('FHA')), 'setting values formatted for the undo bar');
 
-  /* county picker */
-  await set({ metro: 'us' });
+  /* county picker (choosing a location goes back to the price-based rent estimate) */
+  await set({ metro: 'us' }); ok(await page.inputValue('#rentMode') === 'auto', 'a location change goes back to the estimate');
   await page.selectOption('#metro', '__county');
   ok(await page.isVisible('#countyQ') && await page.inputValue('#metro') === 'us', 'picking "Any county" opens the search and keeps the location');
   await page.fill('#countyQ', 'king county, washington'); await page.press('#countyQ', 'Enter'); await page.waitForTimeout(500);

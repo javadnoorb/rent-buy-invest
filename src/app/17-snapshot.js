@@ -3,12 +3,24 @@ function buildSnap(){
   document.getElementById('snap').innerHTML=SNAP.items.map(c=>`<div class="chip"><span class="k"><span class="kt" title="${c.k}">${c.k}</span></span><span class="v">${c.v}</span><span class="s muted">${c.s}${c.field==='rent0'?' · all home sizes; “use” scales it to your bedrooms':''} · ${sl(c.src)}${c.field?` · <a href="#" class="use" data-f="${c.field}" data-v="${c.val}">use</a>`:''}</span></div>`).join('')+
     `<div class="chip"><span class="k"><span class="kt">Data as of</span></span><span class="v">${SNAP.asOf}</span><span class="s muted">${dataAgeText()}</span></div>`;
   staleNotice();
-  document.querySelectorAll('.use').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const v=a.dataset.f==='rent0'?Math.round(a.dataset.v*bedRatio(null,document.getElementById('beds').value)/10)*10:a.dataset.v;document.getElementById(a.dataset.f).value=v;update()}));
+  document.querySelectorAll('.use').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const v=a.dataset.f==='rent0'?Math.round(a.dataset.v*bedRatio(null,document.getElementById('beds').value)/10)*10:a.dataset.v;if(a.dataset.f==='rent0')rentTyped();document.getElementById(a.dataset.f).value=v;update()}));
 }
 function bedRatio(m,b){if(b==='any')return 1;const k=b==='4'?'4':b;const r=(m&&m.acs&&m.acs.beds&&m.acs.beds[k])||(D0.bedRatio&&D0.bedRatio[k]);return r||1}
 function selMetro(){return METROS.find(x=>x.slug===document.getElementById('metro').value)||METROS[0]}
-function setRentFromBeds(m){m=m||selMetro();const b=document.getElementById('beds').value,base=m.rent;if(!base)return;
-  document.getElementById('rent0').value=Math.round(base*bedRatio(m,b)/10)*10}
+/* Rent estimated from the home price: the location's typical rent for the chosen bedrooms, scaled by (price ÷ the
+   location's typical price)^RENT_ELAST. Across U.S. counties (Census ACS 2020–2024) rent rises about 0.65% per 1% of
+   home value, so pricier homes rent for less relative to their price. Typing a rent switches to the user's own figure. */
+const RENT_ELAST=0.65;
+function rentEstimate(m,P,beds){m=m||selMetro();if(!m.rent||!(P>0))return null;
+  return Math.round(m.rent*bedRatio(m,beds)*Math.pow(P/(m.P||P),RENT_ELAST)/10)*10}
+function applyRentMode(){const m=selMetro(),auto=document.getElementById('rentMode').value==='auto',beds=document.getElementById('beds').value,P=numOf('P'),est=rentEstimate(m,P,beds);
+  const h=document.getElementById('rentMode').closest('.f').querySelector('.hint');
+  if(!est){if(h)h.textContent='';return}
+  if(auto)document.getElementById('rent0').value=est;
+  const typ=Math.round(m.rent*bedRatio(m,beds)/10)*10,$=x=>'$'+Math.round(x).toLocaleString('en-US');
+  if(h)h.textContent=`${auto?'Estimate':'Estimate from price would be'} ${$(est)}/mo: ${m.name} typical ${$(typ)} × (price ÷ ${$(m.P)})^${RENT_ELAST}`}
+function setRentFromBeds(){applyRentMode()}
+function rentTyped(){document.getElementById('rentMode').value='manual'}
 function applyTT(){const auto=document.getElementById('ttAuto').value==='auto',eb=document.getElementById('ttBuy'),es=document.getElementById('ttSell');
   eb.disabled=es.disabled=auto;if(!auto)return;const m=selMetro();
   if(!m||!m.tt){eb.value=0;es.value=0;return}
@@ -35,7 +47,7 @@ function wireCounty(){if(!COUNTIES)return;const sel=document.getElementById('met
   q.addEventListener('change',pick);q.addEventListener('keydown',e=>{if(e.key==='Enter')pick();if(e.key==='Escape')q.hidden=true})}
 function applyMetro(slug){const m=METROS.find(x=>x.slug===slug);if(!m)return;
   const set=(id,v)=>{if(v!=null&&isFinite(v))document.getElementById(id).value=v};
-  set('P',m.P);set('ptax',m.acs&&m.acs.rate!=null?m.acs.rate:m.ptax);set('ins',m.ins);set('ptaxCap',m.ptaxCap||0);setRentFromBeds(m);
+  set('P',m.P);set('ptax',m.acs&&m.acs.rate!=null?m.acs.rate:m.ptax);set('ins',m.ins);set('ptaxCap',m.ptaxCap||0);document.getElementById('rentMode').value='auto';applyRentMode();
   const ms=metroStart(m),btn=document.getElementById('metroPreset');btn.hidden=!ms;if(ms)btn.textContent=`${m.name} ${ms}–2025 avg`;
   updateMetroHints(m);}
 function updateMetroHints(m){
