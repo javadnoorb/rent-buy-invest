@@ -1,9 +1,9 @@
 name: Refresh data
 # Runs on the 4th of each month and on demand (Actions tab → Refresh data → Run workflow).
 # Downloads public data (FHFA, BLS, Census incl. county figures, Freddie Mac), merges it into data/ and rebuilds
-# index.html. Then scripts/check_data.py compares the new data with main and stops the run on anything implausible
+# index.html for the tests. Then scripts/check_data.py compares the new data with main and stops the run on anything implausible
 # (lost months, large revisions, jumps in rates or prices, a short county file), and the tests run. Only if both pass
-# and something changed is the result committed to main, which GitHub Pages then serves.
+# and something changed are the data files committed to main; the Deploy site workflow then rebuilds the live page.
 on:
   schedule:
     - cron: '23 14 4 * *'
@@ -45,7 +45,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data index.html
+          git add data
           if git diff --cached --quiet; then echo "No data changes."; exit 0; fi
           git diff --cached --stat
           git commit -m "Refresh public data $(date -u +%F)"

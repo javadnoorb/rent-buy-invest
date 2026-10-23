@@ -19,16 +19,16 @@ jobs:
         run: node tests/lint.js
       - name: Model tests
         run: node tests/run.js
-      - name: index.html is up to date with src/ and data/
-        run: |
-          python3 build.py --pwa
-          git diff --exit-code index.html || (echo "::error::index.html is stale: run npm run build and commit" && exit 1)
+      - name: Build
+        run: python3 build.py --pwa
   smoke:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with: { node-version: '22' }
+      - name: Build
+        run: python3 build.py --pwa
       - name: Browser smoke test (phone width, touch, formulas)
         env:
           PLAYWRIGHT_PATH: playwright-core

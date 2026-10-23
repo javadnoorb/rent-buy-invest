@@ -1,0 +1,58 @@
+name: Deploy site
+# Builds index.html from src/ and data/ and publishes it with GitHub Pages (Settings → Pages → Source: GitHub Actions).
+# The built page is not committed; this is the only place it is made for the live site.
+# Runs on every push to main and after each Refresh data run, since commits pushed by a workflow don't trigger
+# other workflows on their own.
+on:
+  push:
+    branches: [main]
+  workflow_run:
+    workflows: [Refresh data]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  build:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with: { ref: main }
+      - uses: actions/setup-python@v6
+        with: { python-version: '3.12' }
+      - uses: actions/setup-node@v5
+        with: { node-version: '22' }
+      - name: Build
+        run: python build.py --pwa
+      - name: Lint and model tests
+        run: |
+          node tests/lint.js
+          node tests/run.js
+      - name: Assemble the site
+        run: |
+          mkdir -p _site/data
+          cp index.html manifest.webmanifest sw.js _site/
+          cp -r icons vendor _site/
+          # files the page fetches on demand
+          cp data/counties.json _site/data/ 2>/dev/null || true
+          [ -d data/county_hpi ] && cp -r data/county_hpi _site/data/ || true
+          du -sh _site
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: _site }
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
