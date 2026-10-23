@@ -1,0 +1,101 @@
+#!/usr/bin/env python3
+"""Sanity checks for a data refresh: compares data/ in the working tree with the last commit (HEAD) and exits 1, listing
+every problem, if anything looks implausible. The tests catch broken data; this catches data that is well-formed but
+wrong (a shifted column, a units change, a source returning a stale or partial file). Run after scripts/apply_public.py.
+Run: python3 scripts/check_data.py
+"""
+import glob, json, os, subprocess, sys
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+problems = []
+
+def bad(msg): problems.append(msg)
+
+def load(path):
+    p = os.path.join(ROOT, path)
+    return json.load(open(p)) if os.path.exists(p) else None
+
+def old(path):
+    try: return json.loads(subprocess.run(['git', 'show', f'HEAD:{path}'], cwd=ROOT, capture_output=True, check=True, text=True).stdout)
+    except (subprocess.CalledProcessError, ValueError): return None
+
+def vals(series):
+    v = (series or {}).get('values') or {}
+    return v if isinstance(v, dict) else {}
+
+# ---- monthly series: nothing lost, small revisions, plausible new months ----
+RATES = {'mort': (1.0, 20.0), 'tbill': (0.0, 20.0), 'gs10': (0.0, 20.0)}  # percent levels
+new_m, old_m = load('data/monthly.json') or {}, old('data/monthly.json') or {}
+for key, s in new_m.items():
+    if not isinstance(s, dict) or 'values' not in s: continue
+    v, v0 = vals(s), vals(old_m.get(key))
+    if len(v) < len(v0): bad(f'monthly {key}: {len(v0)} months before, {len(v)} now')
+    if v0 and max(v) < max(v0): bad(f'monthly {key}: latest month went back from {max(v0)} to {max(v)}')
+    months = sorted(v)
+    for i, m in enumerate(months):
+        x, x0 = v[m], v0.get(m)
+        if key == 'sp_ret':
+            if abs(x) > 0.35: bad(f'monthly sp_ret {m}: {x:+.1%} in one month')
+            if x0 is not None and abs(x - x0) > 0.02: bad(f'monthly sp_ret {m}: revised {x0:+.4f} → {x:+.4f}')
+            continue
+        if key in RATES:
+            lo, hi = RATES[key]
+            if not lo <= x <= hi: bad(f'monthly {key} {m}: {x}% outside {lo}–{hi}%')
+            if x0 is not None and abs(x - x0) > 0.5: bad(f'monthly {key} {m}: revised {x0} → {x}')
+            if m not in v0 and i and abs(x - v[months[i - 1]]) > 1.5: bad(f'monthly {key} {m}: moved {x - v[months[i - 1]]:+.2f} points in a month')
+            continue
+        # price indexes (CPI, rent CPI, FHFA)
+        if x0 is not None and abs(x / x0 - 1) > 0.03: bad(f'monthly {key} {m}: revised {x0} → {x} ({x / x0 - 1:+.1%})')
+        if m not in v0 and i and abs(x / v[months[i - 1]] - 1) > 0.05: bad(f'monthly {key} {m}: {x / v[months[i - 1]] - 1:+.1%} in one month')
+
+# ---- snapshot mortgage rates (updated from Freddie Mac by the refresh) ----
+sn, sn0 = load('data/snapshot.json') or {}, old('data/snapshot.json') or {}
+for k in ('rate30', 'rate15'):
+    x, x0 = (sn.get('values') or {}).get(k), (sn0.get('values') or {}).get(k)
+    if x is None: continue
+    if not 1 <= x <= 20: bad(f'snapshot {k}: {x}% outside 1–20%')
+    if x0 is not None and abs(x - x0) > 2: bad(f'snapshot {k}: moved {x0} → {x} in one refresh')
+
+# ---- metro files: home-price index, rent growth, ACS tax rate ----
+for f in sorted(glob.glob(os.path.join(ROOT, 'data', 'metro_*.json'))):
+    rel = os.path.relpath(f, ROOT); m, m0 = json.load(open(f)), old(rel) or {}
+    h, h0 = vals(m.get('hpi')), vals(m0.get('hpi'))
+    if len(h) < len(h0): bad(f'{rel}: home-price index lost years ({len(h0)} → {len(h)})')
+    for y, x in h.items():
+        x0 = h0.get(y)
+        if x is not None and x0 and abs(x / x0 - 1) > 0.05: bad(f'{rel}: home-price index {y} revised {x0} → {x}')
+    ys = sorted(y for y in h if h[y] is not None)
+    for a, b in zip(ys, ys[1:]):
+        g = h[b] / h[a] - 1
+        if not -0.4 <= g <= 0.6: bad(f'{rel}: home prices {g:+.0%} in {b}')
+    for y, g in ((m.get('rent_hist') or {}).get('growth_pct') or {}).items():
+        if g is not None and not -30 <= g <= 30: bad(f'{rel}: rent growth {g}% in {y}')
+    t = (m.get('acs') or {}).get('eff_tax_pct')
+    if t is not None and not 0.05 <= t <= 5: bad(f'{rel}: property-tax rate {t}% outside 0.05–5%')
+
+# ---- counties ----
+c, c0 = load('data/counties.json'), old('data/counties.json')
+if c:
+    rows = c.get('rows') or []
+    if len(rows) < 3000: bad(f'counties: only {len(rows)} rows')
+    us = c.get('us') or {}
+    if not 100000 <= (us.get('P') or 0) <= 1500000: bad(f"counties: U.S. median value {us.get('P')}")
+    for fips, name, P, rent, tax in rows:
+        if not 10000 <= P <= 5000000: bad(f'counties {name}: median value {P}')
+        if rent is not None and not 100 <= rent <= 6000: bad(f'counties {name}: median rent {rent}')
+        if tax is not None and tax / P > 0.06: bad(f'counties {name}: tax {tax} on value {P}')
+    if c0:
+        prev = {r[0]: r for r in c0.get('rows') or []}
+        if len(rows) < 0.95 * len(prev): bad(f'counties: {len(prev)} rows before, {len(rows)} now')
+        uP0 = (c0.get('us') or {}).get('P')
+        if uP0 and us.get('P') and abs(us['P'] / uP0 - 1) > 0.25: bad(f"counties: U.S. median value {uP0} → {us['P']}")
+        both = [(r, prev[r[0]]) for r in rows if r[0] in prev]
+        jumps = [r[1] for r, p in both if abs(r[2] / p[2] - 1) > 0.5]
+        if both and len(jumps) > 0.02 * len(both): bad(f'counties: {len(jumps)} of {len(both)} median values changed by more than 50% (e.g. {", ".join(jumps[:3])})')
+
+if problems:
+    print(f'data check failed ({len(problems)} problem{"s" if len(problems) > 1 else ""}):')
+    for p in problems[:60]: print('  ' + p)
+    if len(problems) > 60: print(f'  … and {len(problems) - 60} more')
+    for p in problems[:20]: print(f'::error::{p}')
+    sys.exit(1)
+print('data check passed')
