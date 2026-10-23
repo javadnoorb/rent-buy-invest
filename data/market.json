@@ -1,0 +1,119 @@
+{
+ "fetched_utc": "2026-10-23T11:37:56Z",
+ "treasury": {
+  "date": "2026-10-22",
+  "y10": 4.96,
+  "bill3m": 4.22,
+  "source_title": "U.S. Treasury daily par yield curve rates",
+  "source_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve"
+ },
+ "zillow": {
+  "month": "2026-09",
+  "us": {
+   "zhvi": 366157,
+   "zori": 1932,
+   "zhvi_yoy": 1.2,
+   "zori_yoy": 2.7
+  },
+  "metros": {
+   "atlanta": {
+    "zhvi": 375898,
+    "zori": 1843
+   },
+   "austin": {
+    "zhvi": 414273,
+    "zori": 1603
+   },
+   "boston": {
+    "zhvi": 725639,
+    "zori": 2987
+   },
+   "charlotte": {
+    "zhvi": 381392,
+    "zori": 1735
+   },
+   "chicago": {
+    "zhvi": 355650,
+    "zori": 2163
+   },
+   "cleveland": {
+    "zhvi": 250001,
+    "zori": 1440
+   },
+   "dallas": {
+    "zhvi": 358242,
+    "zori": 1659
+   },
+   "denver": {
+    "zhvi": 555487,
+    "zori": 1900
+   },
+   "detroit": {
+    "zhvi": 264316,
+    "zori": 1514
+   },
+   "las-vegas": {
+    "zhvi": 422654,
+    "zori": 1732
+   },
+   "los-angeles": {
+    "zhvi": 950020,
+    "zori": 2929
+   },
+   "miami": {
+    "zhvi": 476815,
+    "zori": 2654
+   },
+   "minneapolis": {
+    "zhvi": 387807,
+    "zori": 1736
+   },
+   "new-york": {
+    "zhvi": 730949,
+    "zori": 3546
+   },
+   "philadelphia": {
+    "zhvi": 386048,
+    "zori": 1903
+   },
+   "phoenix": {
+    "zhvi": 441097,
+    "zori": 1720
+   },
+   "portland": {
+    "zhvi": 539403,
+    "zori": 1803
+   },
+   "raleigh": {
+    "zhvi": 428267,
+    "zori": 1669
+   },
+   "san-diego": {
+    "zhvi": 926961,
+    "zori": 2967
+   },
+   "san-francisco": {
+    "zhvi": 1120379,
+    "zori": 3445
+   },
+   "seattle": {
+    "zhvi": 720147,
+    "zori": 2250
+   },
+   "tampa": {
+    "zhvi": 356843,
+    "zori": 1991
+   },
+   "washington-dc": {
+    "zhvi": 569857,
+    "zori": 2407
+   }
+  },
+  "source_title": "Zillow Home Value Index (ZHVI, mid tier, smoothed, seasonally adjusted) and Zillow Observed Rent Index (ZORI, smoothed). Data: Zillow Group",
+  "source_url": "https://www.zillow.com/research/data/",
+  "files": [
+   "https://files.zillowstatic.com/research/public_csvs/zhvi/Metro_zhvi_uc_sfrcondo_tier_0.33_0.67_sm_sa_month.csv",
+   "https://files.zillowstatic.com/research/public_csvs/zori/Metro_zori_uc_sfrcondomfr_sm_month.csv"
+  ]
+ }
+}
