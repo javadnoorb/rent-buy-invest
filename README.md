@@ -22,7 +22,7 @@ It then opens full-screen from its own icon, and works offline after the first v
 ## Features
 
 - **Projection:** month-by-month model covering mortgage amortization, PMI, refinancing, property tax (with an optional assessment cap), insurance, maintenance, HOA, the federal itemized-deduction benefit (2026 standard deduction, SALT cap schedule, $750k interest limit) and the Section 121 home-sale exclusion. Portfolios can be taxable or sheltered, with yearly dividend and interest tax and optional leverage.
-- **Location presets:** 23 U.S. metros with Zillow home values and rents, property-tax rates, state insurance averages, and metro home-price history from Case-Shiller or FHFA.
+- **Location presets:** 23 U.S. metros with Zillow home values and rents, property-tax rates, state insurance averages, and FHFA metro home-price and BLS metro rent history.
 - **Sensitivity:** a tornado chart of the main inputs, a heatmap of home appreciation × portfolio return, and break-even rent curves.
 - **Optimizer:** down payment × horizon for 15- and 30-year loans, plus the break-even value of each key input.
 - **Backtest:** annual data for 1972–2025 and monthly data for 1987–2026, using actual home prices, rents, returns, inflation and mortgage rates (with refinancing).
@@ -30,7 +30,9 @@ It then opens full-screen from its own icon, and works offline after the first v
 - **Other ways to own:** house-hacking income (renting part of your home) and an optional fourth path: rent your home and buy a rental property (vacancy, management, depreciation, passive-loss limits, recapture).
 - **Realism:** lease renewals vs. market rent with resets on moves, income growth with per-year tax brackets, a planned move (sell and rebuy, or sell and rent), and moves that are likelier in downturns with a forced-sale discount.
 - **Presets:** 1928–2025 and 1972–2025 historical averages, current year-over-year figures, and 2026 published forecasts (Horizon Actuarial survey of 43 firms; Pulsenomics home-price expectations).
+- **Locations:** the same household in all 23 metros at once: verdict, monthly cost, cash needed, affordability and break-even year, sortable, with growth set the same everywhere, adjusted by each metro's history, or taken from it.
 - **Scenarios:** save named setups in the browser and compare them.
+- **Help and offline:** a "?" next to every setting, number and chart; works offline once installed; warns when market data is more than three weeks old.
 - **Sources:** every data point links to its source; the Method tab lists the formulas.
 
 ## Repository layout
@@ -49,14 +51,30 @@ It then opens full-screen from its own icon, and works offline after the first v
 | `make_icons.py` | Draws the app icons |
 | `prep_monthly.py` | Converts `monthly.json` into `monthly_processed.json` |
 
-## Updating
+## Development
+
+Everything runs with the Python standard library and Node; no install is needed except Playwright for the browser test.
+
+| Command | What it does |
+|---|---|
+| `npm run build` | Builds `index.html` (the GitHub Pages / installable version) |
+| `npm run build:artifact` | Builds `dist/artifact.html`, the version that runs inside a Claude artifact |
+| `npm run watch` | Rebuilds `index.html` whenever `src/` or `data/` changes |
+| `npm run serve` | Serves the folder at http://localhost:8000 |
+| `npm test` | Lint plus the model tests (about a second) |
+| `npm run smoke` | Browser test with the real chart and formula libraries (needs `npm i playwright`) |
+| `npm run check` | Build, test, and the browser test with a stubbed chart library (works offline) |
+
+`src/app/*.js` files are concatenated in name order into one script, so they share one scope: `npm run lint` fails if a top-level name is declared twice, if code looks up an element id that does not exist, or if a setting has no pop-up help.
+
+## Updating figures
 
 1. Edit the figures in `data/snapshot.json` (or a metro file), keeping each source URL in step with its value.
 2. If you changed `data/monthly.json`, run `python3 prep_monthly.py`.
-3. Run `python3 build.py --pwa` to regenerate `index.html`. Without `--pwa` it builds the version that runs inside a Claude artifact.
-4. Commit and push. GitHub Pages serves the new version within a minute or two.
+3. Run `npm run build` and commit `index.html` with your change (CI fails if it is out of date).
+4. Push. GitHub Pages serves the new version within a minute or two.
 
-The build uses only the Python standard library. In the browser, the page loads Plotly (charts), MathJax (formulas) and Google Fonts from public CDNs.
+In the browser, the page loads Plotly (charts), MathJax (formulas) and Google Fonts from public CDNs; the installed app keeps copies for offline use.
 
 ## Refreshing data
 
@@ -64,7 +82,7 @@ The **Refresh data** workflow (Actions tab → Refresh data → Run workflow) do
 
 ## Tests
 
-`node tests/run.js` checks the model math (74 checks) (mortgage amortization against the closed form, tax brackets, SALT cap, home-sale exclusion, PMI, refinancing, annual vs. monthly paths, directional sanity checks, and each realism feature). Run it after any change to `src/model.js`. `node tests/smoke.js` opens every tab in a browser and fails on errors or charts that don't draw. Both run automatically on every push (Tests workflow).
+`npm test` runs `tests/lint.js` (static checks) and `tests/run.js`, which checks the model math (74 checks) (mortgage amortization against the closed form, tax brackets, SALT cap, home-sale exclusion, PMI, refinancing, annual vs. monthly paths, directional sanity checks, and each realism feature). Run it after any change to `src/model.js`. `tests/smoke.js` opens every tab at phone width and fails on page errors, charts that don't draw, formulas that don't render, anything wider than the screen, or a chart readout that doesn't close on a second tap. Both run in parallel on every push (Tests workflow, about a minute).
 
 ## Data sources
 
