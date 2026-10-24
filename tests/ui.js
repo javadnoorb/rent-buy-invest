@@ -269,9 +269,17 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
   const bk1 = await page.evaluate(() => [CUR, !document.getElementById('ciBack').hidden, document.getElementById('ciBack').textContent]);
   await page.click('#ciBack'); await page.waitForTimeout(700);
   const bk2 = await page.evaluate(() => { const r = document.getElementById('p-gap').getBoundingClientRect(); return [CUR, document.getElementById('ciBack').hidden, r.top < innerHeight && r.bottom > 0]; });
-  await page.click('dd.cinfo[data-c="gap"] a[data-ci-set]'); await page.waitForTimeout(500); await page.goBack(); await page.waitForTimeout(700);
+  await page.click('dd.cinfo[data-c="gap"] a[data-ci-set]'); await page.waitForTimeout(500);
+  const bkSet = await page.evaluate(() => [...document.querySelectorAll('.ciback')].filter(b => !b.hidden).map(b => { const r = b.getBoundingClientRect(); return [b.closest('.ahead') ? 'panel' : 'tabs', r.top >= 0 && r.bottom <= innerHeight && r.width > 0]; }));
+  ok(JSON.stringify(bkSet) === '[["panel",true]]', 'after a setting link, Back sits in the assumptions header, on screen', JSON.stringify(bkSet));
+  await page.goBack(); await page.waitForTimeout(700);
   const bk3 = await page.evaluate(() => [CUR, document.getElementById('ciBack').hidden]);
   ok(bk1[0] === 'method' && bk1[1] && /Where the gap/.test(bk1[2]) && bk2[0] === 'proj' && bk2[1] && bk2[2] && bk3[0] === 'proj' && bk3[1], 'back from a chart-note link to the chart', JSON.stringify([bk1, bk2, bk3]));
+  /* sensitivity chart: the row labels fit inside the chart */
+  await page.evaluate(() => document.querySelector('[role="tab"][data-tab="sens"]').click()); await page.waitForTimeout(1200);
+  const torClip = await page.evaluate(() => { const p = document.getElementById('p-tor'), L = p.getBoundingClientRect().left; return [...p.querySelectorAll('.ytick text')].filter(t => t.getBoundingClientRect().left < L - 1).map(t => t.textContent); });
+  ok(!torClip.length, 'sensitivity chart labels are not cut off', JSON.stringify(torClip));
+  await page.evaluate(() => document.querySelector('[role="tab"][data-tab="proj"]').click()); await page.waitForTimeout(500);
   /* money fields: separators appear while typing, and typing replaces the selected value */
   await page.click('#q-P'); await page.keyboard.type('1250000'); const lv = await page.evaluate(() => document.getElementById('q-P').value);
   await page.waitForTimeout(600); const lp = await page.evaluate(() => P.P);

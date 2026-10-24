@@ -64,12 +64,15 @@ function wireChartInfo(){
 /* After following a link from a chart's notes, a "Back to <chart>" button (and the browser's back button) returns to
    the tab and chart the link came from. */
 let CI_BACK=null;
+/* The button sits in the page rather than floating over it: under the tabs, or in the assumptions panel's header. */
 function ciRemember(a){const card=a.closest('.card'),plot=card&&card.querySelector('.plot'),h=card&&card.querySelector('h2');
   CI_BACK={tab:CUR,y:scrollY,id:plot?plot.id:null,title:h?h.textContent.replace(/\?/g,'').trim():'the chart'};
   try{history.pushState({ciBack:1},'')}catch(e){}
-  let b=document.getElementById('ciBack');if(!b){b=document.createElement('button');b.id='ciBack';b.type='button';b.className='ciback';document.body.appendChild(b);
-    b.addEventListener('click',()=>{if(history.state&&history.state.ciBack)history.back();else ciGoBack()})}
-  b.textContent='← Back to '+CI_BACK.title;b.hidden=false}
-function ciGoBack(){const r=CI_BACK;if(!r)return;CI_BACK=null;const b=document.getElementById('ciBack');if(b)b.hidden=true;
+  if(!document.querySelector('.ciback'))[['.stickyhead','beforeend'],['#closeSheet','beforebegin']].forEach(([sel,pos])=>{
+    const b=document.createElement('button');b.type='button';b.className='ciback';if(pos==='beforeend')b.id='ciBack';document.querySelector(sel).insertAdjacentElement(pos,b);
+    b.addEventListener('click',()=>{if(history.state&&history.state.ciBack)history.back();else ciGoBack()})});
+  // a setting link opens the assumptions panel, so the button goes in its header; a Method link uses the one under the tabs
+  document.querySelectorAll('.ciback').forEach(b=>{b.textContent='← Back to '+CI_BACK.title;b.hidden=(b.id==='ciBack')===!!a.dataset.ciSet})}
+function ciGoBack(){const r=CI_BACK;if(!r)return;CI_BACK=null;document.querySelectorAll('.ciback').forEach(b=>b.hidden=true);
   const aside=document.getElementById('aside');if(aside.classList.contains('open'))document.getElementById('closeSheet').click();
   if(CUR!==r.tab)showTab(r.tab);setTimeout(()=>{const el=r.id&&document.getElementById(r.id);if(el)el.closest('.card').scrollIntoView({block:'start'});else scrollTo(0,r.y)},150)}
