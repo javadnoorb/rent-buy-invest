@@ -89,7 +89,7 @@
 "At year {0} buying ends behind by {1}. Most in its favor: rent the renter pays ({2}) and inflation shrinking the loan ({3}). Most against it: mortgage interest ({4}) and selling costs ({5}).": "En el año {0}, comprar termina atrás por {1}. Lo que más lo favorece: el alquiler que paga el inquilino ({2}) y la inflación que reduce el préstamo ({3}). Lo que más lo perjudica: los intereses hipotecarios ({4}) y los costos de venta ({5}).",
 "At year {0} buying ends behind by {1}. Most in its favor: rent the renter pays ({2}) and renter's investment returns, net ({3}). Most against it: home price change ({4}) and mortgage interest ({5}).": "En el año {0}, comprar termina atrás por {1}. Lo que más lo favorece: el alquiler que paga el inquilino ({2}) y los rendimientos netos de las inversiones del inquilino ({3}). Lo que más lo perjudica: el cambio en el precio de la vivienda ({4}) y los intereses hipotecarios ({5}).",
 "At year {0} the median future leaves {1} if you buy and {2} if you rent and invest. One in twenty futures leaves the buyer below {3} (renter: {4}).": "En el año {0}, el futuro mediano deja {1} si compra y {2} si alquila e invierte. Uno de cada veinte futuros deja al comprador por debajo de {3} (inquilino: {4}).",
-"At year {0} today's $, across {1} paths. Floor of {2} applied to wealth in the certainty equivalent.": "En el año {0}, $ de hoy, en {1} trayectorias. Piso de {2} aplicado al patrimonio en el equivalente cierto.",
+"At year {0} today's $, across {1} paths. Floor of {2} applied to wealth in the certainty equivalent.": "En el año {0} $ de hoy, en {1} trayectorias. Piso de {2} aplicado al patrimonio en el equivalente cierto.",
 "At year {0} {1} of the buyer's net worth is home equity and {2} is invested. Selling would cost about {3} in commission and fees.": "En el año {0}, {1} del patrimonio neto del comprador es capital en la vivienda y {2} está invertido. Vender costaría cerca de {3} en comisión y cargos.",
 "At year {0}:": "En el año {0}:",
 "At your rent (price-to-rent {0}) buying breaks even after more than {1} years. With {2} higher rent: year {3}; with {4} lower rent: over {5} years.": "Con su alquiler (relación precio-alquiler {0}), comprar alcanza el punto de equilibrio después de más de {1} años. Con un alquiler {2} más alto: año {3}; con un alquiler {4} más bajo: más de {5} años.",
@@ -268,7 +268,6 @@
 "Down payment (%), {0}-year loan": "Pago inicial (%), préstamo a {0} años",
 "Down payment on the rental property. Lenders require at least {0} ({1} unit) or {2} ({3}–{4} units) for investment properties.": "Pago inicial de la propiedad de alquiler. Los prestamistas exigen al menos {0} ({1} unidad) o {2} ({3}–{4} unidades) para propiedades de inversión.",
 "Down payment ±{0} pt": "Pago inicial ±{0} pt",
-"Each bar starts where the previous one ended, so the bars walk from zero to the final gap at the bottom. Both households spend the same each month; whoever pays less invests the difference.": "Cada barra empieza donde terminó la anterior, así que las barras van de cero a la diferencia final abajo. Ambos hogares gastan lo mismo cada mes; quien paga menos invierte la diferencia.",
 "Each dot is a location: how expensive homes are relative to rent, against the buy advantage at your horizon. Green dots: buying wins.": "Cada punto es una ubicación: qué tan caras son las viviendas en relación con el alquiler, frente a la ventaja de comprar en su horizonte. Puntos verdes: comprar gana.",
 "Each dot is a path: annualized own-home appreciation vs. portfolio return over the horizon, colored by the buy advantage.": "Cada punto es una trayectoria: revalorización anualizada de la vivienda propia frente al rendimiento de la cartera en el horizonte, coloreada según la ventaja de comprar.",
 "Each dot is one simulated future. x: how fast your home appreciated per year. y: how fast the portfolio grew per year. Color: buy advantage.": "Cada punto es un futuro simulado. x: qué tan rápido se revalorizó su vivienda por año. y: qué tan rápido creció la cartera por año. Color: ventaja de comprar.",
@@ -278,7 +277,7 @@
 "Each row is one input. The bars show how much the final buy-minus-rent gap changes if that input goes up (green) or down (blue) by the stated amount. The axis title shows the starting gap.": "Cada fila es un dato. Las barras muestran cuánto cambia la diferencia final entre comprar y alquilar si ese dato sube (verde) o baja (azul) en la cantidad indicada. El título del eje muestra la diferencia inicial.",
 "Each row runs the full model for one location with your household. The last column is the headline answer there: positive (green) means buying ends ahead of renting and investing after your horizon.": "Cada fila ejecuta el modelo completo para una ubicación con su hogar. La última columna es la respuesta principal allí: un valor positivo (verde) significa que comprar termina por delante de alquilar e invertir al final de su horizonte.",
 "Each value is the single input change, all else held at your settings, that makes the two main paths tie at that horizon.": "Cada valor es el cambio en un solo dato, con todo lo demás según sus supuestos, que hace que las dos trayectorias principales empaten en ese horizonte.",
-"Effect on buy minus rent at year {0} today's $": "Efecto en comprar menos alquilar en el año {0}, $ de hoy",
+"Effect on buy minus rent at year {0} today's $": "Efecto en comprar menos alquilar en el año {0} $ de hoy",
 "Embedded annual data": "Datos anuales integrados",
 "Enter manually": "Ingresar manualmente",
 "Enter my own": "Ingresar el mío",
@@ -1391,5 +1390,11 @@
 "· main county: median tax ÷ median value, {0}, Census ACS {1} × {2} for a new buyer (owners who moved in within about {3} years vs all owners in {4}, ACS microdata)": "· condado principal: impuesto mediano ÷ valor mediano, {0}, Census ACS {1} × {2} para un comprador nuevo (propietarios que se mudaron hace unos {3} años o menos frente a todos los propietarios de {4}, microdatos de la ACS)",
 "· typical mortgage spread": "· diferencial hipotecario típico",
 "× Census ratio for the chosen bedrooms": "× proporción del Census para las habitaciones elegidas",
-"Δ Mortgage": "Δ Hipoteca"
+"Δ Mortgage": "Δ Hipoteca",
+"Each arrow starts where the previous one ended and points right when the part favors buying, left when it favors renting, so the arrows walk from zero to the final gap at the bottom. Both households spend the same each month; whoever pays less invests the difference.": "Cada flecha empieza donde terminó la anterior y apunta a la derecha cuando la parte favorece comprar y a la izquierda cuando favorece alquilar, así que las flechas van de cero a la diferencia final abajo. Ambos hogares gastan lo mismo cada mes; quien paga menos invierte la diferencia.",
+"← favors renting": "← favorece alquilar",
+"favors buying →": "favorece comprar →",
+"At year {0} today's $": "En el año {0} $ de hoy",
+"At year {0} nominal $": "En el año {0} $ nominales",
+"Effect on buy minus rent at year {0} nominal $": "Efecto en comprar menos alquilar en el año {0} $ nominales"
 }

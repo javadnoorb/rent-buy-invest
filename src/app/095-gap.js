@@ -14,13 +14,35 @@ function gapParts(p,o){const N=p.N,c=o.cpi[N],LS=loanSetup(p,p.rate),sum=k=>o.fl
   const base=p.P*(1-p.dp),infl=LS.L-sum('principal')-bal;if(p.moveMode==='none'||!p.moveMode){parts.push(['FHA upfront premium',base-LS.L],['Inflation shrinking the loan',infl])}
   const known=parts.reduce((a,x)=>a+x[1],0);parts.push(['Renter\'s investment returns, net',gap-known]);
   return {gap,parts:parts.filter(([lab,v])=>Math.abs(v)>=1||/Rent|returns/.test(lab))}}
-function renderGap(o){const t=theme(),p=P,{gap,parts}=gapParts(p,o);let run=0;const lab=parts.map(x=>x[0]).concat(['Buy minus rent']).reverse();
-  const base=[],val=[],col=[];parts.forEach(([,v])=>{base.push(v>=0?run:run+v);val.push(Math.abs(v));col.push(v>=0?t.buy:t.inv);run+=v});
-  base.push(Math.min(0,gap));val.push(Math.abs(gap));col.push(gap>=0?t.buy:t.inv);
-  const signed=parts.map(x=>x[1]).concat([gap]);
-  plot('p-gap',[{type:'bar',orientation:'h',y:lab,x:val.slice().reverse(),base:base.slice().reverse(),marker:{color:col.slice().reverse()},
-    customdata:signed.slice().reverse(),hovertemplate:'%{y}: %{customdata:$,.0f}<extra></extra>'}],
-    {xaxis:{...Yd(basisLabel()),title:{text:`Effect on buy minus rent at year ${p.N}, ${basisLabel()}`,font:{size:11}}},yaxis:{automargin:true,type:'category'},
-     margin:{l:10,r:10,t:10,b:44},showlegend:false,shapes:[{type:'line',x0:0,x1:0,yref:'paper',y0:0,y1:1,line:{color:t.muted,width:1}}]});
+/* Drawn as a walk of thick arrows: each part starts where the previous one ended and points right (in buying's
+   favor, green) or left (renting's, blue); dotted lines join the steps and the value sits at each arrow's tip. The
+   last row is the total, drawn from zero. An invisible bar per row carries the hover text. On phones the names and
+   values go above the arrows so the arrows get the full width. Labels are translated here (tr) rather than by the page
+   observer so the chart sizes its margin for the shown language. */
+function renderGap(o){const t=theme(),p=P,{gap,parts}=gapParts(p,o),narrow=innerWidth<600;
+  const rows=parts.map(([lab,v])=>({lab,v})),n=rows.length;let run=0;rows.forEach(r=>{r.a=run;run+=r.v;r.b=run});
+  rows.push({lab:'Buy minus rent',v:gap,a:0,b:gap,total:true});
+  const xs=rows.flatMap(r=>[r.a,r.b]),lo=Math.min(0,...xs),hi=Math.max(0,...xs),span=(hi-lo)||1,pad=span*(narrow?.03:.13);
+  const y=i=>n-i,dy=narrow?-.14:0,head=span*.022,sh=[],bx=[],base=[],txt=[],tx=[],ty=[],tpos=[],tcol=[];
+  rows.forEach((r,i)=>{const yc=y(i)+dy,h=narrow?(r.total?.2:.15):(r.total?.36:.26),hh=narrow?(r.total?.28:.24):(r.total?.46:.38),d=r.b>=r.a?1:-1,len=Math.abs(r.b-r.a),hl=Math.min(head,len),neck=r.b-d*hl;
+    const col=r.v>=0?t.buy:t.inv;
+    if(len>0)sh.push({type:'path',xref:'x',yref:'y',fillcolor:col,line:{width:r.total?1.5:0,color:t.ink},layer:'above',
+      path:`M${r.a},${yc-h} L${neck},${yc-h} L${neck},${yc-hh} L${r.b},${yc} L${neck},${yc+hh} L${neck},${yc+h} L${r.a},${yc+h} Z`});
+    if(i<n-1)sh.push({type:'line',xref:'x',yref:'y',x0:r.b,x1:r.b,y0:yc-hh,y1:y(i+1)+dy+hh,line:{color:t.muted,width:1,dash:'dot'}});
+    bx.push(len);base.push(Math.min(r.a,r.b));tx.push(r.b);ty.push(yc);tcol.push(r.total?t.ink:col);
+    txt.push((r.total?'<b>':'')+(r.v>=0?'+':'')+fmt(r.v)+(r.total?'</b>':''));tpos.push(r.b>=r.a?'middle right':'middle left')});
+  sh.push({type:'line',xref:'x',yref:'paper',x0:0,x1:0,y0:0,y1:1,line:{color:t.muted,width:1}},
+    {type:'line',xref:'paper',yref:'y',x0:0,x1:1,y0:.5,y1:.5,line:{color:t.line,width:1}});
+  const ys=rows.map((r,i)=>y(i)),ticks=rows.map(r=>r.total?`<b>${tr(r.lab)}</b>`:tr(r.lab));
+  const names=narrow?rows.map((r,i)=>({xref:'paper',yref:'y',x:0,y:y(i)+.12,xanchor:'left',yanchor:'bottom',showarrow:false,
+    text:`${r.total?'<b>':''}${tr(r.lab)} <span style="color:${r.v>=0?t.buy:t.inv}">${r.v>=0?'+':''}${fmt(r.v)}</span>${r.total?'</b>':''}`,font:{size:11}})):[];
+  const dir=`<span style="color:${t.inv}">${tr('← favors renting')}</span>   <span style="color:${t.buy}">${tr('favors buying →')}</span>`;
+  plot('p-gap',[{type:'bar',orientation:'h',y:ys,x:bx,base,width:.9,marker:{color:'rgba(0,0,0,0)'},customdata:rows.map(r=>[r.lab,r.v]),
+      hovertemplate:'%{customdata[0]}: %{customdata[1]:$,.0f}<extra></extra>'},
+    {type:'scatter',mode:'text',visible:!narrow,x:tx,y:ty,text:txt,textposition:tpos,textfont:{color:tcol,family:'IBM Plex Mono, monospace',size:narrow?10:11},
+      cliponaxis:false,hoverinfo:'skip'}],
+    {xaxis:{...Yd(basisLabel()),range:[lo-pad,hi+pad],title:{text:narrow?`${dir}<br>${tr(`At year ${p.N}, ${basisLabel()}`)}`:`${dir}      ${tr(`Effect on buy minus rent at year ${p.N}, ${basisLabel()}`)}`,font:{size:11}}},
+     yaxis:{automargin:true,tickvals:ys,ticktext:ticks,showticklabels:!narrow,range:[-.6,n+.6],showgrid:false,zeroline:false},hovermode:'closest',
+     margin:{l:10,r:10,t:10,b:narrow?70:44},showlegend:false,shapes:sh,annotations:names});
   const pos=parts.filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]),neg=parts.filter(x=>x[1]<0).sort((a,b)=>a[1]-b[1]);
   tk('gap',`At year ${p.N} buying ends ${gap>=0?'ahead':'behind'} by ${fmt(Math.abs(gap))}. ${pos.length?`Most in its favor: ${pos.slice(0,2).map(x=>`${x[0].toLowerCase()} (${fmt(x[1])})`).join(' and ')}. `:''}${neg.length?`Most against it: ${neg.slice(0,2).map(x=>`${x[0].toLowerCase()} (${fmt(-x[1])})`).join(' and ')}.`:''}`)}
