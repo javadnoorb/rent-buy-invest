@@ -53,7 +53,23 @@ function drawLoc(rows){
   const t=theme(),N=P.N,sel=rows.filter(r=>LOC_SEL.includes(r.m.slug)),pal=[t.buy,t.inv,t.cash,t.rp,t.neg,t.ink];
   plot('p-loc',sel.map((r,i)=>({x:r.o.buy.map((_,k)=>k),y:r.o.buy.map((b,k)=>adj(b-r.o.inv[k],r.o.cpi[k])),mode:'lines',name:r.m.name,line:{color:pal[i%pal.length],width:r.m.slug===P.metro?3:2,dash:i>=3?'dot':'solid'},hovertemplate:'%{y:$,.0f}<extra>'+r.m.name+'</extra>'})),
     Object.assign(layout({hovermode:'x unified'}),{xaxis:X('Years'),yaxis:Yd('Buy − rent+invest ('+basisLabel()+')'),shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:t.muted,width:1}}]}));
-  plot('p-locsc',[{x:rows.map(r=>r.ptr),y:rows.map(r=>r.gap),text:rows.map(r=>r.m.name),mode:'markers+text',textposition:'top center',textfont:{size:9,color:t.muted},
-    marker:{size:rows.map(r=>r.m.slug===P.metro?12:8),color:rows.map(r=>r.gap>=0?t.buy:t.inv),line:{width:rows.map(r=>LOC_SEL.includes(r.m.slug)?1.5:0),color:t.ink}},hovertemplate:'%{text}<br>price ÷ yearly rent %{x:.1f}<br>buy − rent+invest %{y:$,.0f}<extra></extra>'}],
-    Object.assign(layout(),{xaxis:X('Price ÷ yearly rent'),yaxis:Yd(`Buy − rent+invest at year ${N}`),showlegend:false,shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:t.muted,width:1}}]}))}
+  const lab=placeLabels(document.getElementById('p-locsc'),rows.map(r=>({x:r.ptr,y:r.gap,text:r.m.name,pri:(r.m.slug===P.metro?2e9:0)+(LOC_SEL.includes(r.m.slug)?1e9:0)+Math.abs(r.gap)})));
+  plot('p-locsc',[{x:rows.map(r=>r.ptr),y:rows.map(r=>r.gap),text:lab.text,customdata:rows.map(r=>r.m.name),mode:'markers+text',textposition:lab.pos,textfont:{size:9,color:t.muted},
+    marker:{size:rows.map(r=>r.m.slug===P.metro?12:8),color:rows.map(r=>r.gap>=0?t.buy:t.inv),line:{width:rows.map(r=>LOC_SEL.includes(r.m.slug)?1.5:0),color:t.ink}},hovertemplate:'%{customdata}<br>price ÷ yearly rent %{x:.1f}<br>buy − rent+invest %{y:$,.0f}<extra></extra>'}],
+    Object.assign(layout(),{xaxis:{...X('Price ÷ yearly rent'),range:lab.xr},yaxis:{...Yd(`Buy − rent+invest at year ${N}`),range:lab.yr},showlegend:false,shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:t.muted,width:1}}]}))}
+/* Point labels that don't collide: points are taken most important first and each label goes to the first of eight
+   spots around its point whose box (estimated from the chart's size and fixed axis ranges) overlaps no placed label,
+   no other point and stays inside the plot; a label with no free spot is left to the hover text. */
+function placeLabels(el,pts){const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y),px=(Math.max(...xs)-Math.min(...xs))||1,py=(Math.max(...ys)-Math.min(...ys))||1;
+  const xr=[Math.min(...xs)-px*.06,Math.max(...xs)+px*.06],yr=[Math.min(...ys)-py*.08,Math.max(...ys)+py*.12];
+  const W=Math.max(200,(el&&el.clientWidth||600)-110),H=Math.max(150,(el&&el.clientHeight||380)-100);
+  const X=x=>(x-xr[0])/(xr[1]-xr[0])*W,Y=y=>(yr[1]-y)/(yr[1]-yr[0])*H,cw=5.2,ch=11,gap=6;
+  const spots=[['top center',0,-1],['bottom center',0,1],['middle right',1,0],['middle left',-1,0],['top right',1,-1],['top left',-1,-1],['bottom right',1,1],['bottom left',-1,1]];
+  const boxes=pts.map(p=>{const x=X(p.x),y=Y(p.y);return [x-5,y-5,x+5,y+5]}),hit=(a,b)=>a[0]<b[2]&&b[0]<a[2]&&a[1]<b[3]&&b[1]<a[3];
+  const text=pts.map(()=>''),pos=pts.map(()=>'top center');
+  pts.map((p,i)=>i).sort((a,b)=>pts[b].pri-pts[a].pri).forEach(i=>{const p=pts[i],x=X(p.x),y=Y(p.y),w=p.text.length*cw;
+    for(const [name,dx,dy] of spots){const cx=x+dx*(gap+w/2),cy=y+dy*(gap+ch/2),b=[cx-w/2,cy-ch/2,cx+w/2,cy+ch/2];
+      if(b[0]<0||b[2]>W||b[1]<0||b[3]>H)continue;
+      if(boxes.some((o,j)=>j!==i&&hit(b,o)))continue;boxes.push(b);text[i]=p.text;pos[i]=name;break}});
+  return {text,pos,xr,yr}}
 function wireLoc(){wireSbs();document.querySelectorAll('#locMode button').forEach(b=>b.addEventListener('click',()=>{LOC_MODE=b.dataset.m;document.querySelectorAll('#locMode button').forEach(x=>x.setAttribute('aria-pressed',x===b));renderLoc()}))}

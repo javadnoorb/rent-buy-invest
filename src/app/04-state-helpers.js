@@ -10,16 +10,18 @@ function theme(){return{rp:css('--rp'),ink:css('--ink'),muted:css('--muted'),lin
 function hexA(h,a){h=h.replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`}
 const TOUCH=matchMedia('(pointer: coarse)').matches||('ontouchstart' in window&&innerWidth<900);
 function layout(extra){const t=theme();const narrow=innerWidth<600;
+  const M={l:narrow?52:64,r:14,t:10,b:narrow?72:48};
   const L=Object.assign({paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',font:{family:'IBM Plex Sans, system-ui, sans-serif',color:t.ink,size:narrow?11:12},
-    margin:{l:narrow?52:64,r:14,t:10,b:narrow?72:48},hovermode:'x unified',hoverlabel:{bgcolor:t.bg,bordercolor:t.line,font:{color:t.ink,family:'IBM Plex Mono, monospace'}},
-    legend:{orientation:'h',y:narrow?-0.3:-0.16,x:0,font:{size:narrow?10:11},itemwidth:narrow?24:30,tracegroupgap:4},
+    margin:M,hovermode:'x unified',hoverlabel:{bgcolor:t.bg,bordercolor:t.line,font:{color:t.ink,family:'IBM Plex Mono, monospace'}},
+    legend:{orientation:'h',yref:'container',y:0,yanchor:'bottom',x:0,font:{size:narrow?10:11},itemwidth:narrow?24:30,tracegroupgap:4},
     xaxis:{gridcolor:narrow?hexA(t.line,.55):t.line,zerolinecolor:t.line,linecolor:t.line,tickfont:{family:'IBM Plex Mono, monospace'},nticks:narrow?6:undefined},
     yaxis:{gridcolor:narrow?hexA(t.line,.55):t.line,zerolinecolor:t.muted,linecolor:t.line,tickfont:{family:'IBM Plex Mono, monospace'},nticks:narrow?5:undefined}},extra||{});
+  if(extra&&extra.margin)L.margin=Object.assign({},M,extra.margin);  // a chart may set only some sides
   if(TOUCH){L.dragmode=false;Object.keys(L).forEach(k=>{if(/^[xy]axis\d*$/.test(k))L[k]=Object.assign({},L[k],{fixedrange:true})});
     if(!L.xaxis)L.xaxis={fixedrange:true};if(!L.yaxis)L.yaxis={fixedrange:true};
     L.hoverlabel=Object.assign({},L.hoverlabel,{bgcolor:hexA(t.bg,0.9),font:Object.assign({},(L.hoverlabel||{}).font,{size:11})})}
   return L}
-const CFG=TOUCH?{responsive:true,displayModeBar:false,scrollZoom:false,doubleClick:false,showTips:false}:{responsive:true,displaylogo:false,displayModeBar:true,modeBarButtonsToRemove:['lasso2d','select2d'],doubleClick:'reset'};
+const CFG=TOUCH?{responsive:true,displayModeBar:false,scrollZoom:false,doubleClick:false,showTips:false}:{responsive:true,displaylogo:false,modeBarButtonsToRemove:['lasso2d','select2d'],doubleClick:'reset'};
 const HOVERED=new Set();
 /* touch: a tap shows the chart readout; the next tap anywhere (the same chart included), a scroll, or 2.5 s closes it.
    Works from the DOM rather than Plotly's hover events, which mobile browsers do not fire reliably. */
@@ -37,10 +39,29 @@ if(TOUCH){
    and are drawn by plotFlush() once Plotly has loaded, or replaced by an error note if it never does. */
 let PLOTLY_STATE='loading';const PLOT_WAIT=new Map();
 function plotFlush(ok){PLOTLY_STATE=ok?'ready':'failed';const w=[...PLOT_WAIT];PLOT_WAIT.clear();w.forEach(([id,a])=>plot(id,...a))}
+/* Every axis grows its margin to fit its tick labels and title (so they never overlap), and an axis of named categories
+   shows every name: the phone tick limit (nticks) only applies to numeric axes. */
+function fitAxes(data,L){for(const k of Object.keys(L)){const m=k.match(/^([xy])axis(\d*)$/);if(!m||!L[k])continue;const ax=L[k]=Object.assign({},L[k]);
+    if(ax.automargin==null)ax.automargin=true;const ref=m[1]+(m[2]||'');
+    const cat=ax.type==='category'||ax.tickvals||data.some(d=>(d[m[1]+'axis']||m[1])===ref&&Array.isArray(d[m[1]])&&typeof d[m[1]][0]==='string'&&ax.type!=='date'&&!/^\d{4}-\d\d/.test(d[m[1]][0]));
+    if(cat)delete ax.nticks}
+  return L}
+/* In Spanish, chart text (trace names, category labels, axis titles, annotations) is translated before drawing, so
+   margins and legends are sized for the words shown; the page observer then finds nothing left to change. */
+function i18nFig(data,L){if(LANG==='en'||!I18N_DICT)return;const s=v=>typeof v==='string'?tr(v):v,arr=a=>Array.isArray(a)&&typeof a[0]==='string'&&!/^\d{4}-\d\d/.test(a[0])?a.map(s):a;
+  for(const d of data){if(d.name)d.name=s(d.name);d.x=arr(d.x);d.y=arr(d.y)}
+  for(const k of Object.keys(L)){const ax=L[k];if(!/^[xy]axis\d*$/.test(k)||!ax)continue;if(ax.title&&ax.title.text)ax.title=Object.assign({},ax.title,{text:s(ax.title.text)});if(ax.ticktext)ax.ticktext=ax.ticktext.map(s)}
+  if(L.annotations)L.annotations=L.annotations.map(a=>Object.assign({},a,a.text?{text:s(a.text)}:{},typeof a.y==='string'?{y:s(a.y)}:{},typeof a.x==='string'?{x:s(a.x)}:{}))}
+/* on phones long axis titles and corner notes wrap onto lines of at most n characters (text with markup is left alone) */
+function wrapText(tx,n){if(typeof tx!=='string'||/<(?!br>)/.test(tx))return tx;
+  return tx.split('<br>').map(line=>{const out=[];let cur='';for(const w of line.split(' ')){if(cur&&(cur+' '+w).length>n){out.push(cur);cur=w}else cur=cur?cur+' '+w:w}out.push(cur);return out.join('<br>')}).join('<br>')}
+function wrapTitles(L){if(innerWidth>=600)return;for(const k of Object.keys(L)){const ax=L[k];if(!/^[xy]axis\d*$/.test(k)||!ax||!ax.title||typeof ax.title.text!=='string')continue;
+    const n=k[0]==='x'?30:38,tx=ax.title.text;if(tx.replace(/<[^>]+>/g,'').length>n)ax.title=Object.assign({},ax.title,{text:wrapText(tx,n)})}
+  if(L.annotations)L.annotations=L.annotations.map(a=>a.xref==='paper'&&typeof a.text==='string'&&a.text.length>44?Object.assign({},a,{text:wrapText(a.text,44)}):a)}
 function plot(id,data,lay){const el=document.getElementById(id);
   if(PLOTLY_STATE==='loading'){PLOT_WAIT.set(id,[data,lay]);if(!el.dataset.wait){el.dataset.wait=1;el.innerHTML='<div class="note plotwait">Loading chart…</div>'}describeChart(el);return}
   if(el.dataset.wait){el.innerHTML='';delete el.dataset.wait}
-  try{if(el.dataset.err){el.innerHTML='';delete el.dataset.err}Plotly.react(el,data,layout(lay),CFG);describeChart(el)}
+  try{if(el.dataset.err){el.innerHTML='';delete el.dataset.err}const L=fitAxes(data,layout(lay));i18nFig(data,L);wrapTitles(L);Plotly.react(el,data,L,CFG);describeChart(el)}
   catch(e){console.error(id,e);el.dataset.err=1;el.innerHTML=`<div class="note">This chart could not be drawn (${String(e.message||e).slice(0,160)}).</div>`}}
 const X=(t)=>({...layout().xaxis,title:{text:t,font:{size:11}}});
 const Yd=(t)=>({...layout().yaxis,title:{text:t,font:{size:11}},tickprefix:'$',tickformat:'~s'});

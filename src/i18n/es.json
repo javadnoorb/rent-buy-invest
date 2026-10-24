@@ -1396,5 +1396,8 @@
 "favors buying →": "favorece comprar →",
 "At year {0} today's $": "En el año {0} $ de hoy",
 "At year {0} nominal $": "En el año {0} $ nominales",
-"Effect on buy minus rent at year {0} nominal $": "Efecto en comprar menos alquilar en el año {0} $ nominales"
+"Effect on buy minus rent at year {0} nominal $": "Efecto en comprar menos alquilar en el año {0} $ nominales",
+"no effect here": "sin efecto aquí",
+"{0} of paths refinance at least once": "{0} de las trayectorias refinancian al menos una vez",
+"{0} refis on average": "{0} refinanciaciones en promedio"
 }

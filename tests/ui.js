@@ -225,6 +225,9 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
   const r1 = await page.evaluate(() => [loanSetup(P, P.rate).rate, pmiRate(Object.assign({}, P, { dp: 0.05 }), 0.05) / pmiRate(Object.assign({}, P, { dp: 0.05, fico: '760-779' }), 0.05), CREDIT.pmi.rel['639-']]);
   ok(Math.abs(r1[0] - r0 - 0.0053125) < 1e-9 && Math.abs(r1[1] - r1[2]) < 1e-9, 'credit 639 or lower: +0.53 pts and higher PMI', JSON.stringify([r0, r1]));
   await set({ fico: '760-779', metro: 'us' }); await page.waitForTimeout(300);
+  /* charts: an axis of named categories keeps every label (no tick limit) and every axis sizes its margin to its labels */
+  const ax = await page.evaluate(() => { const L = fitAxes([{ y: ['a', 'b'], x: [1, 2] }], { xaxis: { nticks: 6 }, yaxis: { nticks: 5 } }); return [L.yaxis.nticks, L.xaxis.nticks, L.yaxis.automargin, L.xaxis.automargin]; });
+  ok(ax[0] === undefined && ax[1] === 6 && ax[2] && ax[3], 'category axes show every label; numeric axes keep their tick limit', JSON.stringify(ax));
   /* dependent settings: hidden while the setting they depend on makes them irrelevant */
   const vis = id => page.evaluate(id => !document.getElementById(id).closest('.f').classList.contains('dep-off'), id);
   const d0 = [await vis('armRate'), await vis('pmi'), await vis('mu'), await vis('refiTh')];

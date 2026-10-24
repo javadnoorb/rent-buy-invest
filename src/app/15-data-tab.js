@@ -9,7 +9,7 @@ function renderData(){
     {x,y:cum(BILL),name:'T-bills',line:{color:t.cash,width:1.6,dash:'dot'},hovertemplate:'%{y:$,.2f}'},
     {x,y:cum(HOME),name:'Home prices',line:{color:t.buy,width:2.3},hovertemplate:'%{y:$,.2f}'},
     {x,y:cum(RENTG),name:'Rent (CPI)',line:{color:t.neg,width:1.6},hovertemplate:'%{y:$,.2f}'}],
-    {yaxis:Yt('Real value of $1 (log)',{type:'log',tickprefix:'$'}),xaxis:layout().xaxis});
+    {yaxis:Yt('Real value of $1 (log)',{type:'log',tickprefix:'$',dtick:1}),xaxis:layout().xaxis});
   const m=curMetro(),ma=metroAnnual(m,true),ms=metroStart(m);
   if(ma&&ms){const yrs=YEARS.filter(y=>y>=ms);const idx=(a)=>{let v=100;return [100].concat(yrs.map(y=>{const i=y-Y0;v*=(1+a[i]/100)/(1+INF[i]/100);return v}))};
     document.getElementById('metro-cap').innerHTML=`Real home-price index, ${m.name} vs. national, rebased to 100 at end of ${ms-1}. Metro ${m.hpiSrc?m.hpiSrc.t:''} ${srcObj(m.hpiSrc)}. Metro annualized real growth ${pct(Math.pow(idx(ma).at(-1)/100,1/yrs.length)-1)}; national ${pct(Math.pow(idx(HOME).at(-1)/100,1/yrs.length)-1)}.`;
@@ -28,7 +28,7 @@ function renderData(){
   const getS=k=>k==='dm'?DM_OBS:SER[k];
   const corr=(a,b)=>{const pr=[];a.forEach((v,i)=>{if(v!=null&&b[i]!=null)pr.push([v,b[i]])});const n=pr.length,ma=pr.reduce((s,v)=>s+v[0],0)/n,mb=pr.reduce((s,v)=>s+v[1],0)/n;let sab=0,sa=0,sb=0;pr.forEach(([u,v])=>{sab+=(u-ma)*(v-mb);sa+=(u-ma)**2;sb+=(v-mb)**2});return sab/Math.sqrt(sa*sb)};
   const z=ks.map(([,a])=>ks.map(([,b])=>corr(getS(a),getS(b))));
-  plot('p-corr',[{x:ks.map(k=>k[0]),y:ks.map(k=>k[0]),z,type:'heatmap',zmin:-1,zmax:1,colorscale:divScale(t),text:z.map(r=>r.map(v=>v.toFixed(2))),texttemplate:'%{text}',textfont:{family:'IBM Plex Mono',size:10},showscale:false,hovertemplate:'%{y} × %{x}: %{z:.2f}<extra></extra>'}],
+  plot('p-corr',[{x:ks.map(k=>k[0]),y:ks.map(k=>k[0]),z,type:'heatmap',zmin:-1,zmax:1,colorscale:divScale(t),text:z.map(r=>r.map(v=>v.toFixed(2))),texttemplate:'%{text}',textfont:{family:'IBM Plex Mono, monospace',size:10},showscale:false,hovertemplate:'%{y} × %{x}: %{z:.2f}<extra></extra>'}],
     {hovermode:'closest',margin:{l:76,r:10,t:10,b:60},yaxis:{autorange:'reversed',tickfont:{color:t.ink}},xaxis:{tickfont:{color:t.ink},tickangle:-40}});
   {const ci=ks.findIndex(k=>k[1]==='gh'),si=ks.findIndex(k=>k[1]==='rs'),ii=ks.findIndex(k=>k[1]==='inf');
    tk('corr',`Home prices and stocks: ${z[ci][si].toFixed(2)} (close to unrelated). Home prices and inflation: ${z[ci][ii].toFixed(2)}, a partial inflation hedge.`,'What stands out:')}

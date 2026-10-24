@@ -1,10 +1,14 @@
 /* ===================== Sensitivity ===================== */
 function renderSens(){
   const t=theme(),p=P,{base,rows}=tornado(p);
+  /* bars overlap from zero; when both changes push the same way the "higher" bar is drawn thinner on top so both show,
+     and an input with no effect at these settings says so instead of leaving an empty row */
+  const same=rows.map(r=>r.lo*r.hi>0),none=rows.filter(r=>Math.abs(r.lo)<1&&Math.abs(r.hi)<1),narrow=innerWidth<600;
   plot('p-tor',[
-    {y:rows.map(r=>r.lab),x:rows.map(r=>r.lo),name:'Input lower',type:'bar',orientation:'h',marker:{color:hexA(t.inv,.75)},hovertemplate:'%{x:$,.0f}<extra>lower</extra>'},
-    {y:rows.map(r=>r.lab),x:rows.map(r=>r.hi),name:'Input higher',type:'bar',orientation:'h',marker:{color:hexA(t.buy,.75)},hovertemplate:'%{x:$,.0f}<extra>higher</extra>'}],
-    {barmode:'overlay',hovermode:'closest',margin:{l:innerWidth<600?150:190,r:14,t:10,b:60},xaxis:{...layout().xaxis,title:{text:`Change in buy advantage at year ${p.N} (base ${fmt(base)})`,font:{size:11}},tickprefix:'$',tickformat:'~s'},yaxis:{...layout().yaxis,automargin:true}});
+    {y:rows.map(r=>r.lab),x:rows.map(r=>r.lo),name:'Input lower',type:'bar',orientation:'h',width:.8,offset:-.4,marker:{color:hexA(t.inv,.85)},hovertemplate:'%{x:$,.0f}<extra>lower</extra>'},
+    {y:rows.map(r=>r.lab),x:rows.map(r=>r.hi),name:'Input higher',type:'bar',orientation:'h',width:same.map(s=>s?.4:.8),offset:same.map(s=>s?-.2:-.4),marker:{color:hexA(t.buy,.85)},hovertemplate:'%{x:$,.0f}<extra>higher</extra>'}],
+    {barmode:'overlay',hovermode:'closest',margin:{l:10,r:14,t:10,b:60},xaxis:{...layout().xaxis,title:{text:`Change in buy advantage at year ${p.N} (base ${fmt(base)})`,font:{size:11}},tickprefix:'$',tickformat:'~s'},yaxis:{...layout().yaxis,automargin:true,tickfont:{family:'IBM Plex Sans, system-ui, sans-serif',size:narrow?10:12}},
+     annotations:none.map(r=>({x:0,y:r.lab,xanchor:'left',xshift:4,showarrow:false,text:'no effect here',font:{size:10,color:t.muted}}))});
   {const top=rows.slice(-3).reverse(),flips=rows.filter(r=>Math.sign(base+r.lo)!==Math.sign(base)||Math.sign(base+r.hi)!==Math.sign(base));
    tk('tor',`The answer is most sensitive to ${top.map(r=>r.lab.replace(/ ±.*/,'').toLowerCase()).join(', ')}. `+(flips.length?`Within the ranges shown, ${flips.map(r=>r.lab.replace(/ ±.*/,'').toLowerCase()).join(', ')} could flip the decision on its own.`:`None of the shown changes alone flips the decision, so the result is fairly robust to any single input.`))}
   const G=[],R=[];for(let g=-2;g<=8.001;g+=0.5)G.push(r2(g));for(let r=2;r<=14.001;r+=0.5)R.push(r2(r));

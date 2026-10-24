@@ -79,6 +79,6 @@ function drawMC(){if(!MC)return;mcSync();
    tk('mcrate',`In ${pct(hit,0)} of futures the market rate falls at least ${(P.refiTh*100).toFixed(2)} points below your ${pct(P.rate,2)} within ${nY(k)}${P.refiOn?', triggering a refinance':' (refinancing is off)'}.`)}
   plot('p-mcrate',[{x:yr,y:rq(.95),mode:'lines',line:{width:0},showlegend:false,hoverinfo:'skip'},{x:yr,y:rq(.05),mode:'lines',line:{width:0},fill:'tonexty',fillcolor:hexA(t.neg,.15),name:'5–95%',hoverinfo:'skip'},
     {x:yr,y:rq(.5),mode:'lines',line:{color:t.neg,width:2.5},name:'Median market rate',hovertemplate:'%{y:.2f}%'}],
-    {xaxis:X('Years from today'),yaxis:Yt('30-yr rate',{ticksuffix:'%'}),annotations:[{xref:'paper',yref:'paper',x:0,y:1,xanchor:'left',yanchor:'top',showarrow:false,text:P.refiOn?`${pct(nref,0)} of paths refinance at least once · ${avgRef.toFixed(2)} refis on average`:'refinancing is off',font:{size:11,color:t.muted}}]});
+    {xaxis:X('Years from today'),yaxis:Yt('30-yr rate',{ticksuffix:'%'}),margin:{t:innerWidth<600?54:38},annotations:[{xref:'paper',yref:'paper',x:0,y:1,xanchor:'left',yanchor:'bottom',align:'left',showarrow:false,text:P.refiOn?`${tr(`${pct(nref,0)} of paths refinance at least once`)}<br>${tr(`${avgRef.toFixed(2)} refis on average`)}`:'refinancing is off',font:{size:11,color:t.muted}}]});
 }
 

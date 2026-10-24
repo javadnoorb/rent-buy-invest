@@ -28,7 +28,7 @@ function renderHist(){
   const med=[];for(let h=0;h<=30;h++){const v=runs.filter(r=>r.adv.length>h).map(r=>r.adv[h]).sort((a,b)=>a-b);if(v.length>=5)med.push([h,v[Math.floor(v.length/2)]])}
   sp.push({x:med.map(m=>m[0]),y:med.map(m=>m[1]),mode:'lines',name:'Median across starts',line:{color:t.ink,width:3.5},hovertemplate:'median %{y:.0f}%<extra></extra>'});
   plot('p-spag',sp,{hovermode:'closest',xaxis:X('Years after purchase'),yaxis:Yt('Buy − rent&invest, real, % of price',{ticksuffix:'%'}),
-    annotations:[{xref:'paper',yref:'paper',x:0,y:1,xanchor:'left',yanchor:'top',showarrow:false,text:'early starts blue → recent red',font:{size:11,color:t.muted}}]});
+    margin:{t:24},annotations:[{xref:'paper',yref:'paper',x:0,y:1,xanchor:'left',yanchor:'bottom',showarrow:false,text:'early starts blue → recent red',font:{size:11,color:t.muted}}]});
   const H=[...Array(30)].map((_,k)=>k+1),xs=runs.map(r=>r.s);
   const z=H.map(h=>runs.map(r=>r.adv.length>h?r.adv[h]:null));
   const zmax=Math.min(150,Math.max(1,...z.flat().filter(v=>v!=null).map(Math.abs)));
