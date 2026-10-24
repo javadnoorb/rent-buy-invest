@@ -18,6 +18,7 @@ function dataInventory(){const sv=SNAP.values,mf=MONTHLY&&MONTHLY.dates,cty=COUN
     ['Home prices, last 12 months','header card',per('fhfaUS'),[['fhfaUS','FHFA']]],
     ['Property tax rate and home insurance, U.S.','defaults for the U.S. location','ACS 2020–2024; insurance 2024, grown with prices',[['ptaxUS','Census ACS'],['ins','Census ACS microdata'],['ppi_ins','BLS producer prices']]]]],
    ['History, yearly',[
+    ['Rent-to-price ratio of owner-occupied homes, U.S.','the Backtest\'s "Historical" starting rent',RES.rentPrice?`${Math.min(...Object.keys(RES.rentPrice).map(Number))}–${Math.max(...Object.keys(RES.rentPrice).map(Number))}`:'',[['rp_bea','BEA imputed rent'],['rp_z1','Federal Reserve Z.1 home values']]],
     ['Stocks (S&P 500), 10-year Treasury bonds, T-bills','Backtest, Monte Carlo, historical presets',hy,[['damo','Damodaran (NYU)']]],
     ['Home prices, U.S.','Backtest, Monte Carlo; Shiller to 1986, Case-Shiller to 1991, FHFA from 1992 scaled to Case-Shiller\'s swings',hy,[['shiller','Shiller'],['fhfa','FHFA'],['caseShiller','S&P Case-Shiller']]],
     ['Consumer prices and rents (CPI)','inflation and rent growth in the Backtest and Monte Carlo',hy,[['fredCPI','BLS CPI'],['fredRent','BLS rent CPI']]],

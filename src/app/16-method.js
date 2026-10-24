@@ -127,6 +127,9 @@ function buildMethod(){
   \\[ r^{bond}_t \\approx \\frac{Y_{t-1}}{12} - D_b\\,(Y_t - Y_{t-1}) \\]
   <dl class="sym"><dt>\\(Y_t\\)</dt><dd>10-year Treasury yield in month \\(t\\) (decimal)</dd><dt>\\(D_b\\)</dt><dd>bond duration, 7.5 years</dd></dl>`:''}
 
+  <h3>Backtest starting rent</h3>
+  <p>Every Backtest purchase starts at your price. With starting rent <em>Mine</em> the first year's rent is your rent, so every purchase year starts at your rent-to-price ratio. With <em>Historical</em> it is \\(R_0\\,\\rho_s/\\rho_{\\text{latest}}\\), where \\(\\rho_s\\) is the national rent-to-price ratio of owner-occupied homes in the purchase year \\(s\\): yearly imputed rent of owner-occupied housing (BEA) divided by the average market value of owner-occupied real estate over the year (Federal Reserve Z.1), the construction behind Davis, Lehnert and Martin's series, here from the public sources directly. Your place keeps its premium or discount over the national level; the swings over time come from history (about 7% in the early 1970s, 4.6% at the 2006 peak in prices, 7.1% in 2012). After the purchase, rent and price follow their historical growth either way. The national ratio is an aggregate over all owner-occupied homes and land, so it describes the direction and size of swings better than any one home's level.</p>
+
   <h3>Checked against a published study</h3>
   <p>Beracha and Johnson (${linkTo('https://doi.org/10.1111/j.1540-6229.2011.00321.x','Real Estate Economics, 2012')}) replayed actual U.S. history for buyers who held 8 years, bought from 1978 to 2001: 20% down on a 30-year fixed loan at that year's average rate, 2% closing and 6% selling costs, property tax 1.5% and upkeep plus insurance 2% of value a year, a 25% tax bracket, refinancing allowed, and a renter who invests the down payment and every month's difference at the T-bill rate. Renting came out ahead in 64.6% of those holds, and the renter ended with 1.26× the buyer's sale proceeds on average.</p>
   <p>The same assumptions run through this model with its own national data (<code>tests/validate.js</code>, run with the tests): renting comes out ahead in about 67% of the holds when rent starts at 5% of the price a year (roughly where their rent-to-price data, from Davis, Lehnert and Martin, sat in those years), and the renter ends about 1.1× ahead on average. The model agrees on who wins and how often; it puts the renter's lead lower, likely because of differences in the home-price index (FHFA's all-transactions index there, Shiller and scaled FHFA purchase-only here), yearly instead of half-yearly purchases, and how yearly outlays are booked.</p>
@@ -207,6 +210,7 @@ const MSEC={
  'Risk adjustment':['Risk','Certainty equivalent: valuing uncertain outcomes.'],
  'Home-price volatility scaling':['Data','Making FHFA price swings match Case-Shiller\'s size.'],
  'Monthly bond returns':['Data','Bond returns from 10-year Treasury yields.'],
+ 'Backtest starting rent':['Data','Your rent-to-price ratio, or scaled by the national ratio in the purchase year.'],
  'Checked against a published study':['Basics','How close the model gets to a 30-year study of actual outcomes.'],
  'Limits':['Basics','What the model leaves out.'],
  'Notation':['Basics','Every symbol, with the setting it comes from.'],
@@ -235,6 +239,7 @@ const MREF={
  'Monte Carlo':{s:['damo','shiller','fhfa','fredCPI','fredRent','fredMort','r_idio_vol_0','r_idio_vol_1','r_idio_vol_2']},
  'Home-price volatility scaling':{s:['caseShiller','fhfa']},
  'Monthly bond returns':{s:['mTb'],n:'The 7.5-year duration is an approximation for a 10-year Treasury.'},
+ 'Backtest starting rent':{s:['rp_bea','rp_z1','dlm']},
  'Checked against a published study':{s:['beracha','dlm']},
  'Limits':{s:['damo','shiller','caseShiller','fhfa','fredRent']}};
 function mrefHTML(title){const r=MREF[title];if(!r)return '';const a=r.s.filter(k=>SRC[k]).map(k=>`<a target="_blank" rel="noopener" href="${SRC[k].u}">${escapeHtml(SRC[k].t)}</a>`);

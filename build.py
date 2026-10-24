@@ -255,6 +255,13 @@ for k, key in (('llpa', 'llpa'), ('pmi_fico', 'pmiFico')):
     e = LR.get(k) or {}
     u = e.get('source_url') or (e.get('reference') or {}).get('url')
     if e.get('source_title') and u: RES['sources'][key] = {'t': e['source_title'], 'u': u}
+# national rent-to-price ratio by year (scripts/fetch_rent_price.py): the Backtest's "Historical" starting rent
+_rp = D('data', 'rent_price.json')
+if os.path.exists(_rp):
+    _r = json.load(open(_rp))
+    RES['rentPrice'] = {int(k): v for k, v in _r['ratio'].items()}
+    RES['sources']['rp_bea'] = {'t': 'BEA: imputed rental of owner-occupied nonfarm housing (PCE), yearly (DOWNRC1A027NBEA)', 'u': _r['sources']['rent']}
+    RES['sources']['rp_z1'] = {'t': 'Federal Reserve Z.1: households\' owner-occupied real estate at market value, quarterly (HOOREVLMHMV)', 'u': _r['sources']['value']}
 for f, key in (('flood.json', 'fema'), ('county_fmr.json', 'hudFmrFile'), ('county_metro.json', 'cbsa')):
     if os.path.exists(D('data', f)):
         e = json.load(open(D('data', f)))

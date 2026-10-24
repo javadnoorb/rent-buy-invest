@@ -1,5 +1,12 @@
 /* ===================== Backtest ===================== */
-let HIST_RUNS=null,HIST_CMP='inv';  // HIST_CMP: buying compared with rent + invest ('inv') or rent + T-bills ('cash')
+let HIST_RUNS=null,HIST_CMP='inv',HIST_RP='mine';  // HIST_CMP: buying compared with rent + invest ('inv') or rent + T-bills ('cash')
+/* Starting rent. "Mine": every purchase starts at the user's rent-to-price ratio. "Historical": that ratio scaled by
+   the national rent-to-price ratio in the purchase year relative to the latest year (BEA imputed rent of owner-occupied
+   housing ÷ Fed Z.1 owner-occupied real estate value), so the place's own premium or discount is kept and the swings
+   over time come from history; months interpolate between years. */
+function rpRel(t){const R=RES.rentPrice;if(!R)return 1;const ks=Object.keys(R).map(Number),last=Math.max(...ks),y=Math.min(last,Math.max(Math.min(...ks),Math.floor(t))),f=Math.min(1,Math.max(0,t-y));
+  const v=R[y]+(R[Math.min(last,y+1)]-R[y])*(y<last?f:0);return v/R[last]}
+const histP=(p,t)=>HIST_RP==='hist'?Object.assign({},p,{rent0:p.rent0*rpRel(t)}):p;
 /* One selected purchase year, shown to the latest data in the detail chart and highlighted above (its curve, its
    heat-map column). The slider or a click on a curve or a heat-map column picks it. */
 function setHistSel(year){if(year!=null)document.getElementById('h-year').value=String(Math.floor(year));renderHist()}
@@ -25,14 +32,14 @@ function renderHist(){
   if(mode==='monthly'&&useMetro&&m.slug!=='us')note+=' Metro prices are available only in annual mode.';
   document.getElementById('h-note').textContent=note;
   // the runs depend only on these settings; picking a scenario reuses them and only redraws
-  let runs=[];const hkey=JSON.stringify([mode,useNow,useMetro,VOLADJ,p]);
+  let runs=[];const hkey=JSON.stringify([mode,useNow,useMetro,VOLADJ,HIST_RP,p]);
   if(HIST_RUNS&&HIST_RUNS.key===hkey)runs=HIST_RUNS.runs;
   else{
   if(mode==='annual'){const home=homeSeries(useMetro),rentS=rentSeries(useMetro);
-    for(let s=1972;s<=LAST_Y;s++){const N=Math.min(30,LAST_Y-s+1);const rate=useNow?p.rate:MORT[s-MORT0]/100;const o=simulate(p,histPathAnnual(s,N,home,rentS),{N,rate});
+    for(let s=1972;s<=LAST_Y;s++){const N=Math.min(30,LAST_Y-s+1);const rate=useNow?p.rate:MORT[s-MORT0]/100;const o=simulate(histP(p,s),histPathAnnual(s,N,home,rentS),{N,rate});
       runs.push({s,lab:String(s),N,advI:o.buy.map((b,k)=>(b-o.inv[k])/o.cpi[k]/p.P*100),advC:o.buy.map((b,k)=>(b-o.cash[k])/o.cpi[k]/p.P*100),o,rate})}}
   else{const T=MONTHLY.gh.length;for(let s=0;s+12<=T;s++){const N=Math.min(30,Math.floor((T-s)/12));const rate=useNow?p.rate:MONTHLY.mkt[s];
-      const o=simulate(p,histPathMonthly(s,N),{N,rate});const d=MONTHLY.dates[s];runs.push({s:+d.slice(0,4)+(+d.slice(5,7)-1)/12,lab:d,N,advI:o.buy.map((b,k)=>(b-o.inv[k])/o.cpi[k]/p.P*100),advC:o.buy.map((b,k)=>(b-o.cash[k])/o.cpi[k]/p.P*100),o,rate,jan:d.endsWith('-01')})}}
+      const d=MONTHLY.dates[s],o=simulate(histP(p,+d.slice(0,4)+(+d.slice(5,7)-1)/12),histPathMonthly(s,N),{N,rate});runs.push({s:+d.slice(0,4)+(+d.slice(5,7)-1)/12,lab:d,N,advI:o.buy.map((b,k)=>(b-o.inv[k])/o.cpi[k]/p.P*100),advC:o.buy.map((b,k)=>(b-o.cash[k])/o.cpi[k]/p.P*100),o,rate,jan:d.endsWith('-01')})}}
   HIST_RUNS={key:hkey,runs}}
   // which renter buying is compared with: both are stored, so the switch only redraws
   runs.forEach(q=>q.adv=HIST_CMP==='cash'?q.advC:q.advI);const cmpLab=HIST_CMP==='cash'?'rent + T-bills':'rent + invest';
@@ -65,16 +72,16 @@ function renderHist(){
      shapes:[(w=>({type:'rect',x0:r.s-w,x1:r.s+w,y0:.5,y1:Nn+.5,line:{color:t.ink,width:2},fillcolor:'rgba(0,0,0,0)'}))(mode==='annual'?.5:1/24)]});
   {const at=win.map(r=>({lab:r.lab,v:r.adv[p.N]})).sort((a,b)=>a.v-b.v);
    if(at.length){const md=at[Math.floor(at.length/2)].v,w=at[0],bst=at.at(-1);
-     tk('spag',`Over ${at.length} historical starts with at least ${nY(p.N)} of data, buying beat ${cmpLab} ${pct(share,0)} of the time. The median outcome was ${sgnP(md)} of the price; the worst was ${sgnP(w.v)} (bought ${w.lab}) and the best ${sgnP(bst.v)} (bought ${bst.lab}).${HIST_CMP==='cash'?` The result hinges on the rent-to-price ratio: every purchase here starts at your price and rent (rent ${pct(p.rent0*12/p.P,1)} of the price a year), and history moves both from there. With rent at about 5% of the price, the level a published study used for 1978–2001, renting with T-bills won about two-thirds of 8-year holds, and this model agrees (Method: Checked against a published study).`:''}`,'In history:');
+     tk('spag',`Over ${at.length} historical starts with at least ${nY(p.N)} of data, buying beat ${cmpLab} ${pct(share,0)} of the time. The median outcome was ${sgnP(md)} of the price; the worst was ${sgnP(w.v)} (bought ${w.lab}) and the best ${sgnP(bst.v)} (bought ${bst.lab}).${HIST_RP==='hist'?` Starting rent follows history: your ${pct(p.rent0*12/p.P,1)} of the price a year scaled by the national rent-to-price ratio then, e.g. ${pct(p.rent0*12/p.P*rpRel(1980),1)} for a 1980 purchase and ${pct(p.rent0*12/p.P*rpRel(2006),1)} for 2006.`:''}${HIST_CMP==='cash'&&HIST_RP==='mine'?` The result hinges on the rent-to-price ratio: every purchase here starts at your price and rent (rent ${pct(p.rent0*12/p.P,1)} of the price a year), and history moves both from there. With rent at about 5% of the price, the level a published study used for 1978–2001, renting with T-bills won about two-thirds of 8-year holds, and this model agrees (Method: Checked against a published study). Try Starting rent: Historical.`:''}`,'In history:');
      const decs={};runs.forEach(r=>{if(r.adv.length>p.N){const d=Math.floor(r.s/10)*10;(decs[d]=decs[d]||[]).push(r.adv[p.N]>0)}});
      tk('hheat',`Buying beat ${cmpLab} in ${pct(share,0)} of ${win.length} starts at your ${p.N}-year horizon. By decade bought: `+Object.entries(decs).map(([d,a])=>`${d}s ${pct(a.filter(Boolean).length/a.length,0)}`).join(' · ')+'.','In history:')}
    else{tk('spag','Not enough history for this horizon; shorten it to see results.','In history:');tk('hheat','')}}
   // the detail runs from the purchase to the latest data (the runs above stop at 30 years, the heat map's height)
   const dk=r.lab,det=HIST_RUNS.det||(HIST_RUNS.det={});
-  if(!det[dk]){if(mode==='annual'){const n=LAST_Y-r.s+1;det[dk]=simulate(p,histPathAnnual(r.s,n,homeSeries(useMetro),rentSeries(useMetro)),{N:n,rate:r.rate})}
-    else{const i0=MONTHLY.dates.indexOf(r.lab),n=Math.floor((MONTHLY.gh.length-i0)/12);det[dk]=simulate(p,histPathMonthly(i0,n),{N:n,rate:r.rate})}}
+  if(!det[dk]){if(mode==='annual'){const n=LAST_Y-r.s+1;det[dk]=simulate(histP(p,r.s),histPathAnnual(r.s,n,homeSeries(useMetro),rentSeries(useMetro)),{N:n,rate:r.rate})}
+    else{const i0=MONTHLY.dates.indexOf(r.lab),n=Math.floor((MONTHLY.gh.length-i0)/12);det[dk]=simulate(histP(p,r.s),histPathMonthly(i0,n),{N:n,rate:r.rate})}}
   const o=det[dk],Nd=o.buy.length-1,x=o.buy.map((_,k)=>Math.floor(r.s)+k),thru=Math.floor(r.s)+Nd-1,advEnd=(o.buy[Nd]-o.inv[Nd])/o.cpi[Nd]/p.P*100;
-  document.getElementById('h-detail-cap').textContent=`Bought ${r.lab} at ${(r.rate*100).toFixed(2)}%${o.refis?`, refinanced ${o.refis}× (last rate ${(o.rateAt.at(-1)*100).toFixed(2)}%)`:''}. Real dollars; today's price and rent scaled by the historical paths.`;
+  document.getElementById('h-detail-cap').textContent=`Bought ${r.lab} at ${(r.rate*100).toFixed(2)}%, starting rent ${fmtFull(histP(p,r.s).rent0)}/mo (${pct(histP(p,r.s).rent0*12/p.P,1)} of the price a year${HIST_RP==='hist'?', historical':''})${o.refis?`, refinanced ${o.refis}× (last rate ${(o.rateAt.at(-1)*100).toFixed(2)}%)`:''}. Real dollars; today's price and rent scaled by the historical paths.`;
   const tr=(a,n,c,d)=>({x,y:a.map((v,k)=>v/o.cpi[k]),name:n,mode:'lines',line:{color:c,width:2.5,dash:d},hovertemplate:'%{y:$,.0f}'});
   {const g=(o.buy[Nd]-o.inv[Nd])/o.cpi[Nd],gc=(o.buy[Nd]-o.cash[Nd])/o.cpi[Nd];tk('hdet',`Bought ${r.lab} and held through ${thru} (${nY(Nd)}), in today's dollars: against renting and investing, ${gapTxt(g)} (${advEnd>=0?'+':'−'}${Math.abs(advEnd).toFixed(0)}% of the price); against renting and keeping savings in T-bills, ${gapTxt(gc)}.${o.refis?` The buyer refinanced ${o.refis} time${o.refis>1?'s':''} along the way.`:''}`,'This purchase:')}
   plot('p-hdet',[tr(o.buy,'Buy',t.buy),tr(o.inv,'Rent + invest',t.inv),tr(o.cash,'Rent + T-bills',t.cash,'dot'),

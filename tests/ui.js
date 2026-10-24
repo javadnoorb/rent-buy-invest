@@ -300,6 +300,11 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
   const cmp = await page.evaluate(() => { const share = () => document.getElementById('tk-hheat').textContent; const a = share();
     document.querySelector('#h-cmp [data-c="cash"]').click(); const b = share(); document.querySelector('#h-cmp [data-c="inv"]').click(); return [a, b]; });
   ok(/beat rent \+ invest/.test(cmp[0]) && /beat rent \+ T-bills/.test(cmp[1]), 'Backtest: compare with rent + invest or rent + T-bills', JSON.stringify(cmp.map(x => x.slice(0, 60))));
+  /* starting rent: Historical scales the first year's rent by the national rent-to-price ratio then vs. now */
+  const rp = await page.evaluate(() => { const cap = () => document.getElementById('h-detail-cap').textContent; setHistSel(2006); const a = cap();
+    document.querySelector('#h-rp [data-r="hist"]').click(); const b = cap(); const want = Math.round(P.rent0 * RES.rentPrice[2006] / RES.rentPrice[Math.max(...Object.keys(RES.rentPrice).map(Number))]);
+    document.querySelector('#h-rp [data-r="mine"]').click(); return [a, b, want]; });
+  ok(rp[0].includes(`starting rent $${(await page.evaluate(() => P.rent0)).toLocaleString('en-US')}/mo`) && rp[1].includes(`starting rent $${rp[2].toLocaleString('en-US')}/mo`) && /historical/.test(rp[1]), 'Backtest: Historical starting rent follows the national rent-to-price ratio', JSON.stringify(rp));
   await page.evaluate(() => { document.getElementById('h-year').value = '2000'; showTab('proj'); }); await page.waitForTimeout(400);
   /* Simple / Detailed view: Simple hides the technical tabs and cards and uses the basic settings; Detailed shows them */
   await page.click('#viewMode [data-v="simple"]'); await page.waitForTimeout(400);

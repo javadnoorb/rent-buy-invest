@@ -199,5 +199,15 @@ class Flood(unittest.TestCase):
         self.assertEqual(F['median']([3, 1, 2]), 2)
 
 
+class RentPrice(unittest.TestCase):
+    def test_ratio(self):
+        R = load('fetch_rent_price')
+        rent = R['parse_fred']('observation_date,DOWNRC1A027NBEA\n2023-01-01,2400.5\n2024-01-01,.\n2025-01-01,2521.9\n')
+        val = R['parse_fred']('observation_date,HOOREVLMHMV\n' + ''.join(f'2025-{m:02d}-01,{v}\n' for m, v in zip((1, 4, 7, 10), (47e6, 47.5e6, 48e6, 48.5e6))) + '2023-01-01,40000000\n')
+        r = R['ratios'](rent, val)
+        self.assertEqual(list(r), [2025])  # 2023 has one quarter only; 2024's rent is missing
+        self.assertAlmostEqual(r[2025], 2521.9 * 1000 / 47.75e6, 5)
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=1)

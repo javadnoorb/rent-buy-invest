@@ -131,6 +131,7 @@ const HELP={
  'mc-rc':['Re-center','Shifts each historical series so its average matches your growth assumptions, while keeping its real volatility and how series moved together.'],
  'h-mode':['Annual or monthly data','Annual: 1972–2025 with local home and rent history. Monthly: 1991–2026 national data, month by month.'],
  'h-rate':['Mortgage rate in the backtest','Actual rate then: each start year uses that year\'s average mortgage rate. My rate: every start year uses today\'s rate.'],
+ 'h-rp':['Starting rent in the backtest','Mine: every purchase year starts with your rent, so at today\'s rent-to-price ratio. Historical: your ratio scaled by the national rent-to-price ratio of owner-occupied homes in that year compared with today (BEA and Federal Reserve data), so purchases at the 2006 peak start with relatively low rent and those in 2012 with high rent.'],
  'h-home':['Home prices in the backtest','Selected location: the metro\'s own price history where available. National: U.S. average.'],
  'h-year':['Bought in','Year of purchase for the detail chart, followed to the latest data. Its curve and heat-map column are highlighted in the charts above.'],
  optTerm:['Loan term','Switches the optimizer between 30- and 15-year loans.'],
@@ -209,6 +210,7 @@ function wireHelp(){
   // presets and controls
   const pr=document.querySelector('.presets');if(pr)pr.insertAdjacentHTML('beforeend',helpBtn('presets','About presets'));
   [['scName','afterend'],['locMode','afterend']].forEach(([id,w])=>{const el=document.getElementById(id);if(el)el.insertAdjacentHTML(w,helpBtn(id,HELP[id][0]))});
+  {const g=document.getElementById('h-rp');if(g)g.insertAdjacentHTML('afterend',' '+helpBtn('h-rp',HELP['h-rp'][0]))}
   ['nwBand','mc-n','mc-b','mc-w','mc-rc','h-mode','h-rate','h-home'].forEach(id=>{const el=document.getElementById(id);const lab=el&&el.closest('label');if(lab)lab.insertAdjacentHTML('afterend',helpBtn(id,HELP[id][0]))});
   // the Backtest slider: the "?" goes in the label line, so it doesn't take a cell of their grid
   ['h-year'].forEach(id=>{const sp=document.getElementById(id).closest('label').querySelector('span');if(sp)sp.insertAdjacentHTML('beforeend',' '+helpBtn(id,HELP[id][0]))});

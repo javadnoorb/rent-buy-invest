@@ -153,11 +153,12 @@
   <section class="panel" id="tab-hist" hidden>
     <div class="card">
       <h2>If you had made this decision in the past</h2>
-      <p class="cap">Your price, rent and cost settings replayed through actual historical sequences of home prices, rents, stock, bond and bill returns, inflation and mortgage rates, including refinancing if enabled. Every purchase year starts at your price and rent, so at your rent-to-price ratio; history then moves both. Always in today's dollars (adjusted with actual inflation); the Today's $ / Nominal $ switch doesn't apply to these replays.</p>
+      <p class="cap">Your price, rent and cost settings replayed through actual historical sequences of home prices, rents, stock, bond and bill returns, inflation and mortgage rates, including refinancing if enabled. Every purchase starts at your price. Starting rent "Mine" uses your rent (your rent-to-price ratio) for every purchase year; "Historical" scales your ratio by the national rent-to-price ratio in that year compared with today's. History then moves both. Always in today's dollars (adjusted with actual inflation); the Today's $ / Nominal $ switch doesn't apply to these replays.</p>
       <div class="controls">
         <label>Data <select id="h-mode"><option value="annual">Annual, 1972–2025</option><option value="monthly">Monthly, 1991–2026</option></select></label>
         <label>Mortgage rate <select id="h-rate"><option value="hist">Actual rate then</option><option value="now">My rate</option></select></label>
         <span class="hcmp"><span class="sub">Compare buying with</span> <span class="seg" id="h-cmp" role="group" aria-label="Compare buying with"><button type="button" data-c="inv" aria-pressed="true">Rent + invest (S&amp;P 500)</button><button type="button" data-c="cash" aria-pressed="false">Rent + T-bills</button></span></span>
+        <span class="hcmp"><span class="sub">Starting rent</span> <span class="seg" id="h-rp" role="group" aria-label="Starting rent"><button type="button" data-r="mine" aria-pressed="true">Mine</button><button type="button" data-r="hist" aria-pressed="false">Historical</button></span></span>
         <label>Home prices <select id="h-home"><option value="metro">Selected location</option><option value="nat">National</option></select></label>
       </div>
       <p class="sub" id="h-note"></p>

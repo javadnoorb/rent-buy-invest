@@ -39,6 +39,7 @@ jobs:
           python scripts/fetch_insurance.py || echo "::warning::insurance fetch failed; keeping the existing data/insurance.json"
           python scripts/fetch_county_metro.py || echo "::warning::county-to-metro fetch failed; keeping the existing data/county_metro.json"
           python scripts/fetch_flood.py || echo "::warning::FEMA flood fetch failed; keeping the existing data/flood.json"
+          python scripts/fetch_rent_price.py || echo "::warning::rent-to-price fetch failed; keeping the existing data/rent_price.json"
           python scripts/fetch_forecasts.py || echo "::warning::forecast/mover/renters-insurance fetch failed; keeping the existing data/forecasts_public.json"
       - name: Merge and rebuild
         run: |
