@@ -36,18 +36,14 @@ function renderProj(){
     {x,y:o.bal.map((v,k)=>adj(v,o.cpi[k])),name:'Mortgage balance',mode:'lines',line:{color:t.neg,dash:'dash',width:1.5},hovertemplate:'%{y:$,.0f}'}],
     {xaxis:X('Years from today'),yaxis:Yd('Value, '+basisLabel())});
   const bud=o.budget.map((b,k)=>b||o.budget[1]||1);
-  plot('p-liq',[
-    {x,y:o.lqB.map((v,k)=>v/bud[k]),name:'Buyer',mode:'lines',line:{color:t.buy,width:2.5},hovertemplate:'%{y:.1f} months'},
-    {x,y:o.lqR.map((v,k)=>v/bud[k]),name:'Renter (invest)',mode:'lines',line:{color:t.inv,width:2.5},hovertemplate:'%{y:.1f} months'}]
-    .concat(P.heloc>0?[{x,y:o.lqB.map((v,k)=>(v+o.heloc[k])/bud[k]),name:'Buyer + home-equity line',mode:'lines',line:{color:t.buy,width:2,dash:'dot'},hovertemplate:'%{y:.1f} months'}]:[]),
-    // A linear axis (the buyer often starts at 0, which a log axis can't show), scaled to the buyer: the renter's
-    // savings are often 5-10 times larger and would flatten the buyer's line onto the 3- and 6-month guides.
-    (()=>{const mB=Math.max(...o.lqB.map((v,k)=>(v+(P.heloc>0?o.heloc[k]:0))/bud[k])),lr=o.lqR.map((v,k)=>v/bud[k]),top=Math.max(12,mB*1.25);
-      return {xaxis:X('Years from today'),yaxis:Yt('Months of budget',{range:[0,top]}),
-       shapes:[3,6].map(v=>({type:'line',xref:'paper',x0:0,x1:1,y0:v,y1:v,line:{color:t.neg,dash:'dot',width:1}})),
-       annotations:[3,6].map(v=>({xref:'paper',x:1,y:v,text:v+' mo',showarrow:false,xanchor:'right',yanchor:'bottom',font:{size:10,color:t.neg}}))
-        .concat(Math.max(...lr)>top?[{xref:'paper',x:0.02,y:top,yanchor:'top',xanchor:'left',showarrow:false,font:{size:11,color:t.inv},
-          text:`Renter (invest) is off the top: ${lr[1]>top?'':`passes ${Math.round(top)} months in year ${lr.findIndex(v=>v>top)}, `}${Math.round(lr[lr.length-1])} months by year ${lr.length-1} ↑`}]:[])}})());
+  // y is log10(1 + months), labelled in months: zero stays on the chart (the buyer often starts with no liquid
+  // savings, which a plain log axis can't show) while the renter's much larger cushion fits on the same axis
+  {const g=v=>Math.log10(1+Math.max(0,v)),ser=(arr,name,color,dash,w)=>{const m=arr.map((v,k)=>v/bud[k]);return {x,y:m.map(g),customdata:m,name,mode:'lines',line:{color,width:w||2.5,dash},hovertemplate:'%{customdata:.1f} months'}};
+   const tr=[ser(o.lqB,'Buyer',t.buy),ser(o.lqR,'Renter (invest)',t.inv)].concat(P.heloc>0?[ser(o.lqB.map((v,k)=>v+o.heloc[k]),'Buyer + home-equity line',t.buy,'dot',2)]:[]);
+   const top=Math.max(12,...tr.flatMap(d=>d.customdata)),ticks=[0,1,3,6,12,24,48,96,192,384,768].filter(v=>v<=top*1.15);
+   plot('p-liq',tr,{xaxis:X('Years from today'),yaxis:Yt('Months of budget (compressed scale)',{tickvals:ticks.map(g),ticktext:ticks.map(String),range:[0,g(top)*1.04]}),
+     shapes:[3,6].map(v=>({type:'line',xref:'paper',x0:0,x1:1,y0:g(v),y1:g(v),line:{color:t.neg,dash:'dot',width:1}})),
+     annotations:[3,6].map(v=>({xref:'paper',x:1,y:g(v),text:v+' months',showarrow:false,xanchor:'right',yanchor:'bottom',font:{size:10,color:t.neg}}))})}
   // table + csv
   const rows=yearlyRows(o),cols=[['year','Year'],['home','Home value'],['balance','Mortgage'],['netEquity','Net equity'],['buyerPortfolio','Buyer portfolio'],['buyNW','Buy NW'],['renterNW','Rent+invest NW'],['cashNW','Rent+T-bills NW'],['ownerMonthly','Owner $/mo'],['rentMonthly','Rent $/mo'],['taxSaving','Tax saving $/yr'],['renterInvests','Renter invests $/mo'],['buyerInvests','Buyer invests $/mo'],['hti','Housing / income'],['mortRate','Loan rate']];
   const v=(r,k)=>{const x=r[k];if(x==null)return '';if(k==='year')return x;if(k==='hti')return pct(x,0);if(k==='mortRate')return (x*100).toFixed(2)+'%';return Math.round(adj(x,r.cpiIndex)).toLocaleString('en-US')};

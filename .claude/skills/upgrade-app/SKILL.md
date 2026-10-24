@@ -107,7 +107,8 @@ changes, then what was **not** done and why, and any uncertain facts. Offer the 
 - "Break-even" must be defined the same way everywhere (through the horizon), and anything computed on a 30-year run
   must say so; same for "wins more often than not".
 - Year-1 / month-1 costs: say which (before or after tax savings, nominal or today's $).
-- Log axes can't show zero: use linear axes for quantities that start at 0.
+- Log axes can't show zero, and a linear axis scaled to one series hides the other (liquidity: renter 30–90 months,
+  buyer 0–13): plot log10(1 + value) with ticks labelled in real values (0, 1, 3, 6, 12…) and exact values on hover.
 - Category axes on phones lose labels if `nticks` applies: `fitAxes` in `04-state-helpers.js` handles it.
 - Typing into a field must replace the value (select on focus) and money fields keep separators while typing.
 - Reserve the height of anything filled in by script (market cards) and mark Basic-mode groups in the HTML to avoid
