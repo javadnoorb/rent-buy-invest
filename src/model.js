@@ -39,8 +39,17 @@ const r2=x=>Math.round(x*100)/100;
 /* PMI by down payment: the PMI setting is the rate at 3–5% down; with more down it is scaled by Fannie Mae's standard
    required mortgage-insurance coverage for 30-year fixed loans (Selling Guide B7-1-02: 35% of the loan above 95% LTV,
    30% at 90–95, 25% at 85–90, 12% at 80–85). Premiums fall faster than coverage in practice, so this errs high. */
+/* Yearly property tax on a home taxed at value v: the rate applies after a homestead exemption (dollars off the taxed
+   value, the owner's primary residence only), less a homestead credit (dollars off the bill). */
+function ptaxOn(p,v){return Math.max(0,p.ptax*Math.max(0,v-(p.hsEx||0))-(p.hsCredit||0))}
+/* Credit score: Fannie Mae's loan-level price adjustments (upfront points by score and LTV) relative to the borrower in
+   Freddie Mac's survey rate (20% down, good to excellent credit), turned into a rate change at the points-to-rate
+   setting; PMI scales by premium ratios between score bands. FHA loans have neither. p.credit = {llpa, pmi} or null. */
+function creditAdj(p){const C=p.credit;if(!C||!C.llpa||!p.fico||p.loanType==='fha')return {rate:0,pmi:1};const L=C.llpa,col=ltv=>L.ltv_upper.findIndex(u=>ltv<=u+1e-9);
+  const row=L.rows[p.fico],ref=L.rows[L.reference.score];if(!row||!ref)return {rate:0,pmi:1};
+  const pts=row[col(1-p.dp)]-ref[col(L.reference.ltv)];return {rate:pts*(p.ptsCut||0.0025),pmi:(C.pmi&&C.pmi.rel[p.fico])||1}}
 const PMI_COV=[[0.95,35],[0.90,30],[0.85,25],[0.80,12]];
-function pmiRate(p,dp){if(dp>=0.2)return 0;if(p.pmiScale===false)return p.pmi;const ltv=1-dp,c=PMI_COV.find(([l])=>ltv>l+1e-9);return p.pmi*(c?c[1]:12)/35}
+function pmiRate(p,dp){if(dp>=0.2)return 0;const k=creditAdj(p).pmi;if(p.pmiScale===false)return p.pmi*k;const ltv=1-dp,c=PMI_COV.find(([l])=>ltv>l+1e-9);return p.pmi*k*(c?c[1]:12)/35}
 
 /* ===================== Metro home-price series ===================== */
 /* Metro yearly % changes. FHFA indexes swing less than Case-Shiller (no jumbo loans), so unless raw is set
@@ -75,7 +84,7 @@ function pmt(B,i,n){if(B<=0||n<=0)return 0;return i>0?B*i/(1-Math.pow(1+i,-n)):B
 /* Transfer taxes from a list of rules: base price or mortgage; flat rate, a rate set by the bracket of the whole amount
    ("mansion" style), or marginal brackets; paid by buyer, seller, or split evenly. Returns dollars. */
 function transferTaxes(rules,P,L){let buyer=0,seller=0;
-  (rules||[]).forEach(r=>{const x=r.base==='mortgage'?L:P;let t=0;
+  (rules||[]).forEach(r=>{const x=Math.max(0,(r.base==='mortgage'?L:P)-(r.base_deduction_owner_occupied||0));let t=0;  // e.g. Montgomery County, MD: first $100k exempt for a primary residence
     // a second schedule for lower prices (New Jersey: consideration up to $350,000)
     const tiers=r.alt_tiers&&r.alt_tiers.applies_if_price_lte!=null&&P<=r.alt_tiers.applies_if_price_lte?r.alt_tiers.tiers:r.tiers;
     if(r.structure==='flat')t=(r.rate||0)*x;
@@ -90,7 +99,7 @@ function transferTaxes(rules,P,L){let buyer=0,seller=0;
    6 months to index (T-bill/SOFR proxy) + margin within initial/periodic/lifetime caps. Points lower the note rate. */
 function loanSetup(p,rateIn){
   const type=p.loanType||'fixed',base=p.P*(1-p.dp),ltv=1-p.dp,pts=Math.max(0,p.pts||0);
-  let rate=type==='arm'?rateIn-(p.rate-(p.armRate!=null?p.armRate:p.rate)):rateIn;rate=Math.max(0,rate-pts*(p.ptsCut||0));
+  let rate=type==='arm'?rateIn-(p.rate-(p.armRate!=null?p.armRate:p.rate)):rateIn;rate=Math.max(0,rate+creditAdj(p).rate-pts*(p.ptsCut||0));
   let L=base,mip=0,mipMonths=0;
   if(type==='fha'){L=base*1.0175;const big=base>726200;
     if(p.term>15)mip=big?(ltv>0.95?0.0075:0.007):(ltv>0.95?0.0055:0.005);
@@ -99,7 +108,7 @@ function loanSetup(p,rateIn){
   return {type,L,rate,mip,mipMonths,ptsCost:pts/100*base,ltv}}
 /* a household whose savings go negative (e.g. selling underwater) carries the shortfall as debt at T-bills + this */
 const BORROW_PREM=0.03;
-function simulate(p,path,opt){
+function simulate(p,path,opt){const cAdj=creditAdj(p).rate;
   opt=opt||{};const N=opt.N||p.N,detail=!!opt.detail,M=!!path.monthly;
   const LS=loanSetup(p,opt.rate!=null?opt.rate:p.rate);let rate=LS.rate;
   const nTot=p.term*12,tk=taxIndex(p),excl=p.filing==='mfj'?500000:250000,std0=(p.filing==='mfj'?32200:16100)*tk,niitThr=p.filing==='mfj'?250000:200000;
@@ -145,7 +154,7 @@ function simulate(p,path,opt){
     if(owned&&p.moveMode&&p.moveMode!=='none'&&p.moveYear>0&&y===p.moveYear){
       const proceeds=homeNet(H,bal,y);o.moved={year:y,mode:p.moveMode};lease=mkt;
       if(p.moveMode==='rent'){owned=false;[pB,bB]=dep(pB,bB,proceeds);bal=0;H=0}
-      else{const mr=(M?path.mkt&&path.mkt[y*12]:path.mkt&&path.mkt[y]);rate=mr!=null?mr:rate;
+      else{const mr=(M?path.mkt&&path.mkt[y*12]:path.mkt&&path.mkt[y]);rate=mr!=null?mr+cAdj:rate;
         Pcur=H;const cash=proceeds-p.close*Pcur;let dp2=Math.min(Pcur,Math.max(0,cash));
         if(cash>Pcur)[pB,bB]=dep(pB,bB,cash-Pcur);if(cash<0)[pB,bB]=dep(pB,bB,cash);
         dpCur=dp2/Pcur;Lcur=Pcur-dp2;armOn=false;fha=false;bal=Lcur;i=rate/12;Mp=pmt(Lcur,i,nTot);f750=Lcur>0?Math.min(1,750000/Lcur):1;
@@ -154,7 +163,7 @@ function simulate(p,path,opt){
     // California's and Florida's, by at most last year's inflation); resets to the price on purchase
     if(owned&&y>0&&y!==purchY){const capped=p.ptaxCap>0||p.ptaxCapCPI;
       A=capped?Math.min(H,A*(1+Math.min(ghPrev,p.ptaxCap>0?p.ptaxCap:Infinity,p.ptaxCapCPI?Math.max(0,infPrev):Infinity))):H}
-    const Hy=H,insM=owned?(p.ins+p.floodIns)*insIdx/12:0,hoa=owned?p.hoa*infIdx:0,ptY=owned?p.ptax*A:0;
+    const Hy=H,insM=owned?(p.ins+p.floodIns)*insIdx/12:0,hoa=owned?p.hoa*infIdx:0,ptY=owned?ptaxOn(p,A):0;
     const maintY=owned?p.maint*Hy*(mShock?mShock[y]:1):0,utilM=owned?p.utilDiff*infIdx:0;
     const mktIdx=mkt/p.rent0;
     const rentM=lease+p.rins*infIdx/12+p.rMove*(p.rMoveCost*infIdx+p.broker*mkt)/12;
@@ -171,7 +180,7 @@ function simulate(p,path,opt){
       if(owned){
         if(p.refiOn&&path.mkt&&bal>1000){const checkNow=M?true:(m===0);
           if(checkNow&&(mE-lastRefi)>=12){const mr=M?path.mkt[y*12+m]:path.mkt[y];
-            if(mr!=null&&rate-mr>=p.refiTh){refiCost=p.refiCost*bal;rate=mr;armOn=false;i=rate/12;Mp=pmt(bal,i,nTot-mSince);lastRefi=mE;refis++;o.refiAt.push(y+m/12);refiY+=refiCost}}}
+            if(mr!=null&&rate-(mr+cAdj)>=p.refiTh){refiCost=p.refiCost*bal;rate=mr+cAdj;armOn=false;i=rate/12;Mp=pmt(bal,i,nTot-mSince);lastRefi=mE;refis++;o.refiAt.push(y+m/12);refiY+=refiCost}}}
         if(armOn&&bal>0.005){const k0=(p.armYears||5)*12;if(mSince>=k0&&(mSince-k0)%6===0){
           const idx=M?path.rc[y*12+m]*12:path.rc[y];let tgt=Math.round(((idx||0)+(p.armMargin||0.0275))*800)/800;
           const cap=armResets===0?(p.armCapInit!=null?p.armCapInit:0.02):(p.armCapPer!=null?p.armCapPer:0.01);

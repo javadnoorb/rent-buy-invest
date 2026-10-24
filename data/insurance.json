@@ -63,5 +63,323 @@
   "latest": 290.872,
   "source_url": "https://data.bls.gov/timeseries/PCU5241265241262"
  },
- "fetched_utc": "2026-10-23T20:47:52Z"
+ "fetched_utc": "2026-10-23T20:47:52Z",
+ "ptax_movers": {
+  "states": {
+   "Alabama": {
+    "recent": 0.41,
+    "all": 0.388,
+    "ratio": 1.058,
+    "n_recent": 3142
+   },
+   "Alaska": {
+    "recent": 1.039,
+    "all": 0.967,
+    "ratio": 1.075,
+    "n_recent": 240
+   },
+   "Arizona": {
+    "recent": 0.415,
+    "all": 0.422,
+    "ratio": 0.985,
+    "n_recent": 5356
+   },
+   "Arkansas": {
+    "recent": 0.553,
+    "all": 0.543,
+    "ratio": 1.017,
+    "n_recent": 1977
+   },
+   "California": {
+    "recent": 0.853,
+    "all": 0.719,
+    "ratio": 1.187,
+    "n_recent": 15959
+   },
+   "Colorado": {
+    "recent": 0.5,
+    "all": 0.5,
+    "ratio": 1.0,
+    "n_recent": 4790
+   },
+   "Connecticut": {
+    "recent": 1.615,
+    "all": 1.643,
+    "ratio": 0.983,
+    "n_recent": 2204
+   },
+   "Delaware": {
+    "recent": 0.482,
+    "all": 0.495,
+    "ratio": 0.974,
+    "n_recent": 818
+   },
+   "District of Columbia": {
+    "recent": 0.663,
+    "all": 0.65,
+    "ratio": 1.02,
+    "n_recent": 233
+   },
+   "Florida": {
+    "recent": 0.833,
+    "all": 0.725,
+    "ratio": 1.149,
+    "n_recent": 15132
+   },
+   "Georgia": {
+    "recent": 0.82,
+    "all": 0.806,
+    "ratio": 1.017,
+    "n_recent": 7473
+   },
+   "Hawaii": {
+    "recent": 0.27,
+    "all": 0.273,
+    "ratio": 0.988,
+    "n_recent": 425
+   },
+   "Idaho": {
+    "recent": 0.421,
+    "all": 0.434,
+    "ratio": 0.969,
+    "n_recent": 1518
+   },
+   "Illinois": {
+    "recent": 1.98,
+    "all": 2.022,
+    "ratio": 0.979,
+    "n_recent": 7481
+   },
+   "Indiana": {
+    "recent": 0.761,
+    "all": 0.767,
+    "ratio": 0.992,
+    "n_recent": 4962
+   },
+   "Iowa": {
+    "recent": 1.416,
+    "all": 1.407,
+    "ratio": 1.007,
+    "n_recent": 2303
+   },
+   "Kansas": {
+    "recent": 1.25,
+    "all": 1.3,
+    "ratio": 0.962,
+    "n_recent": 2048
+   },
+   "Kentucky": {
+    "recent": 0.794,
+    "all": 0.745,
+    "ratio": 1.065,
+    "n_recent": 2881
+   },
+   "Louisiana": {
+    "recent": 0.567,
+    "all": 0.517,
+    "ratio": 1.097,
+    "n_recent": 2251
+   },
+   "Maine": {
+    "recent": 0.929,
+    "all": 0.951,
+    "ratio": 0.977,
+    "n_recent": 1004
+   },
+   "Maryland": {
+    "recent": 0.929,
+    "all": 0.955,
+    "ratio": 0.973,
+    "n_recent": 3847
+   },
+   "Massachusetts": {
+    "recent": 1.056,
+    "all": 1.087,
+    "ratio": 0.971,
+    "n_recent": 3255
+   },
+   "Michigan": {
+    "recent": 1.239,
+    "all": 1.217,
+    "ratio": 1.018,
+    "n_recent": 6738
+   },
+   "Minnesota": {
+    "recent": 1.017,
+    "all": 1.045,
+    "ratio": 0.972,
+    "n_recent": 4070
+   },
+   "Mississippi": {
+    "recent": 0.617,
+    "all": 0.611,
+    "ratio": 1.009,
+    "n_recent": 1485
+   },
+   "Missouri": {
+    "recent": 0.814,
+    "all": 0.861,
+    "ratio": 0.946,
+    "n_recent": 4530
+   },
+   "Montana": {
+    "recent": 0.683,
+    "all": 0.702,
+    "ratio": 0.974,
+    "n_recent": 697
+   },
+   "Nebraska": {
+    "recent": 1.545,
+    "all": 1.542,
+    "ratio": 1.002,
+    "n_recent": 1331
+   },
+   "Nevada": {
+    "recent": 0.486,
+    "all": 0.471,
+    "ratio": 1.031,
+    "n_recent": 2217
+   },
+   "New Hampshire": {
+    "recent": 1.5,
+    "all": 1.533,
+    "ratio": 0.978,
+    "n_recent": 931
+   },
+   "New Jersey": {
+    "recent": 1.857,
+    "all": 1.909,
+    "ratio": 0.973,
+    "n_recent": 4913
+   },
+   "New Mexico": {
+    "recent": 0.72,
+    "all": 0.673,
+    "ratio": 1.07,
+    "n_recent": 1155
+   },
+   "New York": {
+    "recent": 1.771,
+    "all": 1.764,
+    "ratio": 1.004,
+    "n_recent": 7840
+   },
+   "North Carolina": {
+    "recent": 0.625,
+    "all": 0.643,
+    "ratio": 0.972,
+    "n_recent": 8107
+   },
+   "North Dakota": {
+    "recent": 1.013,
+    "all": 1.031,
+    "ratio": 0.983,
+    "n_recent": 505
+   },
+   "Ohio": {
+    "recent": 1.293,
+    "all": 1.31,
+    "ratio": 0.987,
+    "n_recent": 7722
+   },
+   "Oklahoma": {
+    "recent": 0.868,
+    "all": 0.82,
+    "ratio": 1.059,
+    "n_recent": 2236
+   },
+   "Oregon": {
+    "recent": 0.812,
+    "all": 0.821,
+    "ratio": 0.989,
+    "n_recent": 3032
+   },
+   "Pennsylvania": {
+    "recent": 1.214,
+    "all": 1.229,
+    "ratio": 0.988,
+    "n_recent": 7070
+   },
+   "Rhode Island": {
+    "recent": 1.033,
+    "all": 1.083,
+    "ratio": 0.954,
+    "n_recent": 504
+   },
+   "South Carolina": {
+    "recent": 0.464,
+    "all": 0.434,
+    "ratio": 1.068,
+    "n_recent": 4471
+   },
+   "South Dakota": {
+    "recent": 1.032,
+    "all": 1.093,
+    "ratio": 0.944,
+    "n_recent": 619
+   },
+   "Tennessee": {
+    "recent": 0.438,
+    "all": 0.46,
+    "ratio": 0.951,
+    "n_recent": 5219
+   },
+   "Texas": {
+    "recent": 1.5,
+    "all": 1.364,
+    "ratio": 1.1,
+    "n_recent": 17880
+   },
+   "Utah": {
+    "recent": 0.471,
+    "all": 0.485,
+    "ratio": 0.971,
+    "n_recent": 2223
+   },
+   "Vermont": {
+    "recent": 1.417,
+    "all": 1.5,
+    "ratio": 0.944,
+    "n_recent": 433
+   },
+   "Virginia": {
+    "recent": 0.739,
+    "all": 0.75,
+    "ratio": 0.985,
+    "n_recent": 5897
+   },
+   "Washington": {
+    "recent": 0.778,
+    "all": 0.808,
+    "ratio": 0.963,
+    "n_recent": 5397
+   },
+   "West Virginia": {
+    "recent": 0.515,
+    "all": 0.513,
+    "ratio": 1.004,
+    "n_recent": 1047
+   },
+   "Wisconsin": {
+    "recent": 1.271,
+    "all": 1.289,
+    "ratio": 0.986,
+    "n_recent": 4025
+   },
+   "Wyoming": {
+    "recent": 0.613,
+    "all": 0.617,
+    "ratio": 0.993,
+    "n_recent": 449
+   }
+  },
+  "us": {
+   "recent": 0.9,
+   "all": 0.9,
+   "ratio": 1.0,
+   "n_recent": 202042
+  },
+  "year": 2024,
+  "what": "weighted median of property tax \u00f7 value, owner-occupied one-family homes: moved in within about 4 years (MV 1-3) vs all owners"
+ }
 }

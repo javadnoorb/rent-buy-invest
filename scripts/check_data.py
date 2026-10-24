@@ -201,6 +201,15 @@ ri, ri0 = (fp.get('renters_ins') or {}).get('value'), (fp0.get('renters_ins') or
 if fp.get('renters_ins') and not 20 <= (ri or 0) <= 1000: bad(f'renters insurance: {ri}/yr')
 if ri and ri0 and abs(ri / ri0 - 1) > 0.6: bad(f'renters insurance: {ri0} → {ri}')
 
+# ---- flood insurance (FEMA) ----
+fl, fl0 = load('data/flood.json') or {}, old('data/flood.json') or {}
+if fl:
+    if len(fl.get('pen') or {}) < 2500: bad(f"flood: only {len(fl.get('pen') or {})} counties")
+    for f, c in list((fl.get('cost') or {}).items()) + list((fl.get('state_cost') or {}).items()):
+        if not 100 <= c <= 10000: bad(f'flood cost {f}: {c}/yr')
+    for f, v in (fl.get('pen') or {}).items():
+        if not (0 <= v[0] <= 1 and 0 <= v[1] <= 1): bad(f'flood share {f}: {v}')
+
 # ---- freshness: the newest date each source holds (a source down for weeks keeps old data without failing) ----
 stale = []
 now = time.gmtime(); ym = now.tm_year * 12 + now.tm_mon - 1
@@ -218,6 +227,7 @@ for what, cond, msg in (
         ('Homeowners insurance (ACS microdata)', lambda: load('data/insurance.json')['year'] >= now.tm_year - 3, lambda: f"survey year {load('data/insurance.json')['year']}"),
         ('Professional forecasters survey', lambda: fp['spf']['year'] >= now.tm_year - (1 if now.tm_mon <= 3 else 0), lambda: f"Q1 {fp['spf']['year']} survey"),
         ('Census mover rates', lambda: fp['movers']['year'] >= now.tm_year - 4, lambda: f"year {fp['movers']['year']}"),
+        ('FEMA flood data', lambda: days_old(load('data/flood.json')['fetched_utc']) <= 60, lambda: f"downloaded {load('data/flood.json')['fetched_utc'][:10]}"),
         ('Renters insurance (BLS CE)', lambda: fp['renters_ins']['year'] >= now.tm_year - 3, lambda: f"year {fp['renters_ins']['year']}")):
     try: ok_ = cond()
     except Exception as e: ok_, msg = False, (lambda e=e: f'missing ({type(e).__name__}: {e})')

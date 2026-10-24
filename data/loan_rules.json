@@ -1,208 +1,531 @@
 {
-  "_meta": {
-    "compiled": "2026-10-22",
-    "method": "Values recorded only from pages fetched via WebFetch on 2026-10-22. null = not found on a fetched page."
-  },
-  "fha": {
-    "values": {
-      "mortgagee_letter_mip": "2023-05",
-      "mortgagee_letter_mip_date": "2023-02-22",
-      "mip_effective": "case numbers endorsed on or after 2023-03-20",
-      "upfront_mip_rate": 0.0175,
-      "annual_mip_base_loan_threshold": 726200,
-      "annual_mip_term_gt_15yr": [
-        {"base_loan": "<=726200", "ltv": "<=90%", "rate": 0.0050, "duration": "11 years"},
-        {"base_loan": "<=726200", "ltv": ">90% and <=95%", "rate": 0.0050, "duration": "mortgage term"},
-        {"base_loan": "<=726200", "ltv": ">95%", "rate": 0.0055, "duration": "mortgage term"},
-        {"base_loan": ">726200", "ltv": "<=90%", "rate": 0.0070, "duration": "11 years"},
-        {"base_loan": ">726200", "ltv": ">90% and <=95%", "rate": 0.0070, "duration": "mortgage term"},
-        {"base_loan": ">726200", "ltv": ">95%", "rate": 0.0075, "duration": "mortgage term"}
-      ],
-      "annual_mip_term_le_15yr": [
-        {"base_loan": "<=726200", "ltv": "<=90%", "rate": 0.0015, "duration": "11 years"},
-        {"base_loan": "<=726200", "ltv": ">90%", "rate": 0.0040, "duration": "mortgage term"},
-        {"base_loan": ">726200", "ltv": "<=78%", "rate": 0.0015, "duration": "11 years"},
-        {"base_loan": ">726200", "ltv": ">78% and <=90%", "rate": 0.0040, "duration": "11 years"},
-        {"base_loan": ">726200", "ltv": ">90%", "rate": 0.0065, "duration": "mortgage term"}
-      ],
-      "mip_duration_rule": "LTV <= 90%: 11 years; LTV > 90%: life of mortgage term",
-      "min_credit_score_max_financing": 580,
-      "max_ltv_purchase": 0.965,
-      "min_down_payment": 0.035,
-      "loan_limits_2026_one_unit": {"floor": 541287, "ceiling": 1249125, "mortgagee_letter": "2025-23", "effective": "FHA case numbers assigned on or after 2026-01-01"}
+ "_meta": {
+  "compiled": "2026-10-22",
+  "method": "Values recorded only from pages fetched via WebFetch on 2026-10-22. null = not found on a fetched page."
+ },
+ "fha": {
+  "values": {
+   "mortgagee_letter_mip": "2023-05",
+   "mortgagee_letter_mip_date": "2023-02-22",
+   "mip_effective": "case numbers endorsed on or after 2023-03-20",
+   "upfront_mip_rate": 0.0175,
+   "annual_mip_base_loan_threshold": 726200,
+   "annual_mip_term_gt_15yr": [
+    {
+     "base_loan": "<=726200",
+     "ltv": "<=90%",
+     "rate": 0.005,
+     "duration": "11 years"
     },
-    "description": "FHA mortgage insurance premiums (upfront + annual), MIP duration, minimum financing rule, 2026 national loan limit floor/ceiling for one-unit homes.",
-    "source_title": "HUD Mortgagee Letter 2023-05 (MIP); HUD press release No. 25-145 (2026 loan limits); HUD Mortgagee Letter 2026-11 (credit score methodology)",
-    "source_url": [
-      "https://archives.hud.gov/news/2024/2023-05hsgml.pdf",
-      "https://hud.gov/news/hud-no-25-145",
-      "https://www.hud.gov/sites/default/files/hudclips/documents/2026-11hsgml.pdf"
-    ],
-    "date": "ML 2023-05 dated 2023-02-22; press release 25-145 dated 2025-12-11; ML 2026-11 dated 2026-10-08; all fetched 2026-10-22",
-    "notes": "No later MIP-rate change was found in searches; ML 2026-11 (Oct 8, 2026) 'doesn't change' MIP and states 'the existing minimum credit score thresholds remain unchanged'; its LTV table reads 'at or above 580 eligible for maximum financing'. 96.5% max LTV quoted in ML 2026-11 is in the HUD REO section; 3.5% min down payment is the implied complement (1 - 0.965) — not stated verbatim on a fetched HUD page (hud.gov/buying/loans returned no loan text). Loan-limit ML number 2025-23 inferred from the link filename '2025-23hsgml.pdf' on the press release page. Streamline refis of pre-2009-06-01 FHA loans use 0.55% annual / 0.01% upfront."
-  },
-  "arm": {
-    "values": {
-      "index": "30-day average SOFR, published daily by the Federal Reserve Bank of New York",
-      "lookback_days": 45,
-      "max_margin": 0.03,
-      "typical_margin_range": [0.02, 0.03],
-      "example_margin": 0.025,
-      "rounding": "nearest 1/8 percent",
-      "adjustment_frequency_months": 6,
-      "caps": {
-        "3/6": {"initial": 0.02, "periodic": 0.01, "lifetime": 0.05},
-        "5/6": {"initial": 0.02, "periodic": 0.01, "lifetime": 0.05},
-        "7/6": {"initial": 0.05, "periodic": 0.01, "lifetime": 0.05},
-        "10/6": {"initial": 0.05, "periodic": 0.01, "lifetime": 0.05}
-      },
-      "current_5_1_arm_rate": {
-        "rate": 0.0654,
-        "points": 1.13,
-        "prior_week_rate": 0.0643,
-        "prior_week_points": 1.69,
-        "survey": "MBA Weekly Applications Survey",
-        "week_ending": "2026-10-09",
-        "reported": "2026-10-16"
-      },
-      "mba_30yr_fixed_same_week": {"rate": 0.0750, "points": 0.83}
+    {
+     "base_loan": "<=726200",
+     "ltv": ">90% and <=95%",
+     "rate": 0.005,
+     "duration": "mortgage term"
     },
-    "description": "Conforming SOFR ARM structure (index, margin, caps, reset frequency) and a current MBA 5/1 ARM rate.",
-    "source_title": "Fannie Mae Selling Guide B2-1.4-02 Adjustable-Rate Mortgages (12/10/2025); MGIC 'Getting Comfortable with ARMs' handout (04.10.26); Mortgage News Daily on MBA weekly survey (2026-10-16)",
-    "source_url": [
-      "https://selling-guide.fanniemae.com/sel/b2-1.4-02/adjustable-rate-mortgages-arms",
-      "https://pages.mgic.com/rs/881-WYO-555/images/Handout-Getting-Comfortable-with-ARMS_04.10.26.pdf",
-      "https://www.mortgagenewsdaily.com/news/10162026-mortgage-applications-mba"
-    ],
-    "date": "Fannie guide topic 2025-12-10; MGIC handout 2026-04-10; MBA data week ending 2026-10-09 (published 2026-10-16); fetched 2026-10-22",
-    "notes": "Index, 45-day lookback, 300 bp max margin and 1/8 rounding are from Fannie Mae's Selling Guide. Fannie's guide defers plan-level caps to its Standard ARM Plan Matrix, which could not be fetched; caps (2/1/5 for 3/6 & 5/6; 5/1/5 for 7/6 & 10/6), 6-month reset and 'typically 2% to 3%' margin are from the MGIC handout (mortgage insurer, secondary source citing Fannie B2-1.4-02 / Freddie 4401.1). MNDN article does not explicitly label the figures 'average contract rate'. Freddie Mac PMMS discontinued ARM rates in Nov 2022."
-  },
-  "points": {
-    "values": {
-      "pmms_publishes_fees_points": false,
-      "pmms_fees_points_latest": null,
-      "pmms_30yr_fixed_latest": {"rate": 0.0732, "date": "2026-10-22", "prior_week": 0.0740},
-      "pmms_15yr_fixed_latest": {"rate": 0.0668, "date": "2026-10-22", "prior_week": 0.0671},
-      "mba_points_30yr_fixed": {"points": 0.83, "week_ending": "2026-10-09"},
-      "point_cost": "1 point = 1% of loan amount",
-      "rate_reduction_per_point": null,
-      "cfpb_example": {"loan": 180000, "base_rate": 0.05, "points": 0.375, "cost": 675, "new_rate": 0.04875, "implied_reduction_per_point": 0.00333}
+    {
+     "base_loan": "<=726200",
+     "ltv": ">95%",
+     "rate": 0.0055,
+     "duration": "mortgage term"
     },
-    "description": "Discount points: PMMS publication status, latest PMMS rates, and official guidance on rate reduction per point.",
-    "source_title": "Freddie Mac PMMS; CFPB 'What are discount points?' (Ask CFPB); CFPB newsroom 2024-04-05 'CFPB finds Americans are paying upfront fees...'",
-    "source_url": [
-      "https://www.freddiemac.com/pmms",
-      "https://www.consumerfinance.gov/ask-cfpb/what-are-discount-points-en-136/",
-      "https://www.consumerfinance.gov/about-us/newsroom/cfpb-finds-americans-are-paying-upfront-fees-seeking-to-lower-interest-rates-on-mortgages"
-    ],
-    "date": "PMMS 2026-10-22; Ask CFPB last reviewed 2023-10-19; CFPB release 2024-04-05; fetched 2026-10-22",
-    "notes": "PMMS: 'In November 2022, adjustable rates and fees/points were discontinued'; Freddie Mac 'is not able to report on the average fees and points.' CFPB: 'discount points have no fixed value in terms of the change in interest rate'; reduction depends on 'the specific lender, the kind of loan, and market conditions'. No official fixed rule (e.g., 0.25%/point) was found — treat as a user input. The CFPB example (0.375 pts -> -0.125 pp) is a single illustration. CFPB 2024: ~61% of purchase borrowers paid points in Sep 2023 (31% in 2021); 65% of FHA borrowers."
-  },
-  "sofr": {
-    "values": {
-      "sofr_30day_avg": 0.0388686,
-      "sofr_90day_avg": 0.0374739,
-      "sofr_180day_avg": 0.0370372,
-      "sofr_index": 1.26371346,
-      "averages_effective_date": "2026-10-21",
-      "sofr_overnight": 0.0388,
-      "sofr_overnight_date": "2026-10-20"
+    {
+     "base_loan": ">726200",
+     "ltv": "<=90%",
+     "rate": 0.007,
+     "duration": "11 years"
     },
-    "description": "Latest SOFR averages (ARM index) and NY Fed terms of use for reference-rate data.",
-    "source_title": "NY Fed Markets Data API (rates/all/latest); NY Fed SOFR Averages and Index page; NY Fed Terms of Use",
-    "source_url": [
-      "https://markets.newyorkfed.org/api/rates/all/latest.json",
-      "https://www.newyorkfed.org/markets/reference-rates/sofr-averages-and-index",
-      "https://www.newyorkfed.org/privacy/termsofuse"
-    ],
-    "date": "averages effective 2026-10-21; fetched 2026-10-22",
-    "notes": "Terms: users who use/distribute reference rate data must include a notice that the data 'is subject to the Terms of Use posted at newyorkfed.org' and that 'The New York Fed is not responsible for publication of the [DATA NAME] by [NAME OF PUBLISHER]', does not sanction or endorse any republication, 'and has no liability for your use.' SOFR is 'calculated using data provided under a license granted to the New York Fed by DTCC Solutions LLC.' 'None of the Content is investment advice.' The averages page states: 'Use of the Reference Rates are subject to important disclaimers, limitations and indemnification obligations.' Averages published each business day ~8:00 a.m. ET."
-  },
-  "bls_series": {
-    "values": {
-      "ppi_homeowners_insurance": {
-        "series_id": "PCU5241265241262",
-        "title": "PPI by Industry: Direct Property and Casualty Insurers: Homeowner's Insurance",
-        "start": "1998-06",
-        "base": "Jun 1998=100",
-        "frequency": "monthly, NSA",
-        "latest": [{"date": "2026-07", "value": 290.932}, {"date": "2026-08", "value": 290.732}, {"date": "2026-09", "value": 290.872}]
-      },
-      "cpi_rent_series_pattern": "CUUR{area}SEHA (NSA); CUUS{area}SEHA = semiannual average",
-      "cpi_area_codes": {
-        "US_city_average": "0000",
-        "Northeast": "0100", "Midwest": "0200", "South": "0300", "West": "0400",
-        "New_England": "0110", "Middle_Atlantic": "0120", "East_North_Central": "0230", "West_North_Central": "0240",
-        "South_Atlantic": "0350", "East_South_Central": "0360", "West_South_Central": "0370", "Mountain": "0480", "Pacific": "0490",
-        "Size_Class_A": "S000", "Northeast_Size_A": "S100", "Midwest_Size_A": "S200", "South_Size_A": "S300", "West_Size_A": "S400",
-        "Size_Class_BC": "N000", "Northeast_Size_BC": "N100", "Midwest_Size_BC": "N200", "South_Size_BC": "N300", "West_Size_BC": "N400",
-        "Size_Class_D": "D000", "Midwest_Size_D": "D200", "South_Size_D": "D300",
-        "Boston": "S11A", "New_York": "S12A", "Philadelphia": "S12B",
-        "Chicago": "S23A", "Detroit": "S23B", "Minneapolis": "S24A", "St_Louis": "S24B",
-        "Washington": "S35A", "Miami": "S35B", "Atlanta": "S35C", "Tampa": "S35D", "Baltimore": "S35E",
-        "Dallas": "S37A", "Houston": "S37B",
-        "Phoenix": "S48A", "Denver": "S48B",
-        "Los_Angeles": "S49A", "San_Francisco": "S49B", "Riverside": "S49C", "Seattle": "S49D", "San_Diego": "S49E",
-        "Urban_Hawaii": "S49F", "Urban_Alaska": "S49G"
-      },
-      "publication_frequency": {
-        "monthly": ["New_York", "Los_Angeles", "Chicago"],
-        "bimonthly_even_months": ["Atlanta", "Baltimore", "Detroit", "Houston", "Miami", "Philadelphia", "Phoenix", "San_Francisco", "Seattle", "St_Louis", "Urban_Alaska"],
-        "bimonthly_odd_months": ["Boston", "Dallas", "Denver", "Minneapolis", "Riverside", "San_Diego", "Tampa", "Urban_Hawaii", "Washington"],
-        "semiannual_only": []
-      },
-      "no_own_cpi_series": {
-        "Cleveland": "discontinued 2018 (old code A210 Cleveland-Akron; below population threshold)",
-        "Portland": "discontinued 2018 (old code A425 Portland-Salem; below population threshold)",
-        "Charlotte": "never published (not in BLS area list)",
-        "Raleigh": "never published (not in BLS area list)",
-        "Austin": "never published (not in BLS area list)",
-        "Las_Vegas": "never published (not in BLS area list)"
-      },
-      "other_discontinued_2018": {"Pittsburgh": "A104", "Milwaukee": "A212", "Cincinnati": "A213", "Kansas_City": "A214", "Washington-Baltimore": "A311", "LA-Riverside-Orange": "A421"}
+    {
+     "base_loan": ">726200",
+     "ltv": ">90% and <=95%",
+     "rate": 0.007,
+     "duration": "mortgage term"
     },
-    "description": "BLS PPI series for homeowners insurance and CPI area codes / publication frequency for Rent of primary residence.",
-    "source_title": "BLS cu.area file; BLS 'CPI 2018 geographic revision' page; BLS Boston CPI news release (2026-10-14); FRED series PCU5241265241262 (source: BLS)",
-    "source_url": [
-      "https://download.bls.gov/pub/time.series/cu/cu.area",
-      "https://www.bls.gov/cpi/additional-resources/geographic-revision-2018.htm",
-      "https://www.bls.gov/regions/northeast/news-release/consumerpriceindex_boston.htm",
-      "https://fred.stlouisfed.org/series/PCU5241265241262",
-      "https://fred.stlouisfed.org/data/PCU5241265241262"
-    ],
-    "date": "fetched 2026-10-22; Boston release 2026-10-14 (Sep 2026 data)",
-    "notes": "Area codes are verbatim from the official BLS cu.area file. Boston release confirms series CUURS11ASEHA and 'published bi-monthly' (Sep 2026 release, next Dec 10, 2026 for Nov). Frequencies from the 2018 revision page; schedule changes since then not verified for every area. data.bls.gov is robots-disallowed, so the PPI series ID/start date come from FRED (BLS source). FRED series page showed Aug 2026 = 290.436 while FRED data table showed 290.732 (likely revision); the data table values are recorded. FRED also carries Boston rent under legacy code CUURA103SEHA (monthly, Dec 1914-Aug 2026, last 493.760) — a FRED continuity series; the official BLS ID is CUURS11ASEHA. Charlotte/Raleigh/Austin/Las Vegas should use South or West Size Class A/BC regional series."
-  },
-  "acs": {
-    "values": {
-      "variables": {
-        "B25103_001E": "Estimate!!Median real estate taxes paid --!!Total: (concept: Mortgage Status by Median Real Estate Taxes Paid (Dollars))",
-        "B25077_001E": "Estimate!!Median value (dollars) (concept: Median Value (Dollars))",
-        "B25031_001E": "Estimate!!Median gross rent --!!Total:",
-        "B25031_002E": "Estimate!!Median gross rent --!!Total:!!No bedroom",
-        "B25031_003E": null,
-        "B25031_004E": "Estimate!!Median gross rent --!!Total:!!2 bedrooms",
-        "B25031_005E": null,
-        "B25031_006E": null,
-        "B25031_007E": "Estimate!!Median gross rent --!!Total:!!5 or more bedrooms"
-      },
-      "latest_available_acs1": 2024,
-      "acs1_2025_release_date": "2026-10-29",
-      "api_url_pattern": "https://api.census.gov/data/{year}/acs/acs1?get=NAME,{vars}&for=metropolitan%20statistical%20area/micropolitan%20statistical%20area:{cbsa|*}&key={KEY}",
-      "example_call": "https://api.census.gov/data/2024/acs/acs1?get=NAME,B25031_001E,B25077_001E,B25103_001E&for=metropolitan%20statistical%20area/micropolitan%20statistical%20area:35620&key=YOUR_KEY_GOES_HERE",
-      "api_key_required": true
+    {
+     "base_loan": ">726200",
+     "ltv": ">95%",
+     "rate": 0.0075,
+     "duration": "mortgage term"
+    }
+   ],
+   "annual_mip_term_le_15yr": [
+    {
+     "base_loan": "<=726200",
+     "ltv": "<=90%",
+     "rate": 0.0015,
+     "duration": "11 years"
     },
-    "description": "Census ACS 1-year API variable IDs for property taxes, home value and rent by bedrooms; MSA query pattern; terms.",
-    "source_title": "Census API variable metadata (2024 ACS1); Census API examples for 2024 ACS1; Census press release 2026-10-13 (2025 ACS 1-year dates); Census Data API Terms of Service",
-    "source_url": [
-      "https://api.census.gov/data/2024/acs/acs1/variables/B25031_001E.json",
-      "https://api.census.gov/data/2024/acs/acs1/variables/B25103_001E.json",
-      "https://api.census.gov/data/2024/acs/acs1/variables/B25077_001E.json",
-      "https://api.census.gov/data/2024/acs/acs1/examples.html",
-      "https://www.census.gov/newsroom/press-releases/2026/dates-announced-for-2025-acs-1-year-estimates.html",
-      "https://www.census.gov/data/developers/about/terms-of-service.html"
+    {
+     "base_loan": "<=726200",
+     "ltv": ">90%",
+     "rate": 0.004,
+     "duration": "mortgage term"
+    },
+    {
+     "base_loan": ">726200",
+     "ltv": "<=78%",
+     "rate": 0.0015,
+     "duration": "11 years"
+    },
+    {
+     "base_loan": ">726200",
+     "ltv": ">78% and <=90%",
+     "rate": 0.004,
+     "duration": "11 years"
+    },
+    {
+     "base_loan": ">726200",
+     "ltv": ">90%",
+     "rate": 0.0065,
+     "duration": "mortgage term"
+    }
+   ],
+   "mip_duration_rule": "LTV <= 90%: 11 years; LTV > 90%: life of mortgage term",
+   "min_credit_score_max_financing": 580,
+   "max_ltv_purchase": 0.965,
+   "min_down_payment": 0.035,
+   "loan_limits_2026_one_unit": {
+    "floor": 541287,
+    "ceiling": 1249125,
+    "mortgagee_letter": "2025-23",
+    "effective": "FHA case numbers assigned on or after 2026-01-01"
+   }
+  },
+  "description": "FHA mortgage insurance premiums (upfront + annual), MIP duration, minimum financing rule, 2026 national loan limit floor/ceiling for one-unit homes.",
+  "source_title": "HUD Mortgagee Letter 2023-05 (MIP); HUD press release No. 25-145 (2026 loan limits); HUD Mortgagee Letter 2026-11 (credit score methodology)",
+  "source_url": [
+   "https://archives.hud.gov/news/2024/2023-05hsgml.pdf",
+   "https://hud.gov/news/hud-no-25-145",
+   "https://www.hud.gov/sites/default/files/hudclips/documents/2026-11hsgml.pdf"
+  ],
+  "date": "ML 2023-05 dated 2023-02-22; press release 25-145 dated 2025-12-11; ML 2026-11 dated 2026-10-08; all fetched 2026-10-22",
+  "notes": "No later MIP-rate change was found in searches; ML 2026-11 (Oct 8, 2026) 'doesn't change' MIP and states 'the existing minimum credit score thresholds remain unchanged'; its LTV table reads 'at or above 580 eligible for maximum financing'. 96.5% max LTV quoted in ML 2026-11 is in the HUD REO section; 3.5% min down payment is the implied complement (1 - 0.965) \u2014 not stated verbatim on a fetched HUD page (hud.gov/buying/loans returned no loan text). Loan-limit ML number 2025-23 inferred from the link filename '2025-23hsgml.pdf' on the press release page. Streamline refis of pre-2009-06-01 FHA loans use 0.55% annual / 0.01% upfront."
+ },
+ "arm": {
+  "values": {
+   "index": "30-day average SOFR, published daily by the Federal Reserve Bank of New York",
+   "lookback_days": 45,
+   "max_margin": 0.03,
+   "typical_margin_range": [
+    0.02,
+    0.03
+   ],
+   "example_margin": 0.025,
+   "rounding": "nearest 1/8 percent",
+   "adjustment_frequency_months": 6,
+   "caps": {
+    "3/6": {
+     "initial": 0.02,
+     "periodic": 0.01,
+     "lifetime": 0.05
+    },
+    "5/6": {
+     "initial": 0.02,
+     "periodic": 0.01,
+     "lifetime": 0.05
+    },
+    "7/6": {
+     "initial": 0.05,
+     "periodic": 0.01,
+     "lifetime": 0.05
+    },
+    "10/6": {
+     "initial": 0.05,
+     "periodic": 0.01,
+     "lifetime": 0.05
+    }
+   },
+   "current_5_1_arm_rate": {
+    "rate": 0.0654,
+    "points": 1.13,
+    "prior_week_rate": 0.0643,
+    "prior_week_points": 1.69,
+    "survey": "MBA Weekly Applications Survey",
+    "week_ending": "2026-10-09",
+    "reported": "2026-10-16"
+   },
+   "mba_30yr_fixed_same_week": {
+    "rate": 0.075,
+    "points": 0.83
+   }
+  },
+  "description": "Conforming SOFR ARM structure (index, margin, caps, reset frequency) and a current MBA 5/1 ARM rate.",
+  "source_title": "Fannie Mae Selling Guide B2-1.4-02 Adjustable-Rate Mortgages (12/10/2025); MGIC 'Getting Comfortable with ARMs' handout (04.10.26); Mortgage News Daily on MBA weekly survey (2026-10-16)",
+  "source_url": [
+   "https://selling-guide.fanniemae.com/sel/b2-1.4-02/adjustable-rate-mortgages-arms",
+   "https://pages.mgic.com/rs/881-WYO-555/images/Handout-Getting-Comfortable-with-ARMS_04.10.26.pdf",
+   "https://www.mortgagenewsdaily.com/news/10162026-mortgage-applications-mba"
+  ],
+  "date": "Fannie guide topic 2025-12-10; MGIC handout 2026-04-10; MBA data week ending 2026-10-09 (published 2026-10-16); fetched 2026-10-22",
+  "notes": "Index, 45-day lookback, 300 bp max margin and 1/8 rounding are from Fannie Mae's Selling Guide. Fannie's guide defers plan-level caps to its Standard ARM Plan Matrix, which could not be fetched; caps (2/1/5 for 3/6 & 5/6; 5/1/5 for 7/6 & 10/6), 6-month reset and 'typically 2% to 3%' margin are from the MGIC handout (mortgage insurer, secondary source citing Fannie B2-1.4-02 / Freddie 4401.1). MNDN article does not explicitly label the figures 'average contract rate'. Freddie Mac PMMS discontinued ARM rates in Nov 2022."
+ },
+ "points": {
+  "values": {
+   "pmms_publishes_fees_points": false,
+   "pmms_fees_points_latest": null,
+   "pmms_30yr_fixed_latest": {
+    "rate": 0.0732,
+    "date": "2026-10-22",
+    "prior_week": 0.074
+   },
+   "pmms_15yr_fixed_latest": {
+    "rate": 0.0668,
+    "date": "2026-10-22",
+    "prior_week": 0.0671
+   },
+   "mba_points_30yr_fixed": {
+    "points": 0.83,
+    "week_ending": "2026-10-09"
+   },
+   "point_cost": "1 point = 1% of loan amount",
+   "rate_reduction_per_point": null,
+   "cfpb_example": {
+    "loan": 180000,
+    "base_rate": 0.05,
+    "points": 0.375,
+    "cost": 675,
+    "new_rate": 0.04875,
+    "implied_reduction_per_point": 0.00333
+   }
+  },
+  "description": "Discount points: PMMS publication status, latest PMMS rates, and official guidance on rate reduction per point.",
+  "source_title": "Freddie Mac PMMS; CFPB 'What are discount points?' (Ask CFPB); CFPB newsroom 2024-04-05 'CFPB finds Americans are paying upfront fees...'",
+  "source_url": [
+   "https://www.freddiemac.com/pmms",
+   "https://www.consumerfinance.gov/ask-cfpb/what-are-discount-points-en-136/",
+   "https://www.consumerfinance.gov/about-us/newsroom/cfpb-finds-americans-are-paying-upfront-fees-seeking-to-lower-interest-rates-on-mortgages"
+  ],
+  "date": "PMMS 2026-10-22; Ask CFPB last reviewed 2023-10-19; CFPB release 2024-04-05; fetched 2026-10-22",
+  "notes": "PMMS: 'In November 2022, adjustable rates and fees/points were discontinued'; Freddie Mac 'is not able to report on the average fees and points.' CFPB: 'discount points have no fixed value in terms of the change in interest rate'; reduction depends on 'the specific lender, the kind of loan, and market conditions'. No official fixed rule (e.g., 0.25%/point) was found \u2014 treat as a user input. The CFPB example (0.375 pts -> -0.125 pp) is a single illustration. CFPB 2024: ~61% of purchase borrowers paid points in Sep 2023 (31% in 2021); 65% of FHA borrowers."
+ },
+ "sofr": {
+  "values": {
+   "sofr_30day_avg": 0.0388686,
+   "sofr_90day_avg": 0.0374739,
+   "sofr_180day_avg": 0.0370372,
+   "sofr_index": 1.26371346,
+   "averages_effective_date": "2026-10-21",
+   "sofr_overnight": 0.0388,
+   "sofr_overnight_date": "2026-10-20"
+  },
+  "description": "Latest SOFR averages (ARM index) and NY Fed terms of use for reference-rate data.",
+  "source_title": "NY Fed Markets Data API (rates/all/latest); NY Fed SOFR Averages and Index page; NY Fed Terms of Use",
+  "source_url": [
+   "https://markets.newyorkfed.org/api/rates/all/latest.json",
+   "https://www.newyorkfed.org/markets/reference-rates/sofr-averages-and-index",
+   "https://www.newyorkfed.org/privacy/termsofuse"
+  ],
+  "date": "averages effective 2026-10-21; fetched 2026-10-22",
+  "notes": "Terms: users who use/distribute reference rate data must include a notice that the data 'is subject to the Terms of Use posted at newyorkfed.org' and that 'The New York Fed is not responsible for publication of the [DATA NAME] by [NAME OF PUBLISHER]', does not sanction or endorse any republication, 'and has no liability for your use.' SOFR is 'calculated using data provided under a license granted to the New York Fed by DTCC Solutions LLC.' 'None of the Content is investment advice.' The averages page states: 'Use of the Reference Rates are subject to important disclaimers, limitations and indemnification obligations.' Averages published each business day ~8:00 a.m. ET."
+ },
+ "bls_series": {
+  "values": {
+   "ppi_homeowners_insurance": {
+    "series_id": "PCU5241265241262",
+    "title": "PPI by Industry: Direct Property and Casualty Insurers: Homeowner's Insurance",
+    "start": "1998-06",
+    "base": "Jun 1998=100",
+    "frequency": "monthly, NSA",
+    "latest": [
+     {
+      "date": "2026-07",
+      "value": 290.932
+     },
+     {
+      "date": "2026-08",
+      "value": 290.732
+     },
+     {
+      "date": "2026-09",
+      "value": 290.872
+     }
+    ]
+   },
+   "cpi_rent_series_pattern": "CUUR{area}SEHA (NSA); CUUS{area}SEHA = semiannual average",
+   "cpi_area_codes": {
+    "US_city_average": "0000",
+    "Northeast": "0100",
+    "Midwest": "0200",
+    "South": "0300",
+    "West": "0400",
+    "New_England": "0110",
+    "Middle_Atlantic": "0120",
+    "East_North_Central": "0230",
+    "West_North_Central": "0240",
+    "South_Atlantic": "0350",
+    "East_South_Central": "0360",
+    "West_South_Central": "0370",
+    "Mountain": "0480",
+    "Pacific": "0490",
+    "Size_Class_A": "S000",
+    "Northeast_Size_A": "S100",
+    "Midwest_Size_A": "S200",
+    "South_Size_A": "S300",
+    "West_Size_A": "S400",
+    "Size_Class_BC": "N000",
+    "Northeast_Size_BC": "N100",
+    "Midwest_Size_BC": "N200",
+    "South_Size_BC": "N300",
+    "West_Size_BC": "N400",
+    "Size_Class_D": "D000",
+    "Midwest_Size_D": "D200",
+    "South_Size_D": "D300",
+    "Boston": "S11A",
+    "New_York": "S12A",
+    "Philadelphia": "S12B",
+    "Chicago": "S23A",
+    "Detroit": "S23B",
+    "Minneapolis": "S24A",
+    "St_Louis": "S24B",
+    "Washington": "S35A",
+    "Miami": "S35B",
+    "Atlanta": "S35C",
+    "Tampa": "S35D",
+    "Baltimore": "S35E",
+    "Dallas": "S37A",
+    "Houston": "S37B",
+    "Phoenix": "S48A",
+    "Denver": "S48B",
+    "Los_Angeles": "S49A",
+    "San_Francisco": "S49B",
+    "Riverside": "S49C",
+    "Seattle": "S49D",
+    "San_Diego": "S49E",
+    "Urban_Hawaii": "S49F",
+    "Urban_Alaska": "S49G"
+   },
+   "publication_frequency": {
+    "monthly": [
+     "New_York",
+     "Los_Angeles",
+     "Chicago"
     ],
-    "date": "fetched 2026-10-22",
-    "notes": "B25031_003E/005E/006E not individually fetched (expected 1/3/4 bedrooms by sequence, not verified). 2025 ACS1 endpoint returned an error on 2026-10-22; 2025 1-year estimates are scheduled for 2026-10-29. A keyless call to the 2024 endpoint returned an error requiring a valid API key. Example MSA code 35620 (New York) comes from Census's examples page. Terms: services must display 'This product uses the Census Bureau Data API but is not endorsed or certified by the Census Bureau.'; users may not use data 'to identify any individual person, household, business or other entity.'"
-  }
+    "bimonthly_even_months": [
+     "Atlanta",
+     "Baltimore",
+     "Detroit",
+     "Houston",
+     "Miami",
+     "Philadelphia",
+     "Phoenix",
+     "San_Francisco",
+     "Seattle",
+     "St_Louis",
+     "Urban_Alaska"
+    ],
+    "bimonthly_odd_months": [
+     "Boston",
+     "Dallas",
+     "Denver",
+     "Minneapolis",
+     "Riverside",
+     "San_Diego",
+     "Tampa",
+     "Urban_Hawaii",
+     "Washington"
+    ],
+    "semiannual_only": []
+   },
+   "no_own_cpi_series": {
+    "Cleveland": "discontinued 2018 (old code A210 Cleveland-Akron; below population threshold)",
+    "Portland": "discontinued 2018 (old code A425 Portland-Salem; below population threshold)",
+    "Charlotte": "never published (not in BLS area list)",
+    "Raleigh": "never published (not in BLS area list)",
+    "Austin": "never published (not in BLS area list)",
+    "Las_Vegas": "never published (not in BLS area list)"
+   },
+   "other_discontinued_2018": {
+    "Pittsburgh": "A104",
+    "Milwaukee": "A212",
+    "Cincinnati": "A213",
+    "Kansas_City": "A214",
+    "Washington-Baltimore": "A311",
+    "LA-Riverside-Orange": "A421"
+   }
+  },
+  "description": "BLS PPI series for homeowners insurance and CPI area codes / publication frequency for Rent of primary residence.",
+  "source_title": "BLS cu.area file; BLS 'CPI 2018 geographic revision' page; BLS Boston CPI news release (2026-10-14); FRED series PCU5241265241262 (source: BLS)",
+  "source_url": [
+   "https://download.bls.gov/pub/time.series/cu/cu.area",
+   "https://www.bls.gov/cpi/additional-resources/geographic-revision-2018.htm",
+   "https://www.bls.gov/regions/northeast/news-release/consumerpriceindex_boston.htm",
+   "https://fred.stlouisfed.org/series/PCU5241265241262",
+   "https://fred.stlouisfed.org/data/PCU5241265241262"
+  ],
+  "date": "fetched 2026-10-22; Boston release 2026-10-14 (Sep 2026 data)",
+  "notes": "Area codes are verbatim from the official BLS cu.area file. Boston release confirms series CUURS11ASEHA and 'published bi-monthly' (Sep 2026 release, next Dec 10, 2026 for Nov). Frequencies from the 2018 revision page; schedule changes since then not verified for every area. data.bls.gov is robots-disallowed, so the PPI series ID/start date come from FRED (BLS source). FRED series page showed Aug 2026 = 290.436 while FRED data table showed 290.732 (likely revision); the data table values are recorded. FRED also carries Boston rent under legacy code CUURA103SEHA (monthly, Dec 1914-Aug 2026, last 493.760) \u2014 a FRED continuity series; the official BLS ID is CUURS11ASEHA. Charlotte/Raleigh/Austin/Las Vegas should use South or West Size Class A/BC regional series."
+ },
+ "acs": {
+  "values": {
+   "variables": {
+    "B25103_001E": "Estimate!!Median real estate taxes paid --!!Total: (concept: Mortgage Status by Median Real Estate Taxes Paid (Dollars))",
+    "B25077_001E": "Estimate!!Median value (dollars) (concept: Median Value (Dollars))",
+    "B25031_001E": "Estimate!!Median gross rent --!!Total:",
+    "B25031_002E": "Estimate!!Median gross rent --!!Total:!!No bedroom",
+    "B25031_003E": null,
+    "B25031_004E": "Estimate!!Median gross rent --!!Total:!!2 bedrooms",
+    "B25031_005E": null,
+    "B25031_006E": null,
+    "B25031_007E": "Estimate!!Median gross rent --!!Total:!!5 or more bedrooms"
+   },
+   "latest_available_acs1": 2024,
+   "acs1_2025_release_date": "2026-10-29",
+   "api_url_pattern": "https://api.census.gov/data/{year}/acs/acs1?get=NAME,{vars}&for=metropolitan%20statistical%20area/micropolitan%20statistical%20area:{cbsa|*}&key={KEY}",
+   "example_call": "https://api.census.gov/data/2024/acs/acs1?get=NAME,B25031_001E,B25077_001E,B25103_001E&for=metropolitan%20statistical%20area/micropolitan%20statistical%20area:35620&key=YOUR_KEY_GOES_HERE",
+   "api_key_required": true
+  },
+  "description": "Census ACS 1-year API variable IDs for property taxes, home value and rent by bedrooms; MSA query pattern; terms.",
+  "source_title": "Census API variable metadata (2024 ACS1); Census API examples for 2024 ACS1; Census press release 2026-10-13 (2025 ACS 1-year dates); Census Data API Terms of Service",
+  "source_url": [
+   "https://api.census.gov/data/2024/acs/acs1/variables/B25031_001E.json",
+   "https://api.census.gov/data/2024/acs/acs1/variables/B25103_001E.json",
+   "https://api.census.gov/data/2024/acs/acs1/variables/B25077_001E.json",
+   "https://api.census.gov/data/2024/acs/acs1/examples.html",
+   "https://www.census.gov/newsroom/press-releases/2026/dates-announced-for-2025-acs-1-year-estimates.html",
+   "https://www.census.gov/data/developers/about/terms-of-service.html"
+  ],
+  "date": "fetched 2026-10-22",
+  "notes": "B25031_003E/005E/006E not individually fetched (expected 1/3/4 bedrooms by sequence, not verified). 2025 ACS1 endpoint returned an error on 2026-10-22; 2025 1-year estimates are scheduled for 2026-10-29. A keyless call to the 2024 endpoint returned an error requiring a valid API key. Example MSA code 35620 (New York) comes from Census's examples page. Terms: services must display 'This product uses the Census Bureau Data API but is not endorsed or certified by the Census Bureau.'; users may not use data 'to identify any individual person, household, business or other entity.'"
+ },
+ "llpa": {
+  "what": "Fannie Mae Loan-Level Price Adjustment (LLPA) Matrix, purchase money loans, terms over 15 years: percent of the loan by credit score (rows) and LTV (columns)",
+  "effective": "09.30.2026",
+  "source_title": "Fannie Mae LLPA Matrix (09.30.2026)",
+  "source_url": "https://singlefamily.fanniemae.com/media/9391/display",
+  "ltv_upper": [
+   0.3,
+   0.6,
+   0.7,
+   0.75,
+   0.8,
+   0.85,
+   0.9,
+   0.95,
+   1.0
+  ],
+  "rows": {
+   "780+": [
+    0,
+    0,
+    0,
+    0,
+    0.375,
+    0.375,
+    0.25,
+    0.25,
+    0.125
+   ],
+   "760-779": [
+    0,
+    0,
+    0,
+    0.25,
+    0.625,
+    0.625,
+    0.5,
+    0.5,
+    0.25
+   ],
+   "740-759": [
+    0,
+    0,
+    0.125,
+    0.375,
+    0.875,
+    1.0,
+    0.75,
+    0.625,
+    0.5
+   ],
+   "720-739": [
+    0,
+    0,
+    0.25,
+    0.75,
+    1.25,
+    1.25,
+    1.0,
+    0.875,
+    0.75
+   ],
+   "700-719": [
+    0,
+    0,
+    0.375,
+    0.875,
+    1.375,
+    1.5,
+    1.25,
+    1.125,
+    0.875
+   ],
+   "680-699": [
+    0,
+    0,
+    0.625,
+    1.125,
+    1.75,
+    1.875,
+    1.5,
+    1.375,
+    1.125
+   ],
+   "660-679": [
+    0,
+    0,
+    0.75,
+    1.375,
+    1.875,
+    2.125,
+    1.75,
+    1.625,
+    1.25
+   ],
+   "640-659": [
+    0,
+    0,
+    1.125,
+    1.5,
+    2.25,
+    2.5,
+    2.0,
+    1.875,
+    1.5
+   ],
+   "639-": [
+    0,
+    0.125,
+    1.5,
+    2.125,
+    2.75,
+    2.875,
+    2.625,
+    2.25,
+    1.75
+   ]
+  },
+  "reference": {
+   "score": "760-779",
+   "ltv": 0.8,
+   "why": "Freddie Mac's survey rate is for borrowers with 20% down and good to excellent credit (freddiemac.com/pmms)",
+   "url": "https://www.freddiemac.com/pmms"
+  },
+  "exempt": "LLPAs are waived for first-time homebuyers with income at or below 100% of area median income (120% in high-cost areas), and for HomeReady loans."
+ },
+ "pmi_fico": {
+  "what": "Annual PMI by credit score at 96.5% LTV relative to 760+ (Urban Institute, Housing Finance at a Glance, September 2026; premiums 0.46%\u20131.50% of the loan)",
+  "rel": {
+   "780+": 1,
+   "760-779": 1,
+   "740-759": 1.261,
+   "720-739": 1.522,
+   "700-719": 1.717,
+   "680-699": 2.13,
+   "660-679": 2.674,
+   "640-659": 2.848,
+   "639-": 3.261
+  },
+  "source_title": "Urban Institute, Housing Finance at a Glance: A Monthly Chartbook, September 2026",
+  "source_url": "https://www.urban.org/sites/default/files/2026-09/Housing_Finance_at_a_Glance_A_Monthly_Chartbook_September_2026.pdf"
+ }
 }

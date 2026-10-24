@@ -13,6 +13,7 @@ const F=[
  ['home','pts','Discount points paid',0,0.25,'1 point = 1% of the loan, paid at closing; deductible in the year paid when you itemize'],
  ['home','ptsCut','Rate cut per point (pts)',D0.ptsCut,0.05,resHint('pts')],
  ['home','close','Buyer closing costs (% of price)',D0.close,0.1,resHint('close')],
+ ['home','fico','Credit score','760-779',null,'Fannie Mae price adjustments by credit score','sel',[['780+','780 or higher'],['760-779','760–779'],['740-759','740–759'],['720-739','720–739'],['700-719','700–719'],['680-699','680–699'],['660-679','660–679'],['640-659','640–659'],['639-','639 or lower']]],
  ['home','pmi','PMI at 3–5% down (% of loan / yr)',0.6,0.05,`middle of Freddie Mac's $30–70 a month per $100k borrowed (0.36–0.84%/yr) ${linkTo('https://myhome.freddiemac.com/buying/breaking-down-pmi')}; applies if down payment &lt; 20%`],
  ['home','pmiScale','Lower PMI with more down',1,null,`scaled by Fannie Mae's required coverage: 35% of the loan at 3–5% down, 30% at 5–10%, 25% at 10–15%, 12% at 15–20% ${linkTo('https://selling-guide.fanniemae.com/sel/b7-1-02/mortgage-insurance-coverage-requirements')}`,'sel',[[1,'Yes'],[0,'No (same rate)']]],
  ['home','pmiAppr','Remove PMI early with an appraisal',0,null,'at 75% of current value after 2 years, 80% after 5 (conventional loans)','sel',[[0,'No'],[1,'Yes']]],
@@ -24,6 +25,8 @@ const F=[
  ['refi','refiTh','Refinance when rate drops by (pts)',1.0,0.1,tag+' common rule of thumb 0.75–1.5'],
  ['refi','refiCost','Refinance cost (% of balance)',2,0.1,tag+' paid in cash'],
  ['own','ptax','Property tax (% of value / yr)',V.ptaxUS,0.01,`U.S. median tax ÷ median value, Census ACS · ${sl('ptaxUS')}`],
+ ['own','hsEx','Homestead exemption ($ off taxed value)',0,1000,'set from the location\'s state; owner-occupied primary residence'],
+ ['own','hsCredit','Homestead credit ($ off tax / yr)',0,50,'set from the location\'s state'],
  ['own','ptaxCap','Assessment growth cap (% / yr, 0 = none)',0,0.5,'set from the location\'s state when you pick one; e.g. 2 for California Prop 13'],
  ['own','ptaxCapCPI','Cap also limited to inflation',0,null,'California, Florida, Michigan: the lower of the cap or inflation; Georgia: inflation only (cap 0)','sel',[[0,'No'],[1,'Yes']]],
  ['own','ins','Home insurance ($ / yr)',V.insUS,10,`U.S. median paid by homeowners · ${sl('ins')}`],
@@ -133,12 +136,12 @@ function parseP(raw){
   // the projection starts in the snapshot's year; tax figures after TAX_YEAR are indexed by the inflation setting
   const y0=Math.max(TAX_YEAR,parseInt(SNAP.asOf)||TAX_YEAR),tk=taxIndex({y0,inf:pc('inf')});
   // state income tax from the location's state, unless entered manually (or the location is the whole U.S.)
-  const stAuto=(raw.stMode||'auto')==='auto'&&typeof stateIncomeTax==='function'?stateIncomeTax(stateOf(METROS.find(x=>x.slug===raw.metro)),Math.max(0,n('income')),raw.filing||'single'):null;
-  return {stMode:raw.stMode||'auto',stAutoOn:!!stAuto,loanType,armYears,armRate:pc('armRate'),armMargin:pc('armMargin'),armCapInit:armYears>=7?0.05:0.02,armCapPer:0.01,armCapLife:0.05,pts:Math.max(0,n('pts')),ptsCut:pc('ptsCut'),
+  const locM=METROS.find(x=>x.slug===raw.metro),stAuto=(raw.stMode||'auto')==='auto'&&typeof stateIncomeTax==='function'?stateIncomeTax(stateOf(locM),Math.max(0,n('income')),raw.filing||'single',locM&&locM.fips):null;
+  return {fico:raw.fico||'760-779',credit:typeof CREDIT!=='undefined'?CREDIT:null,stMode:raw.stMode||'auto',stAutoOn:!!stAuto,stLocal:stAuto&&stAuto.local,loanType,armYears,armRate:pc('armRate'),armMargin:pc('armMargin'),armCapInit:armYears>=7?0.05:0.02,armCapPer:0.01,armCapLife:0.05,pts:Math.max(0,n('pts')),ptsCut:pc('ptsCut'),
     insG:pc('insG'),ttBuy:ttB,ttSell:ttS,closeBase:pc('close'),sellBase:pc('sell'),beds:raw.beds||'3',
     P:Math.max(1,n('P')),dp,rate:term===15?pc('rate15'):pc('rate'),rate30:pc('rate'),rate15:pc('rate15'),term,close:pc('close')+ttB,pmi:pc('pmi'),pmiScale:raw.pmiScale!=='0'&&raw.pmiScale!==0,
     refiOn:raw.refiOn==='1'||raw.refiOn===1,rateLR:pc('rateLR'),glide:Math.max(0,n('glide')),refiTh:pc('refiTh'),refiCost:pc('refiCost'),
-    ptax:pc('ptax'),ptaxCap:Math.max(0,pc('ptaxCap')),ptaxCapCPI:raw.ptaxCapCPI==='1'||raw.ptaxCapCPI===1,ins:n('ins'),maint:pc('maint'),hoa:n('hoa'),sell:pc('sell')+ttS,rent0:Math.max(0,n('rent0')),rins:n('rins'),
+    ptax:pc('ptax'),hsEx:Math.max(0,n('hsEx')),hsCredit:Math.max(0,n('hsCredit')),ptaxCap:Math.max(0,pc('ptaxCap')),ptaxCapCPI:raw.ptaxCapCPI==='1'||raw.ptaxCapCPI===1,ins:n('ins'),maint:pc('maint'),hoa:n('hoa'),sell:pc('sell')+ttS,rent0:Math.max(0,n('rent0')),rins:n('rins'),
     gh:pc('gh'),gr:pc('gr'),inf:pc('inf'),rs:pc('rs'),rb:pc('rb'),rc:pc('rc'),ws,wb,
     acct:raw.acct||'taxable',dy:pc('dy'),fee:pc('fee'),lev:Math.max(0,n('lev')),spread:pc('spread'),
     taxOn:raw.taxOn==='1'||raw.taxOn===1,filing:raw.filing||'single',income:Math.max(0,n('income')),debt:Math.max(0,n('debt')),muMode:raw.muMode||'auto',mu:(raw.muMode||'auto')==='auto'?marginalRate(Math.max(0,n('income')),raw.filing||'single',tk):pc('mu'),stTax:stAuto?stAuto.tax:n('stTax'),oth:n('oth'),ltcg:(raw.ltcgMode||'auto')==='auto'?ltcgRate(Math.max(0,n('income')),raw.filing||'single',tk):pc('ltcg'),

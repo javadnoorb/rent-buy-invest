@@ -43,6 +43,8 @@ jobs:
           mkdir -p _site/i18n && cp src/i18n/es.json _site/i18n/
           # files the page fetches on demand
           cp data/counties.json _site/data/ 2>/dev/null || true
+          cp data/state_rules.json _site/data/
+          [ -f data/flood.json ] && cp data/flood.json _site/data/ || true
           [ -d data/county_hpi ] && cp -r data/county_hpi _site/data/ || true
           [ -d data/zip ] && cp -r data/zip _site/data/ || true
           du -sh _site

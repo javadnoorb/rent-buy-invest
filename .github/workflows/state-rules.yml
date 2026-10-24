@@ -1,0 +1,52 @@
+name: State rules check
+# data/state_rules.json (income tax, assessment caps, homestead exemptions, transfer taxes) and data/transfer_taxes.json
+# are compiled by hand from state sources, so nothing refreshes them automatically. This job:
+# - checks every cited source link once a month and keeps one "Broken source links" issue up to date (closed when all
+#   links work again);
+# - every January opens a "Review state tax rules for <year>" issue, since most state tax changes take effect Jan 1.
+on:
+  schedule:
+    - cron: '41 15 2 * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: { python-version: '3.12' }
+      - name: Check source links
+        env: { LINKS_OUT: /tmp/broken.txt }
+        run: python scripts/check_links.py
+      - name: Broken links issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          n=$(gh issue list --label source-links --state open --json number --jq '.[0].number' || true)
+          if [ -s /tmp/broken.txt ]; then
+            gh label create source-links --color c5def5 --description "Cited sources that no longer answer" 2>/dev/null || true
+            body="These sources cited in data/state_rules.json or data/transfer_taxes.json did not answer in $RUN. Find the new page (the rule may also have changed) and update the file.
+
+          $(cat /tmp/broken.txt)"
+            if [ -n "$n" ]; then gh issue edit "$n" --body "$body"; else gh issue create --title "Broken source links" --label source-links --body "$body"; fi
+          elif [ -n "$n" ]; then gh issue close "$n" --comment "All source links answer again: $RUN"; fi
+      - name: January review reminder
+        if: github.event_name == 'workflow_dispatch' || github.event.schedule == '41 15 2 * *'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [ "$(date -u +%m)" = "01" ] || { echo "Not January."; exit 0; }
+          y=$(date -u +%Y); t="Review state tax rules for $y"
+          gh label create state-rules --color 0e8a16 --description "Yearly review of hand-compiled state rules" 2>/dev/null || true
+          if gh issue list --label state-rules --state all --search "$t in:title" --json number --jq '.[0].number' | grep -q .; then echo "Already opened."; exit 0; fi
+          gh issue create --title "$t" --label state-rules --body "Most state tax changes take effect on January 1. Check data/state_rules.json for $y:
+          - income tax brackets and standard deductions (\`income\`), especially states that cut rates every year (e.g. NC, GA, IN, IA, OK, AR, MS, WV, SC);
+          - assessment caps (\`caps\`), including sunsets (e.g. Alabama's 7% cap after tax year 2027) and ballot measures passed in November;
+          - homestead exemptions (\`homestead\`), several are indexed to inflation;
+          - state and county transfer taxes (\`transfer\`, \`county_transfer\`), e.g. Washington's REET thresholds change every four years, Rhode Island's threshold is indexed;
+          - local income taxes (\`local_income\`).
+          Update the \`as_of\`/year fields, run \`python3 build.py --pwa\` and the tests, and close this issue."

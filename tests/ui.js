@@ -5,7 +5,7 @@
 const fs = require('fs'), path = require('path'), http = require('http');
 const { chromium } = require(process.env.PLAYWRIGHT_PATH || 'playwright');
 // county scaling figures in the page, and the raw list the page fetches on first use: King County comes out at
-// 850,000 × 1.2 = $1,020,000, tax 7,225 ÷ 850,000 = 0.85%, Washington insurance $1,404
+// 850,000 × 1.2 = $1,020,000, tax 7,225 ÷ 850,000 = 0.85% (× Washington's new-buyer factor), Washington insurance $1,404
 // HUD rents for King County: 2,600 for 3 bedrooms with utilities × (1,750 contract ÷ 2,000 gross) = 2,275 → $2,280;
 // Autauga has no HUD row and no ACS rent, so it falls back to the U.S. typical rent. Price history for King from its state file.
 const META = { t: 'test counties', u: 'https://api.census.gov/', span: '2020–2024', kP: 1.2, kR: 1.5, cg: 0.85, insU: null, stateIns: { Washington: 1404 }, file: 'data/counties.json', rows: null,
@@ -89,7 +89,7 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
   ok(countyFetches === 1, 'the county list is downloaded once when needed');
   await page.fill('#countyQ', 'king county, washington'); await page.press('#countyQ', 'Enter'); await page.waitForTimeout(500);
   ok(await page.inputValue('#metro') === 'cty:53033', 'county selected');
-  ok(await page.evaluate(() => numOf('P') === 1020000 && numOf('ptax') === 0.85 && numOf('ins') === 1404), 'county fills price, tax and state insurance');
+  ok(await page.evaluate(() => numOf('P') === 1020000 && Math.abs(numOf('ptax') - 0.85 * nbK('WA')) < 0.001 && numOf('ins') === 1404), 'county fills price, tax (× the state\'s new-buyer factor) and state insurance');
   ok(await page.evaluate(() => !locRows().some(r => r.m.county)), 'counties stay out of the Locations comparison');
   ok(await page.evaluate(() => numOf('rent0')) === 2280, 'county rent from HUD by bedrooms, without utilities', String(await page.evaluate(() => numOf('rent0'))));
   await set({ beds: '1' }); ok(await page.evaluate(() => numOf('rent0')) === 1490, 'HUD 1-bedroom rent', String(await page.evaluate(() => numOf('rent0')))); await set({ beds: '3' });
@@ -121,7 +121,7 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
   await page.fill('#countyQ', '98101'); await page.press('#countyQ', 'Enter');
   await page.waitForFunction(() => document.getElementById('metro').value === 'zip:98101', null, { timeout: 5000 }).catch(() => {}); await page.waitForTimeout(400);
   ok(await page.inputValue('#metro') === 'zip:98101' && /ZIP 98101 · King County/.test(await page.evaluate(() => curMetro().name)), 'a ZIP code becomes the location');
-  ok(await page.evaluate(() => numOf('P') === 840000 && numOf('ptax') === 0.9 && numOf('ins') === 1404 && numOf('rent0') === 2880), 'ZIP fills value, tax, county insurance and HUD 3-bedroom rent', JSON.stringify(await page.evaluate(() => [numOf('P'), numOf('ptax'), numOf('ins'), numOf('rent0')])));
+  ok(await page.evaluate(() => numOf('P') === 840000 && Math.abs(numOf('ptax') - 0.9 * nbK('WA')) < 0.006 && numOf('ins') === 1404 && numOf('rent0') === 2880), 'ZIP fills value, tax, county insurance and HUD 3-bedroom rent', JSON.stringify(await page.evaluate(() => [numOf('P'), numOf('ptax'), numOf('ins'), numOf('rent0')])));
   await page.waitForFunction(() => curMetro().hpi, null, { timeout: 5000 }).catch(() => {});
   ok(await page.evaluate(() => !!curMetro().hpi), 'ZIP uses its county price history');
   await page.waitForTimeout(400); await page.reload(); await page.waitForFunction(() => document.getElementById('vhead').textContent !== 'Computing…');
@@ -210,8 +210,21 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
   ok(await page.evaluate(() => P.stMode === 'manual' && !document.getElementById('stTax').disabled), 'manual state tax unlocks the fields');
   await set({ stMode: 'auto' });
   const wa = await page.evaluate(() => loadCounties().then(() => { const m = countyMetro('cty:53033'); return [m.st, m.ptaxCap, m.tt && m.tt.length, transferTaxes(m.tt, 600000, 480000).seller]; }));
-  ok(wa[0] === 'WA' && wa[1] === 0 && wa[2] > 0 && Math.abs(wa[3] - (525000 * 0.011 + 75000 * 0.0128)) < 1, 'King County: Washington state transfer tax, no cap', JSON.stringify(wa));
+  ok(wa[0] === 'WA' && wa[1] === 0 && wa[2] > 0 && Math.abs(wa[3] - (525000 * 0.011 + 75000 * 0.0128 + 600000 * 0.005)) < 1, 'King County: Washington state REET plus the 0.5% county rate, no cap', JSON.stringify(wa));
   await set({ metro: 'us' }); await page.waitForTimeout(300);
+
+  /* homestead exemption: the rate is before the exemption, so the typical Dallas home still pays the new-buyer Census rate */
+  await set({ metro: 'dallas' }); await page.waitForTimeout(500);
+  const tx = await page.evaluate(() => { const m = selMetro(); return [P.hsEx, ptaxOn(P, m.P) / m.P, m.acs.rate / 100, ptaxOn(P, 200000) / 200000 < ptaxOn(P, 600000) / 600000]; });
+  ok(tx[0] === 70000 && Math.abs(tx[1] - tx[2]) < 1e-4 && tx[3], 'Texas: $70k exemption, typical home at the Census rate, cheaper homes taxed at a lower share', JSON.stringify(tx));
+  /* local income tax for counties (Montgomery County, MD) and credit score */
+  const md = await page.evaluate(() => loadCounties().then(() => { const r = stateIncomeTax('MD', 150000, 'single', '24031'); return [r.local && r.local.rate, r.local && r.local.tax > 3000, r.tax]; }));
+  ok(md[0] === 0.032 && md[1], 'Montgomery County, MD: 3.2% local income tax added', JSON.stringify(md));
+  const r0 = await page.evaluate(() => loanSetup(P, P.rate).rate);
+  await set({ fico: '639-' }); await page.waitForTimeout(400);
+  const r1 = await page.evaluate(() => [loanSetup(P, P.rate).rate, pmiRate(Object.assign({}, P, { dp: 0.05 }), 0.05) / pmiRate(Object.assign({}, P, { dp: 0.05, fico: '760-779' }), 0.05), CREDIT.pmi.rel['639-']]);
+  ok(Math.abs(r1[0] - r0 - 0.0053125) < 1e-9 && Math.abs(r1[1] - r1[2]) < 1e-9, 'credit 639 or lower: +0.53 pts and higher PMI', JSON.stringify([r0, r1]));
+  await set({ fico: '760-779', metro: 'us' }); await page.waitForTimeout(300);
 
   /* Spanish: ?lang=es loads the dictionary and translates the page as it renders; the choice is remembered */
   await page.goto(base + 'index.html?lang=es');

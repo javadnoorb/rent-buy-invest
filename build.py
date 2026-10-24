@@ -134,6 +134,11 @@ _ABBR = {'AL': 'Alabama', 'AK': 'Alaska', 'AZ': 'Arizona', 'AR': 'Arkansas', 'CA
          'NM': 'New Mexico', 'NY': 'New York', 'NC': 'North Carolina', 'ND': 'North Dakota', 'OH': 'Ohio', 'OK': 'Oklahoma', 'OR': 'Oregon',
          'PA': 'Pennsylvania', 'RI': 'Rhode Island', 'SC': 'South Carolina', 'SD': 'South Dakota', 'TN': 'Tennessee', 'TX': 'Texas', 'UT': 'Utah',
          'VT': 'Vermont', 'VA': 'Virginia', 'WA': 'Washington', 'WV': 'West Virginia', 'WI': 'Wisconsin', 'WY': 'Wyoming'}
+def _nb(rate, abbr):
+    return round(rate * NEWK.get(abbr, 1), 3) if rate is not None else None
+def _nbt(abbr):
+    k = NEWK.get(abbr, 1)
+    return f", × {k:.3f} for a new buyer (owners who moved in within about 4 years vs all owners in {_ABBR.get(abbr, abbr)}, ACS microdata)" if abs(k - 1) >= 0.005 else ''
 def _abbr(m):
     import re as _re
     mm = _re.search(r',\s*([A-Z]{2})\s+metro', ((m.get('price') or {}).get('what') or ''))
@@ -156,6 +161,24 @@ if _ins.get('states') and _ins.get('us'):
 # state rules applied by a location's state: assessment caps (data/state_rules.json, compiled from official state sources)
 STATE_RULES = json.load(open(D('data', 'state_rules.json'))) if os.path.exists(D('data', 'state_rules.json')) else {}
 STATE_RULES['names'] = {n: a for a, n in _ABBR.items()}
+# property tax for a new buyer: Census rates are averages over all owners, including long-time owners whose taxes caps
+# hold down; scale them by recent buyers' rate ÷ all owners' rate in the state (ACS microdata, scripts/fetch_insurance.py)
+_pm = (_ins.get('ptax_movers') or {})
+NEWK = {a: min(1.6, max(0.85, (_pm.get('states') or {}).get(n, {}).get('ratio', 1))) for a, n in _ABBR.items()
+        if ((_pm.get('states') or {}).get(n) or {}).get('n_recent', 0) >= 200}
+STATE_RULES['newbuyer'] = {'k': NEWK, 'year': _pm.get('year'), 'u': _ins.get('source_url')}
+# flood insurance: average yearly cost across all homes = share with an NFIP policy × typical policy cost
+FLOOD = json.load(open(D('data', 'flood.json'))) if os.path.exists(D('data', 'flood.json')) else None
+def flood_avg(fips_list):
+    """(average cost per home, share insured, share in the high-risk zone) over counties, weighted by homes"""
+    if not FLOOD: return None
+    rows = [(f, FLOOD['pen'][f]) for f in fips_list if f in FLOOD['pen'] and len(FLOOD['pen'][f]) > 2]
+    homes = sum(v[2] for _, v in rows)
+    if not homes: return None
+    cost = lambda f: FLOOD['cost'].get(f) or FLOOD['state_cost'].get(f[:2]) or 0
+    avg = sum(v[0] * v[2] * cost(f) for f, v in rows) / homes
+    return round(avg / 10) * 10, round(sum(v[0] * v[2] for _, v in rows) / homes, 4), round(sum(v[1] * v[2] for _, v in rows) / homes, 4)
+_cm0 = (json.load(open(D('data', 'county_metro.json'))) if os.path.exists(D('data', 'county_metro.json')) else {}).get('counties') or {}
 METROS = [{'slug': 'us', 'name': 'United States', 'P': snap['values']['zhvi'], 'rent': snap['values']['zori'],
            'ptax': snap['values']['ptaxUS'], 'ins': snap['values']['insUS'], 'ptaxCap': 0, 'hpi': None, 'src': {}}]
 order = ['boston', 'new-york', 'washington-dc', 'philadelphia', 'raleigh', 'charlotte', 'atlanta', 'tampa', 'miami',
@@ -176,9 +199,9 @@ for slug in order:
     cap = _cap.get('cap', 0)
     METROS.append({'slug': slug, 'name': m['name'] + (' metro' if False else ''),
                    'P': (m.get('price') or {}).get('value'), 'rent': (m.get('rent') or {}).get('value'),
-                   'ptax': (m.get('acs') or {}).get('eff_tax_pct'), 'ins': INS['by_abbr'].get(_abbr(m)) or INS['us'],
+                   'ptax': _nb((m.get('acs') or {}).get('eff_tax_pct'), _abbr(m)), 'ins': INS['by_abbr'].get(_abbr(m)) or INS['us'],
                    'ptaxCap': cap, 'ptaxCapCPI': bool(_cap.get('cpi')), 'st': _abbr(m),
-                   'acs': ({'rate': (m.get('acs') or {}).get('eff_tax_pct'), 'year': (m.get('acs') or {}).get('year'), 'name': (m.get('acs') or {}).get('name'),
+                   'acs': ({'rate': _nb((m.get('acs') or {}).get('eff_tax_pct'), _abbr(m)), 'rateAll': (m.get('acs') or {}).get('eff_tax_pct'), 'k': NEWK.get(_abbr(m), 1), 'year': (m.get('acs') or {}).get('year'), 'name': (m.get('acs') or {}).get('name'),
                             'beds': (m.get('acs') or {}).get('rent_ratio_by_bedrooms'), 'u': (m.get('acs') or {}).get('source_url')} if m.get('acs') else None),
                    'rentG': ((m.get('rent_hist') or {}).get('growth_pct')),
                    'rentSrc': ({'t': f"BLS rent index {', '.join(x for x in (m.get('rent_hist') or {}).get('series', {}).values() if x)} (metro years {sum(1 for s in (m.get('rent_hist') or {}).get('source_by_year', {}).values() if s != 'region')}, region otherwise)", 'u': (m.get('rent_hist') or {}).get('source_url')} if m.get('rent_hist') else None),
@@ -186,9 +209,11 @@ for slug in order:
                    'hpi': {'values': vals, 'basis': h.get('basis'), 'volK': h.get('volK')} if vals else None,
                    'hpiSrc': {'t': f"FHFA purchase-only index, {h.get('area')} ({h.get('basis')}); volatility ratio {h.get('volK')}", 'u': h.get('source_url')} if h.get('source_url') else None,
                    'src': {**{k: s(k) for k in ('price', 'rent')},
-                           'ptax': {'t': f"median tax ÷ median value, {(m.get('acs') or {}).get('name', m['name'])}, Census ACS {(m.get('acs') or {}).get('year', '')}", 'u': (m.get('acs') or {}).get('source_url')},
+                           'ptax': {'t': f"median tax ÷ median value, {(m.get('acs') or {}).get('name', m['name'])}, Census ACS {(m.get('acs') or {}).get('year', '')}" + _nbt(_abbr(m)), 'u': (m.get('acs') or {}).get('source_url')},
                            'ins': INS['src'](_abbr(m))}})
     METROS[-1]['src']['hpi'] = METROS[-1]['hpiSrc']
+    _fl = flood_avg([f for f, sl in _cm0.items() if sl == slug])
+    if _fl: METROS[-1]['flood'] = {'avg': _fl[0], 'take': _fl[1], 'sfha': _fl[2]}
     z = ((MARKET.get('zillow') or {}).get('metros') or {}).get(slug) or {}
     if z.get('zhvi') and z.get('zori'):
         mo = _mon(MARKET['zillow']['month']); zs = MARKET['zillow']['source_url']
@@ -287,16 +312,33 @@ if os.path.exists(cf):
     # counties inside one of the app's metros borrow its BLS rent history (data/county_metro.json, scripts/fetch_county_metro.py)
     _cm = json.load(open(D('data', 'county_metro.json'))) if os.path.exists(D('data', 'county_metro.json')) else {}
     COUNTIES['metroOf'] = _cm.get('counties') or {}
+    # flood insurance (data/flood.json, scripts/fetch_flood.py): loaded with the county list on the site
+    COUNTIES['flood'] = ({'file': 'data/flood.json'} if PWA else FLOOD) if FLOOD else None
     COUNTIES['metroOfU'] = _cm.get('source_url')
 
 # the installed (PWA) build serves pinned copies from vendor/; the artifact build can only load from public CDNs
 VENDOR = {'plotly': 'vendor/plotly-cartesian-2.35.2.min.js', 'mathjax': 'vendor/mathjax-3.2.2-tex-svg-full.js'}
+# state rules embedded in the page: county-only parts (local income taxes, county transfer taxes, county exemptions) load
+# with the county list on the site (data/state_rules.json); long notes the page does not show are left out
+COUNTY_RULE_KEYS = ('local_income', 'county_transfer', 'homestead_county', 'local_income_city_notes', 'transfer_city_notes', 'transfer_state_typical_local')
+def _rules_embed():
+    out = {}
+    for k, v in STATE_RULES.items():
+        if k.startswith('_') or (PWA and k in COUNTY_RULE_KEYS): continue
+        if k == 'transfer':
+            v = {st: {'taxes': [{f: x[f] for f in x if f not in ('notes', 'exemptions', 'source_title')} for x in e.get('taxes', [])]} for st, e in v.items()}
+        if k == 'income':
+            v = {st: {f: (x[f].split('. ')[0] if f == 'cg' and x[f] else x[f]) for f in x if f not in ('local', 'exemption_credit', 'notes', 't')} for st, x in v.items()}
+        out[k] = v
+    if PWA: out['countyFile'] = 'data/state_rules.json'
+    return out
 data_js = (f"const LOCAL_LIBS={json.dumps([VENDOR['plotly']] if PWA else [])};\n"
            "const SNAP=JSON.parse(document.getElementById('snapshot-data').textContent);\n"
            f"const RES={json.dumps(RES)};\nconst D0={json.dumps(D0)};\nconst FCST={json.dumps(FCST)};\n"
            f"const COUNTIES={json.dumps(COUNTIES, separators=(',', ':'))};\n"
            f"const I18N_ES={'null' if PWA else open(D('src', 'i18n', 'es.json')).read()};\n"
-           f"const STATE_RULES={json.dumps({k: v for k, v in STATE_RULES.items() if not k.startswith('_')}, separators=(',', ':'))};\n"
+           f"const CREDIT={json.dumps({'llpa': LR.get('llpa'), 'pmi': LR.get('pmi_fico')}, separators=(',', ':'))};\n"
+           f"const STATE_RULES={json.dumps(_rules_embed(), separators=(',', ':'))};\n"
            f"const METROS={json.dumps(METROS, separators=(',', ':'))};\nconst MONTHLY={json.dumps(MONTHLY, separators=(',', ':'))};\n")
 
 css = open(D('src', 'style.css')).read()

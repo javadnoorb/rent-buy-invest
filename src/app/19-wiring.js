@@ -7,8 +7,8 @@ function showTab(k){CUR=k;document.querySelectorAll('.tabs button').forEach(b=>{
 function tabFade(){const t=document.querySelector('.tabs');if(!t)return;t.classList.toggle('more-l',t.scrollLeft>4);t.classList.toggle('more-r',t.scrollLeft+t.clientWidth<t.scrollWidth-4)}
 const QUICK=['P','rent0','dp','rate'];
 function syncQuick(){QUICK.forEach(k=>{const q=document.getElementById('q-'+k),m=document.getElementById(k);if(document.activeElement!==q){q.value=unfmt(m.value);if(q.dataset.money!=null)fmtMoneyEl(q)}})}
-function persist(){try{localStorage.setItem('rbi-inputs',JSON.stringify(Object.assign(getRaw(),{REAL,v:7})));document.getElementById('saved').textContent='saved on this device'}catch(e){}}
-function restore(){try{const o=JSON.parse(localStorage.getItem('rbi-inputs')||'null');if(!o||![4,5,6,7].includes(o.v))return;
+function persist(){try{localStorage.setItem('rbi-inputs',JSON.stringify(Object.assign(getRaw(),{REAL,v:8})));document.getElementById('saved').textContent='saved on this device'}catch(e){}}
+function restore(){try{const o=JSON.parse(localStorage.getItem('rbi-inputs')||'null');if(!o||![4,5,6,7,8].includes(o.v))return;
   // saves before v6 hold the old defaults for renter's insurance ($0) and the chance of moving (5.6%, Redfin): use the new ones
   if(o.v<6){if(+o.rins===0)delete o.rins;if(+o.hz===5.6)delete o.hz}
   // saves before v7: PMI was 0.5% at any down payment, and only California metros had an assessment cap; an untouched
@@ -17,7 +17,10 @@ function restore(){try{const o=JSON.parse(localStorage.getItem('rbi-inputs')||'n
     if(o.ptaxCap==null||+o.ptaxCap===old){delete o.ptaxCap;delete o.ptaxCapCPI;CAP_FROM_LOC=true}
     // state income tax: an untouched default ($8,000, 0%, no deduction) becomes "from the location's state"; edited figures stay manual
     if(o.stMode==null)o.stMode=(o.stTax==null||+unfmt(String(o.stTax))===8000)&&(o.stRate==null||+o.stRate===0)&&(o.stDed==null||+o.stDed===0)?'auto':'manual'}
-  setRaw(o,o.v===4);if(o.REAL===false)REAL=false;const m=METROS.find(x=>x.slug===o.metro);if(m){const ms=metroStart(m),btn=document.getElementById('metroPreset');btn.hidden=!ms;if(ms)btn.textContent=`${m.name} ${ms}–2025 avg`;updateMetroHints(m);if(CAP_FROM_LOC)applyStateCap(m)}}catch(e){}}
+  // saves before v8: property tax was the all-owner Census rate with no homestead exemption; an untouched rate becomes the
+  // new-buyer rate before the exemption, with the location's exemption and credit
+  if(o.v<8&&o.hsEx==null){TAX_FROM_LOC={ptax:o.ptax,floodIns:o.floodIns};delete o.ptax;if(!(+o.floodIns>0))delete o.floodIns}
+  setRaw(o,o.v===4);if(o.REAL===false)REAL=false;const m=METROS.find(x=>x.slug===o.metro);if(m){const ms=metroStart(m),btn=document.getElementById('metroPreset');btn.hidden=!ms;if(ms)btn.textContent=`${m.name} ${ms}–2025 avg`;updateMetroHints(m);applyStateCap(m)}}catch(e){}}
 function validate(){document.querySelectorAll('aside input[type=number],aside input[data-money]').forEach(el=>{const v=unfmt(el.value);el.classList.toggle('bad',v===''||!isFinite(parseFloat(v)))})}
 let timer=null;
 function syncLoanFields(){const t=document.getElementById('loanType').value;
@@ -30,7 +33,9 @@ function update(){clearTimeout(timer);timer=setTimeout(()=>{VOLADJ=document.getE
    const lgEl=document.getElementById('ltcg'),lgAuto=P.ltcgMode==='auto';lgEl.disabled=lgAuto;if(lgAuto)lgEl.value=Math.round(P.ltcg*100);
    const sa=P.stAutoOn;['stTax','stRate','stDed'].forEach(id=>document.getElementById(id).disabled=sa);
    if(sa){const e=document.getElementById('stTax');e.value=P.stTax;fmtMoneyEl(e);document.getElementById('stRate').value=+(P.stRate*100).toFixed(2);document.getElementById('stDed').value=P.stDed?'1':'0'}
-   stateTaxHint();}document.getElementById('Nlab').textContent=P.N+' year'+(P.N>1?'s':'');
+   stateTaxHint();
+   {const h=document.getElementById('fico').closest('.f').querySelector('.hint'),c=creditAdj(P),L=CREDIT&&CREDIT.llpa;if(h&&L)h.innerHTML=P.loanType==='fha'?'FHA pricing does not depend on these adjustments':
+     `rate ${c.rate>=0?'+':'−'}${Math.abs(c.rate*100).toFixed(2)} pts vs the survey borrower (Fannie Mae price adjustments ${linkTo(L.source_url)}, at your points-to-rate setting)${P.dp<0.2?`; PMI × ${c.pmi.toFixed(2)} ${linkTo(CREDIT.pmi.source_url)}`:''}. First-time buyers with income at or below the area median pay no adjustment.`}}document.getElementById('Nlab').textContent=P.N+' year'+(P.N>1?'s':'');
   BASE=simulate(P,constPath(P,P.N));if(MC&&MC.key!==mcKey())MC=null;
   summary();RENDER[CUR]();if(CUR!=='mc'&&!mcFresh(false))startMC(false)},150)}
 function encodeState(){return btoa(unescape(encodeURIComponent(JSON.stringify(Object.assign(getRaw(),{REAL})))))}

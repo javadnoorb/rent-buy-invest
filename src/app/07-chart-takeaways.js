@@ -12,5 +12,5 @@ const sgnP=v=>`${v>=0?'+':'−'}${Math.abs(v).toFixed(0)}%`;
 
 function month1Cost(p){const LS=loanSetup(p,p.rate),M=pmt(LS.L,LS.rate/12,p.term*12);
   const ins=LS.type==='fha'?LS.mip*LS.L/12:pmiRate(p,p.dp)*LS.L/12;
-  return M+(p.ptax*p.P+p.maint*p.P+p.ins+p.floodIns)/12+p.hoa+p.utilDiff+ins}
+  return M+(ptaxOn(p,p.P)+p.maint*p.P+p.ins+p.floodIns)/12+p.hoa+p.utilDiff+ins}
 

@@ -175,4 +175,12 @@ module.exports=function({M,base,run,ok,near}){
    if(M.pmiRate){near(r(0.035,true),0.006,1e-12,'3.5% down: full PMI rate');near(r(0.07,true),0.006*30/35,1e-12,'7% down: 30/35 of it');
      near(r(0.12,true),0.006*25/35,1e-12,'12% down: 25/35');near(r(0.18,true),0.006*12/35,1e-12,'18% down: 12/35');
      ok(r(0.2,true)===0,'20% down: no PMI');near(r(0.18,false),0.006,1e-12,'unscaled: same rate')}}
+
+  /* credit score: Fannie Mae LLPA difference from the survey borrower, at the points-to-rate setting */
+  {const C={llpa:{ltv_upper:[0.3,0.6,0.7,0.75,0.8,0.85,0.9,0.95,1],rows:{'760-779':[0,0,0,0.25,0.625,0.625,0.5,0.5,0.25],'639-':[0,0.125,1.5,2.125,2.75,2.875,2.625,2.25,1.75]},reference:{score:'760-779',ltv:0.8}},pmi:{rel:{'760-779':1,'639-':3.261}}};
+   ok(M.creditAdj,'creditAdj exported');
+   if(M.creditAdj){const a=M.creditAdj(base({credit:C,fico:'639-',dp:0.2,ptsCut:0.0025}));near(a.rate,(2.75-0.625)*0.0025,1e-12,'639 or lower at 20% down: +0.53 pts');near(a.pmi,3.261,1e-12,'PMI ratio');
+     ok(M.creditAdj(base({credit:C,fico:'760-779',dp:0.2})).rate===0,'reference borrower: no change');
+     ok(M.creditAdj(base({credit:C,fico:'639-',dp:0.2,loanType:'fha'})).rate===0,'FHA: no adjustment');
+     const r0=M.loanSetup(base({credit:C,fico:'760-779',dp:0.2,ptsCut:0.0025}),0.06).rate,r1=M.loanSetup(base({credit:C,fico:'639-',dp:0.2,ptsCut:0.0025}),0.06).rate;near(r1-r0,0.0053125,1e-12,'loan rate carries the adjustment')}}
 };

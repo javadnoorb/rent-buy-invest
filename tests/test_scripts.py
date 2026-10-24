@@ -146,6 +146,22 @@ class Insurance(unittest.TestCase):
         self.assertEqual(I['state_values'](b.getvalue()), [(1200.0, 10.0), (2200.0, 5.0)])
         self.assertEqual(I['wmedian']([(100, 1), (200, 1), (300, 5)]), 300)
 
+    def test_property_tax_of_recent_buyers(self):
+        I = load('fetch_insurance')
+        b = io.BytesIO()
+        with zipfile.ZipFile(b, 'w') as z:
+            s = io.StringIO(); w = csv.writer(s); w.writerow(['TEN', 'BLD', 'INSP', 'WGTP', 'ADJHSG', 'TAXAMT', 'VALP', 'MV'])
+            w.writerows([['1', '02', '1000', '10', '1000000', '6000', '400000', '2'],    # recent buyer: 1.5%
+                         ['1', '02', '1000', '10', '1000000', '3000', '400000', '6'],    # long-time owner: 0.75%
+                         ['1', '02', '1000', '10', '1000000', '0', '400000', '1'],       # no tax: skipped
+                         ['1', '02', '1000', '10', '1000000', '500', '5000', '1']])      # value under $10k: skipped
+            z.writestr('psam_h06.csv', s.getvalue())
+        ins, tax = I['state_rows'](b.getvalue())
+        self.assertEqual(len(ins), 4); self.assertEqual(tax, [(0.015, 10.0, True), (0.0075, 10.0, False)])
+        rows = [(0.015, 1.0, True)] * 80 + [(0.0075, 1.0, False)] * 200
+        self.assertEqual(I['tax_summary'](rows), {'recent': 1.5, 'all': 0.75, 'ratio': 2.0, 'n_recent': 80})
+        self.assertIsNone(I['tax_summary'](rows[:50] + rows[80:]))  # too few recent buyers
+
 
 class AcsSummaryFile(unittest.TestCase):
     def test_sf_lines(self):
@@ -169,6 +185,18 @@ class CountyMetro(unittest.TestCase):
                 [42660.0, None, None, 'Seattle', 'Metropolitan Statistical Area', None, None, 'King County', 'Washington', 53.0, 33.0, 'Central'],
                 ['10100', None, None, 'Aberdeen, SD', 'Micropolitan Statistical Area', None, None, 'Brown County', 'South Dakota', '46', '013', 'Central']]
         self.assertEqual(C['parse'](make_xlsx(rows), {'14460': 'boston', '42660': 'seattle'}), {'25025': 'boston', '53033': 'seattle'})
+
+
+class Flood(unittest.TestCase):
+    def test_penetration(self):
+        F = load('fetch_flood')
+        csvt = ('state,county,resPenetrationRateSfha,resPenetrationRate,resContractsInForceSfha,resContractsInForce,totalResStructuresSfha,totalResStructures,fipsCode,asOfDate,id\n'
+                'Alabama,Baldwin,0.6362,0.0925,6643,9007,10442,97390,01003,2026-08-03T00:00:00.000Z,x\n'
+                'Alabama,Nowhere,,,0,0,0,0,01999,2026-08-03T00:00:00.000Z,y\n')
+        p = F['parse_pen'](csvt)
+        self.assertEqual(list(p), ['01003']); self.assertAlmostEqual(p['01003']['take'], 0.0925, 4); self.assertAlmostEqual(p['01003']['sfha'], 0.1072, 4)
+        self.assertEqual(p['01003']['s'], 97390)
+        self.assertEqual(F['median']([3, 1, 2]), 2)
 
 
 if __name__ == '__main__':
