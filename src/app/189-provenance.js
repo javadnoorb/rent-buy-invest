@@ -45,4 +45,4 @@ function settingOrigin(id){const o=ORIGIN[id];if(!o)return null;const el=documen
   return {id,label:settingLabel(id),kind,kindLabel:ORIGIN_KIND[kind],html,keys,value:el.value,changed,preset}}
 /* origin as one line of HTML: "Freddie Mac PMMS, Oct 23 2026 · source (market data today)" */
 function originHTML(o){if(!o)return '';const links=o.keys.filter(k=>!o.html.includes(SRC[k].u)).map(k=>sl(k,SRC[k].t.split(/[:(,]/)[0].trim())).join(' · ');
-  return `${o.changed?'<b>you changed it</b> · default: ':''}${o.html}${links?' · '+links:''} <span class="muted">(${o.kindLabel.toLowerCase()})</span>`}
+  return `${o.changed?'<b>you changed it</b> · default: ':''}${o.html}${links?' · '+links:''} ${o.kind==='assumption'&&/class="tag"/.test(o.html)?'':`<span class="muted">(${o.kindLabel.toLowerCase()})</span>`}`}

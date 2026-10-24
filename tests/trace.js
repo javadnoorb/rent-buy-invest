@@ -140,7 +140,7 @@ function walkTrees(roots) {
     const r = el.getBoundingClientRect(); return { x: r.left + fl._size.l + fl.xaxis.d2p(d.x[j]), y: r.top + fl._size.t + fl.yaxis.d2p(d.y[j]) }; }, k);
   const clickPoint = async (pg, k) => { const xy = await pointXY(pg, k); await pg.mouse.move(xy.x, xy.y); await pg.waitForTimeout(200); await pg.mouse.click(xy.x, xy.y); await pg.waitForTimeout(500); };
   const panelState = pg => pg.evaluate(() => { const p = document.getElementById('trp'), el = document.getElementById('p-nw'), c = el.getBoundingClientRect(), r = p && !p.hidden ? p.getBoundingClientRect() : null;
-    return { open: !!r, bar: !!document.querySelector('.trbar[data-for="p-nw"]'), sub: r ? document.getElementById('trpS').textContent : '', rows: r ? p.querySelectorAll('.trn').length : 0, eq: !!(r && p.querySelector('.treq')),
+    return { open: !!r, bar: !!document.querySelector('.trbar[data-for="p-nw"]'), sub: r ? document.getElementById('trpS').textContent : '', rows: r ? p.querySelectorAll('.trrow').length : 0, eq: !!(r && p.querySelector('.treq')),
       covered: r ? Math.min(c.right, r.right) - Math.max(c.left, r.left) > 2 && Math.min(c.bottom, r.bottom) - Math.max(c.top, r.top) > 2 : false }; });
   for (const [W, H, mob] of [[1280, 900, false], [390, 844, true]]) {
     const pg = W === 1280 ? page : await b.newPage({ viewport: { width: W, height: H }, isMobile: mob, hasTouch: mob });
@@ -152,6 +152,12 @@ function walkTrees(roots) {
     await pg.click('.trbar[data-for="p-nw"] .trgo'); await pg.waitForTimeout(1200);
     const s2 = await panelState(pg);
     ok(s2.open && /Buy, year/.test(s2.sub) && s2.rows > 3 && s2.eq && !s2.covered, `${W}px: "How was this computed?" opens the panel beside the chart, not over it`, JSON.stringify(s2));
+    { const before = await pg.evaluate(() => document.querySelector('#trpB .trct h3').textContent);
+      await pg.click('#trpB .trrow[data-j]'); await pg.waitForTimeout(300);
+      const deep = await pg.evaluate(() => ({ title: document.querySelector('#trpB .trct h3').textContent, crumbs: document.querySelectorAll('#trpB .trbc [data-up]').length, focus: document.activeElement === document.querySelector('#trpB .trct h3') }));
+      await pg.click('#trpB .trbc-last'); await pg.waitForTimeout(300);
+      const back = await pg.evaluate(() => document.querySelector('#trpB .trct h3').textContent);
+      ok(deep.title !== before && deep.crumbs === 1 && deep.focus && back === before, `${W}px: a part opens its own card; the breadcrumb goes back`, JSON.stringify({ before, deep, back })); }
     if (W === 1280) { await clickPoint(pg, 2); const s3 = await panelState(pg); ok(s3.open && /year 2$/.test(s3.sub) && !s3.covered, 'with the panel open, clicking another point updates it', JSON.stringify(s3)); }
     await pg.keyboard.press('Escape'); await pg.waitForTimeout(300);
     ok(await pg.evaluate(() => document.getElementById('trp').hidden && !document.body.classList.contains('trace-open')), `${W}px: Escape closes the panel and the page takes its full width back`);

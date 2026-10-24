@@ -2,10 +2,10 @@
 /* Clicking (or tapping) a point on a chart selects it: a bar under the chart names the point and offers "How was this
    computed?", so a click never hides the chart. The button opens a panel docked beside the page on wide screens (the
    charts shrink to fit) or a sheet over the lower half on phones, with the chart scrolled into view above it. While
-   the panel is open, clicking another point updates it directly. The panel shows the point's value as a
-   tree: each line opens to its equation, the same equation with your numbers in it, a link to the Method section
-   that explains it, and the parts it is made of. The bottom lines are settings (with where their value came from and
-   a link to change it), data (with its source) and the model's fixed rules. Parts worth $0 are grouped at the end. */
+   the panel is open, clicking another point updates it directly. The panel shows one card at a time (see
+   renderTraceCard): a value, its equation with your numbers, the Method section and its parts, each part a card of
+   its own down to settings (with where their value came from and a link to change it), data (with its source) and
+   the model's fixed rules. Parts worth $0 are grouped at the end. */
 let TRACE_OPEN=null;
 function traceClick(el,e){const p0=e&&e.points&&e.points[0];if(!p0)return;const tr=el.data&&el.data[p0.curveNumber],f=tr&&tr.meta&&TRACE_RECIPES[tr.meta];if(!f)return;
   const pt={curveNumber:p0.curveNumber,pointNumber:p0.pointNumber,pointNumbers:p0.pointNumbers,x:p0.x,y:p0.y,z:p0.z,customdata:p0.customdata};
@@ -25,19 +25,17 @@ function tracePanel(){let pn=document.getElementById('trp');if(pn)return pn;
   pn.innerHTML='<div class="trh"><div><h2 id="trpT">How this was computed</h2><div class="trsub" id="trpS"></div></div><div class="trbtns"><button type="button" class="trtall" aria-label="Taller panel" aria-pressed="false">↕</button><button type="button" class="trx" aria-label="Close">×</button></div></div><div class="trb" id="trpB"></div>';
   document.body.appendChild(pn);pn.querySelector('.trx').onclick=closeTrace;
   pn.querySelector('.trtall').onclick=e=>{const on=document.body.classList.toggle('trace-tall');e.currentTarget.setAttribute('aria-pressed',String(on))};
-  pn.addEventListener('toggle',e=>{const d=e.target;if(d.tagName==='DETAILS'&&d.open&&d.dataset.n&&!d.dataset.f)fillTraceNode(d)},true);
   pn.addEventListener('click',e=>{const a=e.target.closest('a[data-ci-set],a[data-ci-sec]');if(a&&innerWidth<700)setTimeout(closeTrace,0)});
   addEventListener('keydown',e=>{if(e.key==='Escape'&&!pn.hidden)closeTrace()});return pn}
 function closeTrace(){const pn=document.getElementById('trp'),was=pn&&!pn.hidden;if(pn)pn.hidden=true;document.body.classList.remove('trace-open','trace-dock','trace-tall');if(was)requestAnimationFrame(resizePlots);if(TRACE_OPEN&&TRACE_OPEN.el)TRACE_OPEN.el.focus&&TRACE_OPEN.el.focus({preventScroll:true})}
-function openTrace(r,el){const pn=tracePanel();TRACE_OPEN={el,nodes:[],r};
+function openTrace(r,el){const pn=tracePanel();TRACE_OPEN={el,r,stack:[{node:r.node,sym:r.node.eq?eqLhs(r.node.eq):null}]};
   const card=el&&el.closest('.card'),h=card&&card.querySelector('h2');
   document.getElementById('trpS').textContent=(h?h.textContent.replace(/\?/g,'').trim()+' · ':'')+r.title;
-  const body=document.getElementById('trpB');body.innerHTML=traceNodeHTML(r.node,true)+(r.examples||[]).map(e=>`<h3 class="trex">${escapeHtml(e.label)}</h3>`+traceNodeHTML(e.node,true)).join('')+traceOptsHTML(r.T||traceBase())+'<p class="trfoot muted">Every line is computed from the lines inside it with the equation shown; the app checks this for every chart point in its tests.</p>';
   const was=!pn.hidden;pn.hidden=false;document.body.classList.add('trace-open');document.body.classList.toggle('trace-dock',traceDock());
   // phones: the sheet takes the space below the chart (a third to 60% of the screen), so the whole chart stays visible
   if(!traceDock()&&el){const sh=document.querySelector('.stickyhead'),top=sh?sh.getBoundingClientRect().bottom:0,h=Math.round(Math.min(innerHeight*0.6,Math.max(innerHeight/3,innerHeight-top-el.getBoundingClientRect().height-16)));
     document.documentElement.style.setProperty('--trh',h+'px')}
-  const top=body.querySelector('details');if(top){top.open=true;fillTraceNode(top)}typeset(body.querySelector('summary'));body.scrollTop=0;
+  renderTraceCard();
   // keep the chart in view: docked, the page narrows and the charts redraw to fit; on phones the chart moves above the sheet
   // (measured again after each scroll: the sticky header changes height as the page scrolls)
   const fit=n=>{if(!el)return;const r=el.getBoundingClientRect(),sh=document.querySelector('.stickyhead'),top2=sh?sh.getBoundingClientRect().bottom:0,
@@ -45,9 +43,33 @@ function openTrace(r,el){const pn=tracePanel();TRACE_OPEN={el,nodes:[],r};
   requestAnimationFrame(()=>{if(!was&&traceDock())resizePlots();requestAnimationFrame(()=>fit(0))});
   if(!was)pn.querySelector('.trx').focus({preventScroll:true})}
 const trUnit=(v,u)=>u==='opt'?String(v):fv(v,u);
-function traceNodeHTML(nd,root,sym){const id=TRACE_OPEN.nodes.push(nd)-1,val=`<span class="trv">${nd.leaf==='set'&&nd.u==='opt'?escapeHtml(nd.opt||''):trUnit(nd.v,nd.u)}</span>`,s=sym||(root&&nd.eq?eqLhs(nd.eq):null),lab=`<span class="trl">${s?`<span class="trsy">\\(${s}\\)</span>`:''}${escapeHtml(nd.label)}</span>`;
-  if(!nd.build)return `<div class="trn leaf${root?' root':''}"><div class="trrow">${lab}${val}</div><div class="tro">${traceLeafHTML(nd)}</div></div>`;
-  return `<details class="trn${root?' root':''}" data-n="${id}"><summary class="trrow">${lab}${val}</summary><div class="trd"></div></details>`}
+const trVal=nd=>nd.leaf==='set'&&nd.u==='opt'?escapeHtml(nd.opt||''):trUnit(nd.v,nd.u);
+const trSym=s=>s?`<span class="trsy">\\(${s}\\)</span>`:'';
+const TR_KIND={set:'Setting',data:'Data',const:'Rule',note:'Why'};
+/* One card at a time: the line being looked at (its symbol, name and value), its equation with your numbers, the
+   Method section, then the parts it is made of. A part with parts of its own opens its own card (the breadcrumb goes
+   back); a setting, data value or rule opens in place to show where it comes from. */
+function renderTraceCard(){const T=TRACE_OPEN,cur=T.stack.at(-1),nd=cur.node,body=document.getElementById('trpB');
+  const crumbs=T.stack.length>1?`<nav class="trbc" aria-label="Where you are">${T.stack.map((c,i)=>i<T.stack.length-1?`<button type="button" data-up="${i}"${i===T.stack.length-2?' class="trbc-last"':''}>${c.sym?trSym(c.sym):''}<span>${escapeHtml(c.node.label.replace(/ (after \d+ years?|at the start|in year \d+)/,''))}</span></button><span class="trbcs" aria-hidden="true">›</span>`:'').join('')}</nav>`:'';
+  let html=crumbs+`<article class="trc" aria-live="polite"><header class="trct"><div class="trcl">${trSym(cur.sym)}<h3 tabindex="-1">${escapeHtml(nd.label)}</h3></div><div class="trcv">${trVal(nd)}</div></header>`;
+  if(!nd.build){html+=`<div class="tro">${traceLeafHTML(nd)}</div></article>`;body.innerHTML=html;typeset(body);return}
+  const b=nd.built||(nd.built=nd.build()),e=nd.eq&&EQ[nd.eq],sec=e&&document.getElementById('m-'+e.s),nums=traceNumbers(nd,b);
+  if(e||nums)html+=`<div class="treqb">${e?`<div class="treq">\\(${e.t}\\)</div>`:''}${nums?`<div class="trnum"><span class="trnl">with your numbers</span>${escapeHtml(nums)} <b>= ${trUnit(nd.v,nd.u)}</b></div>`:''}</div>`;
+  if(nd.note)html+=`<p class="trnote">${escapeHtml(nd.note)}</p>`;
+  if(sec)html+=`<a class="trm" href="#m-${e.s}" data-ci-sec="m-${e.s}">Explained in Method: ${escapeHtml(sec.querySelector('.mst').textContent)} →</a>`;
+  const ix=b.kids.map((k,j)=>j),isZero=k=>Math.abs(k.v)<1e-9&&k.u!=='opt'&&k.u!=='x',live=ix.filter(j=>!isZero(b.kids[j])),zero=ix.filter(j=>isZero(b.kids[j]));
+  const op=j=>b.op==='sum'?(()=>{const s=b.sg[j],w=Math.abs(s);return (s<0?'−':j?'+':'')+(w!==1?(Number.isInteger(w)?w:w.toFixed(2))+'×':'')})():b.op==='prod'&&j?'×':'';
+  const row=j=>{const k=b.kids[j],s=symFor(nd,b,j),inner=`<span class="trsg">${op(j)}</span>${trSym(s)}<span class="trl">${escapeHtml(k.label)}${k.leaf?` <span class="trtag tr-${k.leaf}">${TR_KIND[k.leaf]}</span>`:''}${k.leaf==='set'&&k.over?' <span class="trtag tr-over">set for this point</span>':''}</span><span class="trv">${trVal(k)}</span>`;
+    return k.build?`<li><button type="button" class="trrow" data-j="${j}">${inner}<span class="trch" aria-hidden="true">›</span></button></li>`:`<li><details class="trleaf"><summary class="trrow">${inner}<span class="trch" aria-hidden="true">⌄</span></summary><div class="tro">${traceLeafHTML(k)}</div></details></li>`};
+  html+=`<h4 class="trph">Made of ${b.kids.length===1?'1 part':b.kids.length+' parts'}</h4><ul class="trparts">${live.map(row).join('')}</ul>`+
+    (zero.length?`<details class="trz"><summary>${zero.length} part${zero.length>1?'s':''} at zero</summary><ul class="trparts">${zero.map(row).join('')}</ul></details>`:'')+'</article>';
+  if(T.stack.length===1){const ex=T.r.examples||[];ex.forEach((x,i)=>{html+=`<h4 class="trph">Example</h4><ul class="trparts"><li><button type="button" class="trrow" data-ex="${i}"><span class="trsg"></span><span class="trl">${escapeHtml(x.label)}</span><span class="trv">${trVal(x.node)}</span><span class="trch" aria-hidden="true">›</span></button></li></ul>`});
+    html+=`<details class="trz tropts"><summary>Model options in effect</summary><ul class="trparts">${(T.r.T||traceBase()).opts().map(o=>`<li><details class="trleaf"><summary class="trrow"><span class="trsg"></span><span class="trl">${escapeHtml(o.label)}</span><span class="trv">${trVal(o)}</span><span class="trch" aria-hidden="true">⌄</span></summary><div class="tro">${traceLeafHTML(o)}</div></details></li>`).join('')}</ul></details>`+
+      '<p class="trfoot">Every value is computed from its parts with the equation shown; the app checks this for every chart point in its tests.</p>'}
+  body.innerHTML=html;body.querySelectorAll('.trrow[data-j]').forEach(x=>x.onclick=()=>{const j=+x.dataset.j;T.stack.push({node:b.kids[j],sym:symFor(nd,b,j)});traceGo()});
+  body.querySelectorAll('.trrow[data-ex]').forEach(x=>x.onclick=()=>{const n2=T.r.examples[+x.dataset.ex].node;T.stack.push({node:n2,sym:n2.eq?eqLhs(n2.eq):null});traceGo()});
+  body.querySelectorAll('.trbc [data-up]').forEach(x=>x.onclick=()=>{T.stack.length=+x.dataset.up+1;traceGo()});typeset(body)}
+function traceGo(){renderTraceCard();const body=document.getElementById('trpB');body.scrollTop=0;const h=body.querySelector('.trct h3');if(h)h.focus({preventScroll:true})}
 function traceLeafHTML(nd){const src=k=>SRC[k]?`<a href="${SRC[k].u}" target="_blank" rel="noopener" title="${escapeHtml(SRC[k].t)}">${escapeHtml(SRC[k].t.split(/[:(]/)[0].trim())}</a>`:'';
   const setLinks=ids=>[...new Set([].concat(ids||[]))].filter(id=>F.some(f=>f[1]===id)).map(id=>`<a href="#${id}" data-ci-set="${id}">${escapeHtml(settingLabel(id))}</a>`).join(' · ');
   if(nd.leaf==='set'&&nd.over){const o=settingOrigin(nd.id);return `<b>set to ${trUnit(nd.v,nd.u)} for this point</b>${o?` · your setting: ${escapeHtml(String(o.value))}`:''} · <a href="#${nd.id}" data-ci-set="${nd.id}">open</a>`}
@@ -60,14 +82,6 @@ function traceNumbers(nd,b){const vals=b.kids.map(k=>k.v);
   if(b.op==='sum')return b.kids.map((k,j)=>{const s=b.sg[j],w=Math.abs(s),t=(w!==1?(Number.isInteger(w)?w:w.toFixed(3))+' × ':'')+trUnit(k.v,k.u);return (j===0?(s<0?'− ':''):(s<0?' − ':' + '))+t}).join('');
   if(b.op==='prod')return b.kids.map(k=>trUnit(k.v,k.u)).join(' × ');
   return b.show?b.show(vals,b.kids):''}
-function fillTraceNode(d){const nd=TRACE_OPEN.nodes[+d.dataset.n];if(!nd)return;d.dataset.f=1;const b=nd.built||(nd.built=nd.build());
-  const e=nd.eq&&EQ[nd.eq],sec=e&&document.getElementById('m-'+e.s),nums=traceNumbers(nd,b);
-  const ix=b.kids.map((k,j)=>j),isZero=k=>Math.abs(k.v)<1e-9&&k.u!=='opt'&&k.u!=='x',zero=ix.filter(j=>isZero(b.kids[j])),live=ix.filter(j=>!isZero(b.kids[j])),row=j=>traceNodeHTML(b.kids[j],false,symFor(nd,b,j));
-  d.querySelector('.trd').innerHTML=(e?`<div class="treq">\\(${e.t}\\)</div>`:'')+(nums?`<div class="trnum">= ${escapeHtml(nums)} = <b>${trUnit(nd.v,nd.u)}</b></div>`:'')+
-    (nd.note?`<div class="trnote">${escapeHtml(nd.note)}</div>`:'')+(sec?`<div class="trm"><a href="#m-${e.s}" data-ci-sec="m-${e.s}">Method: ${escapeHtml(sec.querySelector('.mst').textContent)}</a></div>`:'')+
-    `<div class="trk2">${live.map(row).join('')}${zero.length?`<details class="trz"><summary>${zero.length} part${zero.length>1?'s':''} at zero</summary>${zero.map(row).join('')}</details>`:''}</div>`;
-  typeset(d.querySelector('.trd'))}
-function traceOptsHTML(T){return `<details class="trn trop"><summary class="trrow"><span class="trl">Model options in effect</span></summary><div class="trd"><div class="trk2">${T.opts().map(o=>traceNodeHTML(o)).join('')}</div></div></details>`}
 /* a short line under each chart that can be traced, saying so */
 function traceHint(el){if(!el||el.dataset.trh||!el.data||!el.data.some(d=>d.meta&&TRACE_RECIPES[d.meta]))return;el.dataset.trh=1;el.classList.add('traceable');
   const after=el.nextElementSibling&&el.nextElementSibling.classList.contains('takeaway')?el.nextElementSibling:el;
