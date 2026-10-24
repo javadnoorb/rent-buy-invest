@@ -15,10 +15,13 @@ function expectedWithMoving(o,p){const w=movingWeights(p.hz,p.N);let s=0;for(let
   ['Inflation ±1 pt','inf',0.01],['Rent ±10%','rent0',0.1,'rel'],['Price ±10%','P',0.1,'rel'],['Maintenance ±0.5 pt','maint',0.005],
   ['Property tax ±0.3 pt','ptax',0.003],['Selling costs ±2 pt','sell',0.02],['Down payment ±10 pt','dp',0.1],['Horizon ±3 yr','N',3],['Later market rate ±1 pt','rateLR',0.01]];
 /* the two settings changes behind one tornado row: {lo, hi} overrides */
+/* a different mortgage rate: an ARM keeps its spread to the quoted rate (loanSetup prices it as rate − (rate − armRate)),
+   so its own starting rate moves by the same amount */
+const rateOver=(p,v)=>Object.assign({rate:v,rate30:v+((p.rate30!=null?p.rate30:p.rate)-p.rate)},p.loanType==='arm'&&p.armRate!=null?{armRate:p.armRate+(v-p.rate)}:{});
 function torOver(p,[,k,d,rel]){const dd=rel?p[k]*d:d;let lo=p[k]-dd,hi=p[k]+dd;
   if(k==='N'){lo=Math.max(1,lo);hi=Math.min(30,hi)}if(k==='dp'){lo=Math.max(0,lo);hi=Math.min(1,hi)}
   // selling costs: the base cost moves too, since with a location's transfer-tax rules the model uses base + taxes
-  const ov=v=>k==='rate'?{rate:v,rate30:v}:k==='sell'?{sell:v,sellBase:p.sellBase+(v-p.sell)}:{[k]:v};return {lo:ov(lo),hi:ov(hi)}}
+  const ov=v=>k==='rate'?rateOver(p,v):k==='sell'?{sell:v,sellBase:p.sellBase+(v-p.sell)}:{[k]:v};return {lo:ov(lo),hi:ov(hi)}}
 function tornado(p){const base=advAt(p,{});return {base,rows:TORNADO.map(r=>{const [lab,k]=r,o=torOver(p,r);
   return {lab,k,row:r,lo:advAt(p,o.lo)-base,hi:advAt(p,o.hi)-base}}).sort((a,b)=>Math.max(Math.abs(a.lo),Math.abs(a.hi))-Math.max(Math.abs(b.lo),Math.abs(b.hi)))}}
 

@@ -5,24 +5,30 @@
    In today's dollars the loan term is the gain from repaying a fixed loan with dollars inflation has shrunk (less any
    FHA upfront premium, which is added to the loan); in nominal dollars it is zero apart from that premium.
    Investment taxes (the renter's minus the buyer's) are their own part; the last term, the renter's extra investment
-   returns before tax, is the residual, so the parts always sum to the headline; flows are summed in the chosen dollars. */
+   returns before tax, is the residual, so the parts always sum to the headline; flows are summed in the chosen dollars.
+   With less than all of the difference invested, the part nobody invests is its own term (it favors whoever spent
+   less). A planned move (a second sale, a new purchase, or renting afterwards) has no term here, so with one the
+   breakdown is not drawn (moved: true) rather than folding the move into the returns. */
 function gapParts(p,o){const N=p.N,c=o.cpi[N],LS=loanSetup(p,p.rate),sum=k=>o.flow.slice(0,N).reduce((a,f)=>a+adj(f[k]*12,f.cpi),0);
   const gap=adj(o.buy[N]-o.inv[N],c),H=adj(o.H[N],c),eq=adj(o.eq[N],c),bal=adj(o.bal[N],c),sr=sellAt(p,o.H[N]),sale=H*(1-sr);
   const parts=[['Home price change',H-p.P],['Selling costs',-H*sr],['Tax on the home sale',-Math.max(0,sale-bal-eq)],
     ['Buying costs',-(p.P*p.close+p.moveIn+LS.ptsCost)],['Mortgage interest',-sum('interest')],['Property tax',-sum('ptax')],
-    ['Insurance, HOA, PMI, utilities',-(sum('ins')+sum('hoa')+sum('pmi')+sum('util')+sum('refi'))],['Upkeep',-sum('maint')],
+    ['Insurance, HOA, PMI, utilities',-(sum('ins')+sum('hoa')+sum('pmi')+sum('util'))],['Refinancing costs',-sum('refi')],['Upkeep',-sum('maint')],
     ['Tax savings from owning',-sum('tax')],['House-hack income',-sum('hh')],['Rent the renter pays',sum('rent')]];
+  if(p.investShare<1)parts.push(['Savings not invested',sum('unInv')]);
   const base=p.P*(1-p.dp),infl=LS.L-sum('principal')-bal;if(p.moveMode==='none'||!p.moveMode){parts.push(['FHA upfront premium',base-LS.L],['Inflation shrinking the loan',infl])}
   // investment taxes (yearly on dividends and interest, and on selling at year N): the renter's minus the buyer's
   if(o.tax){const it=o.tax.slice(0,N).reduce((a,t)=>a+adj(t.invR-t.invB,t.cpi),0)+adj(o.liqTax[N].r-o.liqTax[N].b,c);parts.push(['Tax on investments (renter − buyer)',it])}
   const known=parts.reduce((a,x)=>a+x[1],0);parts.push(['Renter\'s investment returns, before tax',gap-known]);
-  return {gap,parts:parts.filter(([lab,v])=>Math.abs(v)>=1||/Rent|returns/.test(lab))}}
+  return {gap,moved:!!(p.moveMode&&p.moveMode!=='none'),parts:parts.filter(([lab,v])=>Math.abs(v)>=1||/Rent|returns/.test(lab))}}
 /* Drawn as a walk of thick arrows: each part starts where the previous one ended and points right (in buying's
    favor, orange) or left (renting's, blue); dotted lines join the steps and the value sits at each arrow's tip. The
    last row is the total, drawn from zero. An invisible bar per row carries the hover text. Names are on the left and
    values in a column on the right, clear of the arrows; on phones the names and values go above the arrows so the
    arrows get the full width. */
-function renderGap(o){const t=theme(),p=P,{gap,parts}=gapParts(p,o),narrow=innerWidth<600;
+function renderGap(o){const t=theme(),p=P,{gap,parts,moved}=gapParts(p,o),narrow=innerWidth<600;
+  if(moved){const el=document.getElementById('p-gap');if(window.Plotly&&el.data)Plotly.purge(el);el.innerHTML='<p class="note gapmsg">This breakdown leaves out a planned move (the second sale and purchase, or renting afterwards), so it is shown only with Planned move set to None.</p>';return}
+  {const m=document.querySelector('#p-gap .gapmsg');if(m)m.remove()}
   const rows=/** @type {any[]} */(parts.map(([lab,v])=>({lab,v}))),n=rows.length;let run=0;rows.forEach(r=>{r.a=run;run+=r.v;r.b=run});
   rows.push({lab:'Buy minus rent',v:gap,a:0,b:gap,total:true});
   const xs=rows.flatMap(r=>[r.a,r.b]),lo=Math.min(0,...xs),hi=Math.max(0,...xs),span=(hi-lo)||1,pad=span*.03;

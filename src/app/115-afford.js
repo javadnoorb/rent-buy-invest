@@ -2,8 +2,9 @@
 /* Lender-style limits on the payment lenders count (principal, interest, property tax, insurance, HOA and mortgage
    insurance; not upkeep or utilities): housing ≤ 28% of gross income and all debts ≤ 36% (comfortable), or all
    debts ≤ 43% (a conservative lender limit; automated underwriting often allows 45–50%). The cash you have pays the down payment plus closing costs, transfer taxes and
-   move-in costs; the minimum down payment is 3% (3.5% for FHA). Insurance scales with the price. */
-function affordAt(p,P,cash){const minDp=p.loanType==='fha'?0.035:0.03,down=Math.min(P,cash-closeAt(p,P)*P-p.moveIn);
+   move-in costs and any points (k per dollar of loan, so down = (cash − closing − move-in − kP)/(1 − k)); the minimum
+   down payment is 3% (3.5% for FHA). Insurance scales with the price. */
+function affordAt(p,P,cash){const minDp=p.loanType==='fha'?0.035:0.03,k=Math.max(0,p.pts||0)/100,down=Math.min(P,(cash-closeAt(p,P)*P-p.moveIn-k*P)/(1-k));
   if(!(down>=minDp*P-1e-6))return null;const q=Object.assign({},p,{P,dp:down/P,ins:p.ins*P/p.P});
   const LS=loanSetup(q,q.rate),pay=pmt(LS.L,LS.rate/12,q.term*12),mi=LS.type==='fha'?LS.mip*LS.L/12:pmiRate(q,q.dp)*LS.L/12;
   const piti=pay+(ptaxOn(q,P)+q.ins+q.floodIns)/12+q.hoa+mi;return {P,dp:q.dp,down,piti,full:month1Cost(q)}}
@@ -12,12 +13,13 @@ function maxPrice(p,cash,front,back){const inc=p.income/12,ok=P=>{const a=afford
   for(let k=0;k<50;k++){const m=(lo+hi)/2;if(ok(m))lo=m;else hi=m}const a=affordAt(p,Math.floor(lo/1000)*1000,cash);
   // what binds: the cash (a slightly higher price would need more cash than you have) or the income
   a.limit=affordAt(p,lo*1.01,cash)?'income':'cash';return a}
-function affCash(p){const v=numOf('affCash');return isFinite(v)&&v>0?v:p.P*(p.dp+p.close)+p.moveIn}
+const cashToBuy=p=>p.P*(p.dp+p.close)+p.moveIn+loanSetup(p,p.rate).ptsCost;
+function affCash(p){const v=numOf('affCash');return isFinite(v)&&v>0?v:cashToBuy(p)}
 function renderAfford(){const p=P,el=document.getElementById('affT');if(!el)return;const cash=affCash(p),inc=p.income;
   const ph=document.getElementById('affCash');if(document.activeElement!==ph&&!ph.value)ph.placeholder=Math.round(cash).toLocaleString('en-US');
   if(!inc){el.innerHTML='<p class="sub">Enter your household income in the settings (Income &amp; taxes) to see what you can afford.</p>';return}
   /** @type {any[]} */const rows=[['Comfortable','housing ≤ 28% of income, all debt ≤ 36%',maxPrice(p,cash,0.28,0.36)],['Lender limit','all debt ≤ 43% of income',maxPrice(p,cash,0.43,0.43)]];
-  const now=affordAt(p,p.P,p.P*(p.dp+p.close)+p.moveIn),need=now?[Math.max(now.piti/0.28,(now.piti+p.debt)/0.36)*12,(now.piti+p.debt)/0.43*12]:null;
+  const now=affordAt(p,p.P,cashToBuy(p)),need=now?[Math.max(now.piti/0.28,(now.piti+p.debt)/0.36)*12,(now.piti+p.debt)/0.43*12]:null;
   el.innerHTML=rows.map(([lab,rule,a],i)=>`<div class="affrow${i===0?' hl':''}"><div class="k">${lab} <span class="sub">${rule}</span></div>`+
       (a?`<div class="v">${fmtFull(a.P)} <button type="button" class="qlink" data-aff="${a.P}|${a.dp.toFixed(4)}">use this price</button></div>
         <div class="sub">${pct(a.dp,0)} down (${fmtFull(a.down)}) · ${fmtFull(a.piti)}/mo counted by lenders · ${fmtFull(a.full)}/mo in full · limited by your ${a.limit}</div>`

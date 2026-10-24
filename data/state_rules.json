@@ -8,7 +8,11 @@
    "note": "Act 2024-344 (HB73): taxable assessed value of Class II and III real property may rise at most 7% a year, starting TY2025. It does not apply on change of ownership (except some family transfers), to new improvements or to reclassification. It sunsets after TY2027 unless renewed. No homestead filing needed.",
    "t": "Alabama Dept. of Revenue, 7% Cap Information (HB73, Act 2024-344)",
    "u": "https://www.revenue.alabama.gov/property-tax/7-cap-information-hb73-act-2024-344/",
-   "confidence": "high"
+   "confidence": "high",
+   "rental": {
+    "cap": 7,
+    "cpi": false
+   }
   },
   "AR": {
    "cap": 5,
@@ -17,7 +21,11 @@
    "note": "Amendment 79: after a county reappraisal, taxable value of a homestead may rise at most 5% a year (10% for non-homestead) until it reaches full assessed value. Owners 65+ or disabled get a value freeze. A sale resets it to full value (the reset on sale is my reading of how the cap works, not confirmed in an official source). Requires homestead designation.",
    "t": "Arkansas DFA, Assessment Coordination Division, Property Tax Relief",
    "u": "https://www.dfa.arkansas.gov/office/arkansas-assessment-coordination-division/real-property/property-tax-relief",
-   "confidence": "medium"
+   "confidence": "medium",
+   "rental": {
+    "cap": 10,
+    "cpi": false
+   }
   },
   "AZ": {
    "cap": 5,
@@ -26,7 +34,11 @@
    "note": "Prop 117 (2012, effective TY2015): limited property value (LPV), which is the only taxable value, rises at most 5% a year and never above full cash value. It does not reset on sale. New construction and splits are added separately.",
    "t": "Arizona Secretary of State 2012 publicity pamphlet, Proposition 117; A.R.S. 42-13301",
    "u": "https://www.azleg.gov/ars/42/13301.htm",
-   "confidence": "high"
+   "confidence": "high",
+   "rental": {
+    "cap": 5,
+    "cpi": false
+   }
   },
   "CA": {
    "cap": 2,
@@ -35,7 +47,11 @@
    "note": "Prop 13: base-year value rises each year by California CPI but never more than 2%; reassessed to market on change of ownership or new construction. No homestead filing needed for the cap (the $7,000 homeowners' exemption is separate).",
    "t": "CA State Board of Equalization, Letter to Assessors (inflation factor, max 2%)",
    "u": "https://boe.ca.gov/proptaxes/pdf/lta25023.pdf",
-   "confidence": "high"
+   "confidence": "high",
+   "rental": {
+    "cap": 2,
+    "cpi": true
+   }
   },
   "DC": {
    "cap": 10,
@@ -53,7 +69,11 @@
    "note": "Save Our Homes: homestead assessed value rises by the lower of 3% or prior-year CPI; resets to just value the year after a sale; requires homestead exemption filing. Portability lets owners carry up to $500k of the SOH differential to a new FL homestead. Non-homestead property has a separate 10% cap. Amendment 3 on the Nov 3, 2026 ballot would raise the homestead exemption and lower the non-homestead cap; it would not change SOH and would take effect Jan 1, 2027 only if approved.",
    "t": "Florida Dept. of Revenue, Save Our Homes guide (s. 193.155, F.S.)",
    "u": "https://floridarevenue.com/property/Documents/SaveOurHomes.pdf",
-   "confidence": "high"
+   "confidence": "high",
+   "rental": {
+    "cap": 10,
+    "cpi": false
+   }
   },
   "GA": {
    "cap": 0,
@@ -80,7 +100,11 @@
    "note": "Proposal A: taxable value rises by the lower of 5% or inflation (the 2026 multiplier is 1.027, so 2.7%). It cannot exceed SEV (50% of market). Taxable value 'uncaps' to SEV the year after a transfer of ownership. The cap applies to all property; the principal-residence exemption is a separate school-millage break.",
    "t": "Michigan State Tax Commission Bulletin 14 of 2025, Inflation Rate Multiplier for 2026",
    "u": "https://www.michigan.gov/treasury/-/media/Project/Websites/treasury/STC/Bulletins/2025/Bulletin-14-of-2025--Inflation-Rate-Multiplier-for-2026.pdf",
-   "confidence": "high"
+   "confidence": "high",
+   "rental": {
+    "cap": 5,
+    "cpi": true
+   }
   },
   "NM": {
    "cap": 3,
@@ -89,7 +113,11 @@
    "note": "NMSA 7-36-21.2: residential valuation may rise at most 3% a year. It is reset to current market value on a change of ownership. No filing needed; it applies to all residential property, owner-occupied or not. A separate value freeze exists for low-income owners 65+ or disabled.",
    "t": "Santa Fe County Assessor guide (NMSA 7-36-21.2)",
    "u": "https://www.santafecountynm.gov/uploads/documents/2023_Assessors_Office_Help_Guide.pdf",
-   "confidence": "high"
+   "confidence": "high",
+   "rental": {
+    "cap": 3,
+    "cpi": false
+   }
   },
   "NV": {
    "cap": 3,
@@ -98,7 +126,11 @@
    "note": "NRS 361.4723: a partial abatement caps growth of the TAX BILL, not the assessed value, at 3% a year for an owner's primary residence; non-owner-occupied property gets up to 8%. The owner must claim primary-residence status. The abatement follows the parcel and does not reset to market on sale, but a buyer who does not occupy gets the higher cap.",
    "t": "Nevada Revised Statutes ch. 361 (NRS 361.4723); Clark County Assessor tax abatement page",
    "u": "https://www.leg.state.nv.us/NRS/NRS-361.html#NRS361Sec4723",
-   "confidence": "high"
+   "confidence": "high",
+   "rental": {
+    "cap": 8,
+    "cpi": false
+   }
   },
   "OK": {
    "cap": 3,
@@ -107,7 +139,11 @@
    "note": "Okla. Const. Art. 10 s. 8B: fair cash value of a homestead may rise at most 3% a year (5% for other property). Does not apply in the year of a title transfer or improvement, so value resets on sale. Requires the homestead exemption. State Question 847 on the Nov 3, 2026 ballot would cut this to 1.75% for homesteads (4% for other property) from TY2027.",
    "t": "Oklahoma House of Representatives news release on SQ 847 (Apr 14, 2026)",
    "u": "https://www.okhouse.gov/posts/news-20260414_2",
-   "confidence": "high"
+   "confidence": "high",
+   "rental": {
+    "cap": 5,
+    "cpi": false
+   }
   },
   "OR": {
    "cap": 3,
@@ -116,7 +152,11 @@
    "note": "Measure 50: maximum assessed value (MAV) rises 3% a year, and taxable assessed value is the lower of MAV and real market value. It does not reset on sale, only for new construction, remodeling, rezoning and similar exceptions.",
    "t": "Oregon Dept. of Revenue, Maximum Assessed Value manual (150-303-438)",
    "u": "https://www.oregon.gov/dor/forms/FormsPubs/maximum-assessed-value-manual_303-438.pdf",
-   "confidence": "high"
+   "confidence": "high",
+   "rental": {
+    "cap": 3,
+    "cpi": false
+   }
   },
   "SC": {
    "cap": 2.83,
@@ -125,7 +165,11 @@
    "note": "S.C. Code 12-37-3140: increases from the countywide reassessment (every 5 years) are capped at 15% per reassessment, which works out to about 2.83% a year compounded. Property is reset to market on an 'assessable transfer of interest' (sale). No homestead filing is needed for the cap (the 4% legal-residence ratio needs an application but is separate).",
    "t": "South Carolina Code of Laws Title 12 Ch. 37 (SC Legislature)",
    "u": "https://www.scstatehouse.gov/code/t12c037.php",
-   "confidence": "high"
+   "confidence": "high",
+   "rental": {
+    "cap": 2.83,
+    "cpi": false
+   }
   },
   "TX": {
    "cap": 10,
@@ -134,7 +178,11 @@
    "note": "Tax Code 23.23: a homestead's appraised value cannot rise more than 10% a year over the prior appraised value, plus new improvements. Requires the residence homestead exemption. The cap starts Jan 1 of the tax year after the owner first qualifies, so a buyer starts at market value. A separate 20% circuit breaker covers non-homestead property up to about $5M.",
    "t": "Texas Tax Code s. 23.23 (Texas Legislature)",
    "u": "https://statutes.capitol.texas.gov/Docs/TX/htm/TX.23.htm#23.23",
-   "confidence": "high"
+   "confidence": "high",
+   "rental": {
+    "cap": 20,
+    "cpi": false
+   }
   },
   "WY": {
    "cap": 4,
@@ -9107,5 +9155,6 @@
   "TN": "No county-level extras; state transfer and mortgage taxes are uniform statewide.",
   "GA": "No county-level extras; state transfer tax and intangible recording tax are uniform statewide.",
   "DC": "Already handled as a state."
- }
+ },
+ "caps_rental_about": "caps.<ST>.rental: the cap that applies to a non-homestead (rental) home, read from each state's note above; absent where the cap is homestead-only."
 }

@@ -157,6 +157,15 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
   ok(gapSums.every(([d]) => d < 1), 'gap parts add up to the answer');
   ok(gapSums[0][1] && gapSums[0][1][1] > 0 && !gapSums[1][1], 'inflation shrinks the loan in today\'s dollars only');
 
+  /* a different mortgage rate moves an ARM too (it keeps its spread to the quoted rate); with savings not all invested
+     the gap still adds up, with that part on its own row; a planned move hides the breakdown */
+  const armT = await page.evaluate(() => { const q = Object.assign({}, P, { loanType: 'arm', armRate: P.rate - 0.005 }), r = TORNADO.find(x => x[1] === 'rate'), o = torOver(q, r);
+    const s = Object.assign({}, P, { investShare: 0.5 }), so = simulate(s, constPath(s, s.N), { detail: true }), g = gapParts(s, so);
+    return { lo: advAt(q, o.lo) - advAt(q, {}), hi: advAt(q, o.hi) - advAt(q, {}), un: g.parts.find(x => x[0] === 'Savings not invested'),
+      d: Math.abs(g.parts.reduce((a, x) => a + x[1], 0) - adj(so.buy[s.N] - so.inv[s.N], so.cpi[s.N])), mv: gapParts(Object.assign({}, P, { moveMode: 'rent', moveYear: 3 }), so).moved }; });
+  ok(Math.abs(armT.lo) > 1000 && Math.abs(armT.hi) > 1000, 'the mortgage-rate bar moves an ARM', JSON.stringify(armT));
+  ok(armT.un && armT.d < 1 && armT.mv, 'savings not invested are their own gap part; a planned move hides the breakdown', JSON.stringify(armT));
+
   /* affordability: the highest price sits at the limit that binds */
   const aff = await page.evaluate(() => { const p = Object.assign({}, P, { income: 120000, debt: 500 }), cash = 1e6, c = maxPrice(p, cash, 0.28, 0.36), l = maxPrice(p, cash, 0.43, 0.43), inc = p.income / 12;
     const tight = maxPrice(p, 10000, 0.28, 0.36); return { c: c && Math.max(c.piti / inc / 0.28, (c.piti + p.debt) / inc / 0.36), l: l && (l.piti + p.debt) / inc, cl: c && c.limit, tl: tight && tight.limit, order: c && l && l.P > c.P }; });

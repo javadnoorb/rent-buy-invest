@@ -23,7 +23,7 @@ const bracketTax=(b,x)=>{let tax=0,rate=0;(b||[[0,0]]).forEach((q,i)=>{const lo=
 function stateIncomeTax(st,income,filing,fips){const r=st&&(STATE_RULES.income||{})[st];if(!r)return null;const mfj=filing==='mfj';
   const x=Math.max(0,income-((r.std||[])[mfj?1:0]||0)),s=bracketTax(mfj?r.married:r.single,x);
   const l=fips&&(STATE_RULES.local_income||{})[fips.slice(0,5)],lt=l?bracketTax(mfj?l.married:l.single,l.wages?income:x):null;
-  return {tax:Math.round(s.tax+(lt?lt.tax:0)),rate:s.rate+(lt&&!l.wages?lt.rate:0),itemize:!!r.itemize,src:r,local:l?{name:l.name,tax:Math.round(lt.tax),rate:lt.rate,wages:l.wages,u:l.u}:null}}
+  return {tax:Math.round(s.tax+(lt?lt.tax:0)),std:(r.std||[])[mfj?1:0]||0,rate:s.rate+(lt&&!l.wages?lt.rate:0),itemize:!!r.itemize,src:r,local:l?{name:l.name,tax:Math.round(lt.tax),rate:lt.rate,wages:l.wages,u:l.u}:null}}
 /* state-level transfer taxes for counties and ZIPs (metros carry their own state and local rules) */
 /* plus county-wide (or county = city) taxes where the county has them; a county tax can replace a state-level one
    (San Francisco's tax replaces California's county rate, Miami-Dade's deed stamps replace Florida's) */

@@ -16,7 +16,7 @@ function renderOpt(){renderAfford();
   /** @type {any[]} */const rowsDef=[['Rent ($/mo)',h=>solve(h,'rent0',10,Math.max(500,p.rent0*6)),v=>fmtFull(v),fmtFull(p.rent0)],
     ['Home appreciation (%/yr)',h=>solve(h,'gh',-0.2,0.3),v=>pct(v),pct(p.gh)],
     ['Stock return (%/yr)',h=>p.ws>0?solve(h,'rs',-0.1,0.4):null,v=>pct(v),pct(p.rs)],
-    ['Mortgage rate (%)',h=>solve(h,'rate',0.0,0.2,v=>({rate:v,rate30:v,rateLR:v})),v=>pct(v,2),pct(p.rate,2)],
+    ['Mortgage rate (%)',h=>solve(h,'rate',0.0,0.2,v=>({...rateOver(p,v),rateLR:v+rate15Gap(p)})),v=>pct(v,2),pct(p.rate,2)],
     ['Home price ($)',h=>solve(h,'P',p.P*0.2,p.P*3),v=>fmtFull(v),fmtFull(p.P)]];
   const head=`<thead><tr><th>Break-even value</th><th>You</th>${HS.map(h=>`<th>${h} yr</th>`).join('')}</tr></thead>`;
   const body=rowsDef.map(([lab,f,fm,you])=>`<tr><td>${lab}</td><td>${you}</td>${HS.map(h=>{const v=f(h);return `<td>${v==null?'—':fm(v)}</td>`}).join('')}</tr>`).join('');

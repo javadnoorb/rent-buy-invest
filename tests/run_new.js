@@ -220,4 +220,33 @@ module.exports=function({M,base,run,ok,near}){
    const p=base({taxOn:true,filing:'single',ltcgMode:'manual',ltcg:0.15,niitAuto:false,niit:0,stRate:0,P:500000,gh:0.10,N:10}),o=run(p,10,{detail:true}),h=o.homeTax[10];
    ok(h.excl===250000&&Math.abs(h.tax-0.15*(h.gain-250000))<1e-6,'home-sale tax above the $250k exclusion',JSON.stringify(h));
    const q=base({taxOn:true,P:500000,gh:0.02,N:10}),hq=run(q,10,{detail:true}).homeTax[10];ok(hq.tax===0&&hq.excl===Math.max(0,hq.gain),'gain under the exclusion: no tax',JSON.stringify(hq))}
+
+  {// state deduction: only what itemizing adds over the state's standard deduction saves state tax
+   const q=base({taxOn:true,stDed:true,stRate:0.05,P:200000,dp:0.2,rate:0.05,rate30:0.05,ptax:0.011,N:3}),sv=o=>o.tax[0].saving;
+   const a=sv(run(q,3,{detail:true})),b=sv(run(Object.assign({},q,{stStd:15000}),3,{detail:true})),c=sv(run(Object.assign({},q,{stDed:false}),3,{detail:true}));
+   ok(a>c+500,'with no state standard deduction every dollar of interest and property tax saves state tax',`${a} ${c}`);
+   near(b,c,1e-6,'interest and property tax under the state standard deduction save no state tax')}
+  {// Treasury interest pays no state tax
+   const q=base({taxOn:true,acct:'taxable',ws:0,wb:1,rb:0.05,rent0:2500,N:5}),a=run(q,5),b=run(Object.assign({},q,{stRate:0.093}),5);
+   near(a.inv[5],b.inv[5],1e-9,'bond interest is taxed the same with or without a state income tax')}
+  {// house-hack rent is net investment income
+   const q=base({taxOn:true,hhRent:1500,hhShare:0.3,N:3}),a=run(q,3,{detail:true}),b=run(Object.assign({},q,{niit:0.038}),3,{detail:true});
+   ok(a.tax[0].hh>0&&Math.abs(b.tax[0].hh/a.tax[0].hh-(0.24+0.038)/0.24)<1e-9,'house-hack rent pays the 3.8% NIIT on top of the income tax',`${a.tax[0].hh} ${b.tax[0].hh}`)}
+  {// 37% bracket: itemized deductions are worth 35%
+   const q=base({taxOn:true,mu:0.37,income:900000,P:2500000,rate:0.065,rate30:0.065,ptax:0.012,stTax:50000,N:2}),o=run(q,2,{detail:true}),t=o.tax[0];
+   ok(t.itemB&&!t.itemR,'the owner itemizes and the renter takes the standard deduction');
+   const t2=run(Object.assign({},q,{mu:0.35}),2,{detail:true}).tax[0];ok(t.saving<t2.saving,'the owner\'s extra deductions save less than at 35% when the renter takes the standard deduction',`${t.saving} ${t2.saving}`);
+   // when both itemize, the extra deductions save exactly 35%
+   const b=Object.assign({},q,{oth:60000}),u=run(b,2,{detail:true}).tax[0],u2=run(Object.assign({},b,{mu:0.35}),2,{detail:true}).tax[0];
+   ok(u.itemR,'with large other deductions the renter itemizes too');near(u.saving,u2.saving,1e-6,'both itemizing: the extra deductions are worth 35%')}
+  {// a 15-year loan's market rate heads to the expected later 30-year rate less today's 15-year discount
+   const q=base({term:15,rate:0.055,rate30:0.065,rate15:0.055,rateLR:0.065,glide:2});
+   near(M.rate15Gap(q),0.01,1e-12,'15-year discount');near(M.marketRatePath(q,5)[4],0.055,1e-12,'flat rates stay flat for a 15-year loan');
+   near(M.marketRatePath(Object.assign({},q,{term:30,rate:0.065}),5)[4],0.065,1e-12,'and for a 30-year loan')}
+  {// the rental property's assessment follows the state's non-homestead cap
+   const q=base({rentalOn:true,dpR:0.25,ratePrem:0.005,vacR:0.07,mgmt:0.08,landShare:0.2,gh:0.08,ptax:0.012,N:10}),a=run(q,10),b=run(Object.assign({},q,{ptaxCapR:0.02}),10);
+   ok(b.rental[10]>a.rental[10]+1000,'a capped rental pays less property tax when prices rise faster than the cap',`${a.rental[10]} ${b.rental[10]}`)}
+  {// savings nobody invests: the part of the monthly difference that is spent
+   const q=base({rent0:2500,investShare:0.6,N:3}),o=run(q,3,{detail:true}),f=o.flow[0];
+   near(f.unInv,(f.own-f.rent)*0.4,1e-6,'uninvested savings are (1 − share) of the cost difference')}
 };

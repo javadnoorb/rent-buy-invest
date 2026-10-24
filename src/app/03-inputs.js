@@ -152,7 +152,9 @@ function parseP(raw){
     acct:raw.acct||'taxable',dy:pc('dy'),fee:pc('fee'),lev:Math.max(0,n('lev')),spread:pc('spread'),
     taxOn:raw.taxOn==='1'||raw.taxOn===1,filing:raw.filing||'single',income:Math.max(0,n('income')),debt:Math.max(0,n('debt')),muMode:raw.muMode||'auto',mu:(raw.muMode||'auto')==='auto'?marginalRate(Math.max(0,n('income')),raw.filing||'single',tk):pc('mu'),stTax:stAuto?stAuto.tax:n('stTax'),oth:n('oth'),ltcg:(raw.ltcgMode||'auto')==='auto'?ltcgRate(Math.max(0,n('income')),raw.filing||'single',tk):pc('ltcg'),
     utilDiff:n('utilDiff'),floodIns:Math.max(0,n('floodIns')),moveIn:Math.max(0,n('moveIn')),impShare:Math.min(1,Math.max(0,pc('impShare'))),rMove:Math.max(0,pc('rMove')),rMoveCost:Math.max(0,n('rMoveCost')),broker:Math.max(0,n('broker')),
-    investShare:Math.min(1,Math.max(0,pc('investShare'))),stRate:stAuto?stAuto.rate:Math.max(0,pc('stRate')),stDed:stAuto?stAuto.itemize:(raw.stDed==='1'||raw.stDed===1),
+    investShare:Math.min(1,Math.max(0,pc('investShare'))),stRate:stAuto?stAuto.rate:Math.max(0,pc('stRate')),stDed:stAuto?stAuto.itemize:(raw.stDed==='1'||raw.stDed===1),stStd:stAuto?stAuto.std:0,
+    // a rental's assessment cap where the state caps non-homestead property (from the location's state rules)
+    ...(c=>c&&c.rental?{ptaxCapR:c.rental.cap/100,ptaxCapRCPI:!!c.rental.cpi}:{ptaxCapR:0,ptaxCapRCPI:false})(typeof STATE_RULES!=='undefined'&&locM&&(STATE_RULES.caps||{})[stateOf(locM)]),
     volAdj:raw.volAdj!=='0',pmiAppr:raw.pmiAppr==='1'||raw.pmiAppr===1,extraPay:Math.max(0,n('extraPay')),extraMode:raw.extraMode||'prepay',
     ltcgMode:raw.ltcgMode||'auto',heloc:Math.min(0.95,Math.max(0,pc('heloc'))),niitAuto:true,niit:0,renewGap:pc('renewGap'),incGrowth:pc('incGrowth'),moveMode:raw.moveMode||'none',moveYear:Math.max(0,Math.round(n('moveYear'))),
     stressMult:Math.max(1,n('stressMult')),forcedDisc:Math.min(0.9,Math.max(0,pc('forcedDisc'))),hhRent:Math.max(0,n('hhRent')),hhShare:Math.min(0.9,Math.max(0,pc('hhShare'))),hhVac:Math.min(1,Math.max(0,pc('hhVac'))),

@@ -64,10 +64,12 @@ function gapNode(T,i){const p=T.p,N=p.N,{gap,parts}=gapParts(p,T.o),lab=i<parts.
     case 'Mortgage interest':return yearly(y=>T.intY(y),-1);
     case 'Property tax':return yearly(y=>T.ptaxY(y),-1);
     case 'Upkeep':return yearly(y=>T.maintY(y),-1);
-    case 'Insurance, HOA, PMI, utilities':return yearly(y=>{const Yv=T.Yr(y);return T.sum(`Insurance, HOA, PMI, utilities and refinancing, year ${y+1}`,(Yv.insM+Yv.hoa+Yv.utilM)*12+T.o.flow[y].pmi*12+T.o.flow[y].refi*12,'$','insEtc',()=>[[12,T.insMo(y)],[12,T.byInf('hoa','HOA',y,Yv.hoa)],[12,T.byInf('utilDiff','Extra utilities',y,Yv.utilM)],[1,T.pmiY(y)],[1,T.con('Refinance costs',T.o.flow[y].refi*12,'$',{pk:['refiCost'],sym:'\\text{Refi}_y'})]])},-1);
+    case 'Insurance, HOA, PMI, utilities':return yearly(y=>{const Yv=T.Yr(y);return T.sum(`Insurance, HOA, PMI and utilities, year ${y+1}`,(Yv.insM+Yv.hoa+Yv.utilM)*12+T.o.flow[y].pmi*12,'$','insEtc',()=>[[12,T.insMo(y)],[12,T.byInf('hoa','HOA',y,Yv.hoa)],[12,T.byInf('utilDiff','Extra utilities',y,Yv.utilM)],[1,T.pmiY(y)]])},-1);
+    case 'Refinancing costs':return yearly(y=>T.con(`Refinance costs, year ${y+1}`,T.o.flow[y].refi*12,'$',{pk:['refiOn','refiCost','refiTh'],sym:'\\text{Refi}_y'}),-1);
     case 'Tax savings from owning':return yearly(y=>T.taxSave(y),1);
     case 'House-hack income':return yearly(y=>T.fn(`House-hack income after tax, year ${y+1}`,-T.o.flow[y].hh*12,'$',null,()=>[T.hhY(y),p_hh(T,y)],([a,b])=>a*12-b,null,{sym:'12R^{hh,net}_y - T^{hh}_y'}),1);
     case 'Rent the renter pays':return yearly(y=>T.fn(`Rent, year ${y+1}`,T.o.flow[y].rent*12,'$',null,()=>[T.rentY(y)],([a])=>a*12,null,{sym:'12\\,C^{rent}_y'}),1);
+    case 'Savings not invested':return yearly(y=>T.fn(`Savings not invested, year ${y+1}`,T.o.flow[y].unInv*12,'$',null,()=>[T.con('Owner\'s minus renter\'s monthly cost, summed over the year',T.o.flow[y].unInv*12/(1-p.investShare),'$',{sym:'\\textstyle\\sum_t d_t'}),T.set('investShare',p.investShare,'%')],([a,b])=>a*(1-b),null,{sym:'U^{inv}_y'}),1);
     case 'FHA upfront premium':return T.sum(lab,v,'$',null,()=>[[1,T.loanBase()],[-1,T.loanAmt()]]);
     case 'Inflation shrinking the loan':return T.sum(lab,v,'$','gapLoan',()=>[[1,T.loanAmt()],[-1,yearly(y=>T.fn(`Principal paid, year ${y+1}`,T.o.flow[y].principal*12,'$',null,()=>[T.prinY(y),T.preY(y)],([a,b])=>a+b,null,{sym:'\\text{Prin}_y + X_y'}),1,'Principal repaid, each year at mid-year prices')],[-1,rl(T.bal(N),cN)]]);
     case 'Tax on investments (renter − buyer)':return T.sum(lab,v,'$','gapInvTax',()=>[[1,yearly(y=>T.sum(`Renter's minus buyer's investment taxes, year ${y+1}`,T.o.tax[y].invR-T.o.tax[y].invB,'$',null,()=>[[1,T.taxY('R',y)],[-1,T.taxY('B',y)]],{sym:'\\text{tax}^{rent}_y - \\text{tax}^{buy}_y'}),1,'Yearly taxes on dividends and interest')],
@@ -78,7 +80,7 @@ function gapNode(T,i){const p=T.p,N=p.N,{gap,parts}=gapParts(p,T.o),lab=i<parts.
 const TRACE_ALT=new Map();
 function traceAlt(over,N){const k=LAST_KEY+'|'+REAL+'|'+JSON.stringify(over)+'|'+N;let T=TRACE_ALT.get(k);
   if(!T){if(TRACE_ALT.size>80)TRACE_ALT.clear();const q=Object.assign({},P,over),n=N||q.N;T=traceRun(q,constPath(q,n),{kind:'const',over},{N:n});TRACE_ALT.set(k,T)}return T}
-const overText=over=>{const e=Object.entries(over).filter(([k])=>!(k==='sellBase'&&'sell' in over)),f=e.filter(([k])=>k!=='rate30'&&k!=='rateLR'&&k!=='term');return (f.length?f:e).map(([k,v])=>`${settingLabel(k==='N'?'N':k)} ${k==='N'||k==='P'||k==='rent0'?(k==='N'?v+' years':fmtFull(v)):fv(v,'%')}`).join(', ')};
+const overText=over=>{const e=Object.entries(over).filter(([k])=>!(k==='sellBase'&&'sell' in over)&&!(k==='armRate'&&'rate' in over)),f=e.filter(([k])=>k!=='rate30'&&k!=='rateLR'&&k!=='term');return (f.length?f:e).map(([k,v])=>`${settingLabel(k==='N'?'N':k)} ${k==='N'||k==='P'||k==='rent0'?(k==='N'?v+' years':fmtFull(v)):fv(v,'%')}`).join(', ')};
 /* buy minus rent after t years, in the chosen dollars */
 function gapAt(T,t,lab,note){const c=T.cpi(t),b=T.real(T.nwBuy(t),c),r=T.real(T.nwInv(t),c);return T.sum(lab||`Buy minus rent after ${nY(t)}`,b.v-r.v,'$','gapTotal',()=>[[1,b],[-1,r]],note?{note}:undefined)}
 Object.assign(TRACE_RECIPES,{
