@@ -20,7 +20,7 @@ function traceNodes(X){const {p,o,tr}=X,LS=tr.LS,E=t=>tr.ends[t],Yr=y=>tr.years[
   const dat=(label,v,u,src,o2)=>Object.assign({label,v,u,leaf:'data',src},o2);
   const why=(label,v,u,note,rel)=>({label,v,u,leaf:'note',note,pk:rel||[]});
   const node=(label,v,u,eq,build,o2)=>Object.assign({label,v,u,eq,build},o2);
-  const sum=(label,v,u,eq,parts,o2)=>node(label,v,u,eq,()=>{const ps=parts().filter(Boolean);return {op:'sum',kids:ps.map(x=>x[1]),sg:ps.map(x=>x[0]),calc:a=>a.reduce((s,x,j)=>s+ps[j][0]*x,0)}},o2);
+  const sum=(label,v,u,eq,parts,o2)=>node(label,v,u,eq,()=>{const ps=parts().filter(Boolean);return {op:'sum',kids:ps.map(x=>x[1]),sg:ps.map(x=>x[0]),syms:ps.map(x=>x[2]),calc:a=>a.reduce((s,x,j)=>s+ps[j][0]*x,0)}},o2);
   const prod=(label,v,u,eq,parts,o2)=>node(label,v,u,eq,()=>({op:'prod',kids:parts().filter(Boolean),calc:a=>a.reduce((s,x)=>s*x,1)}),o2);
   const fn=(label,v,u,eq,kids,calc,show,o2)=>node(label,v,u,eq,()=>({op:'fn',kids:kids(),calc,show}),o2);
   const months=f=>[...Array(12)].map((_,m)=>f(m));
@@ -30,14 +30,14 @@ function traceNodes(X){const {p,o,tr}=X,LS=tr.LS,E=t=>tr.ends[t],Yr=y=>tr.years[
     if(path.monthly){const ks=months(m=>y*12+m),v=ks.reduce((a,k)=>a*(1+path[key][k]),1)-1;
       return fn(`${SERNAME[key]}, ${YL(y)}`,v,'%','compound12',()=>ks.map(k=>pathM(key,k)),a=>a.reduce((s,g)=>s*(1+g),1)-1,a=>`${a.map(g=>'(1 + '+fv(g,'%')+')').join(' × ')} − 1`)}
     const v=path[key][y];
-    if(info.kind==='hist')return dat(`${(info.names&&info.names[key])||SERNAME[key]}, ${info.y0+y}`,v,'%',(info.src&&info.src[key])||SER_SRC[key],{note:info.note});
+    if(info.kind==='hist')return dat(`${(info.names&&info.names[key])||SERNAME[key]}, ${info.y0+y}`,v,'%',(info.src&&info.src[key])||SER_SRC[key],{note:info.note,ser:key});
     if(info.kind==='mc'){const yr=Y0+info.i0+info.idx[y],raw=(info.raw&&info.raw[key]||SER_RAW[key])[info.i0+info.idx[y]]/100,sh=info.SH[key],nm=(info.names&&info.names[key])||SERNAME[key];
       if(key==='gh'&&info.ghBase&&info.ghBase[y]!==v){const b=info.ghBase[y];return fn(`Own-home price growth, simulated ${YL(y)}`,v,'%','idioYear',()=>[fn(`${nm}, simulated ${YL(y)} (drawn from ${yr})`,b,'%','recenter',()=>[dat(`${nm}, ${yr}`,raw,'%',SER_SRC[key]),con('Shift that centres the history on your setting',sh,'n',{pk:[key],sec:'monte-carlo'})],([r,s2])=>Math.exp(Math.log(1+r)+s2)-1),
         con('Own-home price shock this year (simulated)',(1+v)/(1+b),'x',{sec:'monte-carlo',pk:['idio','idioMode']})],([g,k])=>(1+g)*k-1)}
       return fn(`${SERNAME[key]}, simulated ${YL(y)} (drawn from ${yr})`,v,'%','recenter',()=>[dat(`${SERNAME[key]}, ${yr}`,raw,'%',SER_SRC[key]),con('Shift that centres the history on your setting',sh,'n',{note:`ln(1 + your ${SERNAME[key].toLowerCase()}) − average ln(1 + history)`,pk:[key],sec:'monte-carlo'})],
         ([r,s])=>Math.exp(Math.log(1+r)+s)-1,([r,s])=>`exp(ln(1 + ${fv(r,'%')}) + ${s.toFixed(4)}) − 1`)}
     return set(key,v,'%')});
-  const pathM=(key,k)=>dat(`${(info.names&&info.names[key])||SERNAME[key]}, ${info.dates?info.dates[k]:'month '+(k+1)}`,path[key][k],'%',SER_SRC_M[key],{note:info.note});
+  const pathM=(key,k)=>dat(`${(info.names&&info.names[key])||SERNAME[key]}, ${info.dates?info.dates[k]:'month '+(k+1)}`,path[key][k],'%',SER_SRC_M[key],{note:info.note,ser:key,sym:SETSYM[key].replace(/_y$/,'_m')});
   const mret=(key,y,m)=>path.monthly?pathM(key,y*12+m):M(`mr:${key}:${y}`,()=>{const a=pathY(key,y);
     return fn(`${SERNAME[key]}, per month in ${YL(y)}`,Math.pow(1+a.v,1/12)-1,'%','perMonth',()=>[a],([g])=>Math.pow(1+g,1/12)-1,([g])=>`(1 + ${fv(g,'%')})^(1/12) − 1`)});
   const gf=(key,y)=>M(`gf:${key}:${y}`,()=>{const a=pathY(key,y);return fn(`1 + ${SERNAME[key].toLowerCase()}, ${YL(y)}`,1+a.v,'x','onePlus',()=>[a],([g])=>1+g)});
@@ -143,9 +143,9 @@ function traceNodes(X){const {p,o,tr}=X,LS=tr.LS,E=t=>tr.ends[t],Yr=y=>tr.years[
   const own=(y,m)=>M(`own:${y}:${m}`,()=>{const q=Mo(y,m),lab=`Owner's cost, ${YL(y)} month ${m+1}`;
     if(!q.owned)return fn(lab+' (renting after the move)',q.own,'$',null,()=>[rentY(y)],([r])=>r);
     const dec=m===11&&tx;
-    return sum(lab,q.own,'$','ownCost',()=>[[1,payPaid(y,m)],[1,set('extraPay',p.extraPay||0,'$')],[1,fn('Property tax per month',Yr(y).ptY/12,'$','perMo',()=>[ptaxY(y)],([a])=>a/12)],
-      [1,fn('Upkeep per month',Yr(y).maintY/12,'$','perMo',()=>[maintY(y)],([a])=>a/12)],[1,insMo(y)],[1,byInf('hoa','HOA',y,Yr(y).hoa)],[1,byInf('utilDiff','Extra utilities',y,Yr(y).utilM)],[1,pmiM(y,m)],
-      q.refi>0?[1,prod('Refinance cost',q.refi,'$','refiCost',()=>[set('refiCost',p.refiCost,'%'),balM(y,m)])]:null,[-1,hhY(y)],dec?[-1,taxSave(y)]:null,dec&&p.hhRent>0?[1,hhTaxM(y)]:null])});
+    return sum(lab,q.own,'$','ownCost',()=>[[1,payPaid(y,m),'M_t'],[1,set('extraPay',p.extraPay||0,'$'),'E'],[1,fn('Property tax per month',Yr(y).ptY/12,'$','perMo',()=>[ptaxY(y)],([a])=>a/12),'\\tfrac{1}{12}\\tau_p A_y'],
+      [1,fn('Upkeep per month',Yr(y).maintY/12,'$','perMo',()=>[maintY(y)],([a])=>a/12),'\\tfrac{1}{12}\\psi H_y \\epsilon_y'],[1,insMo(y),'\\tfrac{1}{12}\\text{Ins}_y'],[1,byInf('hoa','HOA',y,Yr(y).hoa),'\\text{HOA}_y'],[1,byInf('utilDiff','Extra utilities',y,Yr(y).utilM),'U_y'],[1,pmiM(y,m),'\\text{PMI}_t'],
+      q.refi>0?[1,prod('Refinance cost',q.refi,'$','refiCost',()=>[set('refiCost',p.refiCost,'%'),balM(y,m)]),'\\text{Refi}_t']:null,[-1,hhY(y),'R^{hh}_y'],dec?[-1,taxSave(y),'S_y']:null,dec&&p.hhRent>0?[1,hhTaxM(y),'T^{hh}_y']:null])});
   const mkt=y=>M('mkt:'+y,()=>y===0?set('rent0',p.rent0,'$'):prod(`Market rent, ${YL(y)}`,Yidx(y,'mkt'),'$','marketRent',()=>[set('rent0',p.rent0,'$')].concat(upto(y).map(k=>gf('gr',k)))));
   const lease=y=>M('lease:'+y,()=>{const v=Yr(y).lease;if(y===0)return set('rent0',p.rent0,'$');
     if(mv&&mv.y===y)return fn(`Rent, ${YL(y)} (reset to market at the planned move)`,v,'$',null,()=>[mkt(y)],([a])=>a);
@@ -161,14 +161,14 @@ function traceNodes(X){const {p,o,tr}=X,LS=tr.LS,E=t=>tr.ends[t],Yr=y=>tr.years[
   const V=(a,t)=>M(`V${a}:${t}`,()=>{if(t===0)return a==='B'?con("Buyer's portfolio at the start",0,'$',{note:'the buyer\'s cash went into the home'}):cash0();
     const ys=upto(t),Σ=(lab,f,g)=>sum(`${lab}, ${t>1?`years 1–${t}`:'year 1'}`,ys.reduce((s2,k)=>s2+f(k),0),'$','sumYears',()=>ys.map(k=>[1,g(k)])),mvc=a==='B'&&mv&&mv.y<t?Yr(mv.y).pB-E(mv.y).pB:0;
     const yv=(k,f)=>months(m=>f(Mo(k,m))).reduce((s2,x)=>s2+x,0);
-    return sum(`${ACC[a]} ${TL(t)}`,endV(a,t),'$','ledger',()=>[[1,V(a,0)],[1,Σ('Investment returns',k=>yv(k,q=>q[a].ret),k=>retY(a,k))],[-1,Σ('Tax on dividends and interest',k=>yv(k,q=>q[a].tax),k=>taxY(a,k))],
-      a!=='C'&&ys.some(k=>yv(k,q=>q[a].brw+q[a].clamp))?[1,Σ('Overdraft interest and floor',k=>yv(k,q=>q[a].brw+q[a].clamp),k=>otherY(a,k)?otherY(a,k)[1]:con('none',0,'$'))]:null,
-      [1,Σ(a==='B'?'Buyer adds':'Renter adds',k=>yv(k,q=>a==='B'?q.addB+(q.xB||0):q.addR),k=>addY(a,k))],mvc?[1,moveCashN(mv.y)]:null])});
+    return sum(`${ACC[a]} ${TL(t)}`,endV(a,t),'$','ledger',()=>[[1,V(a,0),'V_0'],[1,Σ('Investment returns',k=>yv(k,q=>q[a].ret),k=>retY(a,k)),'\\sum \\text{returns}'],[-1,Σ('Tax on dividends and interest',k=>yv(k,q=>q[a].tax),k=>taxY(a,k)),'\\sum \\text{taxes}'],
+      a!=='C'&&ys.some(k=>yv(k,q=>q[a].brw+q[a].clamp))?[1,Σ('Overdraft interest and floor',k=>yv(k,q=>q[a].brw+q[a].clamp),k=>otherY(a,k)?otherY(a,k)[1]:con('none',0,'$')),'\\text{overdraft}']:null,
+      [1,Σ(a==='B'?'Buyer adds':'Renter adds',k=>yv(k,q=>a==='B'?q.addB+(q.xB||0):q.addR),k=>addY(a,k)),'\\sum \\text{added}'],mvc?[1,moveCashN(mv.y),'\\text{cash from the move}']:null])});
   const moveCashN=y=>M('mvc:'+y,()=>fn('Cash from the planned move',Yr(y).pB-E(y).pB,'$','moveCash',()=>[homeNet(y),H(y),closeRate()],
     ([c,P0,k])=>mv.mode==='rent'?c:(c-k*P0>P0?c-k*P0-P0:c-k*P0<0?c-k*P0:0),null,{pk:['moveMode']}));
   const Vstart=(a,y)=>a==='B'&&mv&&mv.y===y?M('VBm:'+y,()=>sum(`Buyer's portfolio at the start of ${YL(y)}, after the move`,Yr(y).pB,'$','moveAdd',()=>[[1,V('B',y)],[1,moveCashN(y)]])):V(a,y);
   const VM=(a,y,m)=>M(`VM${a}:${y}:${m}`,()=>m===0?Vstart(a,y):sum(`${ACC[a]}, start of ${YL(y)} month ${m+1}`,Mo(y,m)[a].v0,'$','ledgerMonth',()=>{const q=Mo(y,m-1)[a];
-    return [[1,VM(a,y,m-1)],[1,retM(a,y,m-1)],[-1,taxM(a,y,m-1)],q.brw?[1,brwM(a,y,m-1)]:null,q.clamp?[1,con('Floor at zero',q.clamp,'$')]:null,[1,addM(a,y,m-1)]]}));
+    return [[1,VM(a,y,m-1),'V_{t-1}'],[1,retM(a,y,m-1),'V_{t-1}\\rho_t'],[-1,taxM(a,y,m-1),'V_{t-1}\\tau_t'],q.brw?[1,brwM(a,y,m-1),'\\text{overdraft}']:null,q.clamp?[1,con('Floor at zero',q.clamp,'$'),'\\text{floor}']:null,[1,addM(a,y,m-1),'\\text{added}_t']]}));
   const retM=(a,y,m)=>M(`ret${a}:${y}:${m}`,()=>{const q=Mo(y,m)[a];if(a!=='C'&&q.v0<0)return why('Investment return',0,'$','the account is overdrawn (see borrowing cost)');
     return prod(`Investment return, ${YL(y)} month ${m+1}`,q.ret,'$','return',()=>[VM(a,y,m),a==='C'?mret('rc',y,m):rho(y,m)])});
   const taxM=(a,y,m)=>M(`tax${a}:${y}:${m}`,()=>{const q=Mo(y,m)[a],lab=`Tax on dividends and interest, ${YL(y)} month ${m+1}`;
@@ -196,9 +196,9 @@ function traceNodes(X){const {p,o,tr}=X,LS=tr.LS,E=t=>tr.ends[t],Yr=y=>tr.years[
     ([l,ws,dy,wb,b,c])=>l*(ws*dy/12+wb*b+Math.max(0,1-ws-wb)*c)+Math.max(0,1-l)*c);
   const basis=(a,t)=>M(`bs${a}:${t}`,()=>{const v=a==='B'?E(t).bB:E(t).bR;if(t===0)return a==='B'?con('Cost basis at the start',0,'$'):cash0();const y=t-1;
     const binc=months(m=>Mo(y,m)[a].binc).reduce((s,x)=>s+x,0),add=months(m=>a==='B'?Mo(y,m).addB+(Mo(y,m).xB||0):Mo(y,m).addR).reduce((s,x)=>s+x,0),b0=a==='B'?Yr(y).bB:Yr(y).bR,start=a==='B'?E(y).bB:E(y).bR,rest=v-b0-binc-add;
-    return sum(`Cost basis of the ${a==='B'?"buyer's":"renter's"} portfolio ${TL(t)}`,v,'$','basis',()=>[[1,basis(a,y)],Math.abs(b0-start)>0.005?[1,con('Cash from the planned move',b0-start,'$')]:null,
-      [1,sumMonths(`Taxed income reinvested in ${YL(y)}`,y,'$','sum12',q=>q[a].binc,m=>Mo(y,m)[a].v0<0||!taxable?why(`Taxed income reinvested, month ${m+1}`,Mo(y,m)[a].binc,'$',taxable?'the account is overdrawn':'no tax on this account',['acct','taxOn']):fn(`Taxed income reinvested, month ${m+1}`,Mo(y,m)[a].binc,'$','binc',()=>[VM(a,y,m),incM(y,m),tau(y,m)],([v2,i,tt])=>v2*(i-tt)))],
-      [1,addY(a,y)],Math.abs(rest)>0.005?[1,con('Reset when the account was empty or overdrawn',rest,'$')]:null])});
+    return sum(`Cost basis of the ${a==='B'?"buyer's":"renter's"} portfolio ${TL(t)}`,v,'$','basis',()=>[[1,basis(a,y),'\\text{basis}_y'],Math.abs(b0-start)>0.005?[1,con('Cash from the planned move',b0-start,'$'),'\\text{cash from the move}']:null,
+      [1,sumMonths(`Taxed income reinvested in ${YL(y)}`,y,'$','sum12',q=>q[a].binc,m=>Mo(y,m)[a].v0<0||!taxable?why(`Taxed income reinvested, month ${m+1}`,Mo(y,m)[a].binc,'$',taxable?'the account is overdrawn':'no tax on this account',['acct','taxOn']):fn(`Taxed income reinvested, month ${m+1}`,Mo(y,m)[a].binc,'$','binc',()=>[VM(a,y,m),incM(y,m),tau(y,m)],([v2,i,tt])=>v2*(i-tt))),'\\sum_m V_{m-1}(j_m - \\tau_m)'],
+      [1,addY(a,y),'\\sum_m \\text{added}_m'],Math.abs(rest)>0.005?[1,con('Reset when the account was empty or overdrawn',rest,'$'),'\\text{reset}']:null])});
   const liq=(a,t)=>M(`liq${a}:${t}`,()=>{const v=a==='B'?E(t).lb:E(t).lr,lab=`${ACC[a]} after tax on selling it, ${TL(t)}`;
     return taxable?fn(lab,v,'$','liquid',()=>[V(a,t),ltcgE(t),basis(a,t)],([w,k,b])=>w-k*Math.max(0,w-b)):fn(lab,v,'$',null,()=>[V(a,t)],([w])=>w,null,{note:tx?'sheltered account: no tax on selling':'taxes are off',pk:['acct','taxOn']})});
   // ---- the home sale at the end of year t ----

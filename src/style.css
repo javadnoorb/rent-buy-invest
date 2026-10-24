@@ -514,3 +514,5 @@ details.trn[open]>summary .trl::before,details.trz[open]>summary::before{content
 .trgo{border:1px solid var(--accent);background:var(--surface);color:var(--ink);border-radius:6px;padding:4px 10px;font:inherit;font-weight:600;cursor:pointer}
 .trbx{border:0;background:none;color:var(--muted);font-size:16px;cursor:pointer;padding:0 4px}
 @media print{.trbar{display:none!important}}
+.trsy{display:inline-block;min-width:1.6em;margin-right:6px;color:var(--accent);font-size:12.5px}
+.trsy mjx-container{margin:0!important}

@@ -125,7 +125,9 @@ fails, naming what to add, when a new chart or setting is missing one of these:
 - **A model quantity or formula change:** mirror it in the node for that quantity (`src/app/189c-trace.js`); each node's
   value comes from the run's ledger (`simulate(..., {trace:true})` → `o.tr`) and its formula must rebuild that value
   from its parts. The closure check runs over a list of settings that reaches every branch plus seeded random ones.
-- **An equation:** add it to `EQ` (`src/app/189b-equations.js`) with its Method section; write `<` as `\lt`.
+- **An equation:** add it to `EQ` (`src/app/189b-equations.js`) with its Method section, and the symbol each part plays in
+  it to `EQP` (the panel shows it beside the part's row; parts with their own equation or a setting symbol in `SETSYM`
+  get one automatically); write `<` as `\lt`.
 - **A setting:** add where its default comes from to `ORIGIN` (`src/app/189-provenance.js`), and make sure it appears in
   the trace wherever the model reads it (the reads check wraps the settings and lists any it never sees).
 

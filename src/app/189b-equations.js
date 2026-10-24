@@ -138,6 +138,8 @@ const EQ={
   realIndex:{t:String.raw`100\,\textstyle\prod_y \tfrac{1+g_y}{1+\pi_y}`,s:'home-price-volatility-scaling'},
   inflation:{t:String.raw`\pi_y = \text{CPI}_y/\text{CPI}_{y-1} - 1`,s:'time-and-growth'},
   realRate:{t:String.raw`m_y - \pi_y`,s:'time-and-growth'},
+  liqLine:{t:String.raw`W^{liq}_{buy,t} + \text{line}_t`,s:'extra-payments-pmi-removal-gains-tax-and-home-equity-line'},
+  insEtc:{t:String.raw`12\big(\tfrac{1}{12}\text{Ins}_y + \text{HOA}_y + U_y\big) + \text{PMI}_y + \text{Refi}_y`,s:'where-the-gap-comes-from'},
   gapTotal:{t:String.raw`\text{gap}_N = W^{buy}_N - W^{inv}_N`,s:'where-the-gap-comes-from'},
   gapSum:{t:String.raw`\textstyle\sum_y x_y / \bar\Pi_y`,s:'where-the-gap-comes-from'},
   gapHome:{t:String.raw`H_N - P`,s:'where-the-gap-comes-from'},
@@ -153,3 +155,51 @@ const eqLines=ids=>{ids.forEach(id=>EQ_METHOD.add(id));return `\\[ \\begin{align
 /* the Equation index section at the end of the Method tab: every entry, by section */
 function eqIndexHTML(){const by={};Object.entries(EQ).forEach(([id,e])=>(by[e.s]=by[e.s]||[]).push(id));
   return `<p>Every equation the "How this was computed" panel can show, grouped by the section that explains it.</p>`+Object.entries(by).map(([s,ids])=>`<h4><a href="#m-${s}" class="mlink">${s.replace(/-/g,' ').replace(/\bs\b/g,"'s").replace(/^./,c=>c.toUpperCase())}</a></h4>${ids.map(id=>`<div class="eqi" data-eq="${id}">\\[ ${eqTex(id)} \\]</div>`).join('')}`).join('')}
+/* ---- the symbol each part plays in its equation, shown beside the part's row in the panel ----
+   EQP[id]: the parts' symbols in the order a node with that equation lists them (an array, or a function of the
+   part's position for repeated terms). Parts not covered here use their own equation's left-hand side, or the
+   setting's symbol (SETSYM); a sum may also name each part where it is built. tests/trace.js fails on a part with
+   no symbol. */
+const EQP={perMonth:['g_y'],compound12:()=>'g_m',onePlus:['g_y'],cpi:()=>'1+\\pi_y',cpiMid:['\\Pi_y','\\Pi_{y+1}'],real:['W_t','\\Pi_t'],sumYears:()=>'X_y',sum12:()=>'x_m',avg12:()=>'x_m',
+  moveAdd:['V_y','\\text{cash from the move}'],recenter:['x_j','\\ln(1+\\bar g) - \\overline{\\ln(1+x)}'],rateGlide:['r','\\bar m','T_g'],
+  loan:['P','d'],loanFHA:['P','d','u_F'],monthlyRate:['r'],payment:['L','r','n'],interest:['B_{t-1}','i'],principal:['M','I_t','B_{t-1}'],paySplit:['I_t','\\text{Prin}_t'],
+  balanceMonth:['B_{t-1}','\\text{Prin}_t','X_t'],balanceYear:['L','\\sum \\text{Prin}','\\sum X'],prepay:['E','B_{t-1}','\\text{Prin}_t'],refiRate:['m_t','a_c'],refiCost:['c_R','B_t'],
+  mip:['\\pi_F','B_{t-1}'],armQuote:['r','r_{30}','r_{ARM}'],armReset:['x','\\chi','r_{k-1}','c_k','r_0','c_L'],rate0:['r_{quote}','a_c','p_n','\\Delta_p'],
+  llpa:['\\text{LLPA}(score, LTV)','\\text{LLPA}(760\\text{–}779, 80\\%)','\\Delta_p'],ptsCost:['p_n','P(1-d)'],
+  home:j=>j?'1+g^{home}_y':'P',ptax:['\\tau_p','A_y','e_h','k_h'],assess:['H_y'],assessBuy:['P'],assessCap:['H_y','F_y'],assessBase:['F_{y-1}','a','\\text{inflation cap on}','\\pi_{y-1}'],
+  maint:['\\psi','H_y','\\epsilon_y'],ins:['\\text{ins}','\\text{flood}','\\iota_y'],insIdx:j=>j?'\\pi_k':'g_{ins}',byInfl:['x_0','\\Pi_y'],perMo:()=>'x^{year}',
+  pmi:['\\text{rate}_{PMI}','L'],pmiRate:['\\text{pmi}','k_{score}','\\text{coverage}'],
+  rentCost:['R_y','\\tfrac{1}{12}\\text{Ins}^r_y','\\tfrac{1}{12}\\eta\\,(c_{mv} + b\\,R^{mkt}_y)'],lease:['R_y','g^{rent}_y','\\delta','\\eta','R^{mkt}_{y+1}'],marketRent:j=>j?'1+g^{rent}_k':'R_0',
+  rins:['\\text{Ins}^r_0','\\Pi_y'],moves:['\\eta','c_{mv}','\\Pi_y','b','R^{mkt}_y'],delta:['C^{own}_t','C^{rent}_t'],investR:['a','\\Delta_t'],investB:['a','\\Delta_t'],
+  investBx:['a\\max(-\\Delta_t, 0)','E - X_t'],extraInvest:['E','X_t','\\text{payment kept after payoff}'],cash0:['P','d','c','\\text{move-in costs}','\\text{points cost}'],budget:['\\bar C^{own}_y','C^{rent}_y'],
+  taxSave:['\\mu_y','D^{1}_y','D^{0}_y','\\mathbb{1}_{st}','t_s','I_y','f_{750}','\\tau_pA_y','(1-z)'],
+  dOwn:['D^{std}_y','\\text{SALT}_y','T^{st}_y','\\tau_pA_y','(1-z)','I_y','f_{750}','\\text{MI}_y','f_{MI}','\\text{pts}_y','O'],dRent:['D^{std}_y','\\text{SALT}_y','T^{st}_y','O'],
+  std:['D^{std}_{2026}','k_{y_0}','\\Pi_y'],salt:['\\text{Inc}_y'],stTax:['T^{st}_0','\\text{Inc}_y','\\text{Inc}_0'],f750:['\\sum_m B_m'],fMI:['\\text{Inc}_y'],bracket:['\\text{Inc}_y','\\Pi_y'],
+  ltcgBracket:['\\text{Inc}_y','\\Pi_y'],niit:['\\text{Inc}_y'],ltcgE:['\\tau_g','\\nu_y','t_s'],muE:['\\mu_y','\\nu_y','t_s'],incGrowth:['\\text{Inc}_0','g_I'],
+  mix:['w_s','r^{stk}_t','w_b','r^{bond}_t','r^{bill}_t'],rho:['g_t','\\lambda','r^{bill}_t','s_b','f'],tau:['\\lambda','w_s','q','\\kappa_y','w_b','r^{bond}_t','r^{bill}_t','\\mu_y+\\nu_y+t_s'],
+  incPerDollar:['\\lambda','w_s','q','w_b','r^{bond}_t','r^{bill}_t'],return:['V_{t-1}','\\rho_t'],invTax:['V_{t-1}','\\tau_t'],taxCash:['V_{t-1}','r^{bill}_t','\\mu_y+\\nu_y+t_s'],
+  overdraft:['V_{t-1}','r^{bill}_t','0.03'],liquid:['V','\\kappa_y','\\text{basis}'],binc:['V_{t-1}','j_t','\\tau_t'],
+  nwBuy:['\\text{Eq}_t','W^{liq}_{buy,t}'],homeNet:['H_t(1-s)\\,\\xi','B_t','T^{sale}_t'],saleNet:['H_t','\\xi','s'],sell:['s_0','s_{tt}'],close:['c_0','c_{tt}'],
+  gain:['H_t(1-s)\\,\\xi','P(1+c)','\\Phi','E'],homeBasis:['P','c'],improve:j=>j?'\\psi H_y\\epsilon_y':'\\varphi',homeTax:['\\kappa_t','G_t'],nwRent:['W^{liq}_{rent,t}'],nwCash:['V^{cash}_t'],
+  nwRental:['\\text{rental sale net}_t','W^{liq}_{R,t}'],heloc:['\\ell','H_t','B_t'],liqLine:['W^{liq}_{buy,t}','\\text{line}_t'],hh:['R^{hh}_0','R^{mkt}_y/R^{mkt}_0','v_h'],mktIdx:['R^{mkt}_y','R^{mkt}_0'],
+  hhTax:['R^{hh}_y(1-v_h)','z','I_y','T^{prop}_y','\\tfrac{1}{12}\\text{Ins}_y','\\text{Upkeep}_y','\\varphi','U_y','\\mu_y','t_s'],moveLoan:["P'",'E_{move}','c'],moveCash:['E_{move}',"P'",'c'],
+  months:['W^{liq}_t','\\text{budget}_y'],unrec:['I_y','T^{prop}_y','\\text{Upkeep}_y','\\tfrac{1}{12}\\text{Ins}_y','\\text{HOA}_y','U_y','\\text{PMI}_y','\\text{Refi}_y','S_y','R^{hh}_y','T^{hh}_y'],
+  insEtc:['\\tfrac{1}{12}\\text{Ins}_y','\\text{HOA}_y','U_y','\\text{PMI}_y','\\text{Refi}_y'],oppCost:['H_y - B_y','\\sum_m \\rho_m'],
+  torDelta:['\\text{gap}_N(\\text{setting changed})','\\text{gap}_N(\\text{your settings})'],argmax:()=>'\\text{gap}_h(d)',advPct:['W^{buy}_k/\\Pi_k','W^{rent}_k/\\Pi_k','P'],median:()=>'x_i',pct:['r'],
+  quantile:['x_{(\\lfloor k \\rfloor)}','x_{(\\lfloor k \\rfloor + 1)}','k - \\lfloor k \\rfloor'],share:['\\#\\{\\text{ahead}\\}','n'],count:['\\#\\{\\text{in the bin}\\}'],
+  idioYear:['g_y','e^{\\sigma_h\\varepsilon_y - \\sigma_h^2/2}'],rhoYear:['w_s','r^{stk}_y','w_b','r^{bond}_y','r^{bill}_y','\\lambda','s_b','f'],annualize:()=>'\\rho_y',
+  compoundData:()=>'r_y',cpiRatio:['\\text{CPI}_y','\\text{CPI}_{1927}'],realOf1:['\\prod_y(1+r_y)','\\text{CPI}_y/\\text{CPI}_{1927}'],roll10:j=>j%2?'\\pi_k':'r_k',corr:j=>j%2?'b_y':'a_y',
+  realIndex:j=>j%2?'\\pi_y':'g_y',inflation:['\\text{CPI}_y','\\text{CPI}_{y-1}'],realRate:['m_y','\\pi_y'],gapTotal:['W^{buy}_N','W^{inv}_N'],gapSum:()=>'x_y/\\bar\\Pi_y',gapHome:['H_N','P'],
+  gapSell:['H_N','s'],gapBuy:['cP','\\text{move-in}','\\text{points}'],gapLoan:['L','\\sum_y \\text{Prin}_y','B_N'],gapInvTax:['\\text{yearly taxes}','\\text{tax on selling}'],gapRest:['\\text{gap}_N','\\text{all other parts}']};
+/* the Method tab's symbol for each setting (by the model's name for it) */
+const SETSYM={P:'P',dp:'d',rate:'r_{quote}',rate15:'r_{quote}',armRate:'r_{ARM}',armMargin:'\\chi',pts:'p_n',ptsCut:'\\Delta_p',closeBase:'c_0',close:'c_0',ttBuy:'c_{tt}',pmi:'\\text{pmi}',
+  extraPay:'E',refiCost:'c_R',rateLR:'\\bar m',glide:'T_g',ptax:'\\tau_p',hsEx:'e_h',hsCredit:'k_h',ptaxCap:'a',ins:'\\text{ins}',floodIns:'\\text{flood}',maint:'\\psi',hoa:'\\text{HOA}_0',
+  sellBase:'s_0',sell:'s_0',ttSell:'s_{tt}',insG:'g_{ins}',utilDiff:'U_0',moveIn:'\\text{move-in}',impShare:'\\varphi',rMove:'\\eta',rMoveCost:'c_{mv}',broker:'b',rent0:'R_0',renewGap:'\\delta',
+  rins:'\\text{Ins}^r_0',gh:'g^{home}_y',gr:'g^{rent}_y',inf:'\\pi_y',rs:'r^{stk}_y',rb:'r^{bond}_y',rc:'r^{bill}_y',ws:'w_s',wb:'w_b',dy:'q',fee:'f',lev:'\\lambda',spread:'s_b',
+  incGrowth:'g_I',income:'\\text{Inc}_0',mu:'\\mu',stTax:'T^{st}_0',oth:'O',stRate:'t_s',stDed:'\\mathbb{1}_{st}',ltcg:'\\tau_g',hhRent:'R^{hh}_0',hhShare:'z',hhVac:'v_h',
+  investShare:'a',heloc:'\\ell',ptaxCapCPI:'\\text{inflation cap on}'};
+/* a part's symbol: its role in the parent's equation, else its own equation's left-hand side, else the setting's */
+function eqLhs(id){const e=EQ[id];if(!e)return null;const t=e.t.split('\\quad')[0],i=t.indexOf('=');const l=(i>0?t.slice(0,i):t).replace(/\\leftarrow.*/,'').trim();return l.length&&l.length<=48?l:null}
+function symFor(parent,b,j){const k=b.kids[j],own=b.syms&&b.syms[j];if(own)return own;const p=parent.eq&&EQP[parent.eq];
+  if(p){const s=typeof p==='function'?p(j,k):p[j];if(s)return s}
+  if(k.sym)return k.sym;if(k.leaf==='set'&&SETSYM[k.pk])return SETSYM[k.pk];if(k.ser&&SETSYM[k.ser])return SETSYM[k.ser];return k.eq?eqLhs(k.eq):null}

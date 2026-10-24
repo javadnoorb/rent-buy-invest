@@ -37,7 +37,7 @@ function openTrace(r,el){const pn=tracePanel();TRACE_OPEN={el,nodes:[],r};
   // phones: the sheet takes the space below the chart (a third to 60% of the screen), so the whole chart stays visible
   if(!traceDock()&&el){const sh=document.querySelector('.stickyhead'),top=sh?sh.getBoundingClientRect().bottom:0,h=Math.round(Math.min(innerHeight*0.6,Math.max(innerHeight/3,innerHeight-top-el.getBoundingClientRect().height-16)));
     document.documentElement.style.setProperty('--trh',h+'px')}
-  const top=body.querySelector('details');if(top){top.open=true;fillTraceNode(top)}body.scrollTop=0;
+  const top=body.querySelector('details');if(top){top.open=true;fillTraceNode(top)}typeset(body.querySelector('summary'));body.scrollTop=0;
   // keep the chart in view: docked, the page narrows and the charts redraw to fit; on phones the chart moves above the sheet
   // (measured again after each scroll: the sticky header changes height as the page scrolls)
   const fit=n=>{if(!el)return;const r=el.getBoundingClientRect(),sh=document.querySelector('.stickyhead'),top2=sh?sh.getBoundingClientRect().bottom:0,
@@ -45,7 +45,7 @@ function openTrace(r,el){const pn=tracePanel();TRACE_OPEN={el,nodes:[],r};
   requestAnimationFrame(()=>{if(!was&&traceDock())resizePlots();requestAnimationFrame(()=>fit(0))});
   if(!was)pn.querySelector('.trx').focus({preventScroll:true})}
 const trUnit=(v,u)=>u==='opt'?String(v):fv(v,u);
-function traceNodeHTML(nd,root){const id=TRACE_OPEN.nodes.push(nd)-1,val=`<span class="trv">${nd.leaf==='set'&&nd.u==='opt'?escapeHtml(nd.opt||''):trUnit(nd.v,nd.u)}</span>`,lab=`<span class="trl">${escapeHtml(nd.label)}</span>`;
+function traceNodeHTML(nd,root,sym){const id=TRACE_OPEN.nodes.push(nd)-1,val=`<span class="trv">${nd.leaf==='set'&&nd.u==='opt'?escapeHtml(nd.opt||''):trUnit(nd.v,nd.u)}</span>`,s=sym||(root&&nd.eq?eqLhs(nd.eq):null),lab=`<span class="trl">${s?`<span class="trsy">\\(${s}\\)</span>`:''}${escapeHtml(nd.label)}</span>`;
   if(!nd.build)return `<div class="trn leaf${root?' root':''}"><div class="trrow">${lab}${val}</div><div class="tro">${traceLeafHTML(nd)}</div></div>`;
   return `<details class="trn${root?' root':''}" data-n="${id}"><summary class="trrow">${lab}${val}</summary><div class="trd"></div></details>`}
 function traceLeafHTML(nd){const src=k=>SRC[k]?`<a href="${SRC[k].u}" target="_blank" rel="noopener" title="${escapeHtml(SRC[k].t)}">${escapeHtml(SRC[k].t.split(/[:(]/)[0].trim())}</a>`:'';
@@ -62,11 +62,11 @@ function traceNumbers(nd,b){const vals=b.kids.map(k=>k.v);
   return b.show?b.show(vals,b.kids):''}
 function fillTraceNode(d){const nd=TRACE_OPEN.nodes[+d.dataset.n];if(!nd)return;d.dataset.f=1;const b=nd.built||(nd.built=nd.build());
   const e=nd.eq&&EQ[nd.eq],sec=e&&document.getElementById('m-'+e.s),nums=traceNumbers(nd,b);
-  const zero=b.kids.filter(k=>Math.abs(k.v)<1e-9&&k.u!=='opt'&&k.u!=='x'),live=b.kids.filter(k=>!zero.includes(k));
+  const ix=b.kids.map((k,j)=>j),isZero=k=>Math.abs(k.v)<1e-9&&k.u!=='opt'&&k.u!=='x',zero=ix.filter(j=>isZero(b.kids[j])),live=ix.filter(j=>!isZero(b.kids[j])),row=j=>traceNodeHTML(b.kids[j],false,symFor(nd,b,j));
   d.querySelector('.trd').innerHTML=(e?`<div class="treq">\\(${e.t}\\)</div>`:'')+(nums?`<div class="trnum">= ${escapeHtml(nums)} = <b>${trUnit(nd.v,nd.u)}</b></div>`:'')+
     (nd.note?`<div class="trnote">${escapeHtml(nd.note)}</div>`:'')+(sec?`<div class="trm"><a href="#m-${e.s}" data-ci-sec="m-${e.s}">Method: ${escapeHtml(sec.querySelector('.mst').textContent)}</a></div>`:'')+
-    `<div class="trk2">${live.map(k=>traceNodeHTML(k)).join('')}${zero.length?`<details class="trz"><summary>${zero.length} part${zero.length>1?'s':''} at zero</summary>${zero.map(k=>traceNodeHTML(k)).join('')}</details>`:''}</div>`;
-  if(e)typeset(d.querySelector('.treq'))}
+    `<div class="trk2">${live.map(row).join('')}${zero.length?`<details class="trz"><summary>${zero.length} part${zero.length>1?'s':''} at zero</summary>${zero.map(row).join('')}</details>`:''}</div>`;
+  typeset(d.querySelector('.trd'))}
 function traceOptsHTML(T){return `<details class="trn trop"><summary class="trrow"><span class="trl">Model options in effect</span></summary><div class="trd"><div class="trk2">${T.opts().map(o=>traceNodeHTML(o)).join('')}</div></div></details>`}
 /* a short line under each chart that can be traced, saying so */
 function traceHint(el){if(!el||el.dataset.trh||!el.data||!el.data.some(d=>d.meta&&TRACE_RECIPES[d.meta]))return;el.dataset.trh=1;el.classList.add('traceable');

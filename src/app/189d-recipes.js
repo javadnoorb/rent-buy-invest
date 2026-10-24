@@ -30,7 +30,7 @@ function unrecNode(T,part,y){const u=T.o.unrec[y],Yv=T.Yr(y),lab=part==='rent'?`
     [1,T.con('Refinance costs',T.months(m=>T.Mo(y,m).refi||0).reduce((a,b)=>a+b,0),'$',{pk:['refiCost']})],[-1,T.taxSave(y)],[-12,T.hhY(y)],[1,p_hh(T,y)]]);
   return T.real(n,T.cpi(y+1),lab+", today's dollars")}
 function liqNode(T,who,t){const bud=t?T.budget(t-1):T.fn('Monthly budget (year 1, used at the start)',T.o.budget[1]||1,'$',null,()=>[T.budget(0)],([b])=>b);
-  const a=who==='R'?T.liq('R',t):who==='H'?T.sum(`Buyer's liquid assets plus the home-equity line ${t?`after ${nY(t)}`:'at the start'}`,T.o.lqB[t]+T.o.heloc[t],'$','heloc',()=>[[1,T.liq('B',t)],[1,T.helocN(t)]]):T.liq('B',t);
+  const a=who==='R'?T.liq('R',t):who==='H'?T.sum(`Buyer's liquid assets plus the home-equity line ${t?`after ${nY(t)}`:'at the start'}`,T.o.lqB[t]+T.o.heloc[t],'$','liqLine',()=>[[1,T.liq('B',t)],[1,T.helocN(t)]]):T.liq('B',t);
   return T.fn(`${who==='R'?'Renter':'Buyer'}'s liquid assets in months of budget, ${t?`after ${nY(t)}`:'at the start'}`,a.v/bud.v,'mo','months',()=>[a,bud],([x,b])=>x/b)}
 const TRACE_RECIPES={
   'nw:buy':pt=>{const T=traceBase(),t=yr(pt);return {title:`Buy, year ${t}`,node:T.real(T.nwBuy(t),T.cpi(t))}},
@@ -64,7 +64,7 @@ function gapNode(T,i){const p=T.p,N=p.N,{gap,parts}=gapParts(p,T.o),lab=i<parts.
     case 'Mortgage interest':return yearly(y=>T.intY(y),-1);
     case 'Property tax':return yearly(y=>T.ptaxY(y),-1);
     case 'Upkeep':return yearly(y=>T.maintY(y),-1);
-    case 'Insurance, HOA, PMI, utilities':return yearly(y=>{const Yv=T.Yr(y);return T.sum(`Insurance, HOA, PMI, utilities and refinancing, year ${y+1}`,(Yv.insM+Yv.hoa+Yv.utilM)*12+T.o.flow[y].pmi*12+T.o.flow[y].refi*12,'$','unrec',()=>[[12,T.insMo(y)],[12,T.byInf('hoa','HOA',y,Yv.hoa)],[12,T.byInf('utilDiff','Extra utilities',y,Yv.utilM)],[1,T.pmiY(y)],[1,T.con('Refinance costs',T.o.flow[y].refi*12,'$',{pk:['refiCost']})]])},-1);
+    case 'Insurance, HOA, PMI, utilities':return yearly(y=>{const Yv=T.Yr(y);return T.sum(`Insurance, HOA, PMI, utilities and refinancing, year ${y+1}`,(Yv.insM+Yv.hoa+Yv.utilM)*12+T.o.flow[y].pmi*12+T.o.flow[y].refi*12,'$','insEtc',()=>[[12,T.insMo(y)],[12,T.byInf('hoa','HOA',y,Yv.hoa)],[12,T.byInf('utilDiff','Extra utilities',y,Yv.utilM)],[1,T.pmiY(y)],[1,T.con('Refinance costs',T.o.flow[y].refi*12,'$',{pk:['refiCost']})]])},-1);
     case 'Tax savings from owning':return yearly(y=>T.taxSave(y),1);
     case 'House-hack income':return yearly(y=>T.fn(`House-hack income after tax, year ${y+1}`,-T.o.flow[y].hh*12,'$',null,()=>[T.hhY(y),p_hh(T,y)],([a,b])=>a*12-b),1);
     case 'Rent the renter pays':return yearly(y=>T.fn(`Rent, year ${y+1}`,T.o.flow[y].rent*12,'$',null,()=>[T.rentY(y)],([a])=>a*12),1);

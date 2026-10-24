@@ -22,15 +22,16 @@ const ok = (c, name, detail) => { if (c) pass++; else { fail++; fails.push(name 
 
 /* runs in the page: expand a tree fully (each node once) and check every equation against its parts */
 function walkTrees(roots) {
-  const seen = new Set(), bad = [], eqs = new Set(), pks = new Set(), noEq = new Set();
+  const seen = new Set(), bad = [], eqs = new Set(), pks = new Set(), noEq = new Set(), noSym = new Set();
   const walk = nd => { if (!nd || seen.has(nd)) return; seen.add(nd); [].concat(nd.pk || []).forEach(x => pks.add(x));
     if (nd.leaf === 'set') pks.add(nd.pk);
     if (!nd.build) return; if (nd.eq) { eqs.add(nd.eq); if (!EQ[nd.eq]) noEq.add(nd.eq); }
     const b = nd.built || (nd.built = nd.build()), c = b.calc(b.kids.map(k => k.v));
     if (!(Math.abs(c - nd.v) <= 1e-7 * Math.max(1, Math.abs(nd.v)))) bad.push(`${nd.label}: shows ${nd.v}, its equation gives ${c}`);
+    if (nd.eq) b.kids.forEach((k, j) => { if (!symFor(nd, b, j)) noSym.add(`${nd.eq}: "${k.label}"`); });
     b.kids.forEach(walk); };
   roots.forEach(walk);
-  return { n: seen.size, bad, eqs: [...eqs], pks: [...pks], noEq: [...noEq] };
+  return { n: seen.size, bad, eqs: [...eqs], pks: [...pks], noEq: [...noEq], noSym: [...noSym] };
 }
 
 (async () => {
@@ -77,8 +78,8 @@ function walkTrees(roots) {
     for (const [k, c] of Object.entries(cfgs)) {
       const p = Object.assign({}, P, c), reads = new Set();
       simulate(new Proxy(p, { get(t, key) { if (typeof key === 'string') reads.add(key); return t[key]; } }), constPath(p, p.N), { N: p.N });
-      const T = traceRun(p, constPath(p, p.N), { kind: 'const' }), N = p.N, roots = [T.nwBuy(N), T.nwInv(N), T.nwCash(N), T.helocN(N)].concat(p.rentalOn ? [T.nwRental(N)] : []).concat(T.opts());
-      const w = walkTrees(roots); out[k] = { n: w.n, bad: w.bad.slice(0, 5), unread: [...reads].filter(x => !w.pks.includes(x)), eqs: w.eqs, noEq: w.noEq };
+      const T = traceRun(p, constPath(p, p.N), { kind: 'const' }), N = p.N, roots = [T.nwBuy(N), T.nwInv(N), T.nwCash(N), T.helocN(N)].concat(p.rentalOn ? [T.nwRental(N)] : []).concat(p.heloc > 0 ? [liqNode(T, 'H', N)] : []).concat(T.opts());
+      const w = walkTrees(roots); out[k] = { n: w.n, bad: w.bad.slice(0, 5), unread: [...reads].filter(x => !w.pks.includes(x)), eqs: w.eqs, noEq: w.noEq, noSym: w.noSym };
     }
     return out; });
   const eqSeen = new Set();
@@ -86,6 +87,7 @@ function walkTrees(roots) {
     ok(!r.bad.length, `closure (${k}, ${r.n} nodes): every equation reproduces its value from its parts`, r.bad.join(' | '));
     ok(!r.unread.length, `reads (${k}): every setting the model reads appears in the trace`, r.unread.join(', '));
     ok(!r.noEq.length, `registry (${k}): every equation a node uses is in EQ`, r.noEq.join(', '));
+    ok(!r.noSym.length, `symbols (${k}): every part of an equation shows its symbol`, r.noSym.slice(0, 8).join(' | '));
     r.eqs.forEach(e => eqSeen.add(e));
   }
 
@@ -115,11 +117,12 @@ function walkTrees(roots) {
               const at = r.at || 'y', want = at === 'customdata' ? pt.customdata : at === 'customdata1' ? pt.customdata[1] : at === 'x' ? pt.x : at === 'xnum' ? +pt.x : at === 'z' ? pt.z : pt.y;
               out.points++; roots.push(r.node);
               if (!(Math.abs(r.node.v - want) <= 1e-6 * Math.max(1, Math.abs(want)))) out.mismatch.push(`${el.id} ${d.meta}[${i}]: plotted ${want}, trace ${r.node.v}`); }); }); });
-        const w = walkTrees(roots); out.bad = w.bad.slice(0, 5); out.eqs = w.eqs; out.noEq = w.noEq; return out; }, [...PENDING]);
+        const w = walkTrees(roots); out.bad = w.bad.slice(0, 5); out.eqs = w.eqs; out.noEq = w.noEq; out.noSym = w.noSym; return out; }, [...PENDING]);
       if (!res.charts) continue;
       ok(!res.noMeta.length && !res.noRecipe.length, `${place} ${k}: every chart trace has a recipe (${res.charts} charts)`, res.noMeta.concat(res.noRecipe).join(' | '));
       ok(!res.mismatch.length, `${place} ${k}: plotted values equal their traces (${res.points} points)`, res.mismatch.slice(0, 5).join(' | '));
       ok(!res.bad.length && !res.noEq.length, `${place} ${k}: chart traces close`, res.bad.concat(res.noEq).join(' | '));
+      ok(!res.noSym.length, `${place} ${k}: every part of an equation shows its symbol`, res.noSym.slice(0, 8).join(' | '));
       res.eqs.forEach(e => eqSeen.add(e));
     }
   }
