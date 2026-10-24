@@ -15,7 +15,7 @@ const SRC=Object.assign({
   irs936:{t:"IRS Publication 936: Home mortgage interest deduction ($750k limit)",u:"https://www.irs.gov/publications/p936"},
   irsNiit:{t:"IRS Topic 559: Net investment income tax (3.8% above $200,000 single / $250,000 joint)",u:"https://www.irs.gov/taxtopics/tc559"},
   pmiEnd:{t:"CFPB: When can I remove private mortgage insurance? (Homeowners Protection Act: automatic end at 78% of the original value)",u:"https://www.consumerfinance.gov/ask-cfpb/when-can-i-remove-private-mortgage-insurance-pmi-from-my-loan-en-202/"},
-  fnmaMiEnd:{t:"Fannie Mae Servicing Guide B-2.1-02: Termination of conventional mortgage insurance (by current value: 75% after 2 years, 80% after 5)",u:"https://servicing-guide.fanniemae.com/svc/b-2.1-02/termination-conventional-mortgage-insurance"},
+  fnmaMiEnd:{t:"Fannie Mae Servicing Guide B-8.1-04: Termination of conventional mortgage insurance (by current value: 75% after 2 years, 80% after 5)",u:"https://servicing-guide.fanniemae.com/svc/b-8.1-04/termination-conventional-mortgage-insurance"},
   fnmaMiCov:{t:"Fannie Mae Selling Guide B7-1-02: Mortgage insurance coverage requirements (35/30/25/12% by loan-to-value)",u:"https://selling-guide.fanniemae.com/sel/b7-1-02/mortgage-insurance-coverage-requirements"},
   pmiFM:{t:"Freddie Mac: Breaking down PMI ($30–70 a month per $100,000 borrowed)",u:"https://myhome.freddiemac.com/buying/breaking-down-pmi"},
   hudFmr:{t:"HUD Fair Market Rents and Small Area Fair Market Rents (40th-percentile gross rent of recent movers, by bedrooms)",u:"https://www.huduser.gov/portal/datasets/fmr.html"},

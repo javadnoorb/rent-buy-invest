@@ -4,7 +4,8 @@
          + Σ house-hack income + Σ rent + (loan − Σ principal − balance left) − (renter's portfolio growth − buyer's).
    In today's dollars the loan term is the gain from repaying a fixed loan with dollars inflation has shrunk (less any
    FHA upfront premium, which is added to the loan); in nominal dollars it is zero apart from that premium.
-   The last term is the residual, so the parts always sum to the headline; flows are summed in the chosen dollars. */
+   Investment taxes (the renter's minus the buyer's) are their own part; the last term, the renter's extra investment
+   returns before tax, is the residual, so the parts always sum to the headline; flows are summed in the chosen dollars. */
 function gapParts(p,o){const N=p.N,c=o.cpi[N],LS=loanSetup(p,p.rate),sum=k=>o.flow.slice(0,N).reduce((a,f)=>a+adj(f[k]*12,f.cpi),0);
   const gap=adj(o.buy[N]-o.inv[N],c),H=adj(o.H[N],c),eq=adj(o.eq[N],c),bal=adj(o.bal[N],c),sr=sellAt(p,o.H[N]),sale=H*(1-sr);
   const parts=[['Home price change',H-p.P],['Selling costs',-H*sr],['Tax on the home sale',-Math.max(0,sale-bal-eq)],
@@ -12,7 +13,9 @@ function gapParts(p,o){const N=p.N,c=o.cpi[N],LS=loanSetup(p,p.rate),sum=k=>o.fl
     ['Insurance, HOA, PMI, utilities',-(sum('ins')+sum('hoa')+sum('pmi')+sum('util')+sum('refi'))],['Upkeep',-sum('maint')],
     ['Tax savings from owning',-sum('tax')],['House-hack income',-sum('hh')],['Rent the renter pays',sum('rent')]];
   const base=p.P*(1-p.dp),infl=LS.L-sum('principal')-bal;if(p.moveMode==='none'||!p.moveMode){parts.push(['FHA upfront premium',base-LS.L],['Inflation shrinking the loan',infl])}
-  const known=parts.reduce((a,x)=>a+x[1],0);parts.push(['Renter\'s investment returns, net',gap-known]);
+  // investment taxes (yearly on dividends and interest, and on selling at year N): the renter's minus the buyer's
+  if(o.tax){const it=o.tax.slice(0,N).reduce((a,t)=>a+adj(t.invR-t.invB,t.cpi),0)+adj(o.liqTax[N].r-o.liqTax[N].b,c);parts.push(['Tax on investments, renter\'s minus buyer\'s',it])}
+  const known=parts.reduce((a,x)=>a+x[1],0);parts.push(['Renter\'s investment returns, before tax',gap-known]);
   return {gap,parts:parts.filter(([lab,v])=>Math.abs(v)>=1||/Rent|returns/.test(lab))}}
 /* Drawn as a walk of thick arrows: each part starts where the previous one ended and points right (in buying's
    favor, green) or left (renting's, blue); dotted lines join the steps and the value sits at each arrow's tip. The

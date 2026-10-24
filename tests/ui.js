@@ -279,6 +279,11 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
   await page.goBack(); await page.waitForTimeout(700);
   const bk3 = await page.evaluate(() => [CUR, document.getElementById('ciBack').hidden]);
   ok(bk1[0] === 'method' && bk1[1] && /Where the gap/.test(bk1[2]) && bk2[0] === 'proj' && bk2[1] && bk2[2] && bk3[0] === 'proj' && bk3[1], 'back from a chart-note link to the chart', JSON.stringify([bk1, bk2, bk3]));
+  /* Taxes card: rows add up; the gap chart's investment-tax part equals the table's renter-minus-buyer investment taxes */
+  const taxCk = await page.evaluate(() => { const o = simulate(P, constPath(P, P.N), { N: P.N, detail: true }), rows = taxRows(P, o), g = gapParts(P, o).parts.find(x => /^Tax on investments/.test(x[0]));
+    const inv = rows.filter(r => /dividends|selling the investments/.test(r[0])).reduce((a, r) => a + r[2] - r[1], 0);
+    return { n: document.querySelectorAll('#taxT tbody tr').length, facts: document.querySelectorAll('#taxFacts li').length, inv, g: g ? g[1] : 0, loan: document.querySelectorAll('#loanT tr').length, rate: document.getElementById('loanT').textContent.includes('Your rate') }; });
+  ok(taxCk.n >= 3 && taxCk.facts >= 3 && Math.abs(taxCk.inv - taxCk.g) < 1 && taxCk.loan >= 4 && taxCk.rate, 'Taxes card and Your loan card filled; investment taxes match the gap chart', JSON.stringify(taxCk));
   /* sensitivity chart: the row labels fit inside the chart */
   await page.evaluate(() => document.querySelector('[role="tab"][data-tab="sens"]').click()); await page.waitForTimeout(1200);
   const torClip = await page.evaluate(() => { const p = document.getElementById('p-tor'), L = p.getBoundingClientRect().left; return [...p.querySelectorAll('.ytick text')].filter(t => t.getBoundingClientRect().left < L - 1).map(t => t.textContent); });

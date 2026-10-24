@@ -3,7 +3,7 @@ function yearlyRows(o){const rows=[];for(let k=0;k<o.buy.length;k++){const f=o.f
 let CSV_TEXT='';  // the year-by-year table as CSV, for the Copy CSV button
 function renderProj(){
   const t=theme(),o=simulate(P,constPath(P,P.N),{detail:true}),x=o.buy.map((_,k)=>k);
-  renderGap(o);
+  renderGap(o);renderTaxes(o);renderLoan(o);
   const tr=(arr,name,col,dash)=>({x,y:arr.map((v,k)=>adj(v,o.cpi[k])),name,mode:'lines',line:{color:col,width:2.6,dash},hovertemplate:'%{y:$,.0f}'});
   const be=breakevenYear(o);
   /** @type {any[]} */const data=[tr(o.buy,'Buy',t.buy),tr(o.inv,'Rent + invest',t.inv),tr(o.cash,'Rent + T-bills',t.cash,'dot')];

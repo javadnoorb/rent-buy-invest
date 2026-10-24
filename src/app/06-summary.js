@@ -33,6 +33,7 @@ function summary(){
    ['Break-even rent',beRent?fmtFull(beRent)+'/mo':'n/a','rent at which the two main paths tie at your horizon'],
    ['Break-even home growth',beG!=null?pct(beG)+'/yr':'n/a','home appreciation at which they tie'],
    [`Expected gap with ${pct(p.hz,0)}/yr move risk`,`<span style="color:var(${ex>=0?'--buy':'--inv'})">${ex>=0?'+':''}${fmt(ex)}</span>`,'weighted by the chance of selling early'],
+   ...(p.hz>0?[['Chance you sell early',pct(1-Math.pow(1-p.hz,N-1),0),`before year ${N}, at a ${pct(p.hz,0)} chance of moving each year; the average stay is ${(Array.from({length:N},(_,k)=>k+1).reduce((a,t)=>a+t*(t<N?p.hz*Math.pow(1-p.hz,t-1):Math.pow(1-p.hz,N-1)),0)).toFixed(1)} years`]]:[]),
    ['Rent + T-bills',fmt(ca),'renting and keeping savings in T-bills'],
   ].map(stat).join('');
   const fe=p.income?own1/(p.income/12):0,be=p.income?(own1+p.debt)/(p.income/12):0;

@@ -458,4 +458,5 @@ input,select,h2,h3,.plot,details,.card{scroll-margin-top:var(--smt)}
 .ahead:has(.ciback:not([hidden])) .saved{display:none}
 @media print{.ciback{display:none!important}}
 .hint:empty{display:none}
+.subh{font-size:14px;margin:14px 0 4px}.facts{margin:0 0 6px;padding-left:20px;font-size:13.5px;line-height:1.5}.facts li{margin:3px 0}
 .mref{font-size:12.5px;color:var(--muted);line-height:1.5;margin:10px 0 4px}.mref a{color:inherit}

@@ -208,4 +208,16 @@ module.exports=function({M,base,run,ok,near}){
   {// transfer taxes follow the sale price through brackets (NYC: city tax 1.425% above $500k)
    const nyc=[{base:'price',structure:'whole_price_tiers',payer:'seller',tiers:[{from:0,to:500000,rate:0.01},{from:500000,to:null,rate:0.01425}]}];
    const p=base({sell:0.05,sellBase:0.05,ttRules:nyc});near(M.sellAt(p,650000),0.05+0.01425,1e-12,'seller tax at the sale price bracket');near(M.sellAt(p,480000),0.06,1e-12,'below the threshold')}
+  /* --- tax readout (detail runs) --- */
+  {// sheltered account: no yearly investment tax and none on selling; the tax saving matches the monthly flow
+   const p=base({acct:'sheltered',taxOn:true,N:10}),o=run(p,10,{detail:true});
+   ok(o.tax.every(t=>t.invB===0&&t.invR===0)&&o.liqTax.every(t=>t.b===0&&t.r===0),'sheltered: no investment taxes');
+   near(o.tax[3].saving,-12*o.flow[3].tax,1e-9,'tax saving in the readout = the monthly flow')}
+  {// taxable account: yearly tax on dividends and interest, and tax due on the gains if sold at the horizon
+   const p=base({acct:'taxable',taxOn:true,dy:0.02,rs:0.07,N:10}),o=run(p,10,{detail:true});
+   ok(o.tax.reduce((a,t)=>a+t.invR,0)>0&&o.liqTax[10].r>0,'taxable: renter pays yearly and on selling')}
+  {// home sale: no tax while the gain is under the exclusion; above it, the gain over the exclusion at the gains rate
+   const p=base({taxOn:true,filing:'single',ltcgMode:'manual',ltcg:0.15,niitAuto:false,niit:0,stRate:0,P:500000,gh:0.10,N:10}),o=run(p,10,{detail:true}),h=o.homeTax[10];
+   ok(h.excl===250000&&Math.abs(h.tax-0.15*(h.gain-250000))<1e-6,'home-sale tax above the $250k exclusion',JSON.stringify(h));
+   const q=base({taxOn:true,P:500000,gh:0.02,N:10}),hq=run(q,10,{detail:true}).homeTax[10];ok(hq.tax===0&&hq.excl===Math.max(0,hq.gain),'gain under the exclusion: no tax',JSON.stringify(hq))}
 };

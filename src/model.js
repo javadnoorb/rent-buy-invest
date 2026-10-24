@@ -137,17 +137,22 @@ function simulate(p,path,opt){const cAdj=creditAdj(p).rate;
   const dep=(V,b,x)=>{const V1=V+x;return [V1,V1<=0?0:V<0?V1:b+Math.max(0,x)]};
   const liq=(V,b)=>taxable?V-ltcgE*Math.max(0,V-b):V;
   const homeNet=(H,bal,y)=>{if(!owned)return 0;const held=y-purchY;const S=H*(held>0?shk:1),sale=S*(1-sellAt(p,S));const gain=sale-basis-imp-(held>=2?excl:0);return sale-bal-(tx?ltcgE*Math.max(0,gain):0)};
+  // the same sale, itemized for the tax readout: gain before the exclusion, the exclusion used and the tax
+  const homeTax=(H,y)=>{if(!owned)return {gain:0,excl:0,tax:0};const held=y-purchY,S=H*(held>0?shk:1),g=S*(1-sellAt(p,S))-basis-imp,ex=held>=2?Math.min(excl,Math.max(0,g)):0;
+    return {gain:g,excl:ex,tax:tx?ltcgE*Math.max(0,g-ex):0,held}};
   const rentalNet=()=>{if(!RO)return 0;const sale=Hr*(1-sellAt(p,Hr)),gain=sale-(basisR+impR-accDep);let t=0;
     if(tx){const rec=Math.min(Math.max(gain,0),accDep);t=rec*(Math.min(0.25,mu)+niit+p.stRate)+Math.max(0,gain-rec)*ltcgE-susp*muE}
     return sale-balR-t};
   const o={buy:[],inv:[],cash:[],rental:[],cpi:[],lqB:[],lqR:[],heloc:[],lqC:[],budget:[],refiAt:[],rateAt:[],H:[],income:[],own1:[],moved:null};
-  if(detail){o.eq=[];o.pB=[];o.bal=[];o.flow=[];o.unrec=[]}
+  if(detail){o.eq=[];o.pB=[];o.bal=[];o.flow=[];o.unrec=[];o.tax=[];o.liqTax=[];o.homeTax=[]}
   let budgetY=0,ownY=0;
   const snap=y=>{const lb=liq(pB,bB),lr=liq(pR,bR);o.buy.push(homeNet(H,bal,y)+lb);o.inv.push(lr);o.cash.push(pC);o.cpi.push(cpi);
     o.rental.push(RO?rentalNet()+(pX>=0?liq(pX,bX):pX):null);
     o.heloc.push(owned&&p.heloc>0?Math.max(0,p.heloc*H-bal):0);
     o.lqB.push(lb);o.lqR.push(lr);o.lqC.push(pC);o.budget.push(budgetY);o.rateAt.push(owned?rate:null);o.H.push(owned?H:0);o.income.push(income);o.own1.push(ownY);
-    if(detail){o.eq.push(homeNet(H,bal,y));o.pB.push(lb);o.bal.push(owned?bal:0)}};
+    if(detail){o.eq.push(homeNet(H,bal,y));o.pB.push(lb);o.bal.push(owned?bal:0);
+      // tax due if each portfolio were sold now, and the home sale's tax: for the tax readout
+      o.liqTax.push({b:taxable?ltcgE*Math.max(0,pB-bB):0,r:taxable?ltcgE*Math.max(0,pR-bR):0});o.homeTax.push(homeTax(H,y))}};
   snap(0);
   let infPrev=0;
   const lev=p.lev,ws=p.ws,wb=p.wb,wc=Math.max(0,1-p.ws-p.wb);
@@ -177,7 +182,7 @@ function simulate(p,path,opt){const cAdj=creditAdj(p).rate;
     // rental property, year level
     const HrY=Hr,ptR=RO?p.ptax*HrY:0,insR=RO?p.ins*(Pr/p.P)*insIdx/12:0,hoaR=RO?p.hoa*(Pr/p.P)*infIdx:0,maintR=RO?p.maint*HrY*(mShock?mShock[y]:1):0;
     const grossR=RO?Pr*yieldR/12*mktIdx:0,incR=grossR*(1-p.vacR)*(1-p.mgmt);
-    let intY=0,prinY=0,pmiY=0,benefit=0,refiY=0,ownSum=0,hhTax=0,intRY=0,balSum=0;const cpi0=cpi;const eqStart=owned?H-bal:0;let Rsum=0;
+    let intY=0,prinY=0,pmiY=0,benefit=0,refiY=0,ownSum=0,hhTax=0,intRY=0,balSum=0,txB=0,txR=0,tf=null;const cpi0=cpi;const eqStart=owned?H-bal:0;let Rsum=0;
     for(let m=0;m<12;m++){
       let fS,fB,fC,fH,fI,xB=0;
       if(M){const k=y*12+m;fS=1+path.rs[k];fB=1+path.rb[k];fC=1+path.rc[k];fH=1+path.gh[k];fI=1+path.inf[k]}
@@ -198,7 +203,7 @@ function simulate(p,path,opt){const cAdj=creditAdj(p).rate;
           // a loan paid off early keeps its scheduled payment in the budget, invested, so both choices spend the same
           if(xPrepay&&bal<=0.005&&pay<Mp&&mSince<nTot){xB+=Mp-pay;pay=Mp}}
         // conventional PMI: ends at 78% of the original price on schedule, or with an appraisal at 75% of today's value
-        // after 2 years / 80% after 5 years (Fannie Mae servicing guide B-1.1-04)
+        // after 2 years / 80% after 5 years (Fannie Mae Servicing Guide B-8.1-04)
         if(p.pmiAppr&&!fha&&!pmiOff&&dpCur<0.2&&mSince>=24&&balPrev<=(mSince>=60?0.8:0.75)*H)pmiOff=true;
         const pmi=fha?(mSince<mipMonths&&balPrev>0.005?mipRate*balPrev/12:0):((dpCur<0.2&&!pmiOff&&balPrev>0.78*Pcur)?pmiRate(p,dpCur)*Lcur/12:0);pmiY+=pmi;
         own=pay+xPay+ptY/12+maintY/12+insM+hoa+utilM+pmi+refiCost-hhInc;
@@ -210,13 +215,15 @@ function simulate(p,path,opt){const cAdj=creditAdj(p).rate;
             fMI=income<=100000?1:Math.max(0,1-Math.ceil((income-100000)/1000)*0.1);
           const dB=Math.max(std,Math.min(cap,stT+ptY*own_s)+(intY*f750+pmiY*fMI+(y===0?LS.ptsCost:0))*own_s+p.oth),dR=Math.max(std,Math.min(cap,stT)+p.oth);
           benefit=mu*(dB-dR)+(p.stDed?p.stRate*(intY*f750+ptY)*own_s:0);own-=benefit;
+          if(detail)tf={std,itemB:dB>std+0.5,itemR:dR>std+0.5,cap,saltOver:Math.max(0,stT+ptY*own_s-cap),f750,miDed:pmiY*fMI,mi:pmiY,fMI};
           if(p.hhRent>0){const sh=p.hhShare,taxable=hhInc*12-sh*(intY+ptY+insM*12+maintY*(1-p.impShare)+utilM*12);hhTax=Math.max(0,taxable)*(mu+p.stRate);own+=hhTax}}
       }else own=rentM;
       ownSum+=own;
       const g=ws*(fS-1)+wb*(fB-1)+wc*(fC-1);
       const ret=lev*g-(lev-1)*(fC-1)-Math.max(0,lev-1)*p.spread/12-p.fee/12;Rsum+=ret;
       let taxR=0,inc=0;
-      if(taxable){const cashS=Math.max(0,1-lev);inc=lev*(ws*p.dy/12+wb*(fB-1)+wc*(fC-1))+cashS*(fC-1);taxR=lev*(ws*p.dy/12*ltcgE+(wb*(fB-1)+wc*(fC-1))*muE)+cashS*(fC-1)*muE}
+      if(taxable){const cashS=Math.max(0,1-lev);inc=lev*(ws*p.dy/12+wb*(fB-1)+wc*(fC-1))+cashS*(fC-1);taxR=lev*(ws*p.dy/12*ltcgE+(wb*(fB-1)+wc*(fC-1))*muE)+cashS*(fC-1)*muE;
+        if(detail){txB+=Math.max(0,pB)*taxR;txR+=Math.max(0,pR)*taxR}}
       const grow=(V,b)=>{const V0=V;if(V0<0)return [V0*(1+(fC-1)+BORROW_PREM/12),0];
         V=V0*(1+ret)-V0*taxR;if(taxable)b+=V0*(inc-taxR);if(V<0)V=0;return [V,b]};
       [pB,bB]=grow(pB,bB);[pR,bR]=grow(pR,bR);
@@ -237,6 +244,7 @@ function simulate(p,path,opt){const cAdj=creditAdj(p).rate;
     }
     ownY=ownSum/12;budgetY=Math.max(ownY,rentM);if(owned)imp+=p.impShare*maintY;if(RO)impR+=p.impShare*maintR;
     if(detail){
+      o.tax.push({saving:benefit,ptax:ptY,hh:hhTax,invB:txB,invR:txR,mu,niit,ltcg:ltcgE-niit-p.stRate,income,owned,cpi:Math.sqrt(cpi0*cpi),...(tf||{})});
       o.flow.push({interest:intY/12,principal:prinY/12,ptax:ptY/12,ins:insM,maint:maintY/12,hoa,util:utilM,pmi:pmiY/12,refi:refiY/12,tax:-benefit/12,hh:-(hhInc-hhTax/12),rent:rentM,own:ownSum/12,cpi:Math.sqrt(cpi0*cpi),owned});  // flows at the year's mid-point prices
       const opp=eqStart*Rsum;
       o.unrec.push({own:owned?intY+ptY+maintY+insM*12+hoa*12+utilM*12+pmiY+refiY-benefit-(hhInc*12-hhTax)+opp:rentM*12,opp:owned?opp:0,rent:rentM*12,cpi});
