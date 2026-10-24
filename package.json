@@ -13,6 +13,7 @@
     "smoke:offline": "STUB_PLOTLY=1 node tests/smoke.js",
     "test:ui": "node tests/ui.js",
     "test:layout": "node tests/layout.js",
+    "test:trace": "node tests/trace.js",
     "check": "npm run build && npm test && npm run smoke:offline && npm run test:ui",
     "typecheck": "npx -y -p typescript@5.6.3 tsc -p .",
     "check:all": "scripts/check.sh",

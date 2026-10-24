@@ -44,7 +44,7 @@ function renderGap(o){const t=theme(),p=P,{gap,parts}=gapParts(p,o),narrow=inner
   // wider screens: each value in its own column right of the arrows, where no arrow, connector or zero line crosses it
   const vals=/** @type {any[]} */(narrow?[]:rows.map((r,i)=>({xref:'paper',yref:'y',x:1,xanchor:'left',xshift:8,y:ty[i],showarrow:false,text:txt[i],font:{family:'IBM Plex Mono, monospace',size:11,color:tcol[i]}})));
   const dir=`<span style="color:${t.inv}">← favors renting</span>   <span style="color:${t.buy}">favors buying →</span>`;
-  plot('p-gap',[{type:'bar',orientation:'h',y:ys,x:bx,base,width:.9,marker:{color:'rgba(0,0,0,0)'},customdata:rows.map(r=>[r.lab,r.v]),
+  plot('p-gap',[{type:'bar',orientation:'h',meta:'gap:row',y:ys,x:bx,base,width:.9,marker:{color:'rgba(0,0,0,0)'},customdata:rows.map(r=>[r.lab,r.v]),
       hovertemplate:'%{customdata[0]}: %{customdata[1]:$,.0f}<extra></extra>'}],
     {xaxis:{...Yd(basisLabel()),range:[lo-pad,hi+pad],title:{text:narrow||(document.getElementById('p-gap').clientWidth||0)<760?`${dir}<br>Effect on buy minus rent at year ${p.N}, ${basisLabel()}`:`${dir}      Effect on buy minus rent at year ${p.N}, ${basisLabel()}`,font:{size:11}}},
      yaxis:{automargin:true,tickvals:ys,ticktext:ticks,showticklabels:!narrow,range:[-.6,n+.6],showgrid:false,zeroline:false},hovermode:'closest',

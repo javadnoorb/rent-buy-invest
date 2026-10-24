@@ -471,3 +471,35 @@ body.simple .tech{display:none!important}
 .viewseg{margin-right:8px}.viewseg button{padding:6px 10px;font-size:13px}
 .subh{font-size:14px;margin:14px 0 4px}.facts{margin:0 0 6px;padding-left:20px;font-size:13.5px;line-height:1.5}.facts li{margin:3px 0}
 .mref{font-size:12.5px;color:var(--muted);line-height:1.5;margin:10px 0 4px}.mref a{color:inherit}
+/* "How this was computed" panel: a side panel on wide screens, a bottom sheet on phones */
+.trp{position:fixed;top:0;right:0;bottom:0;width:min(460px,100vw);z-index:40;background:var(--surface);border-left:1px solid var(--line);box-shadow:-8px 0 30px rgba(0,0,0,.18);display:flex;flex-direction:column}
+.trp[hidden]{display:none}
+.trh{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.trh h2{font-size:15px;margin:0}
+.trsub{font-size:12px;color:var(--muted);margin-top:2px}
+.trx{border:1px solid var(--line);background:var(--sunk);color:var(--ink);border-radius:8px;width:34px;height:34px;font-size:20px;line-height:1;cursor:pointer;flex:none}
+.trb{overflow:auto;padding:8px 10px 24px;-webkit-overflow-scrolling:touch;font-size:13px}
+.trn{border-left:2px solid var(--line);margin:2px 0 2px 6px;padding-left:6px}
+.trn.root{border-left:0;margin-left:0;padding-left:0}
+.trrow{display:flex;justify-content:space-between;gap:10px;align-items:baseline;padding:4px 2px;cursor:pointer;list-style:none}
+.trrow::-webkit-details-marker{display:none}
+.trn.leaf .trrow{cursor:default;padding-left:16px}
+.trl{flex:1;min-width:0}
+.trv{font-family:'IBM Plex Mono',monospace;font-size:12px;white-space:nowrap}
+.trd{padding:2px 0 4px 10px}
+.treq{overflow-x:auto;overflow-y:hidden;padding:4px 0;font-size:13px}
+.trnum{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--muted);overflow-wrap:anywhere;padding:2px 0}
+.trnote{font-size:12px;color:var(--muted);padding:2px 0}
+.trm{font-size:12px;padding:2px 0 4px}
+.tro{font-size:12px;color:var(--muted);padding:0 2px 4px 14px;overflow-wrap:anywhere}
+.trk{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-right:2px}
+.trz>summary{font-size:12px;color:var(--muted);cursor:pointer;padding:4px 2px}
+.trop{margin-top:12px;border-top:1px solid var(--line);padding-top:6px}
+.trfoot{font-size:11.5px;margin-top:14px}
+.trhint{font-size:12px;color:var(--muted);margin:4px 0 0}
+.plot.traceable .nsewdrag{cursor:pointer}
+@media (max-width:700px){.trp{top:auto;left:0;width:100%;max-height:85vh;border-left:0;border-top:1px solid var(--line);border-radius:14px 14px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.25);padding-bottom:env(safe-area-inset-bottom,0px)}}
+@media print{.trp,.trhint{display:none!important}}
+details.trn>summary .trl::before,details.trz>summary::before{content:"+";display:inline-block;width:14px;color:var(--muted);font-family:var(--mono)}
+details.trn[open]>summary .trl::before,details.trz[open]>summary::before{content:"−"}
+.trz>summary{list-style:none}.trz>summary::-webkit-details-marker{display:none}

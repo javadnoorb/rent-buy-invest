@@ -65,7 +65,7 @@ function wireChartInfo(){
    the tab and chart the link came from. */
 let CI_BACK=null;
 /* The button sits in the page rather than floating over it: under the tabs, or in the assumptions panel's header. */
-function ciRemember(a){const card=a.closest('.card'),plot=card&&card.querySelector('.plot'),h=card&&card.querySelector('h2');
+function ciRemember(a){const card=a.closest('.card')||(TRACE_OPEN&&TRACE_OPEN.el&&TRACE_OPEN.el.closest('.card')),plot=card&&card.querySelector('.plot'),h=card&&card.querySelector('h2');
   CI_BACK={tab:CUR,y:scrollY,id:plot?plot.id:null,title:h?h.textContent.replace(/\?/g,'').trim():'the chart'};
   try{history.pushState({ciBack:1},'')}catch(e){}
   if(!document.querySelector('.ciback'))[['.stickyhead','beforeend'],['#closeSheet','beforebegin']].forEach(([sel,pos])=>{

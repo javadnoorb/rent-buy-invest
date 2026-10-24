@@ -4,42 +4,42 @@ let CSV_TEXT='';  // the year-by-year table as CSV, for the Copy CSV button
 function renderProj(){
   const t=theme(),o=simulate(P,constPath(P,P.N),{detail:true}),x=o.buy.map((_,k)=>k);
   renderGap(o);renderTaxes(o);renderLoan(o);
-  const tr=(arr,name,col,dash)=>({x,y:arr.map((v,k)=>adj(v,o.cpi[k])),name,mode:'lines',line:{color:col,width:2.6,dash},hovertemplate:'%{y:$,.0f}'});
+  const tr=(arr,name,col,dash,meta)=>({x,y:arr.map((v,k)=>adj(v,o.cpi[k])),name,meta,mode:'lines',line:{color:col,width:2.6,dash},hovertemplate:'%{y:$,.0f}'});
   const be=breakevenYear(o);
-  /** @type {any[]} */const data=[tr(o.buy,'Buy',t.buy),tr(o.inv,'Rent + invest',t.inv),tr(o.cash,'Rent + T-bills',t.cash,'dot')];
-  if(P.rentalOn)data.push(tr(o.rental,'Rent + rental property',t.rp,'dashdot'));
+  /** @type {any[]} */const data=[tr(o.buy,'Buy',t.buy,undefined,'nw:buy'),tr(o.inv,'Rent + invest',t.inv,undefined,'nw:inv'),tr(o.cash,'Rent + T-bills',t.cash,'dot','nw:cash')];
+  if(P.rentalOn)data.push(tr(o.rental,'Rent + rental property',t.rp,'dashdot','nw:rental'));
   if(o.refiAt.length){const ys=o.refiAt.map(a=>{const k=Math.min(o.buy.length-1,Math.ceil(a));return adj(o.buy[k],o.cpi[k])});
-    data.push({x:o.refiAt.map(a=>Math.ceil(a)),y:ys,mode:'markers',name:'Refinance',marker:{size:9,color:t.bg,line:{color:t.buy,width:2}},hovertemplate:'refinanced<extra></extra>'})}
+    data.push({x:o.refiAt.map(a=>Math.ceil(a)),y:ys,mode:'markers',name:'Refinance',meta:'deco:refi',marker:{size:9,color:t.bg,line:{color:t.buy,width:2}},hovertemplate:'refinanced<extra></extra>'})}
   const showBand=document.getElementById('nwBand')&&document.getElementById('nwBand').checked&&MC;
   if(showBand){const hh=P.N,xs=[...Array(hh+1)].map((_,k)=>k);
     const bandOf=(arr,col,name)=>{const lo=xs.map(y=>q(arr.map(a=>a[y]),.25)),hi=xs.map(y=>q(arr.map(a=>a[y]),.75));
-      return [{x:xs,y:hi,mode:'lines',line:{width:0},showlegend:false,hoverinfo:'skip'},{x:xs,y:lo,mode:'lines',line:{width:0},fill:'tonexty',fillcolor:hexA(col,isDark(t)?.3:.16),name:name+' 25–75%',hoverinfo:'skip'}]};
+      return [{x:xs,y:hi,meta:'deco:band',mode:'lines',line:{width:0},showlegend:false,hoverinfo:'skip'},{x:xs,y:lo,meta:'deco:band',mode:'lines',line:{width:0},fill:'tonexty',fillcolor:hexA(col,isDark(t)?.3:.16),name:name+' 25–75%',hoverinfo:'skip'}]};
     data.unshift(...bandOf(MC.res.buy,t.buy,'Buy'),...bandOf(MC.res.inv,t.inv,'Rent + invest'))}
   plot('p-nw',data,{margin:{t:be?24:10},xaxis:{...X('Years from today'),dtick:P.N>15?5:1},yaxis:Yd('Net worth, '+basisLabel()),
      shapes:(be?[{type:'line',x0:be,x1:be,yref:'paper',y0:0,y1:1,line:{color:t.muted,dash:'dash',width:1}}]:[]).concat(o.moved?[{type:'line',x0:o.moved.year,x1:o.moved.year,yref:'paper',y0:0,y1:1,line:{color:t.cash,dash:'dot',width:1.5}}]:[]),
      annotations:/** @type {any[]} */(be?[{x:be,yref:'paper',y:1,text:'break-even',showarrow:false,yanchor:'bottom',font:{size:11,color:t.muted}}]:[]).concat(o.moved?[{x:o.moved.year,yref:'paper',y:0.02,text:o.moved.mode==='buy'?'sell & rebuy':'sell & rent',showarrow:false,xanchor:'left',font:{size:11,color:t.cash}}]:[])});
   const yrs=o.flow.map((_,k)=>k+1),fl=o.flow;
   const comp=[['interest','Interest',t.neg],['principal','Principal',t.buy],['ptax','Property tax',hexA(t.cash,.85)],['ins','Insurance',hexA(t.accent,.55)],['maint','Maintenance',hexA(t.muted,.75)],['hoa','HOA',hexA(t.accent,.3)],['hh','House-hack income, after tax',hexA(t.buy,.6)],['util','Extra utilities',hexA(t.cash,.45)],['pmi','PMI',hexA(t.neg,.45)],['refi','Refinance cost',hexA(t.ink,.35)],['tax','Tax savings',hexA(t.buy,.35)]];
-  const fdata=/** @type {any[]} */(comp.filter(([k])=>fl.some(f=>Math.abs(f[k])>0.5)).map(([k,n,c])=>({x:yrs,y:fl.map(f=>adj(f[k],f.cpi)),name:n,type:'bar',marker:{color:c},hovertemplate:'%{y:$,.0f}'})));
-  fdata.push({x:yrs,y:fl.map(f=>adj(f.rent,f.cpi)),name:'Rent',mode:'lines+markers',line:{color:t.inv,width:2.5},marker:{size:5},hovertemplate:'%{y:$,.0f}'});
+  const fdata=/** @type {any[]} */(comp.filter(([k])=>fl.some(f=>Math.abs(f[k])>0.5)).map(([k,n,c])=>({x:yrs,y:fl.map(f=>adj(f[k],f.cpi)),name:n,meta:'flow:'+k,type:'bar',marker:{color:c},hovertemplate:'%{y:$,.0f}'})));
+  fdata.push({x:yrs,y:fl.map(f=>adj(f.rent,f.cpi)),name:'Rent',meta:'flow:rent',mode:'lines+markers',line:{color:t.inv,width:2.5},marker:{size:5},hovertemplate:'%{y:$,.0f}'});
   plot('p-flow',fdata,{barmode:'relative',xaxis:X('Year'),yaxis:Yd('Per month, '+basisLabel())});
   const u=o.unrec;
   plot('p-unrec',[
-    {x:yrs,y:u.map(v=>adj(v.own-v.opp,v.cpi)),name:'Owner: cash costs',type:'bar',marker:{color:hexA(t.buy,.8)},hovertemplate:'%{y:$,.0f}'},
-    {x:yrs,y:u.map(v=>adj(v.opp,v.cpi)),name:'Owner: forgone return',type:'bar',marker:{color:hexA(t.buy,.35)},hovertemplate:'%{y:$,.0f}'},
-    {x:yrs,y:u.map(v=>adj(v.rent,v.cpi)),name:'Renter: rent',mode:'lines+markers',line:{color:t.inv,width:2.5},marker:{size:5},hovertemplate:'%{y:$,.0f}'}],
+    {x:yrs,y:u.map(v=>adj(v.own-v.opp,v.cpi)),name:'Owner: cash costs',meta:'unrec:cash',type:'bar',marker:{color:hexA(t.buy,.8)},hovertemplate:'%{y:$,.0f}'},
+    {x:yrs,y:u.map(v=>adj(v.opp,v.cpi)),name:'Owner: forgone return',meta:'unrec:opp',type:'bar',marker:{color:hexA(t.buy,.35)},hovertemplate:'%{y:$,.0f}'},
+    {x:yrs,y:u.map(v=>adj(v.rent,v.cpi)),name:'Renter: rent',meta:'unrec:rent',mode:'lines+markers',line:{color:t.inv,width:2.5},marker:{size:5},hovertemplate:'%{y:$,.0f}'}],
     {barmode:'stack',xaxis:X('Year'),yaxis:Yd('Per year, '+basisLabel())});
   plot('p-comp',[
-    {x,y:o.eq.map((v,k)=>adj(v,o.cpi[k])),name:'Net home equity',stackgroup:'a',line:{color:t.buy,width:0},fillcolor:hexA(t.buy,.55),hovertemplate:'%{y:$,.0f}'},
-    {x,y:o.pB.map((v,k)=>adj(v,o.cpi[k])),name:"Buyer's portfolio",stackgroup:'a',line:{color:t.inv,width:0},fillcolor:hexA(t.inv,.4),hovertemplate:'%{y:$,.0f}'},
-    {x,y:o.H.map((v,k)=>adj(v,o.cpi[k])),name:'Home value',mode:'lines',line:{color:t.muted,dash:'dot',width:1.5},hovertemplate:'%{y:$,.0f}'},
-    {x,y:o.bal.map((v,k)=>adj(v,o.cpi[k])),name:'Mortgage balance',mode:'lines',line:{color:t.neg,dash:'dash',width:1.5},hovertemplate:'%{y:$,.0f}'}],
+    {x,y:o.eq.map((v,k)=>adj(v,o.cpi[k])),name:'Net home equity',meta:'comp:eq',stackgroup:'a',line:{color:t.buy,width:0},fillcolor:hexA(t.buy,.55),hovertemplate:'%{y:$,.0f}'},
+    {x,y:o.pB.map((v,k)=>adj(v,o.cpi[k])),name:"Buyer's portfolio",meta:'comp:pB',stackgroup:'a',line:{color:t.inv,width:0},fillcolor:hexA(t.inv,.4),hovertemplate:'%{y:$,.0f}'},
+    {x,y:o.H.map((v,k)=>adj(v,o.cpi[k])),name:'Home value',meta:'comp:H',mode:'lines',line:{color:t.muted,dash:'dot',width:1.5},hovertemplate:'%{y:$,.0f}'},
+    {x,y:o.bal.map((v,k)=>adj(v,o.cpi[k])),name:'Mortgage balance',meta:'comp:bal',mode:'lines',line:{color:t.neg,dash:'dash',width:1.5},hovertemplate:'%{y:$,.0f}'}],
     {xaxis:X('Years from today'),yaxis:Yd('Value, '+basisLabel())});
   const bud=o.budget.map((b,k)=>b||o.budget[1]||1);
   // y is log10(1 + months), labelled in months: zero stays on the chart (the buyer often starts with no liquid
   // savings, which a plain log axis can't show) while the renter's much larger cushion fits on the same axis
-  {const g=v=>Math.log10(1+Math.max(0,v)),ser=(arr,name,color,dash,w)=>{const m=arr.map((v,k)=>v/bud[k]);return {x,y:m.map(g),customdata:m,name,mode:'lines',line:{color,width:w||2.5,dash},hovertemplate:'%{customdata:.1f} months'}};
-   const tr=[ser(o.lqB,'Buyer',t.buy),ser(o.lqR,'Renter (invest)',t.inv)].concat(P.heloc>0?[ser(o.lqB.map((v,k)=>v+o.heloc[k]),'Buyer + home-equity line',t.buy,'dot',2)]:[]);
+  {const g=v=>Math.log10(1+Math.max(0,v)),ser=(arr,name,color,dash,w,meta)=>{const m=arr.map((v,k)=>v/bud[k]);return {x,y:m.map(g),customdata:m,name,meta,mode:'lines',line:{color,width:w||2.5,dash},hovertemplate:'%{customdata:.1f} months'}};
+   const tr=[ser(o.lqB,'Buyer',t.buy,undefined,undefined,'liq:B'),ser(o.lqR,'Renter (invest)',t.inv,undefined,undefined,'liq:R')].concat(P.heloc>0?[ser(o.lqB.map((v,k)=>v+o.heloc[k]),'Buyer + home-equity line',t.buy,'dot',2,'liq:H')]:[]);
    const top=Math.max(12,...tr.flatMap(d=>d.customdata)),ticks=[0,1,3,6,12,24,48,96,192,384,768].filter(v=>v<=top*1.15);
    plot('p-liq',tr,{xaxis:X('Years from today'),yaxis:Yt('Months of budget (compressed scale)',{tickvals:ticks.map(g),ticktext:ticks.map(String),range:[0,g(top)*1.04]}),
      shapes:[3,6].map(v=>({type:'line',xref:'paper',x0:0,x1:1,y0:g(v),y1:g(v),line:{color:t.neg,dash:'dot',width:1}})),

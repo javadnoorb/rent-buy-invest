@@ -2,7 +2,8 @@ name: Tests
 # Runs on every push and pull request. Two jobs in parallel:
 #   checks — static lint, type check, model math tests, data-script parser tests and the build (seconds)
 #   smoke  — the built page in the runner's preinstalled Chrome with the real chart and formula libraries: UI logic tests,
-#            an axe-core accessibility check and chart layout (labels overlapping or clipped at four widths)
+#            an axe-core accessibility check, chart layout (labels overlapping or clipped at four widths) and the
+#            trace check (every chart point's equations reproduce the model and the plotted value)
 on: [push, pull_request]
 concurrency:
   group: tests-${{ github.ref }}
@@ -63,3 +64,8 @@ jobs:
           python3 -m http.server 8765 >/dev/null 2>&1 &
           sleep 1
           node tests/layout.js
+      - name: Trace (each chart point's equations reproduce the model and the plotted value)
+        env:
+          PLAYWRIGHT_PATH: playwright-core
+          CHROME_PATH: /usr/bin/google-chrome
+        run: node tests/trace.js

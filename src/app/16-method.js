@@ -9,8 +9,8 @@ function buildMethod(){
   <dl class="sym"><dt>\\(N\\)</dt><dd>horizon in years (the slider)</dd><dt>\\(g_y\\)</dt><dd>growth rate of a series (home price, rent, stocks, inflation…) in year \\(y\\), as a decimal</dd></dl>
 
   <h3>Mortgage</h3>
-  \\[ \\begin{aligned} L &= P(1-d), \\qquad i = r/12 \\\\ M &= \\frac{L\\,i}{1-(1+i)^{-n}} \\\\ I_t &= B_{t-1}\\,i \\\\ B_t &= B_{t-1} - (M - I_t), \\quad B_0 = L \\end{aligned} \\]
-  <dl class="sym"><dt>\\(P\\)</dt><dd>purchase price</dd><dt>\\(d\\)</dt><dd>down payment as a share of the price</dd><dt>\\(L\\)</dt><dd>loan amount</dd><dt>\\(r\\)</dt><dd>annual note rate (after any points)</dd><dt>\\(i\\)</dt><dd>monthly rate</dd><dt>\\(n\\)</dt><dd>number of monthly payments (12 × loan term in years)</dd><dt>\\(M\\)</dt><dd>monthly principal-and-interest payment</dd><dt>\\(I_t\\)</dt><dd>interest paid in month \\(t\\)</dd><dt>\\(B_t\\)</dt><dd>loan balance after month \\(t\\)</dd></dl>
+  ${eqLines(['loan','monthlyRate','payment','interest','principal','balanceMonth'])}
+  <dl class="sym"><dt>\\(P\\)</dt><dd>purchase price</dd><dt>\\(d\\)</dt><dd>down payment as a share of the price</dd><dt>\\(L\\)</dt><dd>loan amount</dd><dt>\\(r\\)</dt><dd>annual note rate (after any points)</dd><dt>\\(i\\)</dt><dd>monthly rate</dd><dt>\\(n\\)</dt><dd>number of monthly payments (12 × loan term in years)</dd><dt>\\(M\\)</dt><dd>monthly principal-and-interest payment</dd><dt>\\(I_t\\)</dt><dd>interest paid in month \\(t\\)</dd><dt>\\(\\text{Prin}_t\\)</dt><dd>principal repaid in month \\(t\\) from the payment</dd><dt>\\(X_t\\)</dt><dd>extra principal paid in month \\(t\\) (see Extra payments)</dd><dt>\\(B_t\\)</dt><dd>loan balance after month \\(t\\)</dd></dl>
 
   <h3>Refinancing</h3>
   <p>If the market rate falls far enough below the loan rate, and at least 12 months have passed since the purchase or the last refinance, the loan is refinanced over its remaining months:</p>
@@ -31,11 +31,11 @@ function buildMethod(){
 
   <h3>Renter's monthly cost</h3>
   \\[ \\begin{aligned} C^{rent}_t = {}& R_y + \\tfrac{1}{12}\\,\\text{Ins}^{r}_y \\\\ &+ \\tfrac{1}{12}\\,\\eta\\,(c_{mv} + b\\,R^{mkt}_y) \\end{aligned} \\]
-  \\[ \\begin{aligned} R^{mkt}_{y+1} &= R^{mkt}_y(1+g^{rent}_y) \\\\ R_0 &= R^{mkt}_0 \\\\ R_{y+1} &= (1-\\eta)\\,R_y\\,(1+g^{rent}_y-\\delta) \\\\ &\\quad + \\eta\\,R^{mkt}_{y+1} \\end{aligned} \\]
+  ${eqLines(['marketRent','lease'])}
   <dl class="sym"><dt>\\(R_y\\)</dt><dd>the renter's lease rent per month in year \\(y\\)</dd><dt>\\(R^{mkt}_y\\)</dt><dd>market rent for a comparable home (starts at your comparable rent)</dd><dt>\\(g^{rent}_y\\)</dt><dd>market rent growth</dd><dt>\\(\\delta\\)</dt><dd>how much slower renewals grow than market rent (0 = lease tracks market)</dd><dt>\\(\\eta\\)</dt><dd>share of renters who move each year; a move resets the lease to market rent</dd><dt>\\(c_{mv}\\)</dt><dd>cost per move (grows with inflation)</dd><dt>\\(b\\)</dt><dd>broker fee per move, in months of rent</dd><dt>\\(\\text{Ins}^{r}_y\\)</dt><dd>renter's insurance per year</dd></dl>
 
   <h3>Equal budgets</h3>
-  \\[ \\begin{aligned} \\Delta_t &= C^{own}_t - C^{rent}_t \\\\ \\text{renter invests } & a\\max(\\Delta_t,0) \\\\ \\text{buyer invests } & a\\max(-\\Delta_t,0) \\end{aligned} \\]
+  ${eqLines(['delta','investR','investB'])}
   <dl class="sym"><dt>\\(\\Delta_t\\)</dt><dd>how much more owning costs than renting in month \\(t\\)</dd><dt>\\(a\\)</dt><dd>share of the monthly difference actually invested (1 = all of it; the rest is spent)</dd></dl>
   <p>At the start the renter invests the cash the buyer spends: \\(C_0 = P(d + c) + \\text{move-in costs} + \\text{points cost}\\).</p>
 
@@ -49,8 +49,8 @@ function buildMethod(){
   <p>With house-hacking, only the share \\((1-z)\\) of interest and property tax enters the itemized deductions.</p>
 
   <h3>Investment returns, taxes and leverage</h3>
-  \\[ \\begin{aligned} g_t &= w_s r^{stk}_t + w_b r^{bond}_t + w_c r^{bill}_t \\\\ \\rho_t &= \\lambda g_t - (\\lambda-1)\\,r^{bill}_t - \\tfrac{f}{12} \\\\ &\\quad - \\max(0,\\lambda-1)\\tfrac{s_b}{12} \\end{aligned} \\]
-  \\[ W^{liq} = V - \\kappa_y \\max(0,\\ V - \\text{basis}) \\]
+  ${eqLines(['mix','rho'])}
+  ${eqLines(['liquid','ledgerMonth'])}
   <dl class="sym"><dt>\\(w_s, w_b, w_c\\)</dt><dd>portfolio weights in stocks, bonds and T-bills (sum to 1)</dd><dt>\\(r^{stk}_t, r^{bond}_t, r^{bill}_t\\)</dt><dd>monthly total returns of stocks, bonds and T-bills</dd><dt>\\(g_t\\)</dt><dd>unlevered portfolio return in month \\(t\\)</dd><dt>\\(\\lambda\\)</dt><dd>leverage on the portfolio (1 = none; below 1 the rest sits in T-bills, with no spread)</dd><dt>\\(s_b\\)</dt><dd>borrowing spread over the T-bill rate, per year</dd><dt>\\(f\\)</dt><dd>fund fees per year</dd><dt>\\(\\rho_t\\)</dt><dd>net portfolio return in month \\(t\\), before tax</dd><dt>\\(V\\)</dt><dd>portfolio value</dd><dt>\\(\\text{basis}\\)</dt><dd>money put in plus income already taxed</dd><dt>\\(\\kappa_y\\)</dt><dd>tax rate on gains and dividends: capital-gains rate + NIIT \\(\\nu_y\\) + state rate \\(t_s\\)</dd><dt>\\(\\nu_y\\)</dt><dd>net investment income tax: 3.8% when income exceeds $200,000 single / $250,000 joint, else 0</dd><dt>\\(W^{liq}\\)</dt><dd>what the portfolio is worth after paying tax on a sale</dd></dl>
   <p>In a taxable account, dividends (yield \\(q\\)) are taxed each year at \\(\\kappa_y\\) and bond and T-bill income at \\(\\mu_y + \\nu_y + t_s\\); taxed income is added to the basis. A sheltered account pays no tax. The T-bill-only path earns \\(r^{bill}_t\\) after ordinary-income tax.</p>
 
@@ -176,6 +176,8 @@ function buildMethod(){
   <tr><td>\\(k_v\\)</td><td>FHFA-to-Case-Shiller volatility ratio</td><td>Scale FHFA price swings</td></tr>
   </tbody></table></div>
 
+  <h3>Equation index</h3>
+  ${eqIndexHTML()}
   `;
   structureMethod();
   document.getElementById('srclist').innerHTML=Object.values(SRC).map(s=>`<li><a target="_blank" rel="noopener" href="${s.u}">${s.t}</a></li>`).join('')+
@@ -214,6 +216,7 @@ const MSEC={
  'Checked against a published study':['Basics','How close the model gets to a 30-year study of actual outcomes.'],
  'Limits':['Basics','What the model leaves out.'],
  'Notation':['Basics','Every symbol, with the setting it comes from.'],
+ 'Equation index':['Basics','Every equation the "How this was computed" panel shows.'],
 };
 /* Sources behind each section's numbers and rules (SRC keys), and a note for what is a planning assumption or comes
    from per-location files linked next to the setting. Sections that only define the arithmetic have none. */

@@ -90,6 +90,15 @@ near(M.saltCapFor(4,100000),10000,1e-12,'SALT cap returns to $10k in 2030');
  ok(a.res.buy[17][10]===b.res.buy[17][10],'Monte Carlo is reproducible with the same seed');
  ok(a.pWin.every(v=>v>=0&&v<=1),'win probabilities are within [0,1]')}
 
+/* --- trace mode records every amount without changing any result --- */
+{const cfgs=[{},{taxOn:true,acct:'taxable',dy:0.015,ptax:0.011,maint:0.01,sell:0.06,gh:0.04,gr:0.03,inf:0.025,rs:0.08,rc:0.03,dp:0.1,pmi:0.006,refiOn:true,rateLR:0.04,glide:3,muMode:'auto'},
+  {loanType:'arm',armRate:0.055,armMargin:0.0275,armYears:5,rc:0.04,gh:0.03,N:12},{loanType:'fha',dp:0.035,mu:0.22},{moveMode:'buy',moveYear:4,gh:0.05,rs:0.07},{moveMode:'rent',moveYear:3,gh:-0.02},
+  {hhRent:800,hhShare:0.25,hhVac:0.05,taxOn:true},{extraPay:300,extraMode:'prepay'},{extraPay:300,extraMode:'invest'},{rentalOn:true,dpR:0.25,ratePrem:0.006,vacR:0.07,mgmt:0.09,landShare:0.2,taxOn:true}];
+ let same=true,why='';
+ cfgs.forEach((c,k)=>{const p=base(c),a=run(p,p.N,{detail:true}),b=run(p,p.N,{detail:true,trace:true});
+   ['buy','inv','cash','rental','cpi','lqB','lqR','budget','H'].forEach(f=>{if(JSON.stringify(a[f])!==JSON.stringify(b[f])){same=false;why+=`cfg ${k} ${f}; `}});
+   if(!b.tr||b.tr.years.length!==p.N||b.tr.ends.length!==p.N+1||b.tr.years[0].mo.length!==12){same=false;why+=`cfg ${k} trace shape; `}});
+ ok(same,'trace mode leaves every result unchanged and records each year and month',why)}
 if(typeof module!=='undefined')module.exports={M,base,run,ok,near};
 if(require.main===module){
   require('./run_new.js')({M,base,run,ok,near});

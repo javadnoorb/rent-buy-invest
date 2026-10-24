@@ -60,7 +60,8 @@ function plot(id,data,lay){const el=document.getElementById(id);
   if(el.dataset.wait){el.innerHTML='';delete el.dataset.wait}
   try{if(el.dataset.err){el.innerHTML='';delete el.dataset.err}const L=fitAxes(data,layout(lay));wrapTitles(L);
     // reference lines and bands go under the data (a marker on a guide line stays visible), except over a heatmap, which would hide them
-    if(L.shapes&&!data.some(d=>d.type==='heatmap'))L.shapes=L.shapes.map(s=>s.layer?s:Object.assign({},s,{layer:'below'}));Plotly.react(el,data,L,CFG);describeChart(el)}
+    if(L.shapes&&!data.some(d=>d.type==='heatmap'))L.shapes=L.shapes.map(s=>s.layer?s:Object.assign({},s,{layer:'below'}));Plotly.react(el,data,L,CFG);describeChart(el);
+    if(el.on&&!el._trw){el._trw=1;el.on('plotly_click',e=>traceClick(el,e))}traceHint(el)}
   catch(e){console.error(id,e);el.dataset.err=1;el.innerHTML=`<div class="note">This chart could not be drawn (${String(e.message||e).slice(0,160)}).</div>`}}
 const X=(t)=>({...layout().xaxis,title:{text:t,font:{size:11}}});
 const Yd=(t)=>({...layout().yaxis,title:{text:t,font:{size:11}},tickprefix:'$',tickformat:'~s'});
