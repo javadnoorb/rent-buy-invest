@@ -37,7 +37,9 @@ function drawMC(){if(!MC)return;mcSync();
      {x,y:p75,meta:'deco:band',mode:'lines',line:{width:0},showlegend:false,hoverinfo:'skip',legendgroup:name},
      {x,y:p25,meta:'deco:band',mode:'lines',line:{width:0},fill:'tonexty',fillcolor:hexA(col,.28),showlegend:false,legendgroup:name,hoverinfo:'skip'},
      {x,y:p50,meta,mode:'lines',line:{color:col,width:2.6},name:name+' (median)',legendgroup:name,customdata:x.map((_,k)=>[p5[k],p95[k]]),hovertemplate:'%{y:$,.0f} <span style="opacity:.7">[5–95%: %{customdata[0]:$,.0f} – %{customdata[1]:$,.0f}]</span>'}]};
-  plot('p-fan',[...band(res.cash,'Rent + T-bills',t.cash,'mc:cash'),...band(res.inv,'Rent + invest',t.inv,'mc:inv'),...band(res.buy,'Buy',t.buy,'mc:buy')].concat(P.rentalOn&&res.rental.length?band(res.rental,'Rent + rental',t.rp,'mc:rental'):[]),{xaxis:X('Years from today'),yaxis:Yd('Net worth, '+basisLabel())});
+  // every band first, then every median line on top, so no band tints another path's median
+  const bs=[band(res.cash,'Rent + T-bills',t.cash,'mc:cash'),band(res.inv,'Rent + invest',t.inv,'mc:inv'),band(res.buy,'Buy',t.buy,'mc:buy')].concat(P.rentalOn&&res.rental.length?[band(res.rental,'Rent + rental',t.rp,'mc:rental')]:[]);
+  plot('p-fan',bs.flatMap(b=>b.slice(0,4)).concat(bs.map(b=>b[4])),{xaxis:X('Years from today'),yaxis:Yd('Net worth, '+basisLabel())});
   // risk table
   const W0=P.P*(P.dp+P.close),floor=Math.max(1000,0.01*W0);
   const stats=(arr,lq)=>{const w=arr.map(a=>a[h]);const sorted=[...w].sort((a,b)=>a-b);const k=Math.max(1,Math.floor(0.05*w.length));
@@ -65,7 +67,7 @@ function drawMC(){if(!MC)return;mcSync();
   const ids=d.map((_,s)=>s);  // customdata: each value's path, for the trace panel
   plot('p-mchist',[{x:d.filter(v=>v<=0),customdata:ids.filter(s=>d[s]<=0),meta:'mc:hist',type:'histogram',xbins:xb,autobinx:false,name:'Renting ahead',marker:{color:hexA(t.inv,.8)},hovertemplate:'%{x}<br>%{y} paths<extra>renting ahead</extra>'},
     {x:d.filter(v=>v>0),customdata:ids.filter(s=>d[s]>0),meta:'mc:hist',type:'histogram',xbins:xb,autobinx:false,name:'Buying ahead',marker:{color:hexA(t.buy,.8)},hovertemplate:'%{x}<br>%{y} paths<extra>buying ahead</extra>'}],
-    {hovermode:'closest',barmode:'overlay',bargap:0.02,xaxis:{...X('Buy − (rent + invest), '+basisLabel()),tickprefix:'$',tickformat:'~s'},yaxis:Yt('Paths'),shapes:[{type:'line',x0:0,x1:0,yref:'paper',y0:0,y1:1,line:{color:t.ink,width:1.5}}]})}
+    {hovermode:'closest',barmode:'overlay',bargap:0.02,xaxis:{...X('Buy − (rent + invest), '+basisLabel()),tickformat:'$~s'},yaxis:Yt('Paths'),shapes:[{type:'line',x0:0,x1:0,yref:'paper',y0:0,y1:1,line:{color:t.ink,width:1.5}}]})}
   const dm=Math.max(1,...d.map(Math.abs));
   plot('p-mcsc',[{x:res.gH,y:res.gP,meta:'mc:sc',mode:'markers',type:'scatter',marker:{size:4,color:d,cmin:-dm,cmax:dm,colorscale:divScale(t).map(([k,c],i)=>[k,i===4?t.muted:c]),opacity:.8,
     colorbar:advBar(t,`Buy − rent<br>at year ${h}`,'$')},hovertemplate:'home %{x:.1f}%/yr, portfolio %{y:.1f}%/yr<br>%{marker.color:$,.0f}<extra></extra>'}],

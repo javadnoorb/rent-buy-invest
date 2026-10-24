@@ -52,7 +52,7 @@ let GROUP_STATE=null;
 function filterSettings(q){q=q.trim().toLowerCase();const groups=[...document.querySelectorAll('aside details')];document.getElementById('aside').classList.toggle('searching',!!q);
   if(q&&!GROUP_STATE)GROUP_STATE=groups.map(d=>d.open);
   let any=false;
-  groups.forEach((d,gi)=>{let hits=0;d.querySelectorAll('.f').forEach(row=>{const txt=row.textContent.toLowerCase();const hit=!q||txt.includes(q);row.hidden=!hit;if(hit&&!row.classList.contains('dep-off'))hits++});
+  groups.forEach((d,gi)=>{let hits=0;d.querySelectorAll('.f').forEach(row=>{const txt=row.textContent.toLowerCase();const hit=!q||txt.includes(q);row.hidden=!hit;if(hit)hits++});  // a setting that does not apply now still shows (dimmed) when searched for
     const extra=d.querySelector('.presets');if(extra){extra.hidden=!!q;if(extra.nextElementSibling&&extra.nextElementSibling.classList.contains('hint'))extra.nextElementSibling.hidden=!!q}
     d.hidden=!!q&&!hits;if(q&&hits){d.open=true;any=true}});
   if(!q&&GROUP_STATE){groups.forEach((d,i)=>d.open=GROUP_STATE[i]);GROUP_STATE=null}

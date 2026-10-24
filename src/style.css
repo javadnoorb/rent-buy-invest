@@ -174,7 +174,17 @@ button.ghost{background:transparent}
 .answer{font-size:15px;line-height:1.45;padding:10px 12px;border-radius:8px;background:var(--sunk);max-width:90ch}
 .conf{display:inline-block;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:2px 7px;border-radius:999px;margin-right:6px;vertical-align:1px;border:1px solid currentColor}
 .conf.buy{color:var(--buy-t)} .conf.inv{color:var(--inv-t)} .conf.lo{color:var(--muted)}
-.kv.cmp td.better{color:var(--buy-t);font-weight:600}
+/* the better value: bold with a check, in the text colour (buy-orange would read as "buying") */
+/* phones: the two-place and two-scenario tables fit the width (label column narrower, values wrap, smaller type)
+   instead of hiding column B off to the right */
+@media (max-width:600px){
+  .kv.sbs,.kv.cmp{table-layout:fixed;font-size:12px}
+  .kv.sbs td,.kv.cmp td,.kv.sbs th,.kv.cmp th{white-space:normal;overflow-wrap:anywhere;padding:6px 5px}
+  .kv.sbs td:first-child,.kv.sbs th:first-child,.kv.cmp td:first-child,.kv.cmp th:first-child{min-width:0;width:38%;position:static}
+}
+#cmpA,#cmpB{min-width:10em;max-width:100%}
+.kv.cmp td.better{font-weight:700}
+.kv.cmp td.better::after{content:' ✓';color:var(--muted);font-weight:400}
 .wizard{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;padding:0 env(safe-area-inset-right,0px) 0 env(safe-area-inset-left,0px)}
 @media (min-width:700px){.wizard{align-items:center}}
 .wz-card{background:var(--surface);color:var(--ink);width:min(560px,100%);border-radius:14px 14px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;box-shadow:0 -10px 40px rgba(0,0,0,.3);max-height:90vh;overflow:auto}
@@ -255,10 +265,13 @@ table.notation td:last-child{color:var(--muted)}
 .method mjx-container:not([display="true"]){max-width:100%;overflow-x:auto;overflow-y:hidden;vertical-align:middle}
 .method p,.method dd,.method dt,.method li{overflow-wrap:anywhere}
 @media (max-width:600px){.method mjx-container[display="true"]{font-size:86%!important}.method mjx-container{font-size:94%}}
+/* an inline formula longer than a phone line scrolls in its own box instead of widening the page */
+@media (max-width:600px){.method mjx-container:not([display="true"]){display:inline-block;max-width:100%;overflow-x:auto;overflow-y:hidden;vertical-align:middle}}
 /* pop-up help */
 .hlp{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;min-height:0!important;min-width:0!important;padding:0!important;margin:0 0 0 4px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);font:600 10.5px/1 system-ui,sans-serif;cursor:pointer;vertical-align:middle;flex:none;position:relative}
 .hlp::after{content:"";position:absolute;inset:-8px}
-.hlp:hover,.hlp:focus-visible{color:var(--accent);border-color:var(--accent);outline:none}
+.hlp:hover,.hlp:focus-visible{color:var(--accent);border-color:var(--accent)}
+.hlp:hover{outline:none}.hlp:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .hpop{position:fixed;z-index:1000;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:10px 12px;font-size:13px;line-height:1.45;max-height:60vh;overflow:auto}
 .hpop[hidden]{display:none!important}
 .hpop-t{font-weight:650;margin-bottom:4px}
@@ -391,8 +404,14 @@ table.loct td:first-child{min-width:150px}
   .plot,.takeaway,.verdict .bars{break-inside:avoid}
   .plot{max-width:100%;overflow:hidden}
   #openWizard,.verdict details.more>summary{display:none!important}
+  /* keep the result bars, tags and colour keys (browsers drop backgrounds by default); no buttons or form chrome */
+  .bars,.bar,.pill,.who,.conf,.legend,.sw{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  button{display:none!important}
+  select,input{-webkit-appearance:none;appearance:none;border:none!important;background:none!important;padding:0!important;color:#000!important}
+  h2,h3{break-after:avoid}
 }
-#countyQ{margin-top:6px;width:100%;box-sizing:border-box}
+#countyQ{margin-top:6px;width:100%;box-sizing:border-box;font:inherit;font-size:14px;padding:6px 7px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+#countyQ::-webkit-calendar-picker-indicator{opacity:.5}
 /* "est." / "use est." next to the rent in the top card */
 .qtag{font-size:10.5px;font-weight:500;color:var(--muted);margin-left:2px}
 .qlink{font:inherit;color:var(--accent);background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
@@ -416,7 +435,11 @@ table.sbs tr.sbs-head td{font-weight:600}
 
 /* settings that depend on another one: indented under it, hidden while it is off */
 .f.dep{margin-left:10px;padding-left:10px;border-left:2px solid var(--line)}
+.plot.traceable:focus-visible{outline:2px solid var(--accent,#2b6cb0);outline-offset:2px}
 .f.dep-off{display:none!important}
+/* searching finds settings that do not apply at the current choices too, dimmed and marked */
+#aside.searching .f.dep-off:not([hidden]){display:grid!important;opacity:.6}
+#aside.searching .f.dep-off:not([hidden])::after{content:'Does not apply with your current choices';grid-column:1/-1;font-size:11.5px;color:var(--muted)}
 /* model, data and assumptions under each chart; folded tables */
 dd.cinfo div{margin:2px 0}
 dd.cinfo a{color:var(--accent)}
@@ -435,9 +458,13 @@ aside.basic:not(.searching) .f:not(.core),aside.basic:not(.searching) details.no
   /* phones: a shorter intro (the full one doesn't fit; a cut-off one reads badly) and compact cards, so the answer starts higher on the first screen */
   .lede .llong{display:none}.lede .lshort{display:inline}
   :root{--snap-h:96px}
-  .snap{grid-auto-columns:minmax(132px,42%)!important}
+  .snap{grid-auto-columns:minmax(168px,47%)!important;align-items:start}  /* a long card (rent) doesn't stretch the rest */
   .chip{padding:6px 8px}
   .chip .v{font-size:15px}
+  /* one-line name and one-line source row, so a card is about 90px instead of 150px */
+  .chip .kt{white-space:nowrap;overflow:hidden;text-overflow:clip}
+  .chip .s{font-size:11px;line-height:1.35}
+  header .asof{font-size:12px;margin:4px 0 0}
 }
 /* touch: larger invisible hit areas for the small "?" buttons, and the words next to the answer's "?" open it too */
 .vlab{cursor:pointer}

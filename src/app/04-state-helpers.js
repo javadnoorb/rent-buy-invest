@@ -64,7 +64,7 @@ function plot(id,data,lay){const el=document.getElementById(id);
     if(el.on&&!el._trw){el._trw=1;el.on('plotly_click',e=>traceClick(el,e))}traceHint(el)}
   catch(e){console.error(id,e);el.dataset.err=1;el.innerHTML=`<div class="note">This chart could not be drawn (${String(e.message||e).slice(0,160)}).</div>`}}
 const X=(t)=>({...layout().xaxis,title:{text:t,font:{size:11}}});
-const Yd=(t)=>({...layout().yaxis,title:{text:t,font:{size:11}},tickprefix:'$',tickformat:'~s'});
+const Yd=(t)=>({...layout().yaxis,title:{text:t,font:{size:11}},tickformat:'$~s'});
 const Yt=(t,extra)=>({...layout().yaxis,title:{text:t,font:{size:11}},...(extra||{})});
 const basisLabel=()=>REAL?"today's $":'nominal $';
 /* colour bar for buy-minus-rent heat maps: a titled scale ($ or %) with which end favours buying and which renting */
@@ -85,10 +85,16 @@ const placePal=t=>isDark(t)?['#9085e9','#199e70','#c98500','#d55181','#2e9e2e']:
 const SEQ_LIGHT=['#d9d4f5','#b2a8ec','#8a7be0','#6250d6','#4733a8','#2f1f78'],SEQ_DARK=['#3a3170','#4f43a0','#6a5cc8','#8a7ee0','#aea4ee','#d4cff8'];
 function seqAt(seq,f){const x=Math.max(0,Math.min(1,f))*(seq.length-1),i=Math.min(seq.length-2,Math.floor(x)),u=x-i,h=c=>[1,3,5].map(k=>parseInt(c.slice(k,k+2),16));
   const a=h(seq[i]),b=h(seq[i+1]);return '#'+a.map((v,j)=>Math.round(v+(b[j]-v)*u).toString(16).padStart(2,'0')).join('')}
+/* a pale version of a series colour for a secondary part (tax savings, forgone return): see-through over a light page;
+   on a dark page see-through goes muddy brown, so mix toward white instead and keep it opaque */
+const softCol=(t,c,a=.35)=>{if(!isDark(t))return hexA(c,a);const h=c.replace('#',''),n=parseInt(h,16),m=v=>Math.round(v+(255-v)*.4);
+  return '#'+[n>>16&255,n>>8&255,n&255].map(v=>m(v).toString(16).padStart(2,'0')).join('')+'b3'};
 const isDark=t=>{const h=(t.bg||'#fff').replace('#','');const n=parseInt(h.length===3?h.split('').map(c=>c+c).join(''):h,16);return ((n>>16&255)*.299+(n>>8&255)*.587+(n&255)*.114)<128};
 const DIV_LIGHT=['#0d366b','#1c5cab','#3987e5','#9ec5f4','#e4e3df','#f3b39b','#e8693a','#b8441c','#7a2810'];
 const DIV_DARK=['#4a9bff','#2f7de0','#2361ad','#1d3f6e','#3a3a37','#6e3322','#b04a24','#e0602b','#ff7a45'];
 const divScale=t=>{const c=isDark(t)?DIV_DARK:DIV_LIGHT;return c.map((v,i)=>[i/(c.length-1),v])};
 /* break-even line (z = 0) drawn over a heatmap */
+/* a legend entry for a line drawn some other way (a contour): an empty line trace with the same look */
+const keyLine=(name,line)=>({x:[null],y:[null],mode:'lines',line,name,meta:'deco:key',hoverinfo:'skip'});
 const zeroContour=(x,y,z,t)=>({x,y,z,type:'contour',meta:'deco:contour',showscale:false,hoverinfo:'skip',contours:{coloring:'none',start:0,end:0,size:1,showlabels:false},line:{color:t.ink,width:2,dash:'dot'},connectgaps:false,name:'break-even',showlegend:false});
 

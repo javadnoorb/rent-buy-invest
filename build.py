@@ -368,7 +368,8 @@ app = ''.join(open(f).read() for f in sorted(glob.glob(D('src', 'app', '*.js')))
 head = '''<title>Rent, Buy or Invest</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=optional">
 '''
 mj = '''<script>
 window.MathJax={tex:{inlineMath:[['\\\\(','\\\\)']],displayMath:[['\\\\[','\\\\]']]},options:{enableMenu:false},svg:{fontCache:'global'},startup:{typeset:false}};
@@ -390,6 +391,9 @@ if PWA:
             '<meta name="apple-mobile-web-app-title" content="Rent·Buy">\n'
             '<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">\n<link rel="icon" type="image/png" href="icons/favicon-32.png">\n'
             + head +
+            # hide what the script builds (settings, market cards, answer) until it has; a 4 s fallback if it never runs
+            '<script>document.documentElement.classList.add("pre")</script>\n'
+            '<style>html.pre .snap,html.pre .layout{visibility:hidden;animation:rbi-show 0s 4s forwards}@keyframes rbi-show{to{visibility:visible}}</style>\n'
             '<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}'
             'body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-text-size-adjust:100%}img{max-width:100%}[hidden]{display:none!important}</style>\n'
             '</head>\n<body>\n')

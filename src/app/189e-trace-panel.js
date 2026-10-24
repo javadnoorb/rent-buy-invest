@@ -33,7 +33,8 @@ function tracePanel(){let pn=document.getElementById('trp');if(pn)return pn;
   pn.querySelector('.trtall').onclick=e=>{const on=document.body.classList.toggle('trace-tall');e.currentTarget.setAttribute('aria-pressed',String(on))};
   pn.addEventListener('click',e=>{const a=e.target.closest('a[data-ci-set],a[data-ci-sec]');if(a&&innerWidth<700)setTimeout(closeTrace,0)});
   addEventListener('keydown',e=>{if(e.key==='Escape'&&!pn.hidden)closeTrace()});return pn}
-function closeTrace(){const pn=document.getElementById('trp'),was=pn&&!pn.hidden;if(pn)pn.hidden=true;document.body.classList.remove('trace-open','trace-dock','trace-tall');if(was)requestAnimationFrame(resizePlots);if(TRACE_OPEN&&TRACE_OPEN.el)TRACE_OPEN.el.focus&&TRACE_OPEN.el.focus({preventScroll:true})}
+// focus goes back to the chart the panel came from (charts with explainable points take focus, see traceKeys)
+function closeTrace(){const pn=document.getElementById('trp'),was=pn&&!pn.hidden;if(pn)pn.hidden=true;document.body.classList.remove('trace-open','trace-dock','trace-tall');if(was)requestAnimationFrame(resizePlots);const el=TRACE_OPEN&&TRACE_OPEN.el;if(was&&el&&el.focus){if(el.tabIndex<0)el.tabIndex=-1;el.focus({preventScroll:true})}}
 function openTrace(r,el){const pn=tracePanel();TRACE_OPEN={el,r,stack:[{node:r.node,sym:ownSym(r.node)}]};
   const card=el&&el.closest('.card'),h=card&&card.querySelector('h2');
   document.getElementById('trpS').textContent=(h?h.textContent.replace(/\?/g,'').trim()+' · ':'')+r.title;
@@ -93,6 +94,17 @@ function traceNumbers(nd,b){const vals=b.kids.map(k=>k.v);
   if(b.op==='prod')return b.kids.map(k=>trUnit(k.v,k.u)).join(' × ');
   return b.show?b.show(vals,b.kids):''}
 /* a short line under each chart that can be traced, saying so */
-function traceHint(el){if(!el||el.dataset.trh||!el.data||!el.data.some(d=>d.meta&&TRACE_RECIPES[d.meta]))return;el.dataset.trh=1;el.classList.add('traceable');
+/* keyboard: a chart with explainable points takes focus; Enter selects a point (then Enter again explains it), Left and
+   Right move along the series, Up and Down switch series. Lines, bars and scatters only; heat maps and histograms
+   still need a pointer. */
+function traceKeys(el){const ser=()=>(el.data||[]).map((d,c)=>({d,c})).filter(({d})=>d.meta&&TRACE_RECIPES[d.meta]&&d.type!=='heatmap'&&d.type!=='histogram'&&d.x&&d.x.length&&d.visible!==false);
+  if(!ser().length)return;el.tabIndex=0;el.setAttribute('role','group');
+  const card=el.closest('.card'),h=card&&card.querySelector('h2');el.setAttribute('aria-label',`${h?h.textContent.replace(/\?/g,'').trim()+': ':''}chart. Press Enter to pick a value to explain; arrow keys move between values.`);
+  el.addEventListener('keydown',e=>{const S=ser();if(!S.length)return;let k=el._kp;const pick=(s,i)=>{const {d,c}=S[s],j=Math.max(0,Math.min(d.x.length-1,i));el._kp={s,i:j};
+      traceBar(el,{curveNumber:c,pointNumber:j,x:d.x[j],y:d.y?d.y[j]:null,customdata:d.customdata?d.customdata[j]:undefined})};
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();if(!k)return pick(0,S[0].d.x.length-1);const {d,c}=S[k.s]||S[0];traceOpenPoint(el,{curveNumber:c,pointNumber:k.i,x:d.x[k.i],y:d.y?d.y[k.i]:null,customdata:d.customdata?d.customdata[k.i]:undefined});return}
+    if(!k)return;const mv={ArrowLeft:[0,-1],ArrowRight:[0,1],ArrowUp:[-1,0],ArrowDown:[1,0]}[e.key];if(!mv)return;e.preventDefault();
+    const s=(k.s+mv[0]+S.length)%S.length;pick(s,mv[0]?Math.min(k.i,S[s].d.x.length-1):k.i+mv[1])})}
+function traceHint(el){if(!el||el.dataset.trh||!el.data||!el.data.some(d=>d.meta&&TRACE_RECIPES[d.meta]))return;el.dataset.trh=1;el.classList.add('traceable');traceKeys(el);
   const after=el.nextElementSibling&&el.nextElementSibling.classList.contains('takeaway')?el.nextElementSibling:el;
-  after.insertAdjacentHTML('afterend',`<p class="trhint">${TOUCH?'Tap':'Click'} a point, then "How was this computed?" to see its equations and data.</p>`)}
+  after.insertAdjacentHTML('afterend',`<p class="trhint">${TOUCH?'Tap':'Click'} a point${el.tabIndex===0&&!TOUCH?' (or focus the chart and press Enter)':''}, then "How was this computed?" to see its equations and data.</p>`)}

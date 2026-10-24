@@ -9,8 +9,9 @@ function renderOpt(){renderAfford();
   const best=H.map((h,j)=>{let bi=0;DP.forEach((_,i)=>{if(res[i][j]>res[bi][j])bi=i});return DP[bi]});
   plot('p-opt',[{x:DP.map(String),y:H,z,type:'heatmap',meta:'opt:z',zsmooth:'best',zmin:-zmax,zmax,colorscale:divScale(t),colorbar:advBar(t,'Buy − rent','$'),customdata:z.map(r=>r.map(v=>(100*v/p.P).toFixed(0))),hovertemplate:'%{x}% down, after %{y} yr: buy − rent %{z:$,.0f} (%{customdata}% of price)<extra></extra>'},
     {x:DP.map(String),y:H,z,type:'contour',meta:'deco:contour',contours:{start:0,end:0,size:1,coloring:'none'},line:{color:t.ink,width:1.5},showscale:false,hoverinfo:'skip'},
-    {x:best.map(String),y:H,meta:'opt:best',mode:'markers',marker:{size:7,color:t.ink,symbol:'circle'},name:'Best down payment',hovertemplate:'best at %{y} yr: %{x}% down<extra></extra>'}],
-    {hovermode:'closest',showlegend:false,xaxis:{...X(`Down payment (%), ${OPT_TERM}-year loan`),type:'category'},yaxis:Yt('Horizon (years)'),annotations:advEnds(t)});
+    {x:best.map(String),y:H,meta:'opt:best',mode:'markers',marker:{size:7,color:t.ink,symbol:'circle'},name:'Best down payment for each horizon',hovertemplate:'best at %{y} yr: %{x}% down<extra></extra>'},
+    keyLine('Break-even (buy = rent)',{color:t.ink,width:1.5})],
+    {hovermode:'closest',showlegend:true,xaxis:{...X(`Down payment (%), ${OPT_TERM}-year loan`),type:'category'},yaxis:Yt('Horizon (years)'),annotations:advEnds(t)});
   const HS=[3,5,7,10,15,20,30];
   const solve=(h,key,lo,hi,map)=>{const q=Object.assign({},p,{N:h});const r=bisect(v=>advAt(q,map?map(v):{[key]:v}),lo,hi,32);return r};
   /** @type {any[]} */const rowsDef=[['Rent ($/mo)',h=>solve(h,'rent0',10,Math.max(500,p.rent0*6)),v=>fmtFull(v),fmtFull(p.rent0)],

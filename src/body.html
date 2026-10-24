@@ -124,7 +124,7 @@
     <div class="card"><h2>What moves the answer</h2><p class="cap">Change in the final advantage of buying over renting and investing when each input moves by the stated amount, all else fixed. Bars right of zero favor buying.</p><div class="plot tall" id="p-tor"></div>
       <div class="takeaway" id="tk-tor"></div>
       <details class="how"><summary>How to read this</summary><dl class="read"><dt>What you see</dt><dd>Each row is one input. The bars show how much the final buy-minus-rent gap changes if that input goes up (orange) or down (blue) by the stated amount. The axis title shows the starting gap.</dd><dt>What to look for</dt><dd>The longest bars are the assumptions that matter most, so check those against real quotes and your own judgment. If a bar is longer than the starting gap and points the other way, that input alone can flip the decision.</dd><dt>Keep in mind</dt><dd>Inputs move one at a time here. In reality some move together; for example, high inflation tends to raise rents, home prices and mortgage rates at once.</dd></dl></details></div>
-    <div class="card tech"><h2>Home appreciation × portfolio return</h2><p class="cap">How far buying ends ahead of renting and investing at your horizon (dollars), across nominal growth rates. Black contour: break-even. Marker: your assumption.</p><div class="plot tall" id="p-heat"></div>
+    <div class="card tech"><h2>Home appreciation × portfolio return</h2><p class="cap">How far buying ends ahead of renting and investing at your horizon (dollars), across nominal growth rates. Dotted line: break-even. Marker: your assumption.</p><div class="plot tall" id="p-heat"></div>
       <div class="takeaway" id="tk-heat"></div>
       <details class="how"><summary>How to read this</summary><dl class="read"><dt>What you see</dt><dd>x: yearly home appreciation. y: yearly portfolio return before fees. Color: buy minus rent at your horizon, in dollars (orange, buying wins; blue, renting wins); hover for the same as a % of the price. The black line is a tie, and ✕ marks your assumptions.</dd><dt>What to look for</dt><dd>How far ✕ sits from the black line is your margin of safety. The slope of the line tells you how many points of extra home appreciation offset one point of extra stock return. Leverage makes home appreciation count for more, so the line is usually steeper than 45°: a small rise in home appreciation offsets a large rise in portfolio return.</dd><dt>Keep in mind</dt><dd>All other inputs are held at your settings.</dd></dl></details></div>
     <div class="card"><h2>Break-even year vs. rent</h2><p class="cap">Advantage of buying at each horizon for different rents, holding the price fixed.</p><div class="plot" id="p-ptr"></div>
@@ -229,7 +229,7 @@
         <dt>Housing ÷ income</dt><dd>Month-1 owning cost over your gross monthly income. Green when housing is within 28% of income and all debt within 36%; amber up to 43% for all debt (a conservative lender limit); red above. The same household may not qualify for a mortgage everywhere.</dd>
         <dt>Taxes and what's left out</dt><dd>State income tax follows each location's state unless you enter it manually; the United States row has no state, so it keeps your current state-tax settings. County-wide income and transfer taxes are included where the state rules list them; most city-only taxes and local homestead exemptions are not. Local pay differences are not modeled.</dd></dl></details>
     </div>
-    <div class="card"><h2>Side by side</h2>
+    <div class="card"><h2>Two places side by side</h2>
       <p class="cap">Any two places, including counties and ZIP codes, with your household and settings. The growth mode above applies here too.</p>
       <div class="sbs-pick"><div><label for="sbsA">Place A</label><input id="sbsA" list="sbsList" autocomplete="off" placeholder="Metro, county or ZIP"></div>
         <div><label for="sbsB">Place B</label><input id="sbsB" list="sbsList" autocomplete="off" placeholder="Metro, county or ZIP"></div>
@@ -250,7 +250,7 @@
       <div class="controls"><input type="text" id="scName" placeholder="e.g. Boston condo, 20% down" aria-label="Scenario name"><button class="primary" id="scSave">Save current</button><span class="sub" id="scMsg"></span></div>
       <div class="scen" id="scList"></div>
     </div>
-    <div class="card"><h2>Side by side</h2><p class="cap">Pick any two: the current inputs or a saved scenario. The better value in each row is highlighted.</p>
+    <div class="card"><h2>Two scenarios side by side</h2><p class="cap">Pick any two: the current inputs or a saved scenario. The better value in each row is highlighted.</p>
       <div class="controls"><label>A <select id="cmpA"></select></label><label>B <select id="cmpB"></select></label></div>
       <div class="tablewrap" style="max-height:none"><table class="kv cmp" id="cmpT"></table></div>
       <div class="plot" id="p-cmp"></div>
@@ -304,7 +304,7 @@
 <div class="wizard" id="wizard" hidden role="dialog" aria-modal="true" aria-labelledby="wz-title">
   <div class="wz-card">
     <div class="wz-top"><strong id="wz-title">Quick setup</strong><button id="wz-skip" class="ghost">Skip</button></div>
-    <div class="wz-step"><h2>Where are you looking?</h2><p class="cap">Sets typical prices, rents, property tax and insurance for that area. You can change any of them later.</p><select id="wz-metro" aria-label="Location"></select></div>
+    <div class="wz-step"><h2>Where are you looking?</h2><p class="cap">Sets typical prices, rents, property tax and insurance for that area. You can change any of them later.</p><select id="wz-metro" aria-label="Location"></select><p class="cap">For a county or ZIP code, finish here and type it under Location in the settings.</p></div>
     <div class="wz-step" hidden><h2>What are you looking at?</h2><p class="cap">Use a real listing and a rental of similar size if you have them.</p>
       <div class="wz-grid">
         <div class="q"><label for="wz-P">Home price</label><div class="inp"><span class="pre">$</span><input id="wz-P" type="text" data-money="1" autocomplete="off" inputmode="decimal"></div></div>

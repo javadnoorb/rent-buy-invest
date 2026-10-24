@@ -129,8 +129,9 @@ function loadScript(u){return new Promise((res,rej)=>{const sc=document.createEl
 (async()=>{
   // the cartesian build (scatter, bar, heatmap, contour, histogram) is all the app draws: about 1.4 MB instead of 4.6 MB
   const urls=LOCAL_LIBS.concat(['https://cdn.jsdelivr.net/npm/plotly.js-cartesian-dist-min@2.35.2/plotly-cartesian.min.js','https://unpkg.com/plotly.js-cartesian-dist-min@2.35.2/plotly-cartesian.min.js','https://cdn.plot.ly/plotly-2.35.2.min.js']);
-  // the numbers render right away; charts are drawn when the library has loaded
-  init();
+  // the numbers render right away; charts are drawn when the library has loaded. The settings and market cards stay
+  // hidden until built (html.pre, see build.py), so the first paint doesn't jump
+  try{init()}finally{document.documentElement.classList.remove('pre')}
   for(const u of urls){if(window.Plotly)break;try{await loadScript(u)}catch(e){}}
   if(!window.Plotly){window.Plotly={react(){throw new Error('the charting library did not load; check your connection and reload')}}}
   plotFlush(!!window.Plotly.Plots);

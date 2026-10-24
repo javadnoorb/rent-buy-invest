@@ -48,10 +48,10 @@ const { chromium } = require(process.env.PLAYWRIGHT_PATH || 'playwright');
     if (tex.unrendered) failed.push(`${tex.unrendered} formulas left unrendered`);
     console.log(`formulas rendered: ${tex.rendered}`);
     // phone width: the page itself must never scroll sideways; long equations scroll inside their own box
-    const ov = await page.evaluate(() => ({ page: document.documentElement.scrollWidth - innerWidth,
+    const ov = await page.evaluate(() => ({ page: document.documentElement.scrollWidth - innerWidth, wide: [...document.querySelectorAll('body *')].filter(e => { const r = e.getBoundingClientRect(); if (!(r.width > 0 && r.right > innerWidth + 1)) return false; for (let p = e.parentElement; p; p = p.parentElement) if (getComputedStyle(p).overflowX !== 'visible') return false; return true; }).slice(0, 3).map(e => `${e.tagName.toLowerCase()}${e.id ? '#' + e.id : ''}.${String(e.className).split(' ')[0]} "${e.textContent.trim().slice(0, 40)}"`),
       note: (w => w ? w.scrollWidth - w.clientWidth : 0)(document.querySelector('.notewrap')), eq: [...document.querySelectorAll('#tab-method mjx-container[display="true"]')].filter(e => e.scrollWidth > e.clientWidth + 2).length }));
     if (ov.note > 1) failed.push(`notation table is ${ov.note}px wider than a 390px phone screen`);
-    if (ov.page > 1) failed.push(`page is ${ov.page}px wider than a 390px phone screen`);
+    if (ov.page > 1) failed.push(`page is ${ov.page}px wider than a 390px phone screen: ${ov.wide.join('; ')}`);
     console.log(`equations needing horizontal scroll at 390px: ${ov.eq}`);
     const wide = await page.evaluate(() => MathJax.startup.document.getMathItemsWithin(document.getElementById('tab-method'))
       .filter(m => m.display && m.typesetRoot && m.typesetRoot.scrollWidth > m.typesetRoot.clientWidth + 2)

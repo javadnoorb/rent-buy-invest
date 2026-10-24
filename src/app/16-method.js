@@ -186,7 +186,7 @@ function buildMethod(){
 }
 /* MathJax (2.3 MB) is loaded the first time a tab with formulas opens, not with the page */
 /* a display equation wider than its box scrolls sideways; keyboard users reach it with Tab (and scroll with the arrows) */
-function eqFocus(el){el.querySelectorAll('mjx-container[display="true"]').forEach(c=>{if(c.scrollWidth>c.clientWidth+1)c.tabIndex=0})}
+function eqFocus(el){el.querySelectorAll('mjx-container').forEach(c=>{if(c.scrollWidth>c.clientWidth+1)c.tabIndex=0})}
 // equations typeset inside a closed section have no width yet: check again when it opens
 document.addEventListener('toggle',e=>{const t=/** @type {any} */(e.target);if(t&&t.open&&t.querySelector)eqFocus(t)},true);
 function typeset(el,tries=0){if(window.MathJax&&MathJax.typesetPromise){MathJax.typesetPromise([el]).then(()=>eqFocus(el)).catch(()=>{});return}
