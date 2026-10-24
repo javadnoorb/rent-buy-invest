@@ -27,7 +27,7 @@ function renderHist(){
     line:{width:1.3,color:`rgba(${Math.round(40+180*c)},${Math.round(90+40*(1-c))},${Math.round(200-150*c)},0.7)`},hovertemplate:`start ${r.lab}: %{y:.0f}%<extra></extra>`}}));
   const med=[];for(let h=0;h<=30;h++){const v=runs.filter(r=>r.adv.length>h).map(r=>r.adv[h]).sort((a,b)=>a-b);if(v.length>=5)med.push([h,v[Math.floor(v.length/2)]])}
   sp.push({x:med.map(m=>m[0]),y:med.map(m=>m[1]),mode:'lines',name:'Median across starts',line:{color:t.ink,width:3.5},hovertemplate:'median %{y:.0f}%<extra></extra>'});
-  plot('p-spag',sp,{hovermode:'closest',xaxis:X('Years after purchase'),yaxis:Yt('Buy − rent&invest, real, % of price',{ticksuffix:'%'}),
+  plot('p-spag',sp,{hovermode:'closest',xaxis:X('Years after purchase'),yaxis:Yt('Buy − (rent + invest), real, % of price',{ticksuffix:'%'}),
     margin:{t:24},annotations:[{xref:'paper',yref:'paper',x:0,y:1,xanchor:'left',yanchor:'bottom',showarrow:false,text:'early starts blue → recent red',font:{size:11,color:t.muted}}]});
   const H=[...Array(30)].map((_,k)=>k+1),xs=runs.map(r=>r.s);
   const z=H.map(h=>runs.map(r=>r.adv.length>h?r.adv[h]:null));

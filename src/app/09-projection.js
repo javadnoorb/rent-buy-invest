@@ -47,15 +47,15 @@ function renderProj(){
   document.getElementById('ytable').innerHTML='<thead><tr>'+cols.map(c=>`<th>${c[1]}</th>`).join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+cols.map(c=>`<td>${v(r,c[0])}</td>`).join('')+'</tr>').join('')+'</tbody>';
   const csv=[cols.map(c=>c[1]+(c[0]!=='year'&&c[0]!=='mortRate'?` (${basisLabel()})`:'')).join(',')].concat(rows.map(r=>cols.map(c=>{const x=r[c[0]];if(x==null)return '';if(c[0]==='year')return x;if(c[0]==='mortRate')return (x*100).toFixed(3);if(c[0]==='hti')return (x*100).toFixed(1);return Math.round(adj(x,r.cpiIndex))}).join(','))).join('\n');
   document.getElementById('csvText').value=csv;document.getElementById('ytBasis').textContent=basisLabel();
-  {const N=P.N,c=o.cpi[N],gap=adj(o.buy[N]-o.inv[N],c);
-   let t1=`At year ${N}: ${gapTxt(gap)}. `+(be?(be<=N?`Buying pulls ahead for good in year ${be}.`:`Buying pulls ahead only after year ${be}.`):`Buying does not pull ahead within ${nY(N)} at these growth rates.`);
-   if(showBand&&MC&&MC.res){const r=(a,f)=>q(a.map(x=>x[N]),f);t1+=` In the middle half of simulated futures, buying ends at ${fmt(r(MC.res.buy,.25))}–${fmt(r(MC.res.buy,.75))} and renting-and-investing at ${fmt(r(MC.res.inv,.25))}–${fmt(r(MC.res.inv,.75))}${r(MC.res.buy,.75)>r(MC.res.inv,.25)&&r(MC.res.inv,.75)>r(MC.res.buy,.25)?', so the ranges overlap and luck could decide it':''}.`}
+  {const N=P.N,c=o.cpi[N],gap=adj(o.buy[N]-o.inv[N],c),ref=adj(Math.max(o.buy[N],o.inv[N]),c);
+   let t1=`At year ${N}: ${gapTxt(gap,ref)}. `+(be?`Buying pulls ahead in year ${be} and stays ahead through year ${N}`+((s=>s&&s.until&&s.until>N?`; at these growth rates renting moves back ahead in year ${s.until}.`:'.')(aheadSpell(runConst(P,{},30).o))):`Buying does not pull ahead within ${nY(N)} at these growth rates.`);
+   if(showBand&&MC&&MC.res){const r=(a,f)=>q(a.map(x=>x[N]),f);t1+=` In the middle half of simulated futures, buying ends at ${fmt(r(MC.res.buy,.25))}–${fmt(r(MC.res.buy,.75))} and renting and investing at ${fmt(r(MC.res.inv,.25))}–${fmt(r(MC.res.inv,.75))}${r(MC.res.buy,.75)>r(MC.res.inv,.25)&&r(MC.res.inv,.75)>r(MC.res.buy,.25)?', so the ranges overlap and luck could decide it':''}.`}
    if(P.rentalOn&&o.rental[N]!=null){const rv=adj(o.rental[N],c),iv=adj(o.inv[N],c);t1+=` Renting and buying a rental property ends at ${fmt(rv)}, ${rv>=iv?fmt(rv-iv)+' more':fmt(iv-rv)+' less'} than renting and investing in the portfolio.`}
    if(P.moveMode!=='none'){t1+=P.moveYear>0&&P.moveYear<N?` The dotted line marks the planned move in year ${P.moveYear}.`:` The planned move (year ${P.moveYear}) is not before your ${N}-year horizon, so it has no effect; lower it or lengthen the horizon.`}
    tk('nw',t1);
    const f1=fl[0],cheap=fl.findIndex(f=>f.own<f.rent);
-   tk('flow',`In year 1 owning costs ${fmtFull(adj(f1.own,f1.cpi))}/mo against ${fmtFull(adj(f1.rent,f1.cpi))}/mo for renting; ${fmtFull(adj(f1.principal,f1.cpi))} of that goes to principal and stays yours. `+
-     (cheap===0?'Owning is the cheaper month from the start.':cheap>0?`Owning becomes the cheaper month in year ${cheap+1}, as rent rises and the payment stays fixed.`:`Owning stays the more expensive month for all ${nY(fl.length)}.`));
+   tk('flow',`In year 1, on average and after tax savings, owning costs ${fmtFull(f1.own)}/mo against ${fmtFull(f1.rent)}/mo for renting; ${fmtFull(f1.principal)} of that goes to principal and stays yours. `+
+     (cheap===0?'Owning is the cheaper month from the start.':cheap>0?`Owning becomes the cheaper month in year ${cheap+1}, as rent rises and the payment stays fixed.`:`Owning stays the more expensive month ${fl.length===1?'in year 1':`in all ${fl.length} years`}.`));
    const u0=u[0],need=(u0.own-u0.rent)/P.P;
    tk('unrec',`Year 1 unrecoverable cost of owning is ${fmtFull(adj(u0.own,u0.cpi))} (${pct(u0.own/P.P)} of the price) against ${fmtFull(adj(u0.rent,u0.cpi))} of rent. `+
      (need>0?`The home has to gain about ${pct(need)} that year just to match renting; you assume ${pct(P.gh)}.`:`Owning is already ${fmtFull(-adj(u0.own-u0.rent,u0.cpi))} cheaper than renting before any appreciation.`));
@@ -63,6 +63,6 @@ function renderProj(){
    tk('comp',`At year ${N}, ${pct(Math.max(0,Math.min(1,sh)),0)} of the buyer's net worth is home equity and ${pct(Math.max(0,Math.min(1,1-sh)),0)} is invested. Selling would cost about ${fmt(adj(o.H[N]*P.sell,c))} in commission and fees.`);
    const mo=o.lqB.map((v,k)=>(v+(P.heloc>0?o.heloc[k]:0))/(bud[k]||1)),low=mo.slice(1).findIndex(v=>v>=3);
    tk('liq',(P.heloc>0?'Counting the home-equity line: ':'')+(mo.slice(1).every(v=>v>=3)?'The buyer keeps at least 3 months of costs in liquid assets throughout.':
-     (low<0?`The buyer stays below 3 months of costs in liquid assets for all ${nY(N)}; a separate emergency fund matters if you buy.`:`The buyer has under 3 months of costs in liquid assets until year ${low+1}; a separate emergency fund matters in those years.`)));}
+     (low<0?`The buyer stays below 3 months of costs in liquid assets ${N===1?'in year 1':`in all ${N} years`}; a separate emergency fund matters if you buy.`:`The buyer has under 3 months of costs in liquid assets until year ${low+1}; a separate emergency fund matters in those years.`)));}
 }
 

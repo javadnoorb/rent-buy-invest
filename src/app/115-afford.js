@@ -1,7 +1,7 @@
 /* ===================== How much house can you afford ===================== */
 /* Lender-style limits on the payment lenders count (principal, interest, property tax, insurance, HOA and mortgage
    insurance; not upkeep or utilities): housing ≤ 28% of gross income and all debts ≤ 36% (comfortable), or all
-   debts ≤ 43% (most lenders' limit). The cash you have pays the down payment plus closing costs, transfer taxes and
+   debts ≤ 43% (a conservative lender limit; automated underwriting often allows 45–50%). The cash you have pays the down payment plus closing costs, transfer taxes and
    move-in costs; the minimum down payment is 3% (3.5% for FHA). Insurance scales with the price. */
 function affordAt(p,P,cash){const minDp=p.loanType==='fha'?0.035:0.03,down=Math.min(P,cash-closeAt(p,P)*P-p.moveIn);
   if(!(down>=minDp*P-1e-6))return null;const q=Object.assign({},p,{P,dp:down/P,ins:p.ins*P/p.P});
@@ -15,7 +15,7 @@ function maxPrice(p,cash,front,back){const inc=p.income/12,ok=P=>{const a=afford
 function affCash(p){const v=numOf('affCash');return isFinite(v)&&v>0?v:p.P*(p.dp+p.close)+p.moveIn}
 function renderAfford(){const p=P,el=document.getElementById('affT');if(!el)return;const cash=affCash(p),inc=p.income;
   const ph=document.getElementById('affCash');if(document.activeElement!==ph&&!ph.value)ph.placeholder=Math.round(cash).toLocaleString('en-US');
-  if(!inc){el.innerHTML='<p class="sub">Enter your household income in the settings (Taxes &amp; income) to see what you can afford.</p>';return}
+  if(!inc){el.innerHTML='<p class="sub">Enter your household income in the settings (Income &amp; taxes) to see what you can afford.</p>';return}
   /** @type {any[]} */const rows=[['Comfortable','housing ≤ 28% of income, all debt ≤ 36%',maxPrice(p,cash,0.28,0.36)],['Lender limit','all debt ≤ 43% of income',maxPrice(p,cash,0.43,0.43)]];
   const now=affordAt(p,p.P,p.P*(p.dp+p.close)+p.moveIn),need=now?[Math.max(now.piti/0.28,(now.piti+p.debt)/0.36)*12,(now.piti+p.debt)/0.43*12]:null;
   el.innerHTML=rows.map(([lab,rule,a],i)=>`<div class="affrow${i===0?' hl':''}"><div class="k">${lab} <span class="sub">${rule}</span></div>`+

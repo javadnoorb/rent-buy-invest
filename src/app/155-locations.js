@@ -30,14 +30,14 @@ function renderLoc(){
   const rows=locRows(),N=P.N;
   const key={name:r=>r.m.name,P:r=>r.q.P,rent:r=>r.rent,ptr:r=>r.ptr,own1:r=>r.own1,cash:r=>r.cash,hti:r=>r.hti??9,beY:r=>r.beY??99,gap:r=>r.gap}[LOC_SORT];
   rows.sort((a,b)=>{const x=key(a),y=key(b);return (typeof x==='string'?x.localeCompare(y):x-y)*LOC_DIR});
-  const cols=[['name','Location'],['gap',`Buy − rent+invest, yr ${N}`],['beY','Buying pulls ahead'],['own1','Owning, month 1'],['hti','Housing ÷ income'],['P','Home price'],['rent','Rent'],['ptr','Price ÷ yearly rent'],['cash','Cash to buy']];
+  const cols=[['name','Location'],['gap',`Buy − (rent + invest), yr ${N}`],['beY','Buying pulls ahead'],['own1','Owning, month 1'],['hti','Housing ÷ income'],['P','Home price'],['rent','Rent'],['ptr','Price ÷ yearly rent'],['cash','Cash to buy']];
   const th=cols.map(([k,l])=>`<th><button type="button" class="srt${LOC_SORT===k?' on':''}" data-k="${k}" aria-label="Sort by ${l}">${l}${LOC_SORT===k?(LOC_DIR<0?' ▾':' ▴'):''}</button></th>`).join('');
   const mx=Math.max(...rows.map(r=>Math.abs(r.gap)),1);
   const body=rows.map(r=>{const on=LOC_SEL.includes(r.m.slug),cur=r.m.slug===P.metro;
     const hc=r.hti==null?'':r.hti<=0.28?'--buy':r.hti<=0.36?'--cash':'--neg';
     return `<tr class="${cur?'cur':''}"><td><label class="lsel"><input type="checkbox" data-s="${r.m.slug}" ${on?'checked':''}> ${r.m.name}${cur?' <span class="pill">yours</span>':''}</label></td>
     <td class="gapc"><span class="gbar" style="--w:${(Math.abs(r.gap)/mx*100).toFixed(1)}%;--c:var(${r.gap>=0?'--buy':'--inv'})"></span><span style="color:var(${r.gap>=0?'--buy':'--inv'})">${r.gap>=0?'+':'−'}${fmt(Math.abs(r.gap))}</span></td>
-    <td>${r.beY?'year '+r.beY:'> '+N+' yrs'}</td><td>${fmtFull(r.own1)}</td><td>${r.hti==null?'—':`<span style="color:var(${hc})">${pct(r.hti,0)}</span>`}</td>
+    <td>${r.beY?'year '+r.beY:'not by year '+N}</td><td>${fmtFull(r.own1)}</td><td>${r.hti==null?'—':`<span style="color:var(${hc})">${pct(r.hti,0)}</span>`}</td>
     <td>${fmt(r.q.P)}</td><td>${fmtFull(r.rent)}</td><td>${r.ptr.toFixed(1)}</td><td>${fmt(r.cash)}</td></tr>`}).join('');
   document.getElementById('locT').innerHTML=`<thead><tr>${th}</tr></thead><tbody>${body}</tbody>`;
   document.querySelectorAll('#locT .srt').forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(LOC_SORT===k)LOC_DIR=-LOC_DIR;else{LOC_SORT=k;LOC_DIR=k==='name'?1:-1}renderLoc()});
@@ -47,16 +47,16 @@ function renderLoc(){
   const corr=(()=>{const x=rows.map(r=>r.ptr),y=rows.map(r=>r.gap),mx=x.reduce((a,b)=>a+b)/x.length,my=y.reduce((a,b)=>a+b)/y.length;let sxy=0,sx=0,sy=0;x.forEach((v,i)=>{sxy+=(v-mx)*(y[i]-my);sx+=(v-mx)**2;sy+=(y[i]-my)**2});return sxy/Math.sqrt(sx*sy)})();
   document.getElementById('loc-cap').innerHTML=`Same household in every location: your income, savings rate, down payment share, loan, federal tax settings and horizon (${N} years). What changes: home price, comparable ${P.beds==='any'?'':P.beds+'-bedroom '}rent, property tax, insurance${getRaw().ttAuto==='auto'?', transfer taxes':''}${(getRaw().stMode||'auto')==='auto'?', state income tax':''}${LOC_MODE==='same'?'':', and home and rent growth'}.`;
   document.getElementById('tk-loc').innerHTML=`<strong>Buying comes out ahead in ${g} of ${rows.length} locations</strong> at ${N} years. Best for buying: ${best.m.name} (${best.gap>=0?'+':'−'}${fmt(Math.abs(best.gap))}); best for renting: ${worst.m.name} (${worst.gap>=0?'+':'−'}${fmt(Math.abs(worst.gap))}). `+
-    (isFinite(corr)?`Across locations the price-to-rent ratio and the buy advantage correlate at ${corr.toFixed(2)}: ${corr<-0.5?'where homes are expensive relative to rent, renting tends to win':'the ratio alone does not decide it here'}.`:'');
+    (isFinite(corr)?`Across locations the price-to-rent ratio and the buy advantage correlate at ${corr.toFixed(2).replace('-','−')}: ${corr<-0.5?'where homes are expensive relative to rent, renting tends to win':'the ratio alone does not decide it here'}.`:'');
   drawLoc(rows);renderSbs()}
 function drawLoc(rows){
   const t=theme(),N=P.N,sel=rows.filter(r=>LOC_SEL.includes(r.m.slug)),pal=[t.buy,t.inv,t.cash,t.rp,t.neg,t.ink];
   plot('p-loc',sel.map((r,i)=>({x:r.o.buy.map((_,k)=>k),y:r.o.buy.map((b,k)=>adj(b-r.o.inv[k],r.o.cpi[k])),mode:'lines',name:r.m.name,line:{color:pal[i%pal.length],width:r.m.slug===P.metro?3:2,dash:i>=3?'dot':'solid'},hovertemplate:'%{y:$,.0f}<extra>'+r.m.name+'</extra>'})),
-    Object.assign(layout({hovermode:'x unified'}),{xaxis:X('Years'),yaxis:Yd('Buy − rent+invest ('+basisLabel()+')'),shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:t.muted,width:1}}]}));
+    Object.assign(layout({hovermode:'x unified'}),{xaxis:X('Years'),yaxis:Yd('Buy − (rent + invest) ('+basisLabel()+')'),shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:t.muted,width:1}}]}));
   const lab=placeLabels(document.getElementById('p-locsc'),rows.map(r=>({x:r.ptr,y:r.gap,text:r.m.name,pri:(r.m.slug===P.metro?2e9:0)+(LOC_SEL.includes(r.m.slug)?1e9:0)+Math.abs(r.gap)})));
   plot('p-locsc',[{x:rows.map(r=>r.ptr),y:rows.map(r=>r.gap),text:lab.text,customdata:rows.map(r=>r.m.name),mode:'markers+text',textposition:lab.pos,textfont:{size:9,color:t.muted},
-    marker:{size:rows.map(r=>r.m.slug===P.metro?12:8),color:rows.map(r=>r.gap>=0?t.buy:t.inv),line:{width:rows.map(r=>LOC_SEL.includes(r.m.slug)?1.5:0),color:t.ink}},hovertemplate:'%{customdata}<br>price ÷ yearly rent %{x:.1f}<br>buy − rent+invest %{y:$,.0f}<extra></extra>'}],
-    Object.assign(layout(),{xaxis:{...X('Price ÷ yearly rent'),range:lab.xr},yaxis:{...Yd(`Buy − rent+invest at year ${N}, ${basisLabel()}`),range:lab.yr},showlegend:false,shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:t.muted,width:1}}]}))}
+    marker:{size:rows.map(r=>r.m.slug===P.metro?12:8),color:rows.map(r=>r.gap>=0?t.buy:t.inv),line:{width:rows.map(r=>LOC_SEL.includes(r.m.slug)?1.5:0),color:t.ink}},hovertemplate:'%{customdata}<br>price ÷ yearly rent %{x:.1f}<br>buy − (rent + invest) %{y:$,.0f}<extra></extra>'}],
+    Object.assign(layout(),{xaxis:{...X('Price ÷ yearly rent'),range:lab.xr},yaxis:{...Yd(`Buy − (rent + invest) at year ${N}, ${basisLabel()}`),range:lab.yr},showlegend:false,shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:t.muted,width:1}}]}))}
 /* Point labels that don't collide: points are taken most important first and each label goes to the first of eight
    spots around its point whose box (estimated from the chart's size and fixed axis ranges) overlaps no placed label,
    no other point and stays inside the plot; a label with no free spot is left to the hover text. */

@@ -26,10 +26,10 @@ It then opens full-screen from its own icon, and works offline after the first v
 - **Basic / All settings:** the assumptions panel starts with the 13 settings that move the answer most; "All settings" shows every one, and a search always looks through all of them.
 - **Chart notes:** under each chart, "How to read this" ends with the model sections (links into the Method tab), the data sources and the settings it uses with their current values (links open the setting).
 - **Where the gap comes from:** the buy-minus-rent result split into home price change, selling and buying costs, interest, property tax, other owner costs, upkeep, tax savings, rent, inflation shrinking the loan and the renter's investment returns, adding up exactly.
-- **Affordability:** the highest price your income and cash allow under the 28/36 guideline and lenders' 43% limit, and the income a given price needs (Optimizer tab).
+- **Affordability:** the highest price your income and cash allow under the 28/36 guideline and a conservative 43% lender limit, and the income a given price needs (Optimizer tab).
 - **Sensitivity:** a tornado chart of the main inputs, a heatmap of home appreciation × portfolio return, and break-even rent curves.
 - **Optimizer:** down payment × horizon for 15- and 30-year loans, plus the break-even value of each key input.
-- **Backtest:** annual data for 1972–2025 and monthly data for 1987–2026, using actual home prices, rents, returns, inflation and mortgage rates (with refinancing).
+- **Backtest:** annual data for 1972–2025 and monthly data for 1991–2026, using actual home prices, rents, returns, inflation and mortgage rates (with refinancing).
 - **Monte Carlo:** block bootstrap of joint historical years, optionally re-centered to your assumptions. Includes single-house price risk, sampled mortgage-rate paths, moving risk, certainty equivalents, expected shortfall and liquidity stress.
 - **Other ways to own:** house-hacking income (renting part of your home) and an optional fourth path: rent your home and buy a rental property (vacancy, management, depreciation, passive-loss limits, recapture).
 - **Realism:** lease renewals vs. market rent with resets on moves, income growth with per-year tax brackets, a planned move (sell and rebuy, or sell and rent), and moves that are likelier in downturns with a forced-sale discount.

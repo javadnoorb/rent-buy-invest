@@ -14,11 +14,11 @@ function renderScen(){
   const all=[{name:'Current inputs',raw:getRaw()}].concat(list);
   const results=all.map(s=>Object.assign({name:s.name},scenarioResult(s.raw)));
   plot('p-scen',results.map((r,i)=>({x:r.o.buy.map((_,k)=>k),y:r.o.buy.map((b,k)=>adj(b-r.o.inv[k],r.o.cpi[k])),name:r.name,mode:'lines',line:{color:cols[i%cols.length],width:i===0?3:2,dash:i===0?'solid':undefined},hovertemplate:'%{y:$,.0f}'})),
-    {xaxis:X('Years'),yaxis:Yd('Buy − rent&invest, '+basisLabel()),shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:t.muted,width:1}}]});
-  {const be=results.map(r=>({n:r.name,b:breakevenYear(r.o)}));const ok=be.filter(x=>x.b).sort((a,b)=>a.b-b.b);
-   tk('scen',results.length<2?'Save a scenario to compare it with the current inputs.':(ok.length?`${escapeHtml(ok[0].n)} breaks even first (year ${ok[0].b}).`+(be.length>ok.length?` ${be.length-ok.length} scenario${be.length-ok.length>1?'s':''} never break${be.length-ok.length>1?'':'s'} even within 30 years.`:''):'No scenario breaks even within 30 years.'))}
+    {xaxis:X('Years'),yaxis:Yd('Buy − (rent + invest), '+basisLabel()),shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:t.muted,width:1}}]});
+  {const be=results.map(r=>({n:r.name,b:breakevenYear(r.o,r.p.N)}));const ok=be.filter(x=>x.b).sort((a,b)=>a.b-b.b);
+   tk('scen',results.length<2?'Save a scenario to compare it with the current inputs.':(ok.length?`${escapeHtml(ok[0].n)} breaks even first (year ${ok[0].b}).`+(be.length>ok.length?` ${be.length-ok.length} scenario${be.length-ok.length>1?'s':''} never break${be.length-ok.length>1?'':'s'} even within ${be.length-ok.length>1?'their horizons':'its horizon'}.`:''):'No scenario breaks even within its horizon.'))}
   document.getElementById('scT').innerHTML='<thead><tr><th>Scenario</th><th>Horizon</th><th>Buy</th><th>Rent + invest</th><th>Gap</th><th>Break-even yr</th><th>P/R</th></tr></thead><tbody>'+
-    results.map(r=>{const N=r.p.N,c=r.o.cpi[N],b=adj(r.o.buy[N],c),iv=adj(r.o.inv[N],c),be=breakevenYear(r.o);return `<tr><td>${escapeHtml(r.name)}</td><td>${N}</td><td>${fmt(b)}</td><td>${fmt(iv)}</td><td style="color:var(${b>=iv?'--buy':'--inv'})">${b>=iv?'+':''}${fmt(b-iv)}</td><td>${be||'>30'}</td><td>${(r.p.P/(r.p.rent0*12)).toFixed(1)}</td></tr>`}).join('')+'</tbody>';
+    results.map(r=>{const N=r.p.N,c=r.o.cpi[N],b=adj(r.o.buy[N],c),iv=adj(r.o.inv[N],c),be=breakevenYear(r.o,N);return `<tr><td>${escapeHtml(r.name)}</td><td>${N}</td><td>${fmt(b)}</td><td>${fmt(iv)}</td><td style="color:var(${b>=iv?'--buy':'--inv'})">${b>=iv?'+':''}${fmt(b-iv)}</td><td>${be||'>30'}</td><td>${(r.p.P/(r.p.rent0*12)).toFixed(1)}</td></tr>`}).join('')+'</tbody>';
 }
 function renderCompare(list){
   const opts=[{name:'Current inputs',raw:getRaw()}].concat(list);
@@ -30,10 +30,10 @@ function renderCompare(list){
   const stat=r=>{const N=r.p.N,c=r.sim.cpi[N],b=adj(r.sim.buy[N],c),iv=adj(r.sim.inv[N],c);
     const own1=month1Cost(r.p);
     const m=METROS.find(x=>x.slug===r.p.metro);
-    return {loc:m?m.name:'—',price:r.p.P,rent:r.p.rent0,ptr:r.p.P/(r.p.rent0*12),N,b,iv,gap:b-iv,be:breakevenYear(r.sim),own1,cash:r.p.P*(r.p.dp+r.p.close),fe:r.p.income?own1/(r.p.income/12):null}};
+    return {loc:m?m.name:'—',price:r.p.P,rent:r.p.rent0,ptr:r.p.P/(r.p.rent0*12),N,b,iv,gap:b-iv,be:breakevenYear(r.sim,N),own1,cash:r.p.P*(r.p.dp+r.p.close),fe:r.p.income?own1/(r.p.income/12):null}};
   const a=stat(A),b=stat(B);
   /** @type {any[]} */const rows=[['Location','loc',v=>v],['Home price','price',fmtFull],['Rent','rent',v=>fmtFull(v)+'/mo'],['Price-to-rent','ptr',v=>v.toFixed(1)],['Horizon','N',v=>v+' yr'],
-    ['Buy net worth','b',fmt,1],['Rent + invest net worth','iv',fmt,1],['Buy − rent&invest','gap',v=>`<span style="color:var(${v>=0?'--buy':'--inv'})">${v>=0?'+':''}${fmt(v)}</span>`,1],
+    ['Buy net worth','b',fmt,1],['Rent + invest net worth','iv',fmt,1],['Buy − (rent + invest)','gap',v=>`<span style="color:var(${v>=0?'--buy':'--inv'})">${v>=0?'+':''}${fmt(v)}</span>`,1],
     ['Break-even year','be',v=>v?v+' yr':'> 30',0,-1],['Owning, month 1','own1',v=>fmtFull(v)+'/mo',0,-1],['Cash to buy','cash',fmtFull,0,-1],['Housing / income','fe',v=>v==null?'n/a':pct(v,0),0,-1]];
   document.getElementById('cmpT').innerHTML=`<thead><tr><th></th><th>${escapeHtml(A.name)}</th><th>${escapeHtml(B.name)}</th></tr></thead><tbody>`+
     rows.map(([lab,k,f,hi,dir])=>{let ca='',cb='';if(hi||dir){const x=a[k]==null?null:a[k],y=b[k]==null?null:b[k];if(x!=null&&y!=null&&x!==y){const better=(dir===-1)?(x<y?'a':'b'):(x>y?'a':'b');if(better==='a')ca=' class="better"';else cb=' class="better"'}}

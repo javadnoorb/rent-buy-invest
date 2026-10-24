@@ -30,13 +30,13 @@ function renderSbs(){const T=document.getElementById('sbsT');if(!T)return;
       ['Cash to buy',a.cash,b.cash,fmt],['Owning, month 1',a.own1,b.own1,fmtFull],
       ['Housing ÷ income',a.hti,b.hti,v=>v==null?'—':pct(v,0),(x,y)=>x==null||y==null?'':(y-x>=0?'+':'−')+(Math.abs(y-x)*100).toFixed(0)+' pts']];
     T.innerHTML=`<thead><tr><th></th><th scope="col">${a.m.name}</th><th scope="col">${b.m.name}</th><th scope="col">B − A</th></tr></thead><tbody>`+
-      `<tr class="sbs-head"><th scope="row">Buy − rent+invest, year ${N}</th><td ${col(a.gap)}>${sg(a.gap)}${fmt(Math.abs(a.gap))}</td><td ${col(b.gap)}>${sg(b.gap)}${fmt(Math.abs(b.gap))}</td><td>${dM(a.gap,b.gap,fmt)}</td></tr>`+
-      `<tr><th scope="row">Buying pulls ahead</th><td>${a.beY?'year '+a.beY:'> '+N+' yrs'}</td><td>${b.beY?'year '+b.beY:'> '+N+' yrs'}</td><td></td></tr>`+
+      `<tr class="sbs-head"><th scope="row">Buy − (rent + invest), year ${N}</th><td ${col(a.gap)}>${sg(a.gap)}${fmt(Math.abs(a.gap))}</td><td ${col(b.gap)}>${sg(b.gap)}${fmt(Math.abs(b.gap))}</td><td>${dM(a.gap,b.gap,fmt)}</td></tr>`+
+      `<tr><th scope="row">Buying pulls ahead</th><td>${a.beY?'year '+a.beY:'not by year '+N}</td><td>${b.beY?'year '+b.beY:'not by year '+N}</td><td></td></tr>`+
       rows.map(([l,x,y,f,df])=>`<tr><th scope="row">${l}</th><td>${f(x)}</td><td>${f(y)}</td><td>${df?df(x,y):dM(x,y,f)}</td></tr>`).join('')+'</tbody>';
     const w=(r)=>r.gap>=0?`buying comes out ahead by ${fmt(r.gap)}`:`renting and investing comes out ahead by ${fmt(-r.gap)}`;
     const why=/** @type {[string,number][]} */([['price',b.q.P/a.q.P-1],['rent',b.rent/a.rent-1]]).map(([k,v])=>`${k} ${v>=0?'+':'−'}${pct(Math.abs(v),0)}`).join(', ');
     const t=theme(),line=(r,c,dash)=>({x:r.o.buy.map((_,k)=>k),y:r.o.buy.map((v,k)=>adj(v-r.o.inv[k],r.o.cpi[k])),mode:'lines',name:r.m.name,line:{color:c,width:2.5,dash},hovertemplate:'%{y:$,.0f}<extra>'+r.m.name+'</extra>'});
-    plot('p-sbs',[line(a,t.buy,'solid'),line(b,t.inv,'dot')],Object.assign(layout({hovermode:'x unified'}),{xaxis:X('Years'),yaxis:Yd('Buy − rent+invest ('+basisLabel()+')'),
+    plot('p-sbs',[line(a,t.buy,'solid'),line(b,t.inv,'dot')],Object.assign(layout({hovermode:'x unified'}),{xaxis:X('Years'),yaxis:Yd('Buy − (rent + invest) ('+basisLabel()+')'),
       shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:t.muted,width:1}}]}));
     document.getElementById('tk-sbs').innerHTML=`<strong>${a.m.name}</strong>: ${w(a)}. <strong>${b.m.name}</strong>: ${w(b)}. Compared with ${a.m.name}, ${b.m.name} has ${why}${a.ptr&&b.ptr?`, so homes cost ${b.ptr>a.ptr?'more':'less'} relative to rent (${b.ptr.toFixed(1)} vs ${a.ptr.toFixed(1)} years of rent)`:''}.`;
   }).catch(()=>{document.getElementById('sbsMsg').textContent='Could not load county or ZIP data; check your connection.'})}

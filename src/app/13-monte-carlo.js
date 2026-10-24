@@ -58,9 +58,9 @@ function drawMC(){if(!MC)return;mcSync();
     {x:[h],y:[MC.pMove],mode:'markers',name:'with moving risk',marker:{size:10,color:t.ink,symbol:'diamond'},hovertemplate:'with random moving: %{y:.0%}<extra></extra>'}],
     {xaxis:X('Horizon (years)'),yaxis:Yt('P(buy wins)',{tickformat:'.0%',range:[0,1]}),shapes:[{type:'line',x0:0,x1:N,y0:.5,y1:.5,line:{color:t.muted,dash:'dash',width:1}},{type:'line',x0:h,x1:h,y0:0,y1:1,line:{color:t.line,width:1}}]});
   const d=res.buy.map((b,s)=>b[h]-res.inv[s][h]);
-  document.getElementById('mc-histcap').textContent=`Buy minus rent&invest at year ${h}. Median ${fmt(q(d,.5))}, 5th pct ${fmt(q(d,.05))}, 95th pct ${fmt(q(d,.95))}.`;
+  document.getElementById('mc-histcap').textContent=`Buy minus (rent + invest) at year ${h}. Median ${fmt(q(d,.5))}, 5th pct ${fmt(q(d,.05))}, 95th pct ${fmt(q(d,.95))}.`;
   plot('p-mchist',[{x:d,type:'histogram',nbinsx:60,marker:{color:d.map(v=>v>0?hexA(t.buy,.75):hexA(t.inv,.75))},hovertemplate:'%{x}<br>%{y} paths<extra></extra>'}],
-    {hovermode:'closest',bargap:0.02,showlegend:false,xaxis:{...X('Buy − rent&invest, '+basisLabel()),tickprefix:'$',tickformat:'~s'},yaxis:Yt('Paths'),shapes:[{type:'line',x0:0,x1:0,yref:'paper',y0:0,y1:1,line:{color:t.ink,width:1.5}}]});
+    {hovermode:'closest',bargap:0.02,showlegend:false,xaxis:{...X('Buy − (rent + invest), '+basisLabel()),tickprefix:'$',tickformat:'~s'},yaxis:Yt('Paths'),shapes:[{type:'line',x0:0,x1:0,yref:'paper',y0:0,y1:1,line:{color:t.ink,width:1.5}}]});
   const dm=Math.max(1,...d.map(Math.abs));
   plot('p-mcsc',[{x:res.gH,y:res.gP,mode:'markers',type:'scatter',marker:{size:4,color:d,cmin:-dm,cmax:dm,colorscale:divScale(t).map(([k,c],i)=>[k,i===4?t.muted:c]),opacity:.8,
     colorbar:{title:{text:'advantage, '+basisLabel(),side:'right'},thickness:10,outlinewidth:0,tickprefix:'$',tickformat:'~s'}},hovertemplate:'home %{x:.1f}%/yr, portfolio %{y:.1f}%/yr<br>%{marker.color:$,.0f}<extra></extra>'}],
@@ -69,12 +69,11 @@ function drawMC(){if(!MC)return;mcSync();
   const nref=res.refis.filter(v=>v>0).length/n,avgRef=res.refis.reduce((a,b)=>a+b,0)/n;
   {const B=res.buy.map(a=>a[h]),I=res.inv.map(a=>a[h]);
    tk('fan',`At year ${h}, the median future leaves ${fmt(q(B,.5))} if you buy and ${fmt(q(I,.5))} if you rent and invest. One in twenty futures leaves the buyer below ${fmt(q(B,.05))} (renter: ${fmt(q(I,.05))}).`);
-   let cross=null;for(let y=1;y<=N;y++){if(MC.pWin[y]>=0.5&&MC.pWin.slice(y).every(v=>v>=0.5)){cross=y;break}}
-   tk('prob',`Buying beats renting-and-investing in ${pct(MC.pWin[h],0)} of futures at ${nY(h)}${P.hz>0?`, or ${pct(MC.pMove,0)} once early moves are included (${pct(MC.pForced,0)} of futures have a move during a downturn)`:''}. `+(cross?`It wins more often than not from year ${cross} on.`:'It never wins more often than not within 30 years.')+` Against renting with T-bills it wins ${pct(MC.pWinC[h],0)}.`);
+   tk('prob',`Buying beats renting and investing in ${pct(MC.pWin[h],0)} of futures at ${nY(h)}${P.hz>0?`, or ${pct(MC.pMove,0)} once early moves are included (${pct(MC.pForced,0)} of futures have a move during a downturn)`:''}. `+winSpellText(MC.pWin,N)+` Against renting with T-bills it wins ${pct(MC.pWinC[h],0)}.`);
    const mean=d.reduce((a,b)=>a+b,0)/d.length,med=q(d,.5);
    tk('mchist',`The middle half of outcomes runs from ${fmt(q(d,.25))} to ${fmt(q(d,.75))}. `+(mean<med-0.05*Math.abs(med)?`The average (${fmt(mean)}) is below the median (${fmt(med)}): the downside tail for buying is longer than the upside.`:mean>med+0.05*Math.abs(med)?`The average (${fmt(mean)}) is above the median (${fmt(med)}): a few very good futures for buying pull it up.`:`Average and median are close (${fmt(mean)} vs ${fmt(med)}), so the outcomes are fairly symmetric.`));
    let a1=0,n1=0,a2=0,n2=0;res.gH.forEach((g,i)=>{const w=d[i]>0;if(g>res.gP[i]-4){n1++;if(w)a1++}else{n2++;if(w)a2++}});
-   tk('mcsc',`When your home's yearly gain came within 4 points of the portfolio's, buying won ${n1?pct(a1/n1,0):'—'} of the time; when stocks beat the home by more than that, ${n2?pct(a2/n2,0):'—'}. Leverage is why the home doesn't need to match stocks to win.`);
+   tk('mcsc',`When your home's yearly gain was no more than 4 points below the portfolio's, buying won ${n1?pct(a1/n1,0):'—'} of the time; when the portfolio beat the home by more than that, ${n2?pct(a2/n2,0):'—'}.`+(n1&&a1/n1>0.5?' Leverage is why the home doesn\'t need to match the portfolio to win.':''));
    const k=Math.min(5,N),hit=res.rates.filter(a=>Math.min(...a.slice(0,k))<=P.rate-P.refiTh).length/n;
    tk('mcrate',`In ${pct(hit,0)} of futures the market rate falls at least ${(P.refiTh*100).toFixed(2)} points below your ${pct(P.rate,2)} within ${nY(k)}${P.refiOn?', triggering a refinance':' (refinancing is off)'}.`)}
   plot('p-mcrate',[{x:yr,y:rq(.95),mode:'lines',line:{width:0},showlegend:false,hoverinfo:'skip'},{x:yr,y:rq(.05),mode:'lines',line:{width:0},fill:'tonexty',fillcolor:hexA(t.neg,.15),name:'5–95%',hoverinfo:'skip'},
