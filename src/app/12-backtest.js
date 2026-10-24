@@ -12,7 +12,7 @@ const histP=(p,t)=>HIST_RP==='hist'?Object.assign({},p,{rent0:p.rent0*rpRel(t)})
 function setHistSel(year){if(year!=null)document.getElementById('h-year').value=String(Math.floor(year));renderHist()}
 let HIST_RAF=0;  // the slider redraws while dragged (the runs are cached)
 function histSlide(){cancelAnimationFrame(HIST_RAF);HIST_RAF=requestAnimationFrame(()=>renderHist())}
-function wireHistClicks(){const on=(id,f)=>{const el=/** @type {any} */(document.getElementById(id));if(el&&el.on&&!el.dataset.selw){el.dataset.selw=1;el.on('plotly_click',e=>{const pt=e&&e.points&&e.points[0];if(pt)f(pt)})}};
+function wireHistClicks(){const on=(id,f)=>{const el=/** @type {any} */(document.getElementById(id));if(el&&el.on&&!el.dataset.selw){el.dataset.selw=1;el.on('plotly_click',e=>{const pt=nearestPoint(el,e);if(pt)f(pt)})}};
   on('p-hheat',pt=>setHistSel(pt.x));
   on('p-spag',pt=>{const run=HIST_RUNS&&HIST_RUNS.runs.find(q=>q.lab===pt.data.name);if(run)setHistSel(run.s)})}
 function metroRentAnnual(m){if(!m||!m.rentG)return null;return YEARS.map(y=>m.rentG[y]!=null?m.rentG[y]:null)}

@@ -148,9 +148,9 @@ function walkTrees(roots) {
   ok(!unused.length, 'registry: every equation is used by a trace or a Method block', unused.join(', '));
 
   /* ---- a click selects a point; the button opens the panel beside the chart (never over it) ---- */
-  const pointXY = (pg, k) => pg.evaluate(k => { const el = document.getElementById('p-nw'), fl = el._fullLayout, i = el.data.findIndex(d => d.meta === 'nw:buy'), d = el.data[i], j = k < 0 ? d.x.length - 1 : k;
-    const r = el.getBoundingClientRect(); return { x: r.left + fl._size.l + fl.xaxis.d2p(d.x[j]), y: r.top + fl._size.t + fl.yaxis.d2p(d.y[j]) }; }, k);
-  const clickPoint = async (pg, k) => { const xy = await pointXY(pg, k); await pg.mouse.move(xy.x, xy.y); await pg.waitForTimeout(200); await pg.mouse.click(xy.x, xy.y); await pg.waitForTimeout(500); };
+  const pointXY = (pg, k, meta) => pg.evaluate(([k, meta]) => { const el = document.getElementById('p-nw'), fl = el._fullLayout, i = el.data.findIndex(d => d.meta === (meta || 'nw:buy')), d = el.data[i], j = k < 0 ? d.x.length - 1 : k;
+    const r = el.getBoundingClientRect(); return { x: r.left + fl._size.l + fl.xaxis.d2p(d.x[j]), y: r.top + fl._size.t + fl.yaxis.d2p(d.y[j]) }; }, [k, meta]);
+  const clickPoint = async (pg, k, meta) => { const xy = await pointXY(pg, k, meta); await pg.mouse.move(xy.x, xy.y); await pg.waitForTimeout(200); await pg.mouse.click(xy.x, xy.y); await pg.waitForTimeout(500); };
   const panelState = pg => pg.evaluate(() => { const p = document.getElementById('trp'), el = document.getElementById('p-nw'), c = el.getBoundingClientRect(), r = p && !p.hidden ? p.getBoundingClientRect() : null;
     return { open: !!r, bar: !!document.querySelector('.trbar[data-for="p-nw"]'), sub: r ? document.getElementById('trpS').textContent : '', rows: r ? p.querySelectorAll('.trrow').length : 0, eq: !!(r && p.querySelector('.treq')),
       covered: r ? Math.min(c.right, r.right) - Math.max(c.left, r.left) > 2 && Math.min(c.bottom, r.bottom) - Math.max(c.top, r.top) > 2 : false }; });
@@ -158,6 +158,10 @@ function walkTrees(roots) {
     const pg = W === 1280 ? page : await b.newPage({ viewport: { width: W, height: H }, isMobile: mob, hasTouch: mob });
     if (pg !== page) { pg.on('pageerror', e => errors.push(e.message)); await pg.goto(URL); await pg.waitForTimeout(2500); await pg.evaluate(() => { try { closeWizard(false); } catch (e) {} }); }
     await pg.evaluate(() => { showTab('proj'); document.getElementById('p-nw').scrollIntoView({ block: 'center' }); }); await pg.waitForTimeout(600);
+    if (W === 1280) { // all lines share one hover (unified): the click picks the line under the pointer, not the first listed
+      const got = []; for (const [k, m, re] of [[3, 'nw:buy', /^Selected: Buy/], [7, 'nw:inv', /^Selected: Rent \+ invest/], [5, 'nw:cash', /^Selected: Rent \+ T-bills/]]) {
+        await clickPoint(pg, k, m); const t = await pg.evaluate(() => (document.querySelector('.trbar[data-for="p-nw"]') || {}).textContent || ''); got.push(re.test(t) ? 'ok' : t); }
+      ok(got.every(x => x === 'ok'), 'clicking a line selects that line', got.join(' | ')); }
     await clickPoint(pg, -1);
     const s1 = await panelState(pg);
     ok(s1.bar && !s1.open, `${W}px: clicking a point selects it and leaves the chart in view (no panel yet)`, JSON.stringify(s1));

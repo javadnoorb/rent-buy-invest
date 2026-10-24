@@ -50,6 +50,9 @@ function locTax(m){const eff=m.acs&&m.acs.rate!=null?m.acs.rate:m.ptax,h=homeste
   const ex=h.ex||0,credit=h.credit||0;if(V-ex<0.3*V)return {rate:eff,ex:0,credit:0,h};
   return {rate:Math.round((eff/100*V+credit)/(V-ex)*1e5)/1e3,ex,credit,h}}
 let CAP_FROM_LOC=false,TAX_FROM_LOC=null;
+/* counts location choices: a county list that finishes loading after a newer choice (a shared link applied after
+   the saved setup, or the user picking a place) must not put its older location back */
+let LOC_GEN=0;
 /* saved setups from before a location rule existed: fill the location's values for settings left at the old default */
 function applyStateCap(m){if(CAP_FROM_LOC){document.getElementById('ptaxCap').value=m.ptaxCap||0;document.getElementById('ptaxCapCPI').value=m.ptaxCapCPI?'1':'0'}CAP_FROM_LOC=false;
   if(TAX_FROM_LOC){const old=TAX_FROM_LOC;TAX_FROM_LOC=null;if(!(+old.floodIns>0)){const e=document.getElementById('floodIns');e.value=m.flood?m.flood.avg:0;fmtMoneyEl(e)}const lt=locTax(m),k=nbK(stateOf(m)),was=(m.acs&&m.acs.rateAll!=null?m.acs.rateAll:(lt?lt.rate:0)/k);
@@ -147,8 +150,8 @@ function loadCountyHpi(m){const H=COUNTIES.hpi;if(!H||m.hpi)return;const st=m.fi
     if(selMetro()!==m)return;showMetroPreset(m);
     MC=null;LAST_KEY='';update()})}
 /* a saved or shared setup whose location is a county: load the list, then select it */
-function restoreCounty(slug){if(!COUNTIES||!/^(cty|zip):/.test(slug||'')||countyMetro(slug))return;
-  (/^zip:/.test(slug)?ensureZip(slug.slice(4)):loadCounties()).then(()=>{const m=countyMetro(slug);if(!m)return;document.getElementById('metro').value=slug;updateMetroHints(m);applyStateCap(m);update()}).catch(()=>{})}
+function restoreCounty(slug){if(!COUNTIES||!/^(cty|zip):/.test(slug||'')||countyMetro(slug))return;const gen=LOC_GEN;
+  (/^zip:/.test(slug)?ensureZip(slug.slice(4)):loadCounties()).then(()=>{const m=countyMetro(slug);if(!m||gen!==LOC_GEN)return;document.getElementById('metro').value=slug;updateMetroHints(m);applyStateCap(m);update()}).catch(()=>{const e=document.getElementById('actMsg');if(gen===LOC_GEN&&e)e.textContent=`Could not load ${/^zip:/.test(slug)?'that ZIP code':'that county'}; showing the previous location.`})}
 function wireCounty(){if(!COUNTIES)return;const sel=document.getElementById('metro'),q=document.getElementById('countyQ'),dl=document.getElementById('countyList');let prev=sel.value;
   sel.addEventListener('focus',()=>{prev=sel.value});
   sel.addEventListener('change',e=>{if(sel.value!=='__county'){prev=sel.value;return}e.stopImmediatePropagation();sel.value=prev;
@@ -160,7 +163,7 @@ function wireCounty(){if(!COUNTIES)return;const sel=document.getElementById('met
     if(/^\d{5}$/.test(v)&&COUNTIES.zip){ensureZip(v).then(m=>{if(m)go(m);else{q.value='';q.placeholder=`No data for ZIP ${v}; try its county`}}).catch(()=>{q.placeholder='Could not load ZIP data; check your connection'});return}
     const r=(COUNTY_ROWS||[]).find(x=>x[1].toLowerCase()===v.toLowerCase());if(r)go(countyMetro('cty:'+r[0]))};
   q.addEventListener('change',pick);q.addEventListener('keydown',e=>{if(e.key==='Enter')pick();if(e.key==='Escape')q.hidden=true})}
-function applyMetro(slug){const m=METROS.find(x=>x.slug===slug);if(!m)return;
+function applyMetro(slug){LOC_GEN++;const m=METROS.find(x=>x.slug===slug);if(!m)return;
   const set=(id,v)=>{if(v!=null&&isFinite(v))document.getElementById(id).value=v};
   set('P',m.P);set('floodIns',m.flood?m.flood.avg:0);{const lt=locTax(m);if(lt){set('ptax',lt.rate);set('hsEx',lt.ex);set('hsCredit',lt.credit)}}set('ins',m.ins);set('ptaxCap',m.ptaxCap||0);document.getElementById('ptaxCapCPI').value=m.ptaxCapCPI?'1':'0';document.getElementById('rentMode').value='auto';applyRentMode();
   showMetroPreset(m);

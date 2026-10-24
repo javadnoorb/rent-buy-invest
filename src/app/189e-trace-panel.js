@@ -7,7 +7,13 @@
    its own down to settings (with where their value came from and a link to change it), data (with its source) and
    the model's fixed rules. Parts worth $0 are grouped at the end. */
 let TRACE_OPEN=null;
-function traceClick(el,e){const p0=e&&e.points&&e.points[0];if(!p0)return;const tr=el.data&&el.data[p0.curveNumber],f=tr&&tr.meta&&TRACE_RECIPES[tr.meta];if(!f)return;
+/* with unified hover (all lines at one x) Plotly reports every line, in trace order: take the point nearest the click
+   (among those ok() accepts), not the first one */
+function nearestPoint(el,e,ok){const pts=((e&&e.points)||[]).filter(ok||(()=>true));
+  if(pts.length<2||!e.event||e.event.clientY==null)return pts[0];const r=el.getBoundingClientRect(),cx=e.event.clientX-r.left,cy=e.event.clientY-r.top;
+  const px=(ax,v)=>ax&&typeof ax.l2p==='function'&&typeof v==='number'?ax._offset+ax.l2p(v):null;
+  let best=pts[0],bd=Infinity;pts.forEach(q=>{const x=px(q.xaxis,q.x),y=px(q.yaxis,q.y);if(y==null)return;const d=Math.hypot(x==null?0:x-cx,y-cy);if(d<bd){bd=d;best=q}});return best}
+function traceClick(el,e){const p0=nearestPoint(el,e,q=>{const tr=el.data&&el.data[q.curveNumber];return tr&&tr.meta&&TRACE_RECIPES[tr.meta]});if(!p0)return;const tr=el.data&&el.data[p0.curveNumber],f=tr&&tr.meta&&TRACE_RECIPES[tr.meta];if(!f)return;
   const pt={curveNumber:p0.curveNumber,pointNumber:p0.pointNumber,pointNumbers:p0.pointNumbers,x:p0.x,y:p0.y,z:p0.z,customdata:p0.customdata};
   const pn=document.getElementById('trp');if(pn&&!pn.hidden){traceOpenPoint(el,pt);return}
   traceBar(el,pt)}

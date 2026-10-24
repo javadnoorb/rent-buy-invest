@@ -12,14 +12,17 @@ node tests/validate.js | tail -1
 python3 tests/test_scripts.py
 [ "${1:-}" = "--fast" ] && exit 0
 if ! curl -sf -o /dev/null http://127.0.0.1:8765/index.html; then
-  python3 -m http.server 8765 >/dev/null 2>&1 & SERVER=$!; trap 'kill $SERVER' EXIT; sleep 1
+  python3 -m http.server 8765 >/dev/null 2>&1 & SERVER=$!; trap 'kill $SERVER' EXIT
+  for _ in $(seq 50); do curl -sf -o /dev/null http://127.0.0.1:8765/index.html && break; sleep 0.2; done
 fi
+# the accessibility check needs axe-core; locally a missing install is a skip, not a failure (CI=true makes it required)
+a11y=1; if [ "${CI:-}" != true ] && ! node -e "require.resolve('axe-core')" 2>/dev/null; then a11y=0; echo "SKIPPED a11y: axe-core is not installed (npm i --no-save axe-core@4.10.2)"; fi
 log=$(mktemp -d)
 node tests/smoke.js >"$log/smoke" 2>&1 & a=$!
 node tests/ui.js >"$log/ui" 2>&1 & b=$!
-node tests/a11y.js >"$log/a11y" 2>&1 & c=$!
+if [ $a11y = 1 ]; then node tests/a11y.js >"$log/a11y" 2>&1 & c=$!; else echo "a11y skipped" >"$log/a11y"; c=; fi
 node tests/layout.js >"$log/layout" 2>&1 & d=$!
 node tests/trace.js >"$log/trace" 2>&1 & e=$!
 fail=0
-for t in smoke:$a ui:$b a11y:$c layout:$d trace:$e; do n=${t%%:*}; if wait "${t##*:}"; then tail -1 "$log/$n"; else echo "FAILED: $n"; tail -20 "$log/$n"; fail=1; fi; done
+for t in smoke:$a ui:$b a11y:$c layout:$d trace:$e; do n=${t%%:*}; if [ -z "${t##*:}" ] || wait "${t##*:}"; then tail -1 "$log/$n"; else echo "FAILED: $n"; tail -20 "$log/$n"; fail=1; fi; done
 exit $fail

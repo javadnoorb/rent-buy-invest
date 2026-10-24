@@ -49,14 +49,14 @@ jobs:
       - name: Sanity-check the new data against main
         env: { STALE_OUT: /tmp/stale.txt }
         run: python scripts/check_data.py
-      - name: Test
+      - name: Test (every check, as in scripts/check.sh; new data can break a chart, a refit or a trace)
+        env:
+          PLAYWRIGHT_PATH: playwright-core
+          CHROME_PATH: /usr/bin/google-chrome
+          CI: 'true'
         run: |
-          node tests/lint.js
-          node tests/run.js
-          python3 tests/test_scripts.py
-          npm i --no-save --no-audit --no-fund playwright-core@1.56.1
-          PLAYWRIGHT_PATH=playwright-core CHROME_PATH=/usr/bin/google-chrome node tests/smoke.js
-          PLAYWRIGHT_PATH=playwright-core CHROME_PATH=/usr/bin/google-chrome node tests/ui.js
+          npm i --no-save --no-audit --no-fund playwright-core@1.56.1 axe-core@4.10.2 typescript@5.6.3
+          scripts/check.sh
       - name: Commit to main if changed
         run: |
           git config user.name "github-actions[bot]"

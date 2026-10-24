@@ -62,7 +62,7 @@ jobs:
           CHROME_PATH: /usr/bin/google-chrome
         run: |
           python3 -m http.server 8765 >/dev/null 2>&1 &
-          sleep 1
+          for _ in $(seq 50); do curl -sf -o /dev/null http://127.0.0.1:8765/index.html && break; sleep 0.2; done
           node tests/layout.js
       - name: Trace (each chart point's equations reproduce the model and the plotted value)
         env:

@@ -150,6 +150,14 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
   await reloadWith({ v: 5, metro: 'us', beds: '3', P: '800000', rent0: String(typUS), rentMode: 'manual' });
   ok(await page.inputValue('#rentMode') === 'manual', 'a current save that chose "my own" is kept');
 
+  /* a shared link wins over the viewer's own saved county, even though the county list loads after the link is applied */
+  { const st = await page.evaluate(() => { const r = getRaw(); return { saved: Object.assign({}, r, { metro: 'cty:53033', v: SAVE_V }), link: btoa(unescape(encodeURIComponent(JSON.stringify(Object.assign({}, r, { metro: 'boston', P: '777000', REAL, v: SAVE_V }))))) }; });
+    await page.evaluate(sv => localStorage.setItem('rbi-inputs', JSON.stringify(sv)), st.saved);
+    await page.goto(base + 'index.html?view=detailed&s=' + encodeURIComponent(st.link)); await page.waitForFunction(() => document.getElementById('vhead').textContent !== 'Computing…'); await page.waitForTimeout(2500);
+    const got = await page.evaluate(() => ({ metro: document.getElementById('metro').value, P: P.P }));
+    ok(got.metro === 'boston' && got.P === 777000, 'a shared link keeps its own location when the viewer has a saved county', JSON.stringify(got));
+    await page.evaluate(() => localStorage.removeItem('rbi-inputs')); await page.goto(base + 'index.html?view=detailed'); await page.waitForFunction(() => document.getElementById('vhead').textContent !== 'Computing…'); }
+
   /* where the gap comes from: the parts add up to the headline gap, in today's and nominal dollars */
   const gapSums = await page.evaluate(() => [true, false].map(r => { REAL = r; const o = simulate(P, constPath(P, P.N), { detail: true }), g = gapParts(P, o);
     const d = Math.abs(g.parts.reduce((a, x) => a + x[1], 0) - adj(o.buy[P.N] - o.inv[P.N], o.cpi[P.N])); return [d, g.parts.find(x => /Inflation/.test(x[0]))]; }));

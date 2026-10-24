@@ -1,9 +1,11 @@
 name: Deploy site
 # Builds index.html from src/ and data/ and publishes it with GitHub Pages (Settings → Pages → Source: GitHub Actions).
 # The built page is not committed; this is the only place it is made for the live site.
-# Runs after the Tests workflow passes on a push to main (so a failing type check, browser or accessibility test
-# blocks the deploy), and after each successful Refresh data run, which runs its own tests (commits pushed by a
-# workflow don't trigger other workflows on their own).
+# Runs after the Tests workflow passes on a push to main, and after each successful Refresh data run (commits pushed
+# by a workflow don't trigger other workflows on their own; the refresh runs the full scripts/check.sh itself).
+# Either way it deploys main only if the latest Tests run on main passed and main has changed nothing but data/
+# since that run's commit: code that failed Tests (or whose Tests are still running) is never published, even when a
+# data refresh lands on top of it. A newer code push deploys itself when its own Tests pass.
 on:
   workflow_run:
     workflows: [Tests, Refresh data]
@@ -12,29 +14,40 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
   pages: write
   id-token: write
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false  # let a deployment that started finish (as GitHub's Pages starter does)
 jobs:
   build:
     if: github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event != 'pull_request')
     runs-on: ubuntu-24.04
+    outputs:
+      go: ${{ steps.gate.outputs.go }}
     steps:
       - uses: actions/checkout@v5
-        with: { ref: main }
+        with: { ref: main, fetch-depth: 0 }
+      - name: Deploy only code that passed Tests
+        id: gate
+        env: { GH_TOKEN: '${{ github.token }}' }
+        run: |
+          read -r st co sha <<<"$(gh run list -R "$GITHUB_REPOSITORY" -w Tests -b main -e push -L 1 --json status,conclusion,headSha --jq '.[0] | "\(.status) \(.conclusion) \(.headSha)"')"
+          if [ "$st" != completed ] || [ "$co" != success ]; then
+            echo "::notice::The latest Tests run on main is $st/$co; not deploying (a passing run deploys itself)"; echo go=0 >>"$GITHUB_OUTPUT"; exit 0; fi
+          if [ -n "$(git diff --name-only "$sha" HEAD -- . ':(exclude)data')" ]; then
+            echo "::notice::main has code changes since the last passing Tests run ($sha); not deploying"; echo go=0 >>"$GITHUB_OUTPUT"; exit 0; fi
+          echo "Deploying $(git rev-parse --short HEAD): code tested at ${sha:0:7}"; echo go=1 >>"$GITHUB_OUTPUT"
       - uses: actions/setup-python@v6
         with: { python-version: '3.12' }
       - uses: actions/setup-node@v5
         with: { node-version: '22' }
       - name: Build
+        if: steps.gate.outputs.go == '1'
         run: python build.py --pwa
-      - name: Lint and model tests
-        run: |
-          node tests/lint.js
-          node tests/run.js
       - name: Assemble the site
+        if: steps.gate.outputs.go == '1'
         run: |
           mkdir -p _site/data
           cp index.html manifest.webmanifest sw.js _site/
@@ -47,10 +60,13 @@ jobs:
           [ -d data/zip ] && cp -r data/zip _site/data/ || true
           du -sh _site
       - uses: actions/configure-pages@v5
+        if: steps.gate.outputs.go == '1'
       - uses: actions/upload-pages-artifact@v3
+        if: steps.gate.outputs.go == '1'
         with: { path: _site }
   deploy:
     needs: build
+    if: needs.build.outputs.go == '1'
     runs-on: ubuntu-24.04
     environment:
       name: github-pages
