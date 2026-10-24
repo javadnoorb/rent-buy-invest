@@ -297,6 +297,9 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
   await page.evaluate(() => setHistSel(1990)); await page.waitForTimeout(500);
   const bt = await page.evaluate(() => [document.getElementById('h-year').value, document.getElementById('tk-hdet').textContent, LAST_Y]);
   ok(bt[0] === '1990' && bt[1].includes(`Bought 1990 and held through ${bt[2]}`), 'Backtest: selecting a purchase year updates the slider and the detail', JSON.stringify(bt));
+  const cmp = await page.evaluate(() => { const share = () => document.getElementById('tk-hheat').textContent; const a = share();
+    document.querySelector('#h-cmp [data-c="cash"]').click(); const b = share(); document.querySelector('#h-cmp [data-c="inv"]').click(); return [a, b]; });
+  ok(/beat rent \+ invest/.test(cmp[0]) && /beat rent \+ T-bills/.test(cmp[1]), 'Backtest: compare with rent + invest or rent + T-bills', JSON.stringify(cmp.map(x => x.slice(0, 60))));
   await page.evaluate(() => { document.getElementById('h-year').value = '2000'; showTab('proj'); }); await page.waitForTimeout(400);
   /* Simple / Detailed view: Simple hides the technical tabs and cards and uses the basic settings; Detailed shows them */
   await page.click('#viewMode [data-v="simple"]'); await page.waitForTimeout(400);

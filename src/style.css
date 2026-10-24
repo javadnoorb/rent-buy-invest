@@ -465,6 +465,7 @@ body.simple .tech{display:none!important}
 .kv.inv tr.grp th{background:var(--sunk);color:var(--ink);font-weight:600;font-size:12.5px;padding:6px 8px;position:static}
 .hsel{display:grid;grid-template-columns:minmax(0,1fr);max-width:560px;margin:8px 0 2px}.hsel label{display:flex;flex-direction:column;gap:2px;font-size:13px}
 .hsel output{font-family:var(--mono);font-weight:600;margin-left:4px}
+.hcmp{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
 .invplan{margin:8px 0 0;font-size:13.5px;line-height:1.5;padding:8px 10px;border-left:3px solid var(--inv);background:var(--sunk);border-radius:0 6px 6px 0;max-width:90ch}
 .invdef{margin:4px 0 0;font-size:12.5px}
 .viewseg{margin-right:8px}.viewseg button{padding:6px 10px;font-size:13px}
