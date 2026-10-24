@@ -23,6 +23,7 @@ It then opens full-screen from its own icon, and works offline after the first v
 
 - **Projection:** month-by-month model covering mortgage amortization, PMI, refinancing, property tax (with an optional assessment cap), insurance, maintenance, HOA, the federal itemized-deduction benefit (2026 standard deduction, SALT cap schedule, $750k interest limit) and the Section 121 home-sale exclusion. Portfolios can be taxable or sheltered, with yearly dividend and interest tax and optional leverage.
 - **Location presets:** 23 U.S. metros with Zillow home values and rents, property-tax rates, state insurance averages, and FHFA metro home-price and BLS metro rent history.
+- **Chart notes:** under each chart, "How to read this" ends with the model sections (links into the Method tab), the data sources and the settings it uses with their current values (links open the setting).
 - **Where the gap comes from:** the buy-minus-rent result split into home price change, selling and buying costs, interest, property tax, other owner costs, upkeep, tax savings, rent, inflation shrinking the loan and the renter's investment returns, adding up exactly.
 - **Affordability:** the highest price your income and cash allow under the 28/36 guideline and lenders' 43% limit, and the income a given price needs (Optimizer tab).
 - **Sensitivity:** a tornado chart of the main inputs, a heatmap of home appreciation × portfolio return, and break-even rent curves.

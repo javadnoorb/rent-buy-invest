@@ -414,3 +414,9 @@ table.sbs tr.sbs-head td{font-weight:600}
 /* settings that depend on another one: indented under it, hidden while it is off */
 .f.dep{margin-left:10px;padding-left:10px;border-left:2px solid var(--line)}
 .f.dep-off{display:none!important}
+/* model, data and assumptions under each chart; folded tables */
+dd.cinfo div{margin:2px 0}
+dd.cinfo a{color:var(--accent)}
+details.tfold{margin-top:6px}
+details.tfold summary{cursor:pointer;color:var(--accent);font-weight:500;font-size:12.5px;width:max-content}
+details.tfold[open] summary{margin-bottom:6px}

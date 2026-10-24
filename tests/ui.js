@@ -231,6 +231,12 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
   const bh = await page.evaluate(async () => { const a = document.getElementById('vhead').textContent; document.getElementById('nomBtn').click(); await new Promise(r => setTimeout(r, 900));
     const b = document.getElementById('vhead').textContent; document.getElementById('realBtn').click(); await new Promise(r => setTimeout(r, 900)); return [a, b]; });
   ok(/today's \$/.test(bh[0]) && /nominal \$/.test(bh[1]), 'headline names the dollar basis', JSON.stringify(bh));
+  /* every chart says which model sections, data and settings produced it; big tables start folded */
+  const ci = await page.evaluate(() => { const plots = [...document.querySelectorAll('.card .plot')].map(p => p.id.slice(2));
+    const missing = plots.filter(k => !document.querySelector(`dd.cinfo[data-c="${k}"]`));
+    const box = document.createElement('div'); box.innerHTML = ciHTML('nw');
+    return { missing, links: box.querySelectorAll('[data-ci-sec]').length, sets: box.querySelectorAll('[data-ci-set]').length, folded: [...document.querySelectorAll('details.tfold')].every(d => !d.open) }; });
+  ok(!ci.missing.length && ci.links >= 3 && ci.sets >= 8 && ci.folded, 'chart notes on every chart; tables folded', JSON.stringify(ci));
   /* dependent settings: hidden while the setting they depend on makes them irrelevant */
   const vis = id => page.evaluate(id => !document.getElementById(id).closest('.f').classList.contains('dep-off'), id);
   const d0 = [await vis('armRate'), await vis('pmi'), await vis('mu'), await vis('refiTh')];

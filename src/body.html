@@ -102,7 +102,7 @@
     </div>
     <div class="card"><h2>Year-by-year table</h2><p class="cap">Amounts in <span id="ytBasis">today's $</span>. Copy as CSV to paste into a spreadsheet.</p>
       <div class="controls"><button id="copyCsv">Copy CSV</button><span class="sub" id="copyMsg"></span></div>
-      <div class="tablewrap"><table id="ytable"></table></div>
+      <details class="tfold"><summary>Show the table</summary><div class="tablewrap"><table id="ytable"></table></div></details>
       <details class="how"><summary>Show raw CSV text</summary><textarea class="csv" id="csvText" readonly></textarea></details>
     </div>
   </section>
@@ -269,7 +269,7 @@
       <div class="takeaway" id="tk-zori"></div>
       <details class="how"><summary>How to read this</summary><dl class="read"><dt>What you see</dt><dd>Blue bars: yearly growth of asking rents on new leases (Zillow). Red line: CPI rent, which averages all existing leases.</dd><dt>What to look for</dt><dd>Asking rents tend to lead CPI rent, so a renter who moves feels market jumps sooner than the index shows.</dd><dt>Keep in mind</dt><dd>Zillow values here are January-to-January changes.</dd></dl></details></div>
     </div>
-    <div class="card"><h2>Embedded annual data</h2><p class="cap">Percent changes by calendar year. Sources in the Method tab.</p><div class="tablewrap"><table id="dtable"></table></div></div>
+    <div class="card"><h2>Embedded annual data</h2><p class="cap">Percent changes by calendar year. Sources in the Method tab.</p><details class="tfold"><summary>Show the table</summary><div class="tablewrap"><table id="dtable"></table></div></details></div>
   </section>
 
   <!-- METHOD -->
