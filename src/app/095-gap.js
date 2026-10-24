@@ -14,7 +14,7 @@ function gapParts(p,o){const N=p.N,c=o.cpi[N],LS=loanSetup(p,p.rate),sum=k=>o.fl
     ['Tax savings from owning',-sum('tax')],['House-hack income',-sum('hh')],['Rent the renter pays',sum('rent')]];
   const base=p.P*(1-p.dp),infl=LS.L-sum('principal')-bal;if(p.moveMode==='none'||!p.moveMode){parts.push(['FHA upfront premium',base-LS.L],['Inflation shrinking the loan',infl])}
   // investment taxes (yearly on dividends and interest, and on selling at year N): the renter's minus the buyer's
-  if(o.tax){const it=o.tax.slice(0,N).reduce((a,t)=>a+adj(t.invR-t.invB,t.cpi),0)+adj(o.liqTax[N].r-o.liqTax[N].b,c);parts.push(['Tax on investments, renter\'s minus buyer\'s',it])}
+  if(o.tax){const it=o.tax.slice(0,N).reduce((a,t)=>a+adj(t.invR-t.invB,t.cpi),0)+adj(o.liqTax[N].r-o.liqTax[N].b,c);parts.push(['Tax on investments (renter − buyer)',it])}
   const known=parts.reduce((a,x)=>a+x[1],0);parts.push(['Renter\'s investment returns, before tax',gap-known]);
   return {gap,parts:parts.filter(([lab,v])=>Math.abs(v)>=1||/Rent|returns/.test(lab))}}
 /* Drawn as a walk of thick arrows: each part starts where the previous one ended and points right (in buying's
@@ -36,8 +36,10 @@ function renderGap(o){const t=theme(),p=P,{gap,parts}=gapParts(p,o),narrow=inner
   sh.push({type:'line',xref:'x',yref:'paper',x0:0,x1:0,y0:0,y1:1,line:{color:t.muted,width:1}},
     {type:'line',xref:'paper',yref:'y',x0:0,x1:1,y0:.5,y1:.5,line:{color:t.line,width:1}});
   const ys=rows.map((r,i)=>y(i)),ticks=rows.map(r=>r.total?`<b>${r.lab}</b>`:r.lab);
-  const names=narrow?rows.map((r,i)=>({xref:'paper',yref:'y',x:0,y:y(i)+.12,xanchor:'left',yanchor:'bottom',showarrow:false,
-    text:`${r.total?'<b>':''}${r.lab} <span style="color:${r.v>=0?t.buy:t.inv}">${r.v>=0?'+':''}${fmt(r.v)}</span>${r.total?'</b>':''}`,font:{size:11}})):[];
+  const names=narrow?rows.map((r,i)=>({xref:'paper',yref:'y',x:0,y:y(i)+.18,xanchor:'left',yanchor:'bottom',showarrow:false,
+    text:`${r.total?'<b>':''}${r.lab} <span style="color:${r.v>=0?t.buy:t.inv}">${r.v>=0?'+':''}${fmt(r.v)}</span>${r.total?'</b>':''}`,font:{size:11},bgcolor:t.bg,borderpad:1})):[];
+  // phones: each row needs room for its name above the arrow, so the chart grows with the number of rows
+  {const el=document.getElementById('p-gap');if(el)el.style.height=narrow?`${Math.round(rows.length*48+110)}px`:''}
   const dir=`<span style="color:${t.inv}">← favors renting</span>   <span style="color:${t.buy}">favors buying →</span>`;
   plot('p-gap',[{type:'bar',orientation:'h',y:ys,x:bx,base,width:.9,marker:{color:'rgba(0,0,0,0)'},customdata:rows.map(r=>[r.lab,r.v]),
       hovertemplate:'%{customdata[0]}: %{customdata[1]:$,.0f}<extra></extra>'},

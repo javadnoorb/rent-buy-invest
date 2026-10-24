@@ -136,3 +136,5 @@ changes, then what was **not** done and why, and any uncertain facts. Offer the 
   checks the header and market cards at 390px.
 - State what each path must do to earn its result (the renter's up-front and monthly investing, `investPlan`), not
   only the outcome.
+- Overlap checks must include drawn shapes, not only text: the gap chart's names collided with its arrows on phones
+  (fixed by sizing the chart per row and giving labels a background). A test checks it at 390px.

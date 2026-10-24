@@ -24,6 +24,12 @@ const { chromium } = require(process.env.PLAYWRIGHT_PATH || 'playwright');
     await page.waitForTimeout(150);
     const bad = await page.evaluate(t => [...document.querySelectorAll(`#tab-${t} .plot`)].filter(el => !el.querySelector('svg.main-svg') || el.dataset.err).map(el => el.id), tab);
     if (bad.length) failed.push(`${tab}: ${bad.join(', ')}`);
+    // phone width: the gap chart's names sit above their arrows, never under another arrow or past the chart's edge
+    if (tab === 'proj') { const g = await page.evaluate(() => { const p = document.getElementById('p-gap'), box = p.getBoundingClientRect();
+      const ann = [...p.querySelectorAll(".annotation")].map(a => { const r = a.getBoundingClientRect(); return { left: r.left - 3, right: r.right + 3, top: r.top - 3, bottom: r.bottom + 3 }; }), arr = [...p.querySelectorAll('.shapelayer path')].map(a => a.getBoundingClientRect()).filter(r => r.height > 4 && r.width > 2);
+      let hit = 0; ann.forEach(a => arr.forEach(r => { if (Math.min(a.right, r.right) > Math.max(a.left, r.left) && Math.min(a.bottom, r.bottom) > Math.max(a.top, r.top)) hit++; }));
+      return { n: ann.length, hit, past: ann.filter(a => a.right - 3 > box.right + 1).length }; });
+      if (g.n < 5 || g.hit || g.past) failed.push('proj: gap chart labels collide with arrows or overflow ' + JSON.stringify(g)); }
   }
   // formulas: every \( \) and \[ \] block must render with MathJax, with no TeX errors
   if (!process.env.STUB_PLOTLY) {
