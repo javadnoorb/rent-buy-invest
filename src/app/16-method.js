@@ -122,6 +122,11 @@ function buildMethod(){
   \\[ r^{bond}_t \\approx \\frac{Y_{t-1}}{12} - D_b\\,(Y_t - Y_{t-1}) \\]
   <dl class="sym"><dt>\\(Y_t\\)</dt><dd>10-year Treasury yield in month \\(t\\) (decimal)</dd><dt>\\(D_b\\)</dt><dd>bond duration, 7.5 years</dd></dl>`:''}
 
+  <h3>Checked against a published study</h3>
+  <p>Beracha and Johnson (${linkTo('https://doi.org/10.1111/j.1540-6229.2011.00321.x','Real Estate Economics, 2012')}) replayed actual U.S. history for buyers who held 8 years, bought from 1978 to 2001: 20% down on a 30-year fixed loan at that year's average rate, 2% closing and 6% selling costs, property tax 1.5% and upkeep plus insurance 2% of value a year, a 25% tax bracket, refinancing allowed, and a renter who invests the down payment and every month's difference at the T-bill rate. Renting came out ahead in 64.6% of those holds, and the renter ended with 1.26× the buyer's sale proceeds on average.</p>
+  <p>The same assumptions run through this model with its own national data (<code>tests/validate.js</code>, run with the tests): renting comes out ahead in about 67% of the holds when rent starts at 5% of the price a year (roughly where their rent-to-price data, from Davis, Lehnert and Martin, sat in those years), and the renter ends about 1.1× ahead on average. The model agrees on who wins and how often; it puts the renter's lead lower, likely because of differences in the home-price index (FHFA's all-transactions index there, Shiller and scaled FHFA purchase-only here), yearly instead of half-yearly purchases, and how yearly outlays are booked.</p>
+  <p>The check also shows what drives the answer most: the rent-to-price ratio when you buy. At 4.5% renting wins 75% of the holds; at the ratios implied by rolling today's 7% U.S. gross rent ratio back through history, buying wins nearly always. The Backtest tab replays history with <em>your</em> price and rent, so it answers "how would my situation have fared in past markets", not "how did buyers fare then".</p>
+
   <h3>Limits</h3>
   <ul>
     <li>Rent indexes track existing leases and move more slowly than asking rents (see the Data tab). Pre-1940s rent data are sparse; three missing December values (1934, 1935, 1946) are interpolated.</li>
@@ -196,6 +201,7 @@ const MSEC={
  'Risk adjustment':['Risk','Certainty equivalent: valuing uncertain outcomes.'],
  'Home-price volatility scaling':['Data','Making FHFA price swings match Case-Shiller\'s size.'],
  'Monthly bond returns':['Data','Bond returns from 10-year Treasury yields.'],
+ 'Checked against a published study':['Basics','How close the model gets to a 30-year study of actual outcomes.'],
  'Limits':['Basics','What the model leaves out.'],
  'Notation':['Basics','Every symbol, with the setting it comes from.'],
 };

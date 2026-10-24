@@ -5,9 +5,9 @@
 const CI_SRC={pmms:'Freddie Mac mortgage rates',zillow:'Zillow home values and rents',cpi:'BLS consumer prices',ptaxUS:'Census property tax',ins:'Census ACS insurance costs',
   fc_spf:'Philadelphia Fed forecasts',damo:'Damodaran annual returns 1928–2025',shiller:'Shiller home prices',fhfa:'FHFA house price index',fredMort:'Freddie Mac rate history',
   fredCPI:'BLS CPI history',fredRent:'BLS rent CPI history',mTb:'Federal Reserve T-bill and bond yields',mSp:'Shiller monthly S&P 500',irs26:'IRS 2026 tax brackets',
-  r_zori:'Zillow observed rent index',r_tenure:'Census mover rates',r_idio_vol:'own-home price risk studies',rz_forced_sales:'forced-sale discount study',acs:'Census ACS'};
+  r_zori:'Zillow observed rent index',beracha:'published 30-year buy-vs-rent study',r_tenure:'Census mover rates',r_idio_vol:'own-home price risk studies',rz_forced_sales:'forced-sale discount study',acs:'Census ACS'};
 const CI_BASE={m:['time-and-growth','equal-budgets'],d:['pmms','zillow','cpi','ptaxUS','ins','fc_spf']};
-const CI_HIST={m:['time-and-growth','refinancing'],d:['damo','shiller','fhfa','fredMort','fredCPI','fredRent','mTb','mSp'],a:['P','dp','rent0','maint','ptax','sell','refiOn'],note:'Replays actual history; your growth and return settings are not used.'};
+const CI_HIST={m:['time-and-growth','refinancing','checked-against-a-published-study'],d:['damo','shiller','fhfa','fredMort','fredCPI','fredRent','mTb','mSp','beracha'],a:['P','dp','rent0','maint','ptax','sell','refiOn'],note:'Replays actual history; your growth and return settings are not used.'};
 const CI_MC={m:['monte-carlo','moving-risk','home-price-volatility-scaling'],d:['damo','shiller','fhfa','fredCPI','fredRent','fredMort','r_idio_vol','rz_forced_sales'],a:['gh','gr','rs','inf','hz','stressMult','forcedDisc','idio']};
 const CI_LOC={m:['counties','rent-estimated-from-the-home-price','time-and-growth'],d:['zillow','fhfa','acs','ptaxUS'],a:['dp','rate','gh','gr','rs']};
 const CI_DATA={m:[],a:[],note:'Historical data only; no settings are used.'};

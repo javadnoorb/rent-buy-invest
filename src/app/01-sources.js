@@ -11,6 +11,7 @@ const SRC=Object.assign({
   irs121:{t:"IRS Topic 701: Sale of your home (Section 121 exclusion)",u:"https://www.irs.gov/taxtopics/tc701"},
   mTb:{t:"Federal Reserve H.15: 3-month Treasury bill (secondary market) and 10-year Treasury constant maturity, monthly averages",u:"https://www.federalreserve.gov/releases/h15/"},
   mSp:{t:"S&P 500 monthly total returns computed from Robert Shiller's monthly price and dividend data (as republished by multpl.com); index levels not stored",u:"https://shillerdata.com/"},
+  beracha:{t:"Beracha & Johnson (2012), Lessons from Over 30 Years of Buy versus Rent Decisions, Real Estate Economics 40(2) (validation of the historical replay)",u:"https://doi.org/10.1111/j.1540-6229.2011.00321.x"},
   irs936:{t:"IRS Publication 936: Home mortgage interest deduction ($750k limit)",u:"https://www.irs.gov/publications/p936"},
 },SNAP.sources,RES.sources||{},(typeof FCST!=='undefined'&&FCST&&FCST.sources)||{});
 const AFF_URL='https://www.bankrate.com/mortgages/what-percent-of-income-should-go-to-mortgage/';

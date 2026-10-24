@@ -24,6 +24,8 @@ jobs:
           npx tsc -p .
       - name: Model tests
         run: node tests/run.js
+      - name: Check against a published study (Beracha & Johnson 2012)
+        run: node tests/validate.js
       - name: Data script parsers (offline samples)
         run: python3 tests/test_scripts.py
       - name: Build
