@@ -157,3 +157,45 @@ function mcPortAnn(T,h,s){const p=T.p,lv=p.lev!=null?p.lev:1,path=T.X.path,yrs=[
     ()=>[T.set('ws',p.ws,'%'),T.pathY('rs',y),T.set('wb',p.wb,'%'),T.pathY('rb',y),T.pathY('rc',y),T.set('lev',lv,'x'),T.set('spread',p.spread||0,'%'),T.set('fee',p.fee,'%')],
     ([ws,rs,wb,rb,rc,l,sp,f])=>l*(ws*rs+wb*rb+(1-ws-wb)*rc)-(l-1)*rc-Math.max(0,l-1)*sp-f)};
   return T.fn(`Path ${s+1}: portfolio return, annualized over ${nY(h)} (percent)`,MC.res.gP[s],'n','annualize',()=>yrs.map(ry),a=>(Math.exp(a.reduce((x,r)=>x+Math.log(Math.max(0.01,1+r)),0)/h)-1)*100)}
+/* ---- Locations, side by side and scenarios: each place or scenario is a run with its own settings ---- */
+/* settings that differ from yours are marked "set for this point" in the panel */
+const overOf=q=>{const o={};Object.keys(q).forEach(k=>{const v=q[k];if(v!==P[k]&&(typeof v!=='object'||v===null))o[k]=v});return o};
+function traceFor(q,N,key){const k=`${key}|${LAST_KEY}|${REAL}|${N}`;let T=TRACE_ALT.get(k);if(!T){if(TRACE_ALT.size>80)TRACE_ALT.clear();T=traceRun(q,constPath(q,N),{kind:'const',over:overOf(q)},{N});TRACE_ALT.set(k,T)}return T}
+const locT=slug=>{const m=METROS.find(x=>x.slug===slug),{q}=locParams(P,m);return {m,T:traceFor(q,P.N,'loc:'+slug+':'+LOC_MODE)}};
+const scenOpts=()=>[{name:'Current inputs',raw:getRaw()}].concat(loadSc());
+const scenT=i=>{const s=scenOpts()[i],p=parseP(s.raw);return {s,T:traceFor(p,30,'scen:'+JSON.stringify(s.raw))}};
+Object.assign(TRACE_RECIPES,{
+  'loc:line':pt=>{const {m,T}=locT(pt.customdata),t=yr(pt);return {title:`${m.name}, year ${t}`,T,node:gapAt(T,t,`${m.name}: buy minus rent after ${nY(t)}`)}},
+  'loc:sc':(pt,el)=>{const slug=el.data[pt.curveNumber].ids[pt.pointNumber],{m,T}=locT(slug);return {title:m.name,T,node:gapAt(T,P.N,`${m.name}: buy minus rent at year ${P.N}`)}},
+  'scen:gap':pt=>{const {s,T}=scenT(pt.customdata),t=yr(pt);return {title:`${s.name}, year ${t}`,T,node:gapAt(T,t,`${s.name}: buy minus rent after ${nY(t)}`)}},
+  'scen:buy':pt=>{const {s,T}=scenT(pt.customdata),t=yr(pt);return {title:`${s.name}: buy, year ${t}`,T,node:T.real(T.nwBuy(t),T.cpi(t))}},
+  'scen:inv':pt=>{const {s,T}=scenT(pt.customdata),t=yr(pt);return {title:`${s.name}: rent + invest, year ${t}`,T,node:T.real(T.nwInv(t),T.cpi(t))}}});
+/* ---- Data tab: historical data only; each value is built from the yearly figures ---- */
+const DSER={rs:[STK,'S&P 500 total return',['damo']],rb:[BOND,'10-year Treasury bond return',['damo']],rc:[BILL,'3-month T-bill return',['damo']],gh:[HOME,'U.S. home prices',['shiller','caseShiller','fhfa']],gr:[RENTG,'Rent (BLS rent CPI)',['fredRent']],inf:[INF,'CPI inflation',['fredCPI']]};
+const dLeaf=(B,k,i)=>B.dat(`${DSER[k][1]}, ${Y0+i}`,DSER[k][0][i],'pp',DSER[k][2]);
+function dataCum(k,i){const B=traceBase(),ks=[...Array(i)].map((_,j)=>j),lab=`Real value of $1 invested at the end of ${Y0-1}, ${Y0-1+i}`;if(!i)return B.con(lab,1,'$');
+  const nom=B.fn(`Growth of $1 before inflation, ${Y0}–${Y0-1+i}`,ks.reduce((a,j)=>a*(1+DSER[k][0][j]/100),1),'x','compoundData',()=>ks.map(j=>dLeaf(B,k,j)),a=>a.reduce((s,r)=>s*(1+r/100),1));
+  const pl=B.fn(`Price level ${Y0-1+i} ÷ ${Y0-1}`,CPIL[i]/CPIL[0],'x','cpiRatio',()=>[B.dat(`CPI index, end of ${Y0-1+i}`,CPIL[i],'n',['fredCPI']),B.dat(`CPI index, end of ${Y0-1}`,CPIL[0],'n',['fredCPI'])],([a,b])=>a/b);
+  return B.fn(lab,nom.v/pl.v,'$','realOf1',()=>[nom,pl],([a,b])=>a/b)}
+function dataRoll(k,i){const B=traceBase(),ks=[...Array(10)].map((_,j)=>i-9+j);
+  return B.fn(`${DSER[k][1]}, real, annualized over ${Y0+i-9}–${Y0+i} (percent)`,(Math.exp(ks.reduce((a,j)=>a+Math.log((1+DSER[k][0][j]/100)/(1+INF[j]/100)),0)/10)-1)*100,'pp','roll10',
+    ()=>ks.flatMap(j=>[dLeaf(B,k,j),dLeaf(B,'inf',j)]),a=>{let l=0;for(let j=0;j<a.length;j+=2)l+=Math.log((1+a[j]/100)/(1+a[j+1]/100));return (Math.exp(l/10)-1)*100})}
+const DCORR={Home:'gh',Rent:'gr',Stocks:'rs',Bonds:'rb',Bills:'rc',CPI:'inf','Δ Mortgage':'dm'};
+function dataCorr(a,b){const B=traceBase(),S=k=>k==='dm'?DM_OBS:SER[k],lf=(k,i)=>k==='dm'?B.dat(`Change in the 30-year mortgage rate, ${Y0+i}`,DM_OBS[i],'pp',['fredMort']):dLeaf(B,k,i);
+  const A=S(DCORR[a]),Bs=S(DCORR[b]),ix=A.map((v,i)=>v!=null&&Bs[i]!=null?i:-1).filter(i=>i>=0);
+  return B.fn(`Correlation of yearly ${a.toLowerCase()} and ${b.toLowerCase()} changes, ${Y0+ix[0]}–${Y0+ix.at(-1)}`,(()=>{const pr=ix.map(i=>[A[i],Bs[i]]);return pearson(pr)})(),'x','corr',
+    ()=>ix.flatMap(i=>[lf(DCORR[a],i),lf(DCORR[b],i)]),v=>{const pr=[];for(let j=0;j<v.length;j+=2)pr.push([v[j],v[j+1]]);return pearson(pr)},()=>`correlation over ${ix.length} years`)}
+function pearson(pr){const n=pr.length,ma=pr.reduce((s,v)=>s+v[0],0)/n,mb=pr.reduce((s,v)=>s+v[1],0)/n;let sab=0,sa=0,sb=0;pr.forEach(([u,v])=>{sab+=(u-ma)*(v-mb);sa+=(u-ma)**2;sb+=(v-mb)**2});return sab/Math.sqrt(sa*sb)}
+function dataMetro(which,i){const B=traceBase(),m=curMetro(),ma=metroAnnual(m,true),ms=metroStart(m),yrs=YEARS.filter(y=>y>=ms).slice(0,i),a=which==='loc'?ma:HOME;
+  const lf=y=>which==='loc'?B.dat(`${m.name} home prices (FHFA), ${y}`,ma[y-Y0],'pp',['fhfa']):dLeaf(B,'gh',y-Y0);
+  return B.fn(`${which==='loc'?m.name:'National'} real home-price index, ${ms-1+i} (end of ${ms-1} = 100)`,yrs.reduce((v,y)=>v*(1+a[y-Y0]/100)/(1+INF[y-Y0]/100),100),'n','realIndex',
+    ()=>yrs.flatMap(y=>[lf(y),dLeaf(B,'inf',y-Y0)]),v=>{let x=100;for(let j=0;j<v.length;j+=2)x*=(1+v[j]/100)/(1+v[j+1]/100);return x})}
+['rs','rb','rc','gh','gr'].forEach(k=>{TRACE_RECIPES['data:cum:'+k]=pt=>({title:DSER[k][1],node:dataCum(k,Math.round(+pt.x)-Y0+1)});TRACE_RECIPES['data:roll:'+k]=pt=>({title:DSER[k][1],node:dataRoll(k,Math.round(+pt.x)-Y0)})});
+Object.assign(TRACE_RECIPES,{
+  'data:metro:loc':pt=>({title:'Home prices',node:dataMetro('loc',pt.pointNumber)}),'data:metro:us':pt=>({title:'Home prices',node:dataMetro('us',pt.pointNumber)}),
+  'data:corr':pt=>({title:'Correlation',at:'z',node:dataCorr(pt.y,pt.x)}),
+  'data:mort':pt=>{const B=traceBase(),y=Math.round(+pt.x);return {title:`Mortgage rate, ${y}`,node:B.dat(`30-year fixed mortgage rate, ${y} average`,MORT[y-MORT0],'pp',['fredMort'])}},
+  'data:inf':pt=>{const B=traceBase(),y=Math.round(+pt.x);return {title:`Inflation, ${y}`,node:B.fn(`CPI inflation, ${y} (percent)`,INF[y-Y0],'pp','inflation',()=>[B.dat(`CPI index, end of ${y}`,CPIL[y-Y0+1],'n',['fredCPI']),B.dat(`CPI index, end of ${y-1}`,CPIL[y-Y0],'n',['fredCPI'])],([a,b])=>(a/b-1)*100)}},
+  'data:realmort':pt=>{const B=traceBase(),y=Math.round(+pt.x);return {title:`Real mortgage rate, ${y}`,node:B.sum(`Real mortgage rate, ${y} (percent)`,MORT[y-MORT0]-INF[y-Y0],'pp','realRate',()=>[[1,B.dat(`30-year fixed mortgage rate, ${y} average`,MORT[y-MORT0],'pp',['fredMort'])],[-1,dLeaf(B,'inf',y-Y0)]])}},
+  'data:zori':pt=>{const B=traceBase(),i=pt.pointNumber;return {title:`Asking rents, ${pt.x}`,node:B.dat(`Zillow Observed Rent Index, January ${pt.x} vs a year earlier`,RES.zori.yoy[i],'pp',['r_zori'])}},
+  'data:rentcpi':pt=>{const B=traceBase(),y=Math.round(+pt.x);return {title:`CPI rent, ${y}`,node:B.fn(`Rent CPI change, ${y} (percent)`,RENTG[y-Y0],'pp','inflation',()=>[B.dat(`Rent CPI, end of ${y}`,RENTL[y-Y0+1],'n',['fredRent']),B.dat(`Rent CPI, end of ${y-1}`,RENTL[y-Y0],'n',['fredRent'])],([a,b])=>(a/b-1)*100)}}});

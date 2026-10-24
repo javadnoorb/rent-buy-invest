@@ -32,6 +32,13 @@ const AXE = require.resolve(process.env.AXE_PATH || 'axe-core/axe.min.js');
     await check('all settings open');
     const tabs = await page.$$eval('[role="tab"]', t => t.map(e => e.dataset.tab));
     for (const k of tabs) { await page.click(`[role="tab"][data-tab="${k}"]`); await page.waitForTimeout(k === 'mc' ? 3000 : 600); await check('tab ' + k); }
+    // the "How this was computed" panel, opened on a chart point with a few lines expanded
+    await page.click('[role="tab"][data-tab="proj"]'); await page.waitForTimeout(600);
+    await page.evaluate(() => { const el = document.getElementById('p-nw'), i = el.data.findIndex(d => d.meta === 'nw:buy');
+      traceClick(el, { points: [{ curveNumber: i, pointNumber: P.N, x: P.N, y: el.data[i].y[P.N] }] });
+      [...document.querySelectorAll('#trpB details.trn')].slice(0, 6).forEach(d => d.open = true); });
+    await page.waitForTimeout(1500); await check('trace panel');
+    await page.evaluate(() => closeTrace());
     await page.close();
   }
   await browser.close();

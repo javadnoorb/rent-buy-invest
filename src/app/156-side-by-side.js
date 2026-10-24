@@ -35,7 +35,7 @@ function renderSbs(){const T=document.getElementById('sbsT');if(!T)return;
       rows.map(([l,x,y,f,df])=>`<tr><th scope="row">${l}</th><td>${f(x)}</td><td>${f(y)}</td><td>${df?df(x,y):dM(x,y,f)}</td></tr>`).join('')+'</tbody>';
     const w=(r)=>r.gap>=0?`buying comes out ahead by ${fmt(r.gap)}`:`renting and investing comes out ahead by ${fmt(-r.gap)}`;
     const why=/** @type {[string,number][]} */([['price',b.q.P/a.q.P-1],['rent',b.rent/a.rent-1]]).map(([k,v])=>`${k} ${v>=0?'+':'−'}${pct(Math.abs(v),0)}`).join(', ');
-    const t=theme(),line=(r,c,dash)=>({x:r.o.buy.map((_,k)=>k),y:r.o.buy.map((v,k)=>adj(v-r.o.inv[k],r.o.cpi[k])),mode:'lines',name:r.m.name,line:{color:c,width:2.5,dash},hovertemplate:'%{y:$,.0f}<extra>'+r.m.name+'</extra>'});
+    const t=theme(),line=(r,c,dash)=>({x:r.o.buy.map((_,k)=>k),y:r.o.buy.map((v,k)=>adj(v-r.o.inv[k],r.o.cpi[k])),meta:'loc:line',customdata:r.o.buy.map(()=>r.m.slug),mode:'lines',name:r.m.name,line:{color:c,width:2.5,dash},hovertemplate:'%{y:$,.0f}<extra>'+r.m.name+'</extra>'});
     plot('p-sbs',[line(a,placePal(t)[0],'solid'),line(b,placePal(t)[1],'dot')],Object.assign(layout({hovermode:'x unified'}),{xaxis:X('Years'),yaxis:Yd('Buy − (rent + invest) ('+basisLabel()+')'),
       shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:t.muted,width:1}}]}));
     document.getElementById('tk-sbs').innerHTML=`<strong>${a.m.name}</strong>: ${w(a)}. <strong>${b.m.name}</strong>: ${w(b)}. Compared with ${a.m.name}, ${b.m.name} has ${why}${a.ptr&&b.ptr?`, so homes cost ${b.ptr>a.ptr?'more':'less'} relative to rent (${b.ptr.toFixed(1)} vs ${a.ptr.toFixed(1)} years of rent)`:''}.`;

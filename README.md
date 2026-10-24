@@ -24,6 +24,7 @@ It then opens full-screen from its own icon, and works offline after the first v
 - **Projection:** month-by-month model covering mortgage amortization, PMI, refinancing, property tax (with an optional assessment cap), insurance, maintenance, HOA, the federal itemized-deduction benefit (2026 standard deduction, SALT cap schedule, $750k interest limit) and the Section 121 home-sale exclusion. Portfolios can be taxable or sheltered, with yearly dividend and interest tax and optional leverage.
 - **Location presets:** 23 U.S. metros with Zillow home values and rents, property-tax rates, state insurance averages, and FHFA metro home-price and BLS metro rent history.
 - **The renter's side:** under the answer, what the renter must invest to get the rent + invest result: the buyer's up-front cash at the start, then the monthly difference while renting is cheaper (and when the buyer invests instead), with what happens if the monthly savings are spent. The year-by-year table has the same amounts.
+- **How this was computed:** tap or click any point on any chart to open a panel with that number as a tree of equations: each line opens to its equation, the same equation with your numbers in it, a link to the Method section that explains it, and the parts it is made of, down to settings (with where each value comes from and a link to change it), data (with its source) and the model's fixed rules. Statistics show how they are computed from the simulated futures, with the paths behind them traced in full. The Method tab's Equation index lists every equation the panel can show.
 - **Data tab:** a table of every dataset in the app (what it is, what it's used for, its period and its sources), then charts of the history.
 - **Simple / Detailed view:** a switch at the top. Simple (the default) shows the answer, the main charts, taxes, the loan, affordability, places and scenarios with the basic settings; Detailed adds the Backtest, Monte Carlo and Data tabs, the heat maps and the more technical cards. `?view=detailed` in the address opens Detailed.
 - **Investing:** "invest" means an S&P 500 index fund by default (stock returns are the S&P 500's total return); the portfolio can mix in 10-year Treasuries and T-bills, leverage and fees, and a line under the answer says what it currently is.
@@ -90,6 +91,8 @@ Everything runs with the Python standard library and Node; no install is needed 
 | `npm test` | Lint plus the model tests (about a second) |
 | `npm run smoke` | Browser test with the real chart and formula libraries (needs `npm i playwright`) |
 | `npm run test:ui` | Browser test of the UI logic: headline wording, ties, undo, counties, chart descriptions |
+| `npm run test:layout` | Chart layout: labels overlapping or clipped at four widths (needs the built page on :8765) |
+| `npm run test:trace` | The trace panel stays true to the model (needs the built page on :8765; see below) |
 | `npm run check` | Build, test, and the browser tests with a stubbed chart library (works offline) |
 
 `src/app/*.js` files are concatenated in name order into one script, so they share one scope: `npm run lint` fails if a top-level name is declared twice, if code looks up an element id that does not exist, or if a setting has no pop-up help.
@@ -110,6 +113,21 @@ The **Refresh data** workflow runs every Friday and on demand (Actions tab → R
 ## Tests
 
 `node tests/validate.js` replays the setup of a published 30-year study of actual buy-vs-rent outcomes (Beracha & Johnson 2012) through the model and fails if the share of holds where renting wins drifts more than 10 points from theirs; it runs in the Tests workflow and is summarized in the Method tab. `npm run typecheck` runs TypeScript over the plain JavaScript (`tsconfig.json`, `types/globals.d.ts`; nothing is compiled): it catches misspelled or undefined names, wrong calls and unused variables, and runs in the Tests workflow. To repeat a full audit-and-upgrade pass (formulas, text, UI/UX, code), Claude Code can use the `upgrade-app` skill in `.claude/skills/upgrade-app/` (process, chart screenshot sweep and montage scripts). `npm run check:all` (`scripts/check.sh`) builds and runs every check CI runs, the browser tests in parallel (about 2 minutes; `npm run check:fast` skips the browser tests, about 5 seconds). `npm test` runs `tests/lint.js` (static checks) and `tests/run.js`, with `tests/run_new.js`, which check the model math (mortgage amortization against the closed form, tax brackets, SALT cap, home-sale exclusion, PMI, refinancing, annual vs. monthly paths, directional sanity checks, each realism feature, underwater sales, tax-year indexing, and property checks over random inputs: results stay finite, monthly and annual paths agree, and higher home or stock growth never hurts the matching path). Run it after any change to `src/model.js`. `tests/smoke.js` opens every tab at phone width and fails on page errors, charts that don't draw, formulas that don't render, anything wider than the screen, or a chart readout that doesn't close on a second tap. `tests/ui.js` loads the page with a small county list swapped in and checks the headline wording, ties, break-even search, affordability colors, the undo bar, the county picker, Monte Carlo caching, chart descriptions, side-by-side places and state rules. `tests/a11y.js` runs axe-core (WCAG 2.1 AA) on every tab in light and dark mode and at phone width. `tests/layout.js` opens every chart at four widths (390 to 1280px) and three places and fails on labels that overlap or touch each other, sit on an arrow or are crossed by a line, or fall outside the chart (needs the page on :8765; `npm run test:layout`). `tests/test_scripts.py` feeds each data-script parser a small sample of the real file format. `node tests/validate.js` also refits the rent-from-price exponent on the stored county data. `python3 scripts/check_links.py` checks every link cited in the app's code and data files (the monthly State rules check workflow runs it; this container can't reach most sites, so run it on GitHub). All run on every push (Tests workflow, a few minutes).
+
+### Adding a chart or a setting
+
+The trace panel and `tests/trace.js` keep each chart's "How this was computed" tree in step with the model. The test
+fails, naming what to add, when a new chart or setting is missing one of these:
+
+- **A chart:** give every trace `meta:'<chart>:<series>'` and add a recipe to `TRACE_RECIPES` (`src/app/189d-recipes.js`)
+  that returns the plotted value's node; marks that are not results (reference markers, bands, legend stubs) get
+  `meta:'deco:…'`. The test samples points on every chart and compares the recipe's value with the plotted one.
+- **A model quantity or formula change:** mirror it in the node for that quantity (`src/app/189c-trace.js`); each node's
+  value comes from the run's ledger (`simulate(..., {trace:true})` → `o.tr`) and its formula must rebuild that value
+  from its parts. The closure check runs over a list of settings that reaches every branch plus seeded random ones.
+- **An equation:** add it to `EQ` (`src/app/189b-equations.js`) with its Method section; write `<` as `\lt`.
+- **A setting:** add where its default comes from to `ORIGIN` (`src/app/189-provenance.js`), and make sure it appears in
+  the trace wherever the model reads it (the reads check wraps the settings and lists any it never sees).
 
 ## Data sources
 

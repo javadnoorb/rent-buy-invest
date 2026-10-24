@@ -69,7 +69,8 @@ function traceNodes(X){const {p,o,tr}=X,LS=tr.LS,E=t=>tr.ends[t],Yr=y=>tr.years[
     prod(`Home value ${TL(t)}`,E(t).H,'$','home',()=>[set('P',p.P,'$')].concat(upto(t).map(y=>gf('gh',y)))));
   const loanAmt=()=>M('L',()=>fn('Loan amount',LS.L,'$',LS.type==='fha'?'loanFHA':'loan',()=>[set('P',p.P,'$'),set('dp',p.dp,'%')].concat(LS.type==='fha'?[con('FHA upfront premium, added to the loan',0.0175,'%',{src:['lr_fha'],pk:['loanType']})]:[]),
     a=>a[0]*(1-a[1])*(a[2]!=null?1+a[2]:1)));
-  const evAt=(y,m)=>{for(let yy=y;yy>=0;yy--)for(let mm=yy===y?m:11;mm>=0;mm--){const q=Mo(yy,mm);if(q.ev)return {y:yy,m:mm,ev:q.ev};if(mm===0&&mv&&mv.mode==='buy'&&mv.y===yy)return {y:yy,m:0,move:true}}return null};
+  // the latest loan event at or before a month (pay: only events that recomputed the payment; an ARM reset to the same rate keeps it)
+  const evAt=(y,m,pay)=>{for(let yy=y;yy>=0;yy--)for(let mm=yy===y?m:11;mm>=0;mm--){const q=Mo(yy,mm);if(q.ev&&!(pay&&q.ev.re===false))return {y:yy,m:mm,ev:q.ev};if(mm===0&&mv&&mv.mode==='buy'&&mv.y===yy)return {y:yy,m:0,move:true}}return null};
   const cAdj=()=>M('cadj',()=>{const C=p.credit,L=C&&C.llpa;if(!LS.cAdj||!L)return why('Credit-score rate adjustment',LS.cAdj||0,'%',p.loanType==='fha'?'FHA pricing has no credit-score adjustment':'your score and down payment price the same as the survey borrower',['fico','credit','loanType']);
     const col=ltv=>L.ltv_upper.findIndex(u=>ltv<=u+1e-9),row=L.rows[p.fico],ref=L.rows[L.reference.score];
     return fn('Credit-score rate adjustment',LS.cAdj,'%','llpa',()=>[dat(`Fannie Mae price adjustment, score ${p.fico}, ${pct(1-p.dp,0)} loan-to-value`,row[col(1-p.dp)],'pts',['llpa'],{pk:['fico','credit','dp']}),
@@ -85,7 +86,7 @@ function traceNodes(X){const {p,o,tr}=X,LS=tr.LS,E=t=>tr.ends[t],Yr=y=>tr.years[
   const moveRate=y=>M('mvr:'+y,()=>{const mr=path.monthly?path.mkt&&path.mkt[y*12]:path.mkt&&path.mkt[y];const v=Yr(y).rate;
     return mr!=null?sum(`Loan rate on the new home, ${YL(y)}`,v,'%','refiRate',()=>[[1,mktM(y,0)],[1,cAdj()]]):fn(`Loan rate on the new home, ${YL(y)}`,v,'%',null,()=>[rateM(y-1,11)],([a])=>a)});
   const iM=(y,m)=>M(`i:${y}:${m}`,()=>fn(`Monthly rate, ${YL(y)} month ${m+1}`,Mo(y,m).i,'%','monthlyRate',()=>[rateM(y,m)],([r])=>r/12));
-  const payM=(y,m)=>M(`M:${y}:${m}`,()=>{const e=evAt(y,m),v=Mo(y,m).Mp;
+  const payM=(y,m)=>M(`M:${y}:${m}`,()=>{const e=evAt(y,m,true),v=Mo(y,m).Mp;
     if(!e)return fn('Monthly principal and interest',v,'$','payment',()=>[loanAmt(),rate0(),con('Payments',LS.nTot,'n',{pk:['term']})],([L,r,n])=>pmt(L,r/12,n));
     if(e.move)return fn(`Monthly payment on the new loan, ${YL(e.y)}`,v,'$','payment',()=>[balStart(e.y),moveRate(e.y),con('Payments',LS.nTot,'n',{pk:['term']})],([L,r,n])=>pmt(L,r/12,n));
     return fn(`Monthly payment from ${YL(e.y)}, month ${e.m+1}`,v,'$','payment',()=>[balM(e.y,e.m),rateM(e.y,e.m),con('Payments left',e.ev.left,'n')],([L,r,n])=>pmt(L,r/12,n))});
@@ -229,10 +230,10 @@ function traceNodes(X){const {p,o,tr}=X,LS=tr.LS,E=t=>tr.ends[t],Yr=y=>tr.years[
   /* model options read by the run: listed under every result */
   const opts=()=>['taxOn','acct','filing','loanType','term','refiOn','moveMode','extraMode','muMode','ltcgMode','stMode','pmiScale','pmiAppr','ttAuto','rentalOn','idioMode','volAdj'].filter(id=>document.getElementById(id))
     .map(id=>{const el=document.getElementById(id);return set(id,el.value,'opt',id,{opt:el.options?el.options[el.selectedIndex].text:el.value,pk:OPT_PK[id]||[id]})});
-  return {X,p,o,tr,helocN,defl,pathY,rateEnd:t=>t===0?rate0():rateM(t-1,11),nwBuy,nwInv,nwCash,nwRental,homeNet,liq,V,H,bal,cpi,cpiMid,real,intY,prinY,preY,ptaxY,maintY,insMo,byInf,pmiY,taxSave,hhY,hhTaxM,rentY,own,ownAvg,budget,retY,taxY,addY,saleNet,homeTax,sellRate,closeRate,ptsCost,loanAmt,loanBase,opts,sum,fn,prod,con,why,set,months,Yr,Mo,E}}
+  return {X,p,o,tr,helocN,defl,pathY,dat,rateEnd:t=>t===0?rate0():rateM(t-1,11),nwBuy,nwInv,nwCash,nwRental,homeNet,liq,V,H,bal,cpi,cpiMid,real,intY,prinY,preY,ptaxY,maintY,insMo,byInf,pmiY,taxSave,hhY,hhTaxM,rentY,own,ownAvg,budget,retY,taxY,addY,saleNet,homeTax,sellRate,closeRate,ptsCost,loanAmt,loanBase,opts,sum,fn,prod,con,why,set,months,Yr,Mo,E}}
 /* settings an option brings with it: read by the model, but only used when the option is on */
-const OPT_PK={refiOn:['refiOn','refiTh'],taxOn:['taxOn','y0','incGrowth','income','mu','niit','niitAuto','stRate','impShare'],rentalOn:['rentalOn','vacR','mgmt','dpR','ratePrem','landShare','rate30']};
+const OPT_PK={moveMode:['moveMode','moveYear'],loanType:['loanType','armYears','armMargin','armRate','armCapInit','armCapPer','armCapLife'],refiOn:['refiOn','refiTh'],taxOn:['taxOn','y0','incGrowth','income','mu','niit','niitAuto','stRate','impShare'],rentalOn:['rentalOn','vacR','mgmt','dpR','ratePrem','landShare','rate30']};
 const SER_RAW={gh:HOME,gr:RENTG,rs:STK,rb:BOND,rc:BILL,inf:INF};
 /* a value with its unit, for the numbers line of an equation */
 function fv(v,u){if(v==null||!isFinite(v))return '—';if(u==='$')return Math.abs(v)<100&&Math.abs(v-Math.round(v))>0.004?(v<0?'−$':'$')+Math.abs(v).toFixed(2):fmtFull(v);
-  if(u==='%'){const a=Math.abs(v*100);return (v<0?'−':'')+a.toFixed(a&&a<0.1?4:a<1?3:2)+'%'}if(u==='x')return v.toFixed(v>=100?0:4);if(u==='mo')return v.toFixed(1)+' months';if(u==='pts')return String(v);if(u==='opt')return String(v);return Number(v).toLocaleString('en-US',{maximumFractionDigits:2})}
+  if(u==='%'){const a=Math.abs(v*100);return (v<0?'−':'')+a.toFixed(a&&a<0.1?4:a<1?3:2)+'%'}if(u==='x')return v.toFixed(v>=100?0:4);if(u==='mo')return v.toFixed(1)+' months';if(u==='pts')return String(v);if(u==='pp')return (v<0?'−':'')+Math.abs(v).toFixed(2)+'%';if(u==='opt')return String(v);return Number(v).toLocaleString('en-US',{maximumFractionDigits:2})}

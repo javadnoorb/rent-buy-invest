@@ -14,7 +14,7 @@
 'use strict';
 const { chromium } = require(process.env.PLAYWRIGHT_PATH || 'playwright');
 const URL = process.env.URL || 'http://127.0.0.1:8765/index.html?view=detailed';
-const PENDING = new Set(['p-loc', 'p-locsc', 'p-sbs', 'p-cmp', 'p-scen', 'p-cum', 'p-metro', 'p-roll', 'p-corr', 'p-mort', 'p-zori']);
+const PENDING = new Set();
 // equations only reached by recipes not written yet
 const EQ_PENDING = new Set();
 let pass = 0, fail = 0; const fails = [];
@@ -66,6 +66,13 @@ function walkTrees(roots) {
       shelter: { acct: 'sheltered' }, notax: { taxOn: false }, lev: { lev: 1.5, ws: 0.6, wb: 0.3 }, cashHeavy: { lev: 0.5, ws: 0.4, wb: 0.2 },
       rich: { filing: 'mfj', income: 600000, pts: 2, stDed: true, stRate: 0.05, muMode: 'auto', ltcgMode: 'auto' }, t15: { term: 15, rate: 0.055 },
       neg: { gh: -0.05, rs: -0.02, N: 10, dp: 0.03, sellBase: 0.07, sell: 0.07 }, rental: { rentalOn: true }, underwater: { moveMode: 'rent', moveYear: 3, gh: -0.12, dp: 0.03, N: 8 }, heloc: { heloc: 0.8 }, credit: { fico: '680-699', dp: 0.1 } };
+    // plus seeded random settings, so combinations nobody listed are checked too
+    const rnd = rng(20261024), pick = a => a[Math.floor(rnd() * a.length)], u = (lo, hi) => lo + (hi - lo) * rnd();
+    for (let i = 0; i < 12; i++) cfgs['random' + i] = { loanType: pick(['fixed', 'fha', 'arm']), dp: pick([0.035, 0.05, 0.1, 0.2, 0.3]), term: pick([15, 30]), gh: u(-0.03, 0.08), gr: u(0, 0.06), inf: u(0, 0.06),
+      rs: u(-0.02, 0.12), rb: u(0, 0.06), rc: u(0, 0.06), ws: u(0, 1), wb: 0, lev: pick([0.5, 1, 1, 1.5]), refiOn: rnd() < 0.5, rateLR: u(0.03, 0.09), glide: pick([1, 3, 6]), taxOn: rnd() < 0.8,
+      acct: pick(['taxable', 'sheltered']), filing: pick(['single', 'mfj']), income: u(40000, 800000), muMode: 'auto', ltcgMode: pick(['auto', 'manual']), extraPay: pick([0, 0, 300, 1500]),
+      extraMode: pick(['prepay', 'invest']), moveMode: pick(['none', 'none', 'buy', 'rent']), moveYear: pick([2, 5, 8]), hhRent: pick([0, 0, 700]), ptaxCap: pick([0, 0, 0.02]), ptaxCapCPI: rnd() < 0.3,
+      pmiAppr: rnd() < 0.5, renewGap: pick([0, 0.01]), incGrowth: u(0, 0.05), N: pick([3, 7, 12, 20, 30]), heloc: pick([0, 0.8]), fico: pick(['780+', '700-719', '640-659']) };
     const out = {};
     for (const [k, c] of Object.entries(cfgs)) {
       const p = Object.assign({}, P, c), reads = new Set();

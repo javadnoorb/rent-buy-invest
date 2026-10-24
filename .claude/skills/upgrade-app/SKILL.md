@@ -82,7 +82,7 @@ When the "How to read this" text or a takeaway describes a chart, keep it true a
 
 ```bash
 npm run check:fast        # build, lint, tsc, model tests, validate, parser tests (~5 s)
-npm run check:all         # + smoke, ui, a11y, chart layout in parallel (~2 min; a11y needs axe-core, see setup)
+npm run check:all         # + smoke, ui, a11y, chart layout, trace in parallel (~3 min; a11y needs axe-core, see setup)
 ```
 Add a UI test (`tests/ui.js`) for each new behaviour. If a test asserted old wording, update it to the new wording
 rather than weakening it.
@@ -138,6 +138,13 @@ changes, then what was **not** done and why, and any uncertain facts. Offer the 
   only the outcome.
 - Overlap checks must include drawn shapes, not only text: the gap chart's names collided with its arrows on phones
   (fixed by sizing the chart per row and giving labels a background). A test checks it at 390px.
+- Every chart point opens a "How this was computed" trace (`src/app/189*.js`). A change to `simulate` must be mirrored
+  in the trace node for that quantity, a new chart needs `meta` on each trace and a recipe, a new setting an `ORIGIN`
+  entry; `tests/trace.js` fails with the missing piece named (README: Adding a chart or a setting). Its closure check
+  has found real bugs, not only trace gaps: the tornado's selling-cost bar did nothing at places with transfer-tax
+  rules. When a closure fails, ask first whether the model or the chart is wrong, then the trace.
+- Wait for every check to finish before pushing: a TeX `<` in an equation broke the Method page and went out with a
+  push made while the smoke test was still running.
 - `tests/layout.js` checks every chart at 390, 600, 900 and 1280px and three places: labels overlapping or closer than
   2px, labels on drawn shapes or crossed by line shapes, anything outside the chart, legends over the plot. When a
   user reports an overlap, first make this test fail on the old code (check out the old file), then fix. Fixes that

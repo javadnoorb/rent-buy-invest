@@ -13,7 +13,7 @@ function renderScen(){
   renderCompare(list);
   const all=[{name:'Current inputs',raw:getRaw()}].concat(list);
   const results=all.map(s=>Object.assign({name:s.name},scenarioResult(s.raw)));
-  plot('p-scen',results.map((r,i)=>({x:r.o.buy.map((_,k)=>k),y:r.o.buy.map((b,k)=>adj(b-r.o.inv[k],r.o.cpi[k])),name:r.name,mode:'lines',line:{color:cols[i%cols.length],width:i===0?3:2,dash:i===0?'solid':undefined},hovertemplate:'%{y:$,.0f}'})),
+  plot('p-scen',results.map((r,i)=>({x:r.o.buy.map((_,k)=>k),y:r.o.buy.map((b,k)=>adj(b-r.o.inv[k],r.o.cpi[k])),meta:'scen:gap',customdata:r.o.buy.map(()=>i),name:r.name,mode:'lines',line:{color:cols[i%cols.length],width:i===0?3:2,dash:i===0?'solid':undefined},hovertemplate:'%{y:$,.0f}'})),
     {xaxis:X('Years'),yaxis:Yd('Buy − (rent + invest), '+basisLabel()),shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:t.muted,width:1}}]});
   {const be=results.map(r=>({n:r.name,b:breakevenYear(r.o,r.p.N)}));const ok=be.filter(x=>x.b).sort((a,b)=>a.b-b.b);
    tk('scen',results.length<2?'Save a scenario to compare it with the current inputs.':(ok.length?`${escapeHtml(ok[0].n)} breaks even first (year ${ok[0].b}).`+(be.length>ok.length?` ${be.length-ok.length} scenario${be.length-ok.length>1?'s':''} never break${be.length-ok.length>1?'':'s'} even within ${be.length-ok.length>1?'their horizons':'its horizon'}.`:''):'No scenario breaks even within its horizon.'))}
@@ -38,8 +38,8 @@ function renderCompare(list){
   document.getElementById('cmpT').innerHTML=`<thead><tr><th></th><th>${escapeHtml(A.name)}</th><th>${escapeHtml(B.name)}</th></tr></thead><tbody>`+
     rows.map(([lab,k,f,hi,dir])=>{let ca='',cb='';if(hi||dir){const x=a[k]==null?null:a[k],y=b[k]==null?null:b[k];if(x!=null&&y!=null&&x!==y){const better=(dir===-1)?(x<y?'a':'b'):(x>y?'a':'b');if(better==='a')ca=' class="better"';else cb=' class="better"'}}
       return `<tr><td>${lab}</td><td${ca}>${f(a[k])}</td><td${cb}>${f(b[k])}</td></tr>`}).join('')+'</tbody>';
-  const line=(r,col,dash,lab)=>{const o=r.sim;return [{x:o.buy.map((_,k)=>k),y:o.buy.map((v,k)=>adj(v,o.cpi[k])),name:`${lab}: buy`,mode:'lines',line:{color:t.buy,width:2.4,dash},hovertemplate:'%{y:$,.0f}'},
-    {x:o.inv.map((_,k)=>k),y:o.inv.map((v,k)=>adj(v,o.cpi[k])),name:`${lab}: rent + invest`,mode:'lines',line:{color:t.inv,width:2.4,dash},hovertemplate:'%{y:$,.0f}'}]};
+  const line=(r,col,dash,lab)=>{const o=r.sim,ix=o.buy.map(()=>+(lab==='A'?sa:sb).value);return [{x:o.buy.map((_,k)=>k),y:o.buy.map((v,k)=>adj(v,o.cpi[k])),meta:'scen:buy',customdata:ix,name:`${lab}: buy`,mode:'lines',line:{color:t.buy,width:2.4,dash},hovertemplate:'%{y:$,.0f}'},
+    {x:o.inv.map((_,k)=>k),y:o.inv.map((v,k)=>adj(v,o.cpi[k])),meta:'scen:inv',customdata:ix,name:`${lab}: rent + invest`,mode:'lines',line:{color:t.inv,width:2.4,dash},hovertemplate:'%{y:$,.0f}'}]};
   tk('cmp',sa.value===sb.value?'Pick two different scenarios above, or save one first.':`${escapeHtml(A.name)}: ${gapTxt(a.gap)} at year ${a.N}. ${escapeHtml(B.name)}: ${gapTxt(b.gap)} at year ${b.N}.`);
   plot('p-cmp',[...line(A,null,'solid','A'),...line(B,null,'dot','B')],{xaxis:X('Years'),yaxis:Yd('Net worth, '+basisLabel())});
 }

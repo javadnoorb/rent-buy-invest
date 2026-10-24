@@ -200,7 +200,7 @@ function simulate(p,path,opt){const cAdj=creditAdj(p).rate;
           const idx=M?path.rc[y*12+m]*12:path.rc[y];let tgt=Math.round(((idx||0)+(p.armMargin||0.0275))*800)/800;
           const cap=armResets===0?(p.armCapInit!=null?p.armCapInit:0.02):(p.armCapPer!=null?p.armCapPer:0.01);
           tgt=Math.min(rate+cap,Math.max(rate-cap,tgt));tgt=Math.min(armRate0+(p.armCapLife!=null?p.armCapLife:0.05),Math.max(p.armMargin||0.0275,tgt));
-          if(Math.abs(tgt-rate)>1e-9){rate=tgt;i=rate/12;Mp=pmt(bal,i,nTot-mSince)}armResets++;if(TR)tm.ev={k:'arm',idx,rate,bal,left:nTot-mSince,M:Mp}}}
+          const ch=Math.abs(tgt-rate)>1e-9;if(ch){rate=tgt;i=rate/12;Mp=pmt(bal,i,nTot-mSince)}armResets++;if(TR)tm.ev={k:'arm',idx,rate,bal,left:nTot-mSince,M:Mp,re:ch}}}
         const balPrev=bal;let pay=0;balSum+=balPrev;if(TR)Object.assign(tm,{bal0:bal,i,Mp,int:0,prin:0,pre:0});
         if(bal>0.005){const it=bal*i;const pr=Math.min(Mp-it,bal);pay=it+pr;bal-=pr;intY+=it;prinY+=pr;if(TR){tm.int=it;tm.prin=pr}}
         if(xPay>0){const pre=xPrepay?Math.min(xPay,bal):0;bal-=pre;prinY+=pre;xB+=xPay-pre;if(TR)tm.pre=pre;
