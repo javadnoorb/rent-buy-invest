@@ -31,7 +31,7 @@ function renderData(){
   // the matrix is symmetric with 1s on the diagonal, so only the pairs below it are shown
   const lz=z.slice(1).map((r,i)=>r.slice(0,-1).map((v,j)=>j<=i?v:null));
   plot('p-corr',[{x:ks.slice(0,-1).map(k=>k[0]),y:ks.slice(1).map(k=>k[0]),z:lz,type:'heatmap',zmin:-1,zmax:1,colorscale:divScale(t),text:lz.map(r=>r.map(v=>v==null?'':v.toFixed(2))),texttemplate:'%{text}',hoverongaps:false,textfont:{family:'IBM Plex Mono, monospace',size:10},showscale:false,hovertemplate:'%{y} × %{x}: %{z:.2f}<extra></extra>'}],
-    {hovermode:'closest',margin:{l:76,r:10,t:10,b:60},yaxis:{autorange:'reversed',tickfont:{color:t.ink}},xaxis:{tickfont:{color:t.ink},tickangle:-40}});
+    {hovermode:'closest',margin:{l:76,r:10,t:10,b:60},yaxis:{autorange:'reversed',tickfont:{color:t.ink},showgrid:false,zeroline:false},xaxis:{tickfont:{color:t.ink},tickangle:-40,showgrid:false,zeroline:false}});
   {const ci=ks.findIndex(k=>k[1]==='gh'),si=ks.findIndex(k=>k[1]==='rs'),ii=ks.findIndex(k=>k[1]==='inf');
    tk('corr',`Home prices and stocks: ${z[ci][si].toFixed(2)} (close to unrelated). Home prices and inflation: ${z[ci][ii].toFixed(2)}, a partial inflation hedge.`,'What stands out:')}
   const my=MORT.map((_,i)=>MORT0+i);
