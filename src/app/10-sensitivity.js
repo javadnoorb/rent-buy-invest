@@ -19,13 +19,13 @@ function renderSens(){
    tk('tor',`The answer is most sensitive to ${list(top.map(nm))}. `+(fl.length>5?`The result is a toss-up: ${fl.length} of the ${rows.length} changes shown would flip it on their own.`:fl.length?`Within the ranges shown, ${list(fl.slice(0,3).map(nm))}${fl.length>3?` (and ${fl.length-3} more)`:''} could flip the decision on ${fl.length>1?'their':'its'} own.`:`None of the shown changes alone flips the decision, so the result is fairly robust to any single input.`))}
   const G=[],R=[];for(let g=-2;g<=8.001;g+=0.5)G.push(r2(g));for(let r=2;r<=14.001;r+=0.5)R.push(r2(r));
   const wc=1-p.ws-p.wb,mix=rs=>p.ws*rs+p.wb*p.rb+wc*p.rc;
-  const z=R.map(r=>G.map(g=>{const rs=p.ws>0?(r/100-p.wb*p.rb-wc*p.rc)/p.ws:p.rs;return 100*advAt(p,{gh:g/100,rs})/p.P}));
+  const z=R.map(r=>G.map(g=>{const rs=p.ws>0?(r/100-p.wb*p.rb-wc*p.rc)/p.ws:p.rs;return advAt(p,{gh:g/100,rs})}));
   const zmax=Math.max(1,...z.flat().map(Math.abs));
   plot('p-heat',[
-    {x:G,y:R,z,type:'heatmap',zmin:-zmax,zmax,colorscale:divScale(t),colorbar:{title:{text:'% of price',side:'right'},thickness:10,outlinewidth:0},hovertemplate:'home %{x}%, portfolio %{y}%<br>advantage %{z:.0f}% of price<extra></extra>'},
+    {x:G,y:R,z,type:'heatmap',zmin:-zmax,zmax,colorscale:divScale(t),colorbar:advBar(t,`Buy − rent<br>at year ${p.N}`,'$'),customdata:z.map(r=>r.map(v=>(100*v/p.P).toFixed(0))),hovertemplate:`home %{x}%, portfolio %{y}%<br>buy − rent at year ${p.N}: %{z:$,.0f} (%{customdata}% of price)<extra></extra>`},
     zeroContour(G,R,z,t),
     {x:[p.gh*100],y:[mix(p.rs)*100],mode:'markers',marker:{size:12,color:t.ink,symbol:'x'},name:'You',hovertemplate:'your assumption<extra></extra>'}],
-    {hovermode:'closest',showlegend:false,xaxis:X('Home appreciation, % / yr'),yaxis:Yt('Portfolio return before fees, % / yr')});
+    {hovermode:'closest',showlegend:false,xaxis:X('Home appreciation, % / yr'),yaxis:Yt('Portfolio return before fees, % / yr'),annotations:advEnds(t)});
   {const beG=bisect(g=>advAt(p,{gh:g}),-0.15,0.25);
    tk('heat',beG==null?'At your portfolio return, no home appreciation between −15% and 25% a year changes the winner.':
      `At your ${pct(mix(p.rs))} portfolio return, buying ties when homes appreciate ${pct(beG)} a year; you assume ${pct(p.gh)}, a margin of ${(Math.abs(beG-p.gh)*100).toFixed(1)} points in favor of ${beG>p.gh?'renting':'buying'}.`)}

@@ -27,16 +27,16 @@ function renderHist(){
     line:{width:1.3,color:`rgba(${Math.round(40+180*c)},${Math.round(90+40*(1-c))},${Math.round(200-150*c)},0.7)`},hovertemplate:`start ${r.lab}: %{y:.0f}%<extra></extra>`}}));
   const med=[];for(let h=0;h<=30;h++){const v=runs.filter(r=>r.adv.length>h).map(r=>r.adv[h]).sort((a,b)=>a-b);if(v.length>=5)med.push([h,v[Math.floor(v.length/2)]])}
   sp.push({x:med.map(m=>m[0]),y:med.map(m=>m[1]),mode:'lines',name:'Median across starts',line:{color:t.ink,width:3.5},hovertemplate:'median %{y:.0f}%<extra></extra>'});
-  plot('p-spag',sp,{hovermode:'closest',xaxis:X('Years after purchase'),yaxis:Yt('Buy − (rent + invest), real, % of price',{ticksuffix:'%'}),
+  plot('p-spag',sp,{hovermode:'closest',xaxis:X('Years after purchase'),yaxis:Yt('Buy − (rent + invest), % of purchase price, after inflation',{ticksuffix:'%'}),
     margin:{t:24},annotations:[{xref:'paper',yref:'paper',x:0,y:1,xanchor:'left',yanchor:'bottom',showarrow:false,text:'early starts blue → recent red',font:{size:11,color:t.muted}}]});
   const H=[...Array(30)].map((_,k)=>k+1),xs=runs.map(r=>r.s);
   const z=H.map(h=>runs.map(r=>r.adv.length>h?r.adv[h]:null));
   const zmax=Math.min(150,Math.max(1,...z.flat().filter(v=>v!=null).map(Math.abs)));
   const win=runs.filter(r=>r.adv.length>p.N),share=win.filter(r=>r.adv[p.N]>0).length/(win.length||1);
-  plot('p-hheat',[{x:xs,y:H,z,type:'heatmap',zmin:-zmax,zmax,colorscale:divScale(t),hoverongaps:false,colorbar:{title:{text:'% of price',side:'right'},thickness:10,outlinewidth:0},
-    customdata:H.map(()=>runs.map(r=>r.lab)),hovertemplate:'bought %{customdata}, after %{y} yr: %{z:.0f}%<extra></extra>'},
+  plot('p-hheat',[{x:xs,y:H,z,type:'heatmap',zmin:-zmax,zmax,colorscale:divScale(t),hoverongaps:false,colorbar:advBar(t,'Buy − rent,<br>% of purchase<br>price','%'),
+    customdata:H.map(()=>runs.map(r=>r.lab)),hovertemplate:'bought %{customdata}, after %{y} yr: buy − rent %{z:.0f}% of the purchase price<extra></extra>'},
     zeroContour(xs,H,z,t)],
-    {hovermode:'closest',xaxis:X(`Year of purchase · buying won in ${(share*100).toFixed(0)}% of ${win.length} starts at ${p.N} yr`),yaxis:Yt('Horizon (years)')});
+    {hovermode:'closest',xaxis:X(`Year of purchase · buying won in ${(share*100).toFixed(0)}% of ${win.length} starts at ${p.N} yr`),yaxis:Yt('Horizon (years)'),annotations:advEnds(t)});
   {const at=win.map(r=>({lab:r.lab,v:r.adv[p.N]})).sort((a,b)=>a.v-b.v);
    if(at.length){const md=at[Math.floor(at.length/2)].v,w=at[0],bst=at.at(-1);
      tk('spag',`Over ${at.length} historical starts with at least ${nY(p.N)} of data, buying won ${pct(share,0)} of the time. The median outcome was ${sgnP(md)} of the price; the worst was ${sgnP(w.v)} (bought ${w.lab}) and the best ${sgnP(bst.v)} (bought ${bst.lab}).`,'In history:');

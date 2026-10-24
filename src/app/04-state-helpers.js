@@ -63,6 +63,11 @@ const X=(t)=>({...layout().xaxis,title:{text:t,font:{size:11}}});
 const Yd=(t)=>({...layout().yaxis,title:{text:t,font:{size:11}},tickprefix:'$',tickformat:'~s'});
 const Yt=(t,extra)=>({...layout().yaxis,title:{text:t,font:{size:11}},...(extra||{})});
 const basisLabel=()=>REAL?"today's $":'nominal $';
+/* colour bar for buy-minus-rent heat maps: a titled scale ($ or %) with which end favours buying and which renting */
+function advBar(t,title,unit){return {title:{text:title,side:'top',font:{size:11}},thickness:10,outlinewidth:0,len:.74,y:.5,
+  ...(unit==='$'?{tickformat:'$~s'}:{ticksuffix:'%'})}}
+function advEnds(t){return [[1,'bottom','▲ Buying<br>ahead',t.buy],[0,'top','▼ Renting<br>ahead',t.inv]].map(([y,ya,text,color])=>
+  ({xref:'paper',yref:'paper',x:1.02,xanchor:'left',y:y===1?.87:.13,yanchor:ya,showarrow:false,align:'left',text,font:{size:10,color}}))}
 /* Diverging scale for "renting wins" (blue, negative) vs "buying wins" (green, positive): 9 steps, darker and more
    saturated toward the extremes, a light neutral at zero that differs from the card background, and a dark-mode version. */
 const isDark=t=>{const h=(t.bg||'#fff').replace('#','');const n=parseInt(h.length===3?h.split('').map(c=>c+c).join(''):h,16);return ((n>>16&255)*.299+(n>>8&255)*.587+(n&255)*.114)<128};
