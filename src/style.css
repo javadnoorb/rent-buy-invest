@@ -457,3 +457,5 @@ input,select,h2,h3,.plot,details,.card{scroll-margin-top:var(--smt)}
 .ahead .ciback{margin:0 0 0 auto;min-width:0;flex:0 1 auto}.ahead .ciback+.close{margin-left:8px}
 .ahead:has(.ciback:not([hidden])) .saved{display:none}
 @media print{.ciback{display:none!important}}
+.hint:empty{display:none}
+.mref{font-size:12.5px;color:var(--muted);line-height:1.5;margin:10px 0 4px}.mref a{color:inherit}

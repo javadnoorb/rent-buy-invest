@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Checks that the sources cited by the hand-compiled data still answer: every source URL in data/state_rules.json and
-data/transfer_taxes.json. Prints one line per broken link and writes them to the file named by LINKS_OUT (for the
+"""Checks that the sources the app cites still answer: every source URL in the hand-compiled data (data/state_rules.json,
+data/transfer_taxes.json, data/loan_rules.json and the source fields of the fetched data files) and every link written
+into the app's code (src/app/*.js: the source list and the settings' hints). Prints one line per broken link and writes them to the file named by LINKS_OUT (for the
 monthly workflow's issue). Sites that refuse automated requests (401/403/429) are listed separately as "not checked",
 not as broken. Exit 0 always: a dead link is a to-do, not a failure.
 Run: python3 scripts/check_links.py
 """
-import json, os, sys, urllib.error, urllib.request
+import glob, json, os, re, sys, urllib.error, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 H = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36 rent-buy-invest link check'}
@@ -32,9 +33,14 @@ def check(u):
 
 if __name__ == '__main__':
     pairs = []
-    for f in ('state_rules.json', 'transfer_taxes.json'):
+    for f in ('state_rules.json', 'transfer_taxes.json', 'loan_rules.json', 'flood.json', 'county_fmr.json', 'county_metro.json',
+              'counties.json', 'insurance.json', 'snapshot.json', 'research.json', 'realism.json'):
         p = os.path.join(ROOT, 'data', f)
         if os.path.exists(p): urls(json.load(open(p)), f, pairs)
+    # links in the app's code; template URLs (with ${...}) and API endpoints are skipped
+    for f in sorted(glob.glob(os.path.join(ROOT, 'src', 'app', '*.js'))):
+        for u in re.findall(r"https?://[^\s'\"`<>)]+", open(f, encoding='utf-8').read()):
+            if '${' not in u and 'api.' not in u: pairs.append((u.rstrip('.,;'), os.path.relpath(f, ROOT)))
     seen = {}
     for u, w in pairs: seen.setdefault(u, w)
     with ThreadPoolExecutor(8) as ex: res = dict(zip(seen, ex.map(check, seen)))

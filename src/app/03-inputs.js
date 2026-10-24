@@ -110,7 +110,7 @@ function buildInputs(){
       if(/0 = none/.test(u)){suf='%/yr'}
       if(suf==='$')suf='';
       ctl=`<div class="inp">${pre?`<span class="pre">$</span>`:''}<input ${pre?'type="text" data-money="1"':`type="number" step="${step}"`} id="${id}" value="${def}" inputmode="decimal" autocomplete="off">${suf?`<span class="suf">${suf}</span>`:''}</div>`}
-    d.innerHTML=`<label for="${id}">${lab}</label>${ctl}${hint?`<div class="hint">${hint}</div>`:''}`;
+    d.innerHTML=`<label for="${id}">${lab}</label>${ctl}<div class="hint">${hint||''}</div>`;
     box.appendChild(d);
     if(kind==='sel')document.getElementById(id).value=String(def);
   });

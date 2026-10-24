@@ -43,4 +43,11 @@ if(process.argv.includes('--json'))console.log(JSON.stringify(out.map(r=>({name:
 // the like-for-like case (the study's rent level) must stay close to the published result
 const like=out[0],okShare=Math.abs(like.share-0.6458)<=0.10,okAvg=like.avg>1;
 console.log(`\n${okShare&&okAvg?'OK':'FAIL'}: like-for-like share ${(like.share*100).toFixed(1)}% vs 64.6% (±10 pts), renter ahead on average: ${okAvg}`);
-if(!(okShare&&okAvg))process.exit(1);
+// the rent-from-price exponent (RENT_ELAST in 17-snapshot.js) must match a refit on the stored county medians:
+// slope of log median contract rent on log median home value across counties (Census ACS 5-year)
+const elast=+require('fs').readFileSync(require('path').join(__dirname,'..','src','app','17-snapshot.js'),'utf8').match(/const RENT_ELAST=([\d.]+)/)[1];
+const cty=require('../data/counties.json'),iv=cty.fields.indexOf('medianValue'),ir=cty.fields.indexOf('medianContractRent');
+const lg=cty.rows.filter(r=>r[iv]>0&&r[ir]>0).map(r=>[Math.log(r[iv]),Math.log(r[ir])]),mx=lg.reduce((a,q)=>a+q[0],0)/lg.length,my=lg.reduce((a,q)=>a+q[1],0)/lg.length;
+const fit=lg.reduce((a,q)=>a+(q[0]-mx)*(q[1]-my),0)/lg.reduce((a,q)=>a+(q[0]-mx)**2,0),okE=Math.abs(fit-elast)<=0.03;
+console.log(`${okE?'OK':'FAIL'}: rent-from-price exponent ${elast} vs refit ${fit.toFixed(3)} on ${lg.length} counties (±0.03)`);
+if(!(okShare&&okAvg&&okE))process.exit(1);

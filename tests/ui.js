@@ -263,6 +263,10 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
       if (!document.getElementById('p-' + k)) bad.push('chart ' + k) });
     return bad; });
   ok(!reg.length, 'settings, Method sections and sources named in lists all exist', reg.join(', '));
+  const mref = await page.evaluate(() => { const titles = [...document.querySelectorAll('details.msec .mst')].map(x => x.textContent);
+    return Object.entries(MREF).flatMap(([t, r]) => (titles.includes(t) ? [] : ['section ' + t]).concat(r.s.filter(k => !SRC[k]).map(k => t + ': ' + k)))
+      .concat(Object.values(SRC).filter(s => typeof s.u !== 'string' || /,\s*https?:/.test(s.u)).map(s => 'bad url: ' + s.t.slice(0, 40))); });
+  ok(!mref.length, 'Method sources: every section and source exists, one URL per source', mref.join(', '));
   /* after a link from a chart's notes, the Back button and the browser's back return to the chart */
   await page.evaluate(() => { const d = document.querySelector('dd.cinfo[data-c="gap"]').closest('details'); d.open = true; });
   await page.waitForTimeout(200); await page.click('dd.cinfo[data-c="gap"] a[data-ci-sec]'); await page.waitForTimeout(700);

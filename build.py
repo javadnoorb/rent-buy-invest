@@ -244,7 +244,21 @@ own_sh = (NATP.get('owner_bedroom_share') or {}).get('3')
 RES['beds'] = {'u': 'https://www.census.gov/programs-surveys/acs/data/summary-file.html', 'h': f"{round(own_sh*100) if own_sh else '—'}% of owner-occupied homes have 3 bedrooms (ACS {NATP.get('acs_year')}); rent is scaled by the area's median rent for that size vs. all units"}
 for k in ('fha', 'arm', 'points', 'sofr'):
     e = LR.get(k) or {}
-    if e.get('source_url') and e.get('source_title'): RES['sources'][f'lr_{k}'] = {'t': e['source_title'], 'u': e['source_url']}
+    t, u = e.get('source_title'), e.get('source_url')
+    if not (t and u): continue
+    if isinstance(u, list):  # several documents: titles are '; '-separated in the same order; one source (and link) each
+        ts = t.split('; ')
+        for i, ui in enumerate(u): RES['sources'][f'lr_{k}_{i}'] = {'t': ts[i] if len(ts) == len(u) else f'{t} ({i + 1})', 'u': ui}
+        RES['sources'][f'lr_{k}'] = {'t': t, 'u': u[0]}
+    else: RES['sources'][f'lr_{k}'] = {'t': t, 'u': u}
+for k, key in (('llpa', 'llpa'), ('pmi_fico', 'pmiFico')):
+    e = LR.get(k) or {}
+    u = e.get('source_url') or (e.get('reference') or {}).get('url')
+    if e.get('source_title') and u: RES['sources'][key] = {'t': e['source_title'], 'u': u}
+for f, key in (('flood.json', 'fema'), ('county_fmr.json', 'hudFmrFile'), ('county_metro.json', 'cbsa')):
+    if os.path.exists(D('data', f)):
+        e = json.load(open(D('data', f)))
+        if e.get('source_title') and e.get('source_url'): RES['sources'][key] = {'t': e['source_title'], 'u': e['source_url']}
 if ins_: RES['sources']['ppi_ins'] = {'t': 'BLS PPI: homeowners insurance premiums (PCU5241265241262)', 'u': ins_['source_url']}
 RES['sources']['acs'] = {'t': f"Census ACS {NATP.get('acs_year')} 1-year summary file (property tax, home value, rent by bedrooms, bedrooms by tenure)", 'u': 'https://www.census.gov/programs-surveys/acs/data/summary-file.html'}
 
