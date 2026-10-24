@@ -18,4 +18,4 @@ function loanRows(p,o){const LS=loanSetup(p,p.rate),n=p.term*12,ca=creditAdj(p).
   if(o.bal){const k=o.bal.findIndex((b,y)=>y>0&&b<=0.5);if(k>0&&k<p.term)rows.push(['Paid off',`year ${k} with the extra payments (term ${p.term} years)`])}
   return rows}
 function renderLoan(o){const el=document.getElementById('loanT');if(!el)return;
-  el.innerHTML='<tbody>'+loanRows(P,o).map(r=>`<tr><td>${r[0]}</td><td style="text-align:left;white-space:normal">${r[1]}</td></tr>`).join('')+'</tbody>'}
+  el.innerHTML='<tbody>'+loanRows(P,o).map(r=>`<tr><td>${r[0]}</td><td style="text-align:left;white-space:normal;font-family:var(--body)">${r[1]}</td></tr>`).join('')+'</tbody>'}

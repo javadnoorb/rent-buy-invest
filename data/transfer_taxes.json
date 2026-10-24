@@ -229,7 +229,7 @@
           "rate": 0.007,
           "tiers": null,
           "source_title": "Florida DOR: Documentary Stamp Tax overview (tutorial)",
-          "source_url": "https://floridarevenue.com/taxes/tutorial/tutorial_docs/docStampTaxOverview.pdf",
+          "source_url": "https://floridarevenue.com/taxes/taxesfees/pages/doc_stamp.aspx",
           "notes": "$0.70 per $100 (all counties except Miami-Dade). All parties are liable; seller customarily pays (custom not stated on DOR page)."
         },
         {
@@ -240,7 +240,7 @@
           "rate": 0.0035,
           "tiers": null,
           "source_title": "Florida DOR: Documentary Stamp Tax overview (tutorial)",
-          "source_url": "https://floridarevenue.com/taxes/tutorial/tutorial_docs/docStampTaxOverview.pdf",
+          "source_url": "https://floridarevenue.com/taxes/taxesfees/pages/doc_stamp.aspx",
           "notes": "$0.35 per $100; no cap for recorded mortgages (unsecured notes capped at $2,450)."
         },
         {
@@ -268,7 +268,7 @@
           "rate": 0.006,
           "tiers": null,
           "source_title": "Florida DOR: Documentary Stamp Tax overview (tutorial)",
-          "source_url": "https://floridarevenue.com/taxes/tutorial/tutorial_docs/docStampTaxOverview.pdf",
+          "source_url": "https://floridarevenue.com/taxes/taxesfees/pages/doc_stamp.aspx",
           "notes": "$0.60 per $100 in Miami-Dade. Plus $0.45 per $100 discretionary surtax that does NOT apply to deeds conveying only a single-family residence; condos/other property pay 0.60% + 0.45% = 1.05%. Seller customarily pays."
         },
         {
@@ -279,7 +279,7 @@
           "rate": 0.0035,
           "tiers": null,
           "source_title": "Florida DOR: Documentary Stamp Tax overview (tutorial)",
-          "source_url": "https://floridarevenue.com/taxes/tutorial/tutorial_docs/docStampTaxOverview.pdf",
+          "source_url": "https://floridarevenue.com/taxes/taxesfees/pages/doc_stamp.aspx",
           "notes": "$0.35 per $100; no cap for recorded mortgages."
         },
         {
@@ -413,7 +413,7 @@
           "rate": 0.0075,
           "tiers": null,
           "source_title": "State Real Estate Transfer Tax Act (MCL Act 330 of 1993)",
-          "source_url": "https://ombudsman.legislature.mi.gov/documents/mcl/pdf/MCL-ACT-330-OF-1993.pdf",
+          "source_url": "https://legislature.mi.gov/documents/mcl/pdf/MCL-ACT-330-OF-1993.pdf",
           "notes": "$3.75 per $500. Seller/grantor liable. Exemption 6(u): principal residence (7cc) sales at arm's length where SEV at sale is <= SEV when seller acquired it (rare in rising markets; refundable)."
         },
         {

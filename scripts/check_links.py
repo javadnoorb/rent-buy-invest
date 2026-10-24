@@ -44,8 +44,11 @@ if __name__ == '__main__':
     seen = {}
     for u, w in pairs: seen.setdefault(u, w)
     with ThreadPoolExecutor(8) as ex: res = dict(zip(seen, ex.map(check, seen)))
-    broken = [(u, s) for u, s in res.items() if not (isinstance(s, int) and (s < 400 or s in (401, 403, 429)))]
-    blocked = [(u, s) for u, s in res.items() if s in (401, 403, 429)]
+    # 401/403/429: the site refuses robots; a TLS verification failure is usually an incomplete certificate chain that
+    # browsers repair (Illinois' legislature site): both are listed as not checked rather than broken
+    refused = lambda s: s in (401, 403, 429) or (isinstance(s, str) and 'CERTIFICATE_VERIFY_FAILED' in s)
+    broken = [(u, s) for u, s in res.items() if not ((isinstance(s, int) and s < 400) or refused(s))]
+    blocked = [(u, s) for u, s in res.items() if refused(s)]
     print(f'{len(res)} links: {len(res) - len(broken) - len(blocked)} ok, {len(blocked)} not checked (site refuses robots), {len(broken)} broken')
     lines = [f'- {s}: {u} (in {seen[u]})' for u, s in broken]
     for l in lines: print(l)
