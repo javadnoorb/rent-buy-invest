@@ -6,8 +6,8 @@
    FHA upfront premium, which is added to the loan); in nominal dollars it is zero apart from that premium.
    The last term is the residual, so the parts always sum to the headline; flows are summed in the chosen dollars. */
 function gapParts(p,o){const N=p.N,c=o.cpi[N],LS=loanSetup(p,p.rate),sum=k=>o.flow.slice(0,N).reduce((a,f)=>a+adj(f[k]*12,f.cpi),0);
-  const gap=adj(o.buy[N]-o.inv[N],c),H=adj(o.H[N],c),eq=adj(o.eq[N],c),bal=adj(o.bal[N],c),sale=H*(1-p.sell);
-  const parts=[['Home price change',H-p.P],['Selling costs',-H*p.sell],['Tax on the home sale',-Math.max(0,sale-bal-eq)],
+  const gap=adj(o.buy[N]-o.inv[N],c),H=adj(o.H[N],c),eq=adj(o.eq[N],c),bal=adj(o.bal[N],c),sr=sellAt(p,o.H[N]),sale=H*(1-sr);
+  const parts=[['Home price change',H-p.P],['Selling costs',-H*sr],['Tax on the home sale',-Math.max(0,sale-bal-eq)],
     ['Buying costs',-(p.P*p.close+p.moveIn+LS.ptsCost)],['Mortgage interest',-sum('interest')],['Property tax',-sum('ptax')],
     ['Insurance, HOA, PMI, utilities',-(sum('ins')+sum('hoa')+sum('pmi')+sum('util')+sum('refi'))],['Upkeep',-sum('maint')],
     ['Tax savings from owning',-sum('tax')],['House-hack income',-sum('hh')],['Rent the renter pays',sum('rent')]];

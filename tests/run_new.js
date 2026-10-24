@@ -183,4 +183,29 @@ module.exports=function({M,base,run,ok,near}){
      ok(M.creditAdj(base({credit:C,fico:'760-779',dp:0.2})).rate===0,'reference borrower: no change');
      ok(M.creditAdj(base({credit:C,fico:'639-',dp:0.2,loanType:'fha'})).rate===0,'FHA: no adjustment');
      const r0=M.loanSetup(base({credit:C,fico:'760-779',dp:0.2,ptsCut:0.0025}),0.06).rate,r1=M.loanSetup(base({credit:C,fico:'639-',dp:0.2,ptsCut:0.0025}),0.06).rate;near(r1-r0,0.0053125,1e-12,'loan rate carries the adjustment')}}
+
+  /* --- fixes from the formula audit --- */
+  {// Monte Carlo blocks wrap around, so re-centering hits the user's geometric means
+   const p=base({gh:0.04,gr:0.03,rs:0.07,rb:0.04,rc:0.03,inf:0.025,N:30}),r=M.mcCore(p,{n:2000,bl:5,from:1928,rc:true,home:M.HOME,real:false});
+   const g=k=>Math.exp(r.res[k].reduce((a,c)=>a+c[30],0)/r.res[k].length/30)-1;
+   near(g('cH'),0.04,0.002/0.04,'Monte Carlo: simulated home growth matches the setting (geometric mean)')}
+  {// no refinancing in the month the loan is taken out, even if the market rate is far lower
+   const p=base({refiOn:true,refiTh:0.01,refiCost:0.02,rate:0.065,N:3}),path=M.constPath(p,3);path.mkt=[0.04,0.04,0.04];
+   const o=M.simulate(p,path,{N:3});ok(o.refis===1&&o.refiAt[0]>=1,'first refinance no earlier than a year after purchase',JSON.stringify(o.refiAt))}
+  {// refinancing an FHA loan into a conventional one ends FHA's mortgage insurance
+   const p=base({loanType:'fha',dp:0.035,rate:0.07,refiOn:true,refiTh:0.01,refiCost:0,gh:0.05,N:10}),path=M.constPath(p,10);path.mkt=Array(10).fill(0.055);
+   const o=M.simulate(p,path,{N:10,detail:true});ok(o.flow[9].pmi<o.flow[0].pmi*0.2,'FHA insurance ends after refinancing (conventional PMI only while over 78%)',`${o.flow[0].pmi} → ${o.flow[9].pmi}`)}
+  {// leverage below 1: the uninvested share earns the T-bill rate, no borrowing spread
+   const p=base({rs:0.04,rc:0.04,ws:1,lev:0,spread:0.02,rent0:3000,N:10}),q=Object.assign({},p,{lev:1});
+   near(run(p,10).inv[10],run(q,10).inv[10],1e-9,'with stocks = T-bills, leverage 0 and 1 end the same')}
+  {// the $750k interest limit uses the year's average balance
+   const p=base({P:1250000,dp:0.2,rate:0.065,taxOn:true,muMode:'manual',mu:0.35,oth:30000,N:10}),o=run(p,10,{detail:true});
+   const L=1000000,i=0.065/12,Mp=M.pmt(L,i,360);let b=L,bs=0,int=0;for(let m=0;m<120;m++){const it=b*i;if(m>=108){bs+=b;int+=it}b-=Mp-it}
+   ok(Math.abs(o.flow[9].interest*12*Math.min(1,750000*12/bs)-int*Math.min(1,750000*12/bs))<1&&bs/12<L,'year-10 average balance below the original loan',String(bs/12))}
+  {// assessment cap: after a drop and recovery the assessment returns to the capped base, not a ratcheted-down value
+   const p=base({P:1000000,ptax:0.0125,ptaxCap:0.02,ptaxCapCPI:true,inf:0.03,N:3}),path=M.constPath(p,3);path.gh=[-0.1,0.1,0];
+   const o=M.simulate(p,path,{N:3,detail:true});near(o.flow[2].ptax*12,0.0125*Math.min(990000,1000000*1.02*1.02),1e-6,'capped base after a price drop (Prop 13 / Prop 8)')}
+  {// transfer taxes follow the sale price through brackets (NYC: city tax 1.425% above $500k)
+   const nyc=[{base:'price',structure:'whole_price_tiers',payer:'seller',tiers:[{from:0,to:500000,rate:0.01},{from:500000,to:null,rate:0.01425}]}];
+   const p=base({sell:0.05,sellBase:0.05,ttRules:nyc});near(M.sellAt(p,650000),0.05+0.01425,1e-12,'seller tax at the sale price bracket');near(M.sellAt(p,480000),0.06,1e-12,'below the threshold')}
 };

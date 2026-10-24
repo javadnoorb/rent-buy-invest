@@ -13,7 +13,7 @@ function locParams(base,m){
   q.P=m.P||base.P;q.rent0=m.rent?Math.round(m.rent*bedRatio(m,raw.beds||'3')/10)*10:base.rent0;
   const lt=locTax(m);if(lt){q.ptax=lt.rate/100;q.hsEx=lt.ex;q.hsCredit=lt.credit}q.floodIns=m.flood?m.flood.avg:0;
   if(m.ins!=null&&isFinite(m.ins))q.ins=m.ins;q.ptaxCap=(m.ptaxCap||0)/100;q.ptaxCapCPI=!!m.ptaxCapCPI;
-  if(raw.ttAuto==='auto'){const t=m.tt?transferTaxes(m.tt,q.P,q.P*(1-q.dp)):{buyer:0,seller:0};q.ttBuy=t.buyer/q.P;q.ttSell=t.seller/q.P;q.close=q.closeBase+q.ttBuy;q.sell=q.sellBase+q.ttSell}
+  if(raw.ttAuto==='auto'){const t=m.tt?transferTaxes(m.tt,q.P,q.P*(1-q.dp)):{buyer:0,seller:0};q.ttBuy=t.buyer/q.P;q.ttSell=t.seller/q.P;q.close=q.closeBase+q.ttBuy;q.sell=q.sellBase+q.ttSell;q.ttRules=m.tt&&m.tt.length?m.tt:null}
   q.metro=m.slug;
   if((raw.stMode||'auto')==='auto'){const sti=stateIncomeTax(stateOf(m),q.income,q.filing,m.fips);if(sti){q.stTax=sti.tax;q.stRate=sti.rate;q.stDed=sti.itemize}}
   const g=LOC_MODE==='same'?null:locGrowth(m);

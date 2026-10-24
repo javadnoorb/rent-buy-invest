@@ -93,6 +93,11 @@ function transferTaxes(rules,P,L){let buyer=0,seller=0;
     if(r.cap!=null&&isFinite(r.cap))t=Math.min(t,r.cap);
     const b=r.payer==='buyer'?1:r.payer==='seller'?0:(r.buyer_share!=null?r.buyer_share:0.5);buyer+=t*b;seller+=t*(1-b)});
   return {buyer,seller}}
+/* Selling and closing costs as shares of a price. With the location's transfer-tax rules (p.ttRules) the taxes are
+   worked out at that price, so brackets and whole-price thresholds (e.g. New York's 1% at $1M) follow the sale or
+   purchase price; otherwise the fixed shares from the settings. */
+function sellAt(p,price){return p.ttRules&&price>0?p.sellBase+transferTaxes(p.ttRules,price,0).seller/price:p.sell}
+function closeAt(p,price){return p.ttRules&&price>0?p.closeBase+transferTaxes(p.ttRules,price,price*(1-p.dp)).buyer/price:p.close}
 /* Loan setup shared by the simulation and the summary.
    fixed: conventional with PMI under 20% down. fha: 1.75% upfront MIP financed, annual MIP by loan size/LTV/term
    (HUD ML 2023-05), for 11 years if LTV ≤ 90% else the full term. arm: initial rate for armYears, then resets every
@@ -116,8 +121,8 @@ function simulate(p,path,opt){const cAdj=creditAdj(p).rate;
   const muAuto=p.muMode==='auto'&&tx,incG=p.incGrowth||0,renewGap=p.renewGap||0;
   // ---- buyer's home state (can change at a planned move) ----
   let owned=true,Pcur=p.P,dpCur=p.dp,Lcur=LS.L,armOn=LS.type==='arm',armRate0=LS.rate,armResets=0,mipRate=LS.mip,mipMonths=LS.mipMonths,fha=LS.type==='fha',insIdx=1,basis=p.P*(1+p.close),purchY=0,mSince=0,imp=0;
-  let i=rate/12,Mp=pmt(Lcur,i,nTot),f750=Lcur>0?Math.min(1,750000/Lcur):1,shk=opt.saleShock||1;
-  let H=p.P,A=p.P,bal=Lcur,pB=0,bB=0,pR=p.P*(p.dp+p.close)+p.moveIn+LS.ptsCost,bR=pR,pC=pR,cpi=1,infIdx=1,refis=0,lastRefi=-999,mE=0;
+  let i=rate/12,Mp=pmt(Lcur,i,nTot),shk=opt.saleShock||1;
+  let H=p.P,A=p.P,Fb=p.P,bal=Lcur,pB=0,bB=0,pR=p.P*(p.dp+p.close)+p.moveIn+LS.ptsCost,bR=pR,pC=pR,cpi=1,infIdx=1,refis=0,lastRefi=0,mE=0;
   let lease=p.rent0,mkt=p.rent0,income=p.income;
   // per-year tax rates (income can grow, so brackets and NIIT can change)
   let mu=p.mu,niit=p.niit,ltcgE=0,muE=0;
@@ -127,12 +132,12 @@ function simulate(p,path,opt){const cAdj=creditAdj(p).rate;
   setRates();
   // ---- optional fourth household: rents its home, owns a rental property ----
   const RO=!!p.rentalOn;let Pr=0,Hr=0,balR=0,iR=0,MpR=0,accDep=0,impR=0,susp=0,pX=0,bX=0,depBasis=0,yieldR=0,basisR=0;
-  if(RO){const C0=p.P*(p.dp+p.close)+p.moveIn;Pr=C0/(p.dpR+p.close);Hr=Pr;balR=Pr*(1-p.dpR);iR=(p.rate30+p.ratePrem)/12;MpR=pmt(balR,iR,360);
+  if(RO){const C0=p.P*(p.dp+p.close)+p.moveIn+LS.ptsCost;Pr=C0/(p.dpR+p.close);Hr=Pr;balR=Pr*(1-p.dpR);iR=(p.rate30+p.ratePrem)/12;MpR=pmt(balR,iR,360);
     depBasis=Pr*(1+p.close)*(1-p.landShare);basisR=Pr*(1+p.close);yieldR=p.rent0*12/p.P}
   const dep=(V,b,x)=>{const V1=V+x;return [V1,V1<=0?0:V<0?V1:b+Math.max(0,x)]};
   const liq=(V,b)=>taxable?V-ltcgE*Math.max(0,V-b):V;
-  const homeNet=(H,bal,y)=>{if(!owned)return 0;const held=y-purchY;const sale=H*(held>0?shk:1)*(1-p.sell);const gain=sale-basis-imp-(held>=2?excl:0);return sale-bal-(tx?ltcgE*Math.max(0,gain):0)};
-  const rentalNet=()=>{if(!RO)return 0;const sale=Hr*(1-p.sell),gain=sale-(basisR+impR-accDep);let t=0;
+  const homeNet=(H,bal,y)=>{if(!owned)return 0;const held=y-purchY;const S=H*(held>0?shk:1),sale=S*(1-sellAt(p,S));const gain=sale-basis-imp-(held>=2?excl:0);return sale-bal-(tx?ltcgE*Math.max(0,gain):0)};
+  const rentalNet=()=>{if(!RO)return 0;const sale=Hr*(1-sellAt(p,Hr)),gain=sale-(basisR+impR-accDep);let t=0;
     if(tx){const rec=Math.min(Math.max(gain,0),accDep);t=rec*(Math.min(0.25,mu)+niit+p.stRate)+Math.max(0,gain-rec)*ltcgE-susp*muE}
     return sale-balR-t};
   const o={buy:[],inv:[],cash:[],rental:[],cpi:[],lqB:[],lqR:[],heloc:[],lqC:[],budget:[],refiAt:[],rateAt:[],H:[],income:[],own1:[],moved:null};
@@ -144,7 +149,7 @@ function simulate(p,path,opt){const cAdj=creditAdj(p).rate;
     o.lqB.push(lb);o.lqR.push(lr);o.lqC.push(pC);o.budget.push(budgetY);o.rateAt.push(owned?rate:null);o.H.push(owned?H:0);o.income.push(income);o.own1.push(ownY);
     if(detail){o.eq.push(homeNet(H,bal,y));o.pB.push(lb);o.bal.push(owned?bal:0)}};
   snap(0);
-  let ghPrev=0,infPrev=0;
+  let infPrev=0;
   const lev=p.lev,ws=p.ws,wb=p.wb,wc=Math.max(0,1-p.ws-p.wb);
   for(let y=0;y<N;y++){
     let ghY,grY,infY;
@@ -157,12 +162,13 @@ function simulate(p,path,opt){const cAdj=creditAdj(p).rate;
       else{const mr=(M?path.mkt&&path.mkt[y*12]:path.mkt&&path.mkt[y]);rate=mr!=null?mr+cAdj:rate;
         Pcur=H;const cash=proceeds-p.close*Pcur;let dp2=Math.min(Pcur,Math.max(0,cash));
         if(cash>Pcur)[pB,bB]=dep(pB,bB,cash-Pcur);if(cash<0)[pB,bB]=dep(pB,bB,cash);
-        dpCur=dp2/Pcur;Lcur=Pcur-dp2;armOn=false;fha=false;bal=Lcur;i=rate/12;Mp=pmt(Lcur,i,nTot);f750=Lcur>0?Math.min(1,750000/Lcur):1;
-        basis=Pcur*(1+p.close);purchY=y;mSince=0;imp=0;A=Pcur;lastRefi=-999;pmiOff=false;shk=opt.saleShock2||1}}
-    // assessed value: market value, or with a cap it grows by at most the cap (and, for inflation-linked caps such as
-    // California's and Florida's, by at most last year's inflation); resets to the price on purchase
+        dpCur=dp2/Pcur;Lcur=Pcur-dp2;armOn=false;fha=false;bal=Lcur;i=rate/12;Mp=pmt(Lcur,i,nTot);
+        basis=Pcur*(1+p.close);purchY=y;mSince=0;imp=0;A=Pcur;Fb=Pcur;lastRefi=mE;pmiOff=false;shk=opt.saleShock2||1}}
+    // assessed value: market value, or with a cap the lower of market value and a capped base that grows by the cap each
+    // year (and, for inflation-linked caps such as California's and Florida's, by at most last year's inflation), so after
+    // a price drop the assessment returns toward the capped base as prices recover; resets to the price on purchase
     if(owned&&y>0&&y!==purchY){const capped=p.ptaxCap>0||p.ptaxCapCPI;
-      A=capped?Math.min(H,A*(1+Math.min(ghPrev,p.ptaxCap>0?p.ptaxCap:Infinity,p.ptaxCapCPI?Math.max(0,infPrev):Infinity))):H}
+      if(capped){Fb*=1+Math.min(p.ptaxCap>0?p.ptaxCap:Infinity,p.ptaxCapCPI?Math.max(0,infPrev):Infinity);A=Math.min(H,Fb)}else A=H}
     const Hy=H,insM=owned?(p.ins+p.floodIns)*insIdx/12:0,hoa=owned?p.hoa*infIdx:0,ptY=owned?ptaxOn(p,A):0;
     const maintY=owned?p.maint*Hy*(mShock?mShock[y]:1):0,utilM=owned?p.utilDiff*infIdx:0;
     const mktIdx=mkt/p.rent0;
@@ -171,7 +177,7 @@ function simulate(p,path,opt){const cAdj=creditAdj(p).rate;
     // rental property, year level
     const HrY=Hr,ptR=RO?p.ptax*HrY:0,insR=RO?p.ins*(Pr/p.P)*insIdx/12:0,hoaR=RO?p.hoa*(Pr/p.P)*infIdx:0,maintR=RO?p.maint*HrY*(mShock?mShock[y]:1):0;
     const grossR=RO?Pr*yieldR/12*mktIdx:0,incR=grossR*(1-p.vacR)*(1-p.mgmt);
-    let intY=0,prinY=0,pmiY=0,benefit=0,refiY=0,ownSum=0,hhTax=0,intRY=0;const eqStart=owned?H-bal:0;let Rsum=0;
+    let intY=0,prinY=0,pmiY=0,benefit=0,refiY=0,ownSum=0,hhTax=0,intRY=0,balSum=0;const cpi0=cpi;const eqStart=owned?H-bal:0;let Rsum=0;
     for(let m=0;m<12;m++){
       let fS,fB,fC,fH,fI,xB=0;
       if(M){const k=y*12+m;fS=1+path.rs[k];fB=1+path.rb[k];fC=1+path.rc[k];fH=1+path.gh[k];fI=1+path.inf[k]}
@@ -180,13 +186,13 @@ function simulate(p,path,opt){const cAdj=creditAdj(p).rate;
       if(owned){
         if(p.refiOn&&path.mkt&&bal>1000){const checkNow=M?true:(m===0);
           if(checkNow&&(mE-lastRefi)>=12){const mr=M?path.mkt[y*12+m]:path.mkt[y];
-            if(mr!=null&&rate-(mr+cAdj)>=p.refiTh){refiCost=p.refiCost*bal;rate=mr+cAdj;armOn=false;i=rate/12;Mp=pmt(bal,i,nTot-mSince);lastRefi=mE;refis++;o.refiAt.push(y+m/12);refiY+=refiCost}}}
+            if(mr!=null&&rate-(mr+cAdj)>=p.refiTh){refiCost=p.refiCost*bal;rate=mr+cAdj;armOn=false;fha=false;i=rate/12;Mp=pmt(bal,i,nTot-mSince);lastRefi=mE;refis++;o.refiAt.push(y+m/12);refiY+=refiCost}}}
         if(armOn&&bal>0.005){const k0=(p.armYears||5)*12;if(mSince>=k0&&(mSince-k0)%6===0){
           const idx=M?path.rc[y*12+m]*12:path.rc[y];let tgt=Math.round(((idx||0)+(p.armMargin||0.0275))*800)/800;
           const cap=armResets===0?(p.armCapInit!=null?p.armCapInit:0.02):(p.armCapPer!=null?p.armCapPer:0.01);
           tgt=Math.min(rate+cap,Math.max(rate-cap,tgt));tgt=Math.min(armRate0+(p.armCapLife!=null?p.armCapLife:0.05),Math.max(p.armMargin||0.0275,tgt));
           if(Math.abs(tgt-rate)>1e-9){rate=tgt;i=rate/12;Mp=pmt(bal,i,nTot-mSince)}armResets++}}
-        const balPrev=bal;let pay=0;
+        const balPrev=bal;let pay=0;balSum+=balPrev;
         if(bal>0.005){const it=bal*i;const pr=Math.min(Mp-it,bal);pay=it+pr;bal-=pr;intY+=it;prinY+=pr}
         if(xPay>0){const pre=xPrepay?Math.min(xPay,bal):0;bal-=pre;prinY+=pre;xB+=xPay-pre;
           // a loan paid off early keeps its scheduled payment in the budget, invested, so both choices spend the same
@@ -197,15 +203,20 @@ function simulate(p,path,opt){const cAdj=creditAdj(p).rate;
         const pmi=fha?(mSince<mipMonths&&balPrev>0.005?mipRate*balPrev/12:0):((dpCur<0.2&&!pmiOff&&balPrev>0.78*Pcur)?pmiRate(p,dpCur)*Lcur/12:0);pmiY+=pmi;
         own=pay+xPay+ptY/12+maintY/12+insM+hoa+utilM+pmi+refiCost-hhInc;
         if(m===11&&tx){const std=std0*infIdx,cap=saltCapFor(y,income,p.y0),own_s=1-(p.hhRent>0?p.hhShare:0);
-          const dB=Math.max(std,Math.min(cap,p.stTax+ptY*own_s)+(intY*f750+(y===0?LS.ptsCost:0))*own_s+p.oth),dR=Math.max(std,Math.min(cap,p.stTax)+p.oth);
+          // interest on up to $750k of the year's average balance (IRS Pub. 936); state income tax grows with income
+          // mortgage insurance is deductible again from 2026 (One Big Beautiful Bill Act), phased out by 10% per $1,000 of
+          // income above $100,000 (gone at $110,000)
+          const f750=balSum>0?Math.min(1,750000*12/balSum):1,stT=p.income>0?p.stTax*income/p.income:p.stTax,
+            fMI=income<=100000?1:Math.max(0,1-Math.ceil((income-100000)/1000)*0.1);
+          const dB=Math.max(std,Math.min(cap,stT+ptY*own_s)+(intY*f750+pmiY*fMI+(y===0?LS.ptsCost:0))*own_s+p.oth),dR=Math.max(std,Math.min(cap,stT)+p.oth);
           benefit=mu*(dB-dR)+(p.stDed?p.stRate*(intY*f750+ptY)*own_s:0);own-=benefit;
           if(p.hhRent>0){const sh=p.hhShare,taxable=hhInc*12-sh*(intY+ptY+insM*12+maintY*(1-p.impShare)+utilM*12);hhTax=Math.max(0,taxable)*(mu+p.stRate);own+=hhTax}}
       }else own=rentM;
       ownSum+=own;
       const g=ws*(fS-1)+wb*(fB-1)+wc*(fC-1);
-      const ret=lev*g-(lev-1)*((fC-1)+p.spread/12)-p.fee/12;Rsum+=ret;
+      const ret=lev*g-(lev-1)*(fC-1)-Math.max(0,lev-1)*p.spread/12-p.fee/12;Rsum+=ret;
       let taxR=0,inc=0;
-      if(taxable){inc=lev*(ws*p.dy/12+wb*(fB-1)+wc*(fC-1));taxR=lev*(ws*p.dy/12*ltcgE+(wb*(fB-1)+wc*(fC-1))*muE)}
+      if(taxable){const cashS=Math.max(0,1-lev);inc=lev*(ws*p.dy/12+wb*(fB-1)+wc*(fC-1))+cashS*(fC-1);taxR=lev*(ws*p.dy/12*ltcgE+(wb*(fB-1)+wc*(fC-1))*muE)+cashS*(fC-1)*muE}
       const grow=(V,b)=>{const V0=V;if(V0<0)return [V0*(1+(fC-1)+BORROW_PREM/12),0];
         V=V0*(1+ret)-V0*taxR;if(taxable)b+=V0*(inc-taxR);if(V<0)V=0;return [V,b]};
       [pB,bB]=grow(pB,bB);[pR,bR]=grow(pR,bR);
@@ -226,11 +237,11 @@ function simulate(p,path,opt){const cAdj=creditAdj(p).rate;
     }
     ownY=ownSum/12;budgetY=Math.max(ownY,rentM);if(owned)imp+=p.impShare*maintY;if(RO)impR+=p.impShare*maintR;
     if(detail){
-      o.flow.push({interest:intY/12,principal:prinY/12,ptax:ptY/12,ins:insM,maint:maintY/12,hoa,util:utilM,pmi:pmiY/12,refi:refiY/12,tax:-benefit/12,hh:-(hhInc-hhTax/12),rent:rentM,own:ownSum/12,cpi,owned});
+      o.flow.push({interest:intY/12,principal:prinY/12,ptax:ptY/12,ins:insM,maint:maintY/12,hoa,util:utilM,pmi:pmiY/12,refi:refiY/12,tax:-benefit/12,hh:-(hhInc-hhTax/12),rent:rentM,own:ownSum/12,cpi:Math.sqrt(cpi0*cpi),owned});  // flows at the year's mid-point prices
       const opp=eqStart*Rsum;
       o.unrec.push({own:owned?intY+ptY+maintY+insM*12+hoa*12+utilM*12+pmiY+refiY-benefit-(hhInc*12-hhTax)+opp:rentM*12,opp:owned?opp:0,rent:rentM*12,cpi});
     }
-    ghPrev=ghY;infPrev=infY;
+    infPrev=infY;
     // rent: market rent grows; the sitting tenant renews at (growth − gap) and resets to market when moving
     mkt*=1+grY;const eta=Math.min(1,Math.max(0,p.rMove));lease=(1-eta)*lease*(1+grY-renewGap)+eta*mkt;
     infIdx*=1+infY;insIdx*=1+infY+(p.insG||0);income*=1+incG;setRates();
@@ -257,7 +268,7 @@ function mcCore(p,cfg){
   const LOG={},SH={};keys.forEach(k=>{LOG[k]=src[k].slice(i0).map(v=>Math.log(1+v/100));const m=LOG[k].reduce((a,b)=>a+b,0)/W;SH[k]=rc?Math.log(1+p[k])-m:0});
   const r=rng(12345),res={buy:[],inv:[],cash:[],rental:[],cH:[],cP:[],gH:[],gP:[],lqMinB:[],lqMinR:[],refis:[],rates:[],T:[],forced:[],HT:[]};
   for(let s=0;s<n;s++){
-    const idx=[];while(idx.length<N){const st=Math.floor(r()*W);for(let j=0;j<bl&&idx.length<N&&st+j<W;j++)idx.push(st+j)}
+    const idx=[];while(idx.length<N){const st=Math.floor(r()*W);for(let j=0;j<bl&&idx.length<N;j++)idx.push((st+j)%W)}  // circular blocks: every year equally likely, so re-centering hits the target mean
     const path={};keys.forEach(k=>path[k]=idx.map(j=>Math.exp(LOG[k][j]+SH[k])-1));
     let saleShock=1,saleShock2=1;if(iv>0){if(p.idioMode==='yearly')path.gh=path.gh.map(g=>(1+g)*Math.exp(iv*gauss(r)-iv*iv/2)-1);else{saleShock=Math.exp(iv*gauss(r)-iv*iv/2);saleShock2=Math.exp(iv*gauss(r)-iv*iv/2)}}
     let m=p.rate*100;const mbar=(p.rateLR||p.rate)*100,K=Math.min(1,Math.max(0,RATE_AR.kappa));
@@ -268,13 +279,13 @@ function mcCore(p,cfg){
     res.buy.push(o.buy.map((v,k)=>adj(v,o.cpi[k])));res.inv.push(o.inv.map((v,k)=>adj(v,o.cpi[k])));res.cash.push(o.cash.map((v,k)=>adj(v,o.cpi[k])));
     // cumulative log growth of the home and the portfolio, so any horizon can be read without re-simulating
     const cH=[0],cP=[0];for(let y=0;y<N;y++){const g=p.ws*path.rs[y]+p.wb*path.rb[y]+(1-p.ws-p.wb)*path.rc[y],lv=p.lev!=null?p.lev:1;
-      cH.push(cH[y]+Math.log(1+path.gh[y]));cP.push(cP[y]+Math.log(Math.max(0.01,1+lv*g-(lv-1)*(path.rc[y]+(p.spread||0))-p.fee)))}
+      cH.push(cH[y]+Math.log(1+path.gh[y]));cP.push(cP[y]+Math.log(Math.max(0.01,1+lv*g-(lv-1)*path.rc[y]-Math.max(0,lv-1)*(p.spread||0)-p.fee)))}
     res.cH.push(cH);res.cP.push(cP);
     let mb=Infinity,mr=Infinity;for(let y=1;y<=Math.min(5,N);y++){const bud=o.budget[y]||1;mb=Math.min(mb,(o.lqB[y]+o.heloc[y])/bud);mr=Math.min(mr,o.lqR[y]/bud)}
     res.lqMinB.push(mb);res.lqMinR.push(mr);res.refis.push(o.refis);res.rates.push(path.mkt);
     // first early move within 30 years (N = none); a horizon h only counts moves before h
     let T=N,forced=false;if(p.hz>0){for(let t=1;t<N;t++){const bad=path.gh[t-1]<0||path.rs[t-1]<-0.15,hz=Math.min(1,p.hz*(bad?p.stressMult:1));if(r()<hz){T=t;forced=bad;break}}}
-    res.T.push(T);res.forced.push(forced);res.HT.push(o.H.map((v,k)=>adj(v*(1-p.sell),o.cpi[k])));
+    res.T.push(T);res.forced.push(forced);res.HT.push(o.H.map((v,k)=>adj(v*(1-sellAt(p,v)),o.cpi[k])));
     if(p.rentalOn)res.rental.push(o.rental.map((v,k)=>adj(v,o.cpi[k])));
   }
   const pWin=[],pWinC=[];for(let y=0;y<=N;y++){let a=0,b=0;for(let s=0;s<n;s++){if(res.buy[s][y]>res.inv[s][y])a++;if(res.buy[s][y]>res.cash[s][y])b++}pWin.push(a/n);pWinC.push(b/n)}

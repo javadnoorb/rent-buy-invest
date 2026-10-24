@@ -3,7 +3,7 @@
    insurance; not upkeep or utilities): housing ≤ 28% of gross income and all debts ≤ 36% (comfortable), or all
    debts ≤ 43% (most lenders' limit). The cash you have pays the down payment plus closing costs, transfer taxes and
    move-in costs; the minimum down payment is 3% (3.5% for FHA). Insurance scales with the price. */
-function affordAt(p,P,cash){const minDp=p.loanType==='fha'?0.035:0.03,down=Math.min(P,cash-p.close*P-p.moveIn);
+function affordAt(p,P,cash){const minDp=p.loanType==='fha'?0.035:0.03,down=Math.min(P,cash-closeAt(p,P)*P-p.moveIn);
   if(!(down>=minDp*P-1e-6))return null;const q=Object.assign({},p,{P,dp:down/P,ins:p.ins*P/p.P});
   const LS=loanSetup(q,q.rate),pay=pmt(LS.L,LS.rate/12,q.term*12),mi=LS.type==='fha'?LS.mip*LS.L/12:pmiRate(q,q.dp)*LS.L/12;
   const piti=pay+(ptaxOn(q,P)+q.ins+q.floodIns)/12+q.hoa+mi;return {P,dp:q.dp,down,piti,full:month1Cost(q)}}

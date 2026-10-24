@@ -138,7 +138,7 @@ function parseP(raw){
   // state income tax from the location's state, unless entered manually (or the location is the whole U.S.)
   const locM=METROS.find(x=>x.slug===raw.metro),stAuto=(raw.stMode||'auto')==='auto'&&typeof stateIncomeTax==='function'?stateIncomeTax(stateOf(locM),Math.max(0,n('income')),raw.filing||'single',locM&&locM.fips):null;
   return {fico:raw.fico||'760-779',credit:typeof CREDIT!=='undefined'?CREDIT:null,stMode:raw.stMode||'auto',stAutoOn:!!stAuto,stLocal:stAuto&&stAuto.local,loanType,armYears,armRate:pc('armRate'),armMargin:pc('armMargin'),armCapInit:armYears>=7?0.05:0.02,armCapPer:0.01,armCapLife:0.05,pts:Math.max(0,n('pts')),ptsCut:pc('ptsCut'),
-    insG:pc('insG'),ttBuy:ttB,ttSell:ttS,closeBase:pc('close'),sellBase:pc('sell'),beds:raw.beds||'3',
+    insG:pc('insG'),ttBuy:ttB,ttSell:ttS,ttRules:raw.ttAuto==='auto'&&locM&&locM.tt&&locM.tt.length?locM.tt:null,closeBase:pc('close'),sellBase:pc('sell'),beds:raw.beds||'3',
     P:Math.max(1,n('P')),dp,rate:term===15?pc('rate15'):pc('rate'),rate30:pc('rate'),rate15:pc('rate15'),term,close:pc('close')+ttB,pmi:pc('pmi'),pmiScale:raw.pmiScale!=='0'&&raw.pmiScale!==0,
     refiOn:raw.refiOn==='1'||raw.refiOn===1,rateLR:pc('rateLR'),glide:Math.max(0,n('glide')),refiTh:pc('refiTh'),refiCost:pc('refiCost'),
     ptax:pc('ptax'),hsEx:Math.max(0,n('hsEx')),hsCredit:Math.max(0,n('hsCredit')),ptaxCap:Math.max(0,pc('ptaxCap')),ptaxCapCPI:raw.ptaxCapCPI==='1'||raw.ptaxCapCPI===1,ins:n('ins'),maint:pc('maint'),hoa:n('hoa'),sell:pc('sell')+ttS,rent0:Math.max(0,n('rent0')),rins:n('rins'),
