@@ -28,7 +28,12 @@ function walkTrees(roots) {
     if (!nd.build) return; if (nd.eq) { eqs.add(nd.eq); if (!EQ[nd.eq]) noEq.add(nd.eq); }
     const b = nd.built || (nd.built = nd.build()), c = b.calc(b.kids.map(k => k.v));
     if (!(Math.abs(c - nd.v) <= 1e-7 * Math.max(1, Math.abs(nd.v)))) bad.push(`${nd.label}: shows ${nd.v}, its equation gives ${c}`);
-    if (nd.eq) b.kids.forEach((k, j) => { if (!symFor(nd, b, j)) noSym.add(`${nd.eq}: "${k.label}"`); });
+    if (nd.eq) b.kids.forEach((k, j) => { const role = symFor(nd, b, j), own = ownSym(k); if (!role) noSym.add(`${nd.eq}: "${k.label}"`);
+      // the part's name in this equation must be its own card's name (or the same quantity at another time), unless
+      // EQID lists it as a different quantity by design
+      else if (own && !symMatch(role, own) && !(EQID[nd.eq] || []).includes(j)) noSym.add(`${nd.eq}: "${k.label}" is called ${role} here but ${own} on its own card`);
+      // a part may not carry the whole's name (B_t = B_t − …): a recursive equation must name its parts one period back
+      if (role && b.kids.length > 1 && symNorm(role) === symNorm(ownSym(nd))) noSym.add(`${nd.eq}: "${k.label}" has the same name as the whole (${role})`); });
     b.kids.forEach(walk); };
   roots.forEach(walk);
   return { n: seen.size, bad, eqs: [...eqs], pks: [...pks], noEq: [...noEq], noSym: [...noSym] };

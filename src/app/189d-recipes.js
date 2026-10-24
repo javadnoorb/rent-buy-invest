@@ -12,24 +12,24 @@ function flowNode(T,k,y){const lab={interest:'Mortgage interest',principal:'Prin
   const Yv=T.Yr(y),f=T.o.flow[y],per=(nd,s)=>T.fn(lab,f[k],'$','perMo',()=>[nd],([a])=>(s||1)*a/12);let n;
   if(k==='interest')n=per(T.intY(y));
   else if(k==='principal')n=T.fn(lab,f[k],'$','perMo',()=>[T.prinY(y),T.preY(y)],([a,b])=>(a+b)/12);
-  else if(k==='ptax')n=per(T.ptaxY(y));else if(k==='maint')n=per(T.maintY(y));else if(k==='ins')n=T.fn(lab,f[k],'$',null,()=>[T.insMo(y)],([a])=>a);
-  else if(k==='hoa')n=T.fn(lab,f[k],'$',null,()=>[T.byInf('hoa','HOA',y,Yv.hoa)],([a])=>a);else if(k==='util')n=T.fn(lab,f[k],'$',null,()=>[T.byInf('utilDiff','Extra utilities',y,Yv.utilM)],([a])=>a);
+  else if(k==='ptax')n=per(T.ptaxY(y));else if(k==='maint')n=per(T.maintY(y));else if(k==='ins')n=T.fn(lab,f[k],'$',null,()=>[T.insMo(y)],([a])=>a,null,{sym:'\\tfrac{1}{12}\\text{Ins}_y'});
+  else if(k==='hoa')n=T.fn(lab,f[k],'$',null,()=>[T.byInf('hoa','HOA',y,Yv.hoa)],([a])=>a,null,{sym:'\\text{HOA}_y'});else if(k==='util')n=T.fn(lab,f[k],'$',null,()=>[T.byInf('utilDiff','Extra utilities',y,Yv.utilM)],([a])=>a,null,{sym:'U_y'});
   else if(k==='pmi')n=per(T.pmiY(y));
   else if(k==='refi')n=T.fn(lab,f[k],'$','perMo',()=>[T.sum(`Refinance costs in year ${y+1}`,T.months(m=>T.Mo(y,m).refi||0).reduce((a,b)=>a+b,0),'$','sum12',()=>T.months(m=>[1,T.con(`Refinance cost, month ${m+1}`,T.Mo(y,m).refi||0,'$',{pk:['refiCost']})]))],([a])=>a/12);
   else if(k==='tax')n=per(T.taxSave(y),-1);
-  else if(k==='hh')n=T.fn(lab,f[k],'$',null,()=>[T.hhY(y),p_hh(T,y)],([a,b])=>-(a-b/12));
-  else if(k==='rent')n=T.fn(lab,f[k],'$',null,()=>[T.rentY(y)],([a])=>a);
+  else if(k==='hh')n=T.fn(lab,f[k],'$',null,()=>[T.hhY(y),p_hh(T,y)],([a,b])=>-(a-b/12),null,{sym:'-(R^{hh,net}_y - \\tfrac{1}{12}T^{hh}_y)'});
+  else if(k==='rent')n=T.fn(lab,f[k],'$',null,()=>[T.rentY(y)],([a])=>a,null,{sym:'C^{rent}_y'});
   return T.real(n,T.cpiMid(y),lab+", today's dollars")}
-const p_hh=(T,y)=>T.p.taxOn&&T.p.hhRent>0?T.hhTaxM(y):T.con('Tax on house-hack rent',0,'$');
+const p_hh=(T,y)=>T.p.taxOn&&T.p.hhRent>0?T.hhTaxM(y):T.con('Tax on house-hack rent',0,'$',{sym:'T^{hh}_y'});
 /* the year's unrecoverable costs (Unrecoverable cost chart): cash costs, and the return the owner's equity forgoes */
 function unrecNode(T,part,y){const u=T.o.unrec[y],Yv=T.Yr(y),lab=part==='rent'?`Rent paid in year ${y+1}`:part==='opp'?`Return forgone on the owner's equity, year ${y+1}`:`Owner's cash costs, year ${y+1}`;let n;
-  if(part==='rent')n=T.fn(lab,u.rent,'$',null,()=>[T.rentY(y)],([a])=>a*12);
+  if(part==='rent')n=T.fn(lab,u.rent,'$',null,()=>[T.rentY(y)],([a])=>a*12,null,{sym:'12\\,C^{rent}_y'});
   else if(part==='opp')n=T.fn(lab,u.opp,'$','oppCost',()=>[T.fn(`Home equity at the start of year ${y+1}`,Yv.owned?Yv.H-Yv.bal:0,'$',null,()=>[T.H(y),T.con('Mortgage balance at the start of the year',Yv.bal,'$')],([h,b])=>Yv.owned?h-b:0),
-    T.sum(`Sum of the 12 monthly portfolio returns, year ${y+1}`,T.months(m=>T.Mo(y,m).ret).reduce((a,b)=>a+b,0),'%','sum12',()=>T.months(m=>[1,T.con(`Portfolio return, month ${m+1}`,T.Mo(y,m).ret,'%')]))],([e,r])=>e*r);
-  else n=!Yv.owned?T.fn(lab,u.own,'$',null,()=>[T.rentY(y)],([a])=>a*12):T.sum(lab,u.own-u.opp,'$','unrec',()=>[[1,T.intY(y)],[1,T.ptaxY(y)],[1,T.maintY(y)],[12,T.insMo(y)],[12,T.byInf('hoa','HOA',y,Yv.hoa)],[12,T.byInf('utilDiff','Extra utilities',y,Yv.utilM)],[1,T.pmiY(y)],
-    [1,T.con('Refinance costs',T.months(m=>T.Mo(y,m).refi||0).reduce((a,b)=>a+b,0),'$',{pk:['refiCost']})],[-1,T.taxSave(y)],[-12,T.hhY(y)],[1,p_hh(T,y)]]);
+    T.sum(`Sum of the 12 monthly portfolio returns, year ${y+1}`,T.months(m=>T.Mo(y,m).ret).reduce((a,b)=>a+b,0),'%','sum12',()=>T.months(m=>[1,T.con(`Portfolio return, month ${m+1}`,T.Mo(y,m).ret,'%',{sym:'\\rho_t'})]),{sym:'\\textstyle\\sum_{t \\in y}\\rho_t'})],([e,r])=>e*r);
+  else n=!Yv.owned?T.fn(lab,u.own,'$',null,()=>[T.rentY(y)],([a])=>a*12,null,{sym:'12\\,C^{rent}_y'}):T.sum(lab,u.own-u.opp,'$','unrec',()=>[[1,T.intY(y)],[1,T.ptaxY(y)],[1,T.maintY(y)],[12,T.insMo(y)],[12,T.byInf('hoa','HOA',y,Yv.hoa)],[12,T.byInf('utilDiff','Extra utilities',y,Yv.utilM)],[1,T.pmiY(y)],
+    [1,T.con('Refinance costs',T.months(m=>T.Mo(y,m).refi||0).reduce((a,b)=>a+b,0),'$',{pk:['refiCost'],sym:'\\text{Refi}_y'})],[-1,T.taxSave(y)],[-12,T.hhY(y)],[1,p_hh(T,y)]]);
   return T.real(n,T.cpi(y+1),lab+", today's dollars")}
-function liqNode(T,who,t){const bud=t?T.budget(t-1):T.fn('Monthly budget (year 1, used at the start)',T.o.budget[1]||1,'$',null,()=>[T.budget(0)],([b])=>b);
+function liqNode(T,who,t){const bud=t?T.budget(t-1):T.fn('Monthly budget (year 1, used at the start)',T.o.budget[1]||1,'$',null,()=>[T.budget(0)],([b])=>b,null,{sym:'\\text{budget}_1'});
   const a=who==='R'?T.liq('R',t):who==='H'?T.sum(`Buyer's liquid assets plus the home-equity line ${t?`after ${nY(t)}`:'at the start'}`,T.o.lqB[t]+T.o.heloc[t],'$','liqLine',()=>[[1,T.liq('B',t)],[1,T.helocN(t)]]):T.liq('B',t);
   return T.fn(`${who==='R'?'Renter':'Buyer'}'s liquid assets in months of budget, ${t?`after ${nY(t)}`:'at the start'}`,a.v/bud.v,'mo','months',()=>[a,bud],([x,b])=>x/b)}
 const TRACE_RECIPES={
@@ -60,18 +60,18 @@ function gapNode(T,i){const p=T.p,N=p.N,{gap,parts}=gapParts(p,T.o),lab=i<parts.
     case 'Home price change':return T.sum(lab,v,'$','gapHome',()=>[[1,rl(T.H(N),cN)],[-1,T.set('P',p.P,'$')]]);
     case 'Selling costs':return T.fn(lab,v,'$','gapSell',()=>[rl(T.H(N),cN),T.sellRate(N)],([h,s])=>-h*s);
     case 'Tax on the home sale':return T.fn(lab,v,'$',null,()=>[rl(T.homeTax(N),cN)],([a])=>-a);
-    case 'Buying costs':return T.sum(lab,v,'$','gapBuy',()=>[[-1,T.fn('Closing costs',p.P*p.close,'$',null,()=>[T.set('P',p.P,'$'),T.closeRate()],([a,c])=>a*c)],[-1,T.set('moveIn',p.moveIn||0,'$')],[-1,T.ptsCost()]]);
+    case 'Buying costs':return T.sum(lab,v,'$','gapBuy',()=>[[-1,T.fn('Closing costs',p.P*p.close,'$',null,()=>[T.set('P',p.P,'$'),T.closeRate()],([a,c])=>a*c,null,{sym:'cP'})],[-1,T.set('moveIn',p.moveIn||0,'$')],[-1,T.ptsCost()]]);
     case 'Mortgage interest':return yearly(y=>T.intY(y),-1);
     case 'Property tax':return yearly(y=>T.ptaxY(y),-1);
     case 'Upkeep':return yearly(y=>T.maintY(y),-1);
-    case 'Insurance, HOA, PMI, utilities':return yearly(y=>{const Yv=T.Yr(y);return T.sum(`Insurance, HOA, PMI, utilities and refinancing, year ${y+1}`,(Yv.insM+Yv.hoa+Yv.utilM)*12+T.o.flow[y].pmi*12+T.o.flow[y].refi*12,'$','insEtc',()=>[[12,T.insMo(y)],[12,T.byInf('hoa','HOA',y,Yv.hoa)],[12,T.byInf('utilDiff','Extra utilities',y,Yv.utilM)],[1,T.pmiY(y)],[1,T.con('Refinance costs',T.o.flow[y].refi*12,'$',{pk:['refiCost']})]])},-1);
+    case 'Insurance, HOA, PMI, utilities':return yearly(y=>{const Yv=T.Yr(y);return T.sum(`Insurance, HOA, PMI, utilities and refinancing, year ${y+1}`,(Yv.insM+Yv.hoa+Yv.utilM)*12+T.o.flow[y].pmi*12+T.o.flow[y].refi*12,'$','insEtc',()=>[[12,T.insMo(y)],[12,T.byInf('hoa','HOA',y,Yv.hoa)],[12,T.byInf('utilDiff','Extra utilities',y,Yv.utilM)],[1,T.pmiY(y)],[1,T.con('Refinance costs',T.o.flow[y].refi*12,'$',{pk:['refiCost'],sym:'\\text{Refi}_y'})]])},-1);
     case 'Tax savings from owning':return yearly(y=>T.taxSave(y),1);
-    case 'House-hack income':return yearly(y=>T.fn(`House-hack income after tax, year ${y+1}`,-T.o.flow[y].hh*12,'$',null,()=>[T.hhY(y),p_hh(T,y)],([a,b])=>a*12-b),1);
-    case 'Rent the renter pays':return yearly(y=>T.fn(`Rent, year ${y+1}`,T.o.flow[y].rent*12,'$',null,()=>[T.rentY(y)],([a])=>a*12),1);
+    case 'House-hack income':return yearly(y=>T.fn(`House-hack income after tax, year ${y+1}`,-T.o.flow[y].hh*12,'$',null,()=>[T.hhY(y),p_hh(T,y)],([a,b])=>a*12-b,null,{sym:'12R^{hh,net}_y - T^{hh}_y'}),1);
+    case 'Rent the renter pays':return yearly(y=>T.fn(`Rent, year ${y+1}`,T.o.flow[y].rent*12,'$',null,()=>[T.rentY(y)],([a])=>a*12,null,{sym:'12\\,C^{rent}_y'}),1);
     case 'FHA upfront premium':return T.sum(lab,v,'$',null,()=>[[1,T.loanBase()],[-1,T.loanAmt()]]);
-    case 'Inflation shrinking the loan':return T.sum(lab,v,'$','gapLoan',()=>[[1,T.loanAmt()],[-1,yearly(y=>T.fn(`Principal paid, year ${y+1}`,T.o.flow[y].principal*12,'$',null,()=>[T.prinY(y),T.preY(y)],([a,b])=>a+b),1,'Principal repaid, each year at mid-year prices')],[-1,rl(T.bal(N),cN)]]);
-    case 'Tax on investments (renter − buyer)':return T.sum(lab,v,'$','gapInvTax',()=>[[1,yearly(y=>T.sum(`Renter's minus buyer's investment taxes, year ${y+1}`,T.o.tax[y].invR-T.o.tax[y].invB,'$',null,()=>[[1,T.taxY('R',y)],[-1,T.taxY('B',y)]]),1,'Yearly taxes on dividends and interest')],
-      [1,T.fn(`Tax on selling the portfolios at year ${N} (renter − buyer)`,T.real(T.con('',T.o.liqTax[N].r-T.o.liqTax[N].b,'$'),cN).v,'$',null,()=>[rl(T.V('R',N),cN),rl(T.liq('R',N),cN),rl(T.V('B',N),cN),rl(T.liq('B',N),cN)],([vr,lr,vb,lb])=>(vr-lr)-(vb-lb))]]);
+    case 'Inflation shrinking the loan':return T.sum(lab,v,'$','gapLoan',()=>[[1,T.loanAmt()],[-1,yearly(y=>T.fn(`Principal paid, year ${y+1}`,T.o.flow[y].principal*12,'$',null,()=>[T.prinY(y),T.preY(y)],([a,b])=>a+b,null,{sym:'\\text{Prin}_y + X_y'}),1,'Principal repaid, each year at mid-year prices')],[-1,rl(T.bal(N),cN)]]);
+    case 'Tax on investments (renter − buyer)':return T.sum(lab,v,'$','gapInvTax',()=>[[1,yearly(y=>T.sum(`Renter's minus buyer's investment taxes, year ${y+1}`,T.o.tax[y].invR-T.o.tax[y].invB,'$',null,()=>[[1,T.taxY('R',y)],[-1,T.taxY('B',y)]],{sym:'\\text{tax}^{rent}_y - \\text{tax}^{buy}_y'}),1,'Yearly taxes on dividends and interest')],
+      [1,T.fn(`Tax on selling the portfolios at year ${N} (renter − buyer)`,T.real(T.con('',T.o.liqTax[N].r-T.o.liqTax[N].b,'$'),cN).v,'$',null,()=>[rl(T.V('R',N),cN),rl(T.liq('R',N),cN),rl(T.V('B',N),cN),rl(T.liq('B',N),cN)],([vr,lr,vb,lb])=>(vr-lr)-(vb-lb),null,{sym:'T^{sell}_{rent} - T^{sell}_{buy}'})]]);
     default:{const others=parts.filter(x=>x[0]!==lab),known=others.reduce((a,x)=>a+x[1],0);
       return T.fn(lab,v,'$','gapRest',()=>[dGap(),T.con('All the other parts above, added up',known,'$')],([g,k])=>g-k,null,{note:'what the renter\'s portfolio earned beyond the buyer\'s, before tax: what is left once every other part is counted'})}}}
 /* ---- runs with some settings changed (Sensitivity, Optimizer): traced on demand and kept while the settings stay ---- */
@@ -87,7 +87,7 @@ Object.assign(TRACE_RECIPES,{
     return {title:`Home ${g}%/yr, portfolio ${r}%/yr`,T,at:'z',node:gapAt(T,p.N,`Buy minus rent at year ${p.N}`,`run with home appreciation ${pct(g/100)} and the S&P 500 return set to ${pct(rs,2)}, so the portfolio mix returns ${pct(r/100)} before fees`)}},
   'ptr:line':pt=>{const m=pt.customdata,T=traceAlt({rent0:P.rent0*m},30),t=yr(pt);return {title:`Rent ${fmtFull(P.rent0*m)}, year ${t}`,T,node:gapAt(T,t,`Buy minus rent after ${nY(t)}, rent ${fmtFull(P.rent0*m)}/mo`)}},
   'opt:z':pt=>{const T=traceAlt(optOver(+pt.x),30),h=Math.round(+pt.y);return {title:`${pt.x}% down, ${nY(h)}`,T,at:'z',node:gapAt(T,h,`Buy minus rent after ${nY(h)}, ${pt.x}% down`)}},
-  'opt:best':pt=>{const h=Math.round(+pt.y),DP=[0,3.5,5,10,15,20,25,30,40,50,60,80,100],kids=DP.map(d=>gapAt(traceAlt(optOver(d),30),h,`${d}% down`)),bi=kids.reduce((b,k,i)=>k.v>kids[b].v?i:b,0);
+  'opt:best':pt=>{const h=Math.round(+pt.y),DP=[0,3.5,5,10,15,20,25,30,40,50,60,80,100],kids=DP.map(d=>{const g=gapAt(traceAlt(optOver(d),30),h,`${d}% down`);return traceBase().fn(g.label,g.v,'$',null,()=>[g],([x])=>x,null,{sym:`\\text{gap}_h(${d}\\%)`})}),bi=kids.reduce((b,k,i)=>k.v>kids[b].v?i:b,0);
     return {title:`Best down payment, ${nY(h)}`,at:'xnum',node:traceBase().fn(`Down payment with the largest buy − rent after ${nY(h)}`,DP[bi],'n','argmax',()=>kids,a=>DP[a.reduce((b,v,i)=>v>a[b]?i:b,0)],null,{note:`each down payment is a separate run with a ${OPT_TERM}-year loan`})}}});
 const optOver=dp=>({term:OPT_TERM,rate:OPT_TERM===15?P.rate15:P.rate30,dp:dp/100});
 function torRecipe(pt,side){const {rows}=tornado(P),row=rows[pt.pointNumber],ov=torOver(P,row.row)[side],T=traceAlt(ov),B=traceBase(),N=T.p.N;
@@ -128,8 +128,8 @@ const mcVal=(w,s,y)=>{const T=mcTrace(s),nd=w==='buy'?T.nwBuy(y):w==='inv'?T.nwI
 /* a quantile as Monte Carlo reports it: sorted values, interpolated between the two around position (n−1)·f; both
    neighbours are traced in full */
 function mcQuant(lab,vals,f,nodeOf,u){const idx=vals.map((v,i)=>i).sort((a,b)=>vals[a]-vals[b]),pos=(vals.length-1)*f,lo=Math.floor(pos),hi=Math.min(lo+1,vals.length-1),fr=pos-lo,B=traceBase();
-  const a=nodeOf(idx[lo]),b=nodeOf(idx[hi]);
-  return B.fn(lab,q(vals,f),u||'$','quantile',()=>[a,b,B.con(`Position between them (${lo+1}th and ${hi+1}th of ${vals.length})`,fr,'x',{sec:'monte-carlo'})],([x,y,t])=>x+(y-x)*t,([x,y,t])=>`${fv(x,u||'$')} + (${fv(y,u||'$')} − ${fv(x,u||'$')}) × ${t.toFixed(3)}`,{note:`${Math.round(f*100)}th percentile of ${vals.length.toLocaleString('en-US')} simulated futures`})}
+  const nm=(n,s)=>B.fn(n.label,n.v,u||'$',null,()=>[n],([x])=>x,null,{sym:s}),a=nm(nodeOf(idx[lo]),'x_{(\\lfloor k \\rfloor)}'),b=nm(nodeOf(idx[hi]),'x_{(\\lfloor k \\rfloor + 1)}');
+  return B.fn(lab,q(vals,f),u||'$','quantile',()=>[a,b,B.con(`Position between them (${lo+1}th and ${hi+1}th of ${vals.length})`,fr,'x',{sec:'monte-carlo',sym:'k - \\lfloor k \\rfloor'})],([x,y,t])=>x+(y-x)*t,([x,y,t])=>`${fv(x,u||'$')} + (${fv(y,u||'$')} − ${fv(x,u||'$')}) × ${t.toFixed(3)}`,{note:`${Math.round(f*100)}th percentile of ${vals.length.toLocaleString('en-US')} simulated futures`})}
 const mcMedianPath=vals=>{const idx=vals.map((v,i)=>i).sort((a,b)=>vals[a]-vals[b]);return idx[Math.floor((idx.length-1)/2)]};
 Object.assign(TRACE_RECIPES,{
   'mc:buy':pt=>mcFan(pt,'buy'),'mc:inv':pt=>mcFan(pt,'inv'),'mc:cash':pt=>mcFan(pt,'cash'),'mc:rental':pt=>mcFan(pt,'rental'),
@@ -196,6 +196,6 @@ Object.assign(TRACE_RECIPES,{
   'data:corr':pt=>({title:'Correlation',at:'z',node:dataCorr(pt.y,pt.x)}),
   'data:mort':pt=>{const B=traceBase(),y=Math.round(+pt.x);return {title:`Mortgage rate, ${y}`,node:B.dat(`30-year fixed mortgage rate, ${y} average`,MORT[y-MORT0],'pp',['fredMort'])}},
   'data:inf':pt=>{const B=traceBase(),y=Math.round(+pt.x);return {title:`Inflation, ${y}`,node:B.fn(`CPI inflation, ${y} (percent)`,INF[y-Y0],'pp','inflation',()=>[B.dat(`CPI index, end of ${y}`,CPIL[y-Y0+1],'n',['fredCPI']),B.dat(`CPI index, end of ${y-1}`,CPIL[y-Y0],'n',['fredCPI'])],([a,b])=>(a/b-1)*100)}},
-  'data:realmort':pt=>{const B=traceBase(),y=Math.round(+pt.x);return {title:`Real mortgage rate, ${y}`,node:B.sum(`Real mortgage rate, ${y} (percent)`,MORT[y-MORT0]-INF[y-Y0],'pp','realRate',()=>[[1,B.dat(`30-year fixed mortgage rate, ${y} average`,MORT[y-MORT0],'pp',['fredMort'])],[-1,dLeaf(B,'inf',y-Y0)]])}},
+  'data:realmort':pt=>{const B=traceBase(),y=Math.round(+pt.x);return {title:`Real mortgage rate, ${y}`,node:B.sum(`Real mortgage rate, ${y} (percent)`,MORT[y-MORT0]-INF[y-Y0],'pp','realRate',()=>[[1,B.dat(`30-year fixed mortgage rate, ${y} average`,MORT[y-MORT0],'pp',['fredMort'],{sym:'m_y'})],[-1,Object.assign(dLeaf(B,'inf',y-Y0),{sym:'\\pi_y'})]])}},
   'data:zori':pt=>{const B=traceBase(),i=pt.pointNumber;return {title:`Asking rents, ${pt.x}`,node:B.dat(`Zillow Observed Rent Index, January ${pt.x} vs a year earlier`,RES.zori.yoy[i],'pp',['r_zori'])}},
   'data:rentcpi':pt=>{const B=traceBase(),y=Math.round(+pt.x);return {title:`CPI rent, ${y}`,node:B.fn(`Rent CPI change, ${y} (percent)`,RENTG[y-Y0],'pp','inflation',()=>[B.dat(`Rent CPI, end of ${y}`,RENTL[y-Y0+1],'n',['fredRent']),B.dat(`Rent CPI, end of ${y-1}`,RENTL[y-Y0],'n',['fredRent'])],([a,b])=>(a/b-1)*100)}}});

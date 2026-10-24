@@ -28,7 +28,7 @@ function tracePanel(){let pn=document.getElementById('trp');if(pn)return pn;
   pn.addEventListener('click',e=>{const a=e.target.closest('a[data-ci-set],a[data-ci-sec]');if(a&&innerWidth<700)setTimeout(closeTrace,0)});
   addEventListener('keydown',e=>{if(e.key==='Escape'&&!pn.hidden)closeTrace()});return pn}
 function closeTrace(){const pn=document.getElementById('trp'),was=pn&&!pn.hidden;if(pn)pn.hidden=true;document.body.classList.remove('trace-open','trace-dock','trace-tall');if(was)requestAnimationFrame(resizePlots);if(TRACE_OPEN&&TRACE_OPEN.el)TRACE_OPEN.el.focus&&TRACE_OPEN.el.focus({preventScroll:true})}
-function openTrace(r,el){const pn=tracePanel();TRACE_OPEN={el,r,stack:[{node:r.node,sym:r.node.eq?eqLhs(r.node.eq):null}]};
+function openTrace(r,el){const pn=tracePanel();TRACE_OPEN={el,r,stack:[{node:r.node,sym:ownSym(r.node)}]};
   const card=el&&el.closest('.card'),h=card&&card.querySelector('h2');
   document.getElementById('trpS').textContent=(h?h.textContent.replace(/\?/g,'').trim()+' · ':'')+r.title;
   const was=!pn.hidden;pn.hidden=false;document.body.classList.add('trace-open');document.body.classList.toggle('trace-dock',traceDock());
@@ -45,6 +45,8 @@ function openTrace(r,el){const pn=tracePanel();TRACE_OPEN={el,r,stack:[{node:r.n
 const trUnit=(v,u)=>u==='opt'?String(v):fv(v,u);
 const trVal=nd=>nd.leaf==='set'&&nd.u==='opt'?escapeHtml(nd.opt||''):trUnit(nd.v,nd.u);
 const trSym=s=>s?`<span class="trsy">\\(${s}\\)</span>`:'';
+/* a part's row symbol: its name in the parent's equation, with its own name too when they are different quantities by design */
+function traceRowSym(nd,b,j){const r=symFor(nd,b,j),o=ownSym(b.kids[j]);return r&&o&&!symMatch(r,o)?`${r} = ${o}`:r}
 const TR_KIND={set:'Setting',data:'Data',const:'Rule',note:'Why'};
 /* One card at a time: the line being looked at (its symbol, name and value), its equation with your numbers, the
    Method section, then the parts it is made of. A part with parts of its own opens its own card (the breadcrumb goes
@@ -54,20 +56,22 @@ function renderTraceCard(){const T=TRACE_OPEN,cur=T.stack.at(-1),nd=cur.node,bod
   let html=crumbs+`<article class="trc" aria-live="polite"><header class="trct"><div class="trcl">${trSym(cur.sym)}<h3 tabindex="-1">${escapeHtml(nd.label)}</h3></div><div class="trcv">${trVal(nd)}</div></header>`;
   if(!nd.build){html+=`<div class="tro">${traceLeafHTML(nd)}</div></article>`;body.innerHTML=html;typeset(body);return}
   const b=nd.built||(nd.built=nd.build()),e=nd.eq&&EQ[nd.eq],sec=e&&document.getElementById('m-'+e.s),nums=traceNumbers(nd,b);
-  if(e||nums)html+=`<div class="treqb">${e?`<div class="treq">\\(${e.t}\\)</div>`:''}${nums?`<div class="trnum"><span class="trnl">with your numbers</span>${escapeHtml(nums)} <b>= ${trUnit(nd.v,nd.u)}</b></div>`:''}</div>`;
+  // the equation in this part's own symbols, moved in time when the parent names it at another time (B_{t-1})
+  const tf=x=>cur.shift?reIdx(x,cur.shift):x;let tex=e?tf(eqTexFor(nd)):'';
+  if(e||nums)html+=`<div class="treqb">${tex?`<div class="treq">\\(${tex}\\)</div>`:''}${nums?`<div class="trnum"><span class="trnl">with your numbers</span>${escapeHtml(nums)} <b>= ${trUnit(nd.v,nd.u)}</b></div>`:''}</div>`;
   if(nd.note)html+=`<p class="trnote">${escapeHtml(nd.note)}</p>`;
   if(sec)html+=`<a class="trm" href="#m-${e.s}" data-ci-sec="m-${e.s}">Explained in Method: ${escapeHtml(sec.querySelector('.mst').textContent)} →</a>`;
   const ix=b.kids.map((k,j)=>j),isZero=k=>Math.abs(k.v)<1e-9&&k.u!=='opt'&&k.u!=='x',live=ix.filter(j=>!isZero(b.kids[j])),zero=ix.filter(j=>isZero(b.kids[j]));
   const op=j=>b.op==='sum'?(()=>{const s=b.sg[j],w=Math.abs(s);return (s<0?'−':j?'+':'')+(w!==1?(Number.isInteger(w)?w:w.toFixed(2))+'×':'')})():b.op==='prod'&&j?'×':'';
-  const row=j=>{const k=b.kids[j],s=symFor(nd,b,j),inner=`<span class="trsg">${op(j)}</span>${trSym(s)}<span class="trl">${escapeHtml(k.label)}${k.leaf?` <span class="trtag tr-${k.leaf}">${TR_KIND[k.leaf]}</span>`:''}${k.leaf==='set'&&k.over?' <span class="trtag tr-over">set for this point</span>':''}</span><span class="trv">${trVal(k)}</span>`;
+  const row=j=>{const k=b.kids[j],s=tf(traceRowSym(nd,b,j)),inner=`<span class="trsg">${op(j)}</span>${trSym(s)}<span class="trl">${escapeHtml(k.label)}${k.leaf?` <span class="trtag tr-${k.leaf}">${TR_KIND[k.leaf]}</span>`:''}${k.leaf==='set'&&k.over?' <span class="trtag tr-over">set for this point</span>':''}</span><span class="trv">${trVal(k)}</span>`;
     return k.build?`<li><button type="button" class="trrow" data-j="${j}">${inner}<span class="trch" aria-hidden="true">›</span></button></li>`:`<li><details class="trleaf"><summary class="trrow">${inner}<span class="trch" aria-hidden="true">⌄</span></summary><div class="tro">${traceLeafHTML(k)}</div></details></li>`};
   html+=`<h4 class="trph">Made of ${b.kids.length===1?'1 part':b.kids.length+' parts'}</h4><ul class="trparts">${live.map(row).join('')}</ul>`+
     (zero.length?`<details class="trz"><summary>${zero.length} part${zero.length>1?'s':''} at zero</summary><ul class="trparts">${zero.map(row).join('')}</ul></details>`:'')+'</article>';
   if(T.stack.length===1){const ex=T.r.examples||[];ex.forEach((x,i)=>{html+=`<h4 class="trph">Example</h4><ul class="trparts"><li><button type="button" class="trrow" data-ex="${i}"><span class="trsg"></span><span class="trl">${escapeHtml(x.label)}</span><span class="trv">${trVal(x.node)}</span><span class="trch" aria-hidden="true">›</span></button></li></ul>`});
     html+=`<details class="trz tropts"><summary>Model options in effect</summary><ul class="trparts">${(T.r.T||traceBase()).opts().map(o=>`<li><details class="trleaf"><summary class="trrow"><span class="trsg"></span><span class="trl">${escapeHtml(o.label)}</span><span class="trv">${trVal(o)}</span><span class="trch" aria-hidden="true">⌄</span></summary><div class="tro">${traceLeafHTML(o)}</div></details></li>`).join('')}</ul></details>`+
       '<p class="trfoot">Every value is computed from its parts with the equation shown; the app checks this for every chart point in its tests.</p>'}
-  body.innerHTML=html;body.querySelectorAll('.trrow[data-j]').forEach(x=>x.onclick=()=>{const j=+x.dataset.j;T.stack.push({node:b.kids[j],sym:symFor(nd,b,j)});traceGo()});
-  body.querySelectorAll('.trrow[data-ex]').forEach(x=>x.onclick=()=>{const n2=T.r.examples[+x.dataset.ex].node;T.stack.push({node:n2,sym:n2.eq?eqLhs(n2.eq):null});traceGo()});
+  body.innerHTML=html;body.querySelectorAll('.trrow[data-j]').forEach(x=>x.onclick=()=>{const j=+x.dataset.j;const k=b.kids[j],role=tf(symFor(nd,b,j)),own=ownSym(k),m=symMatch(role,own);T.stack.push({node:k,sym:m||!own?role:`${role} = ${own}`,shift:m});traceGo()});
+  body.querySelectorAll('.trrow[data-ex]').forEach(x=>x.onclick=()=>{const n2=T.r.examples[+x.dataset.ex].node;T.stack.push({node:n2,sym:ownSym(n2)});traceGo()});
   body.querySelectorAll('.trbc [data-up]').forEach(x=>x.onclick=()=>{T.stack.length=+x.dataset.up+1;traceGo()});typeset(body)}
 function traceGo(){renderTraceCard();const body=document.getElementById('trpB');body.scrollTop=0;const h=body.querySelector('.trct h3');if(h)h.focus({preventScroll:true})}
 function traceLeafHTML(nd){const src=k=>SRC[k]?`<a href="${SRC[k].u}" target="_blank" rel="noopener" title="${escapeHtml(SRC[k].t)}">${escapeHtml(SRC[k].t.split(/[:(]/)[0].trim())}</a>`:'';

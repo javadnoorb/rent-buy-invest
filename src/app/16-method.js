@@ -10,7 +10,7 @@ function buildMethod(){
 
   <h3>Mortgage</h3>
   ${eqLines(['loan','monthlyRate','payment','interest','principal','balanceMonth'])}
-  <dl class="sym"><dt>\\(P\\)</dt><dd>purchase price</dd><dt>\\(d\\)</dt><dd>down payment as a share of the price</dd><dt>\\(L\\)</dt><dd>loan amount</dd><dt>\\(r\\)</dt><dd>annual note rate (after any points)</dd><dt>\\(i\\)</dt><dd>monthly rate</dd><dt>\\(n\\)</dt><dd>number of monthly payments (12 × loan term in years)</dd><dt>\\(M\\)</dt><dd>monthly principal-and-interest payment</dd><dt>\\(I_t\\)</dt><dd>interest paid in month \\(t\\)</dd><dt>\\(\\text{Prin}_t\\)</dt><dd>principal repaid in month \\(t\\) from the payment</dd><dt>\\(X_t\\)</dt><dd>extra principal paid in month \\(t\\) (see Extra payments)</dd><dt>\\(B_t\\)</dt><dd>loan balance after month \\(t\\)</dd></dl>
+  <dl class="sym"><dt>\\(P\\)</dt><dd>purchase price</dd><dt>\\(d\\)</dt><dd>down payment as a share of the price</dd><dt>\\(L\\)</dt><dd>loan amount</dd><dt>\\(r\\)</dt><dd>annual note rate (after any points)</dd><dt>\\(i\\)</dt><dd>monthly rate</dd><dt>\\(n\\)</dt><dd>number of monthly payments (12 × loan term in years)</dd><dt>\\(M\\)</dt><dd>monthly principal-and-interest payment</dd><dt>\\(I_t\\)</dt><dd>interest paid in month \\(t\\)</dd><dt>\\(\\text{Prin}_t\\)</dt><dd>principal repaid in month \\(t\\) from the payment</dd><dt>\\(X_t\\)</dt><dd>extra principal paid in month \\(t\\) (see Extra payments)</dd><dt>\\(B_t\\)</dt><dd>loan balance at the start of month \\(t\\), before that month's payment</dd></dl>
 
   <h3>Refinancing</h3>
   <p>If the market rate falls far enough below the loan rate, and at least 12 months have passed since the purchase or the last refinance, the loan is refinanced over its remaining months:</p>
