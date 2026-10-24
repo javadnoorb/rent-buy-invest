@@ -17,7 +17,7 @@ function closeTrace(){const pn=document.getElementById('trp');if(pn)pn.hidden=tr
 function openTrace(r,el){const pn=tracePanel();TRACE_OPEN={el,nodes:[],r};
   const card=el&&el.closest('.card'),h=card&&card.querySelector('h2');
   document.getElementById('trpS').textContent=(h?h.textContent.replace(/\?/g,'').trim()+' · ':'')+r.title;
-  const body=document.getElementById('trpB');body.innerHTML=traceNodeHTML(r.node,true)+traceOptsHTML(r.T||traceBase())+'<p class="trfoot muted">Every line is computed from the lines inside it with the equation shown; the app checks this for every chart point in its tests.</p>';
+  const body=document.getElementById('trpB');body.innerHTML=traceNodeHTML(r.node,true)+(r.examples||[]).map(e=>`<h3 class="trex">${escapeHtml(e.label)}</h3>`+traceNodeHTML(e.node,true)).join('')+traceOptsHTML(r.T||traceBase())+'<p class="trfoot muted">Every line is computed from the lines inside it with the equation shown; the app checks this for every chart point in its tests.</p>';
   pn.hidden=false;document.body.classList.add('trace-open');const top=body.querySelector('details');if(top){top.open=true;fillTraceNode(top)}pn.querySelector('.trx').focus({preventScroll:true})}
 const trUnit=(v,u)=>u==='opt'?String(v):fv(v,u);
 function traceNodeHTML(nd,root){const id=TRACE_OPEN.nodes.push(nd)-1,val=`<span class="trv">${nd.leaf==='set'&&nd.u==='opt'?escapeHtml(nd.opt||''):trUnit(nd.v,nd.u)}</span>`,lab=`<span class="trl">${escapeHtml(nd.label)}</span>`;
@@ -25,6 +25,7 @@ function traceNodeHTML(nd,root){const id=TRACE_OPEN.nodes.push(nd)-1,val=`<span 
   return `<details class="trn${root?' root':''}" data-n="${id}"><summary class="trrow">${lab}${val}</summary><div class="trd"></div></details>`}
 function traceLeafHTML(nd){const src=k=>SRC[k]?`<a href="${SRC[k].u}" target="_blank" rel="noopener" title="${escapeHtml(SRC[k].t)}">${escapeHtml(SRC[k].t.split(/[:(]/)[0].trim())}</a>`:'';
   const setLinks=ids=>[...new Set([].concat(ids||[]))].filter(id=>F.some(f=>f[1]===id)).map(id=>`<a href="#${id}" data-ci-set="${id}">${escapeHtml(settingLabel(id))}</a>`).join(' · ');
+  if(nd.leaf==='set'&&nd.over){const o=settingOrigin(nd.id);return `<b>set to ${trUnit(nd.v,nd.u)} for this point</b>${o?` · your setting: ${escapeHtml(String(o.value))}`:''} · <a href="#${nd.id}" data-ci-set="${nd.id}">open</a>`}
   if(nd.leaf==='set'){const o=settingOrigin(nd.id);return (o?originHTML(o):'')+` · <a href="#${nd.id}" data-ci-set="${nd.id}">change</a>`}
   const parts=[];if(nd.note)parts.push(escapeHtml(nd.note));if(nd.src&&nd.src.length)parts.push(nd.src.map(src).filter(Boolean).join(' · '));
   if(nd.sec&&document.getElementById('m-'+nd.sec))parts.push(`<a href="#m-${nd.sec}" data-ci-sec="m-${nd.sec}">Method</a>`);

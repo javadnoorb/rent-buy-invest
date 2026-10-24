@@ -284,15 +284,17 @@ function mcCore(p,cfg){
   const home=cfg.home;const src={gh:home,gr:cfg.rent||RENTG,rs:STK,rb:BOND,rc:BILL,inf:INF};
   const LOG={},SH={};keys.forEach(k=>{LOG[k]=src[k].slice(i0).map(v=>Math.log(1+v/100));const m=LOG[k].reduce((a,b)=>a+b,0)/W;SH[k]=rc?Math.log(1+p[k])-m:0});
   const r=rng(12345),res={buy:[],inv:[],cash:[],rental:[],cH:[],cP:[],gH:[],gP:[],lqMinB:[],lqMinR:[],refis:[],rates:[],T:[],forced:[],HT:[]};
+  // cfg.keepAll: keep every path's inputs, so the trace panel can replay any one of them exactly
+  if(cfg.keepAll)Object.assign(res,{paths:[],SH,i0,src});
   for(let s=0;s<n;s++){
     const idx=[];while(idx.length<N){const st=Math.floor(r()*W);for(let j=0;j<bl&&idx.length<N;j++)idx.push((st+j)%W)}  // circular blocks: every year equally likely, so re-centering hits the target mean
     const path={};keys.forEach(k=>path[k]=idx.map(j=>Math.exp(LOG[k][j]+SH[k])-1));
-    let saleShock=1,saleShock2=1;if(iv>0){if(p.idioMode==='yearly')path.gh=path.gh.map(g=>(1+g)*Math.exp(iv*gauss(r)-iv*iv/2)-1);else{saleShock=Math.exp(iv*gauss(r)-iv*iv/2);saleShock2=Math.exp(iv*gauss(r)-iv*iv/2)}}
+    const ghBase=path.gh;let saleShock=1,saleShock2=1;if(iv>0){if(p.idioMode==='yearly')path.gh=path.gh.map(g=>(1+g)*Math.exp(iv*gauss(r)-iv*iv/2)-1);else{saleShock=Math.exp(iv*gauss(r)-iv*iv/2);saleShock2=Math.exp(iv*gauss(r)-iv*iv/2)}}
     let m=p.rate*100;const mbar=(p.rateLR||p.rate)*100,K=Math.min(1,Math.max(0,RATE_AR.kappa));
     path.mkt=idx.map(j=>{const gi=i0+j,dPi=INF[gi]-(gi>0?INF[gi-1]:INF[gi]);const e=RATE_AR.res[gi]!=null?RATE_AR.res[gi]:RATE_AR.sigma*gauss(r);
       m=Math.min(20,Math.max(2,m+K*(mbar-m)+RATE_AR.gamma*dPi+e));return m/100});
     const kk=1/(MAINT_CV*MAINT_CV),maintShock=idx.map(()=>gammaS(kk,r)/kk);
-    const o=simulate(p,path,{N,saleShock,saleShock2,maintShock});
+    const o=simulate(p,path,{N,saleShock,saleShock2,maintShock});if(cfg.keepAll)res.paths.push({path,saleShock,saleShock2,maintShock,idx,ghBase});
     res.buy.push(o.buy.map((v,k)=>adj(v,o.cpi[k])));res.inv.push(o.inv.map((v,k)=>adj(v,o.cpi[k])));res.cash.push(o.cash.map((v,k)=>adj(v,o.cpi[k])));
     // cumulative log growth of the home and the portfolio, so any horizon can be read without re-simulating
     const cH=[0],cP=[0];for(let y=0;y<N;y++){const g=p.ws*path.rs[y]+p.wb*path.rb[y]+(1-p.ws-p.wb)*path.rc[y],lv=p.lev!=null?p.lev:1;

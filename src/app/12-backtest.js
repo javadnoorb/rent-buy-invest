@@ -53,19 +53,19 @@ function renderHist(){
   const lines=mode==='annual'?runs:runs.filter(r=>r.jan);
   // lines coloured by purchase year on a one-hue violet scale (not the buy/rent colours), with a colour bar for it
   const s0=lines[0].s,s1=lines.at(-1).s,seq=isDark(t)?SEQ_DARK:SEQ_LIGHT;
-  const sp=/** @type {any[]} */(lines.map(r=>({x:r.adv.map((_,k)=>k),y:r.adv,mode:'lines',name:r.lab,showlegend:false,
+  const sp=/** @type {any[]} */(lines.map(r=>({x:r.adv.map((_,k)=>k),y:r.adv,meta:'hist:line',mode:'lines',name:r.lab,showlegend:false,
     line:{width:1.3,color:hexA(seqAt(seq,(r.s-s0)/(s1-s0||1)),0.75)},hovertemplate:`bought ${r.lab}: %{y:.0f}%<extra></extra>`})));
-  sp.push({x:[null],y:[null],mode:'markers',showlegend:false,hoverinfo:'skip',marker:{color:[s0,s1],cmin:s0,cmax:s1,colorscale:seq.map((c,i)=>[i/(seq.length-1),c]),showscale:true,
+  sp.push({x:[null],y:[null],meta:'deco:colorbar',mode:'markers',showlegend:false,hoverinfo:'skip',marker:{color:[s0,s1],cmin:s0,cmax:s1,colorscale:seq.map((c,i)=>[i/(seq.length-1),c]),showscale:true,
     colorbar:{title:cbTitle('Year of<br>purchase'),...CB_TICKS,thickness:10,outlinewidth:0,len:.74,tickformat:'d'}}});
   const med=[];for(let h=0;h<=30;h++){const v=runs.filter(r=>r.adv.length>h).map(r=>r.adv[h]).sort((a,b)=>a-b);if(v.length>=5)med.push([h,v[Math.floor(v.length/2)]])}
-  sp.push({x:med.map(m=>m[0]),y:med.map(m=>m[1]),mode:'lines',name:'Median across starts',line:{color:t.muted,width:3.5},hovertemplate:'median %{y:.0f}%<extra></extra>'});
-  sp.push({x:r.adv.map((_,k)=>k),y:r.adv,mode:'lines',name:`Bought ${r.lab} (selected)`,line:{color:t.ink,width:3},hovertemplate:`bought ${r.lab}: %{y:.0f}%<extra></extra>`});
+  sp.push({x:med.map(m=>m[0]),y:med.map(m=>m[1]),meta:'hist:median',mode:'lines',name:'Median across starts',line:{color:t.muted,width:3.5},hovertemplate:'median %{y:.0f}%<extra></extra>'});
+  sp.push({x:r.adv.map((_,k)=>k),y:r.adv,meta:'hist:line',customdata:r.adv.map(()=>r.lab),mode:'lines',name:`Bought ${r.lab} (selected)`,line:{color:t.ink,width:3},hovertemplate:`bought ${r.lab}: %{y:.0f}%<extra></extra>`});
   plot('p-spag',sp,{hovermode:'closest',xaxis:X('Years after purchase'),yaxis:Yt(`Buy − (${cmpLab}), % of purchase price, after inflation`,{ticksuffix:'%'})});
   const H=[...Array(30)].map((_,k)=>k+1),xs=runs.map(r=>r.s);
   const z=H.map(h=>runs.map(r=>r.adv.length>h?r.adv[h]:null));
   const zmax=Math.min(150,Math.max(1,...z.flat().filter(v=>v!=null).map(Math.abs)));
   const win=runs.filter(r=>r.adv.length>p.N),share=win.filter(r=>r.adv[p.N]>0).length/(win.length||1);
-  plot('p-hheat',[{x:xs,y:H,z,type:'heatmap',zsmooth:'best',zmin:-zmax,zmax,colorscale:divScale(t),hoverongaps:false,colorbar:advBar(t,'Buy − rent,<br>% of purchase<br>price','%'),
+  plot('p-hheat',[{x:xs,y:H,z,type:'heatmap',meta:'hist:z',zsmooth:'best',zmin:-zmax,zmax,colorscale:divScale(t),hoverongaps:false,colorbar:advBar(t,'Buy − rent,<br>% of purchase<br>price','%'),
     customdata:H.map(()=>runs.map(r=>r.lab)),hovertemplate:'bought %{customdata}, after %{y} yr: buy − rent %{z:.0f}% of the purchase price<extra></extra>'},
     zeroContour(xs,H,z,t)],
     {hovermode:'closest',xaxis:X('Year of purchase'),yaxis:Yt('Horizon (years)'),annotations:advEnds(t),
@@ -82,10 +82,10 @@ function renderHist(){
     else{const i0=MONTHLY.dates.indexOf(r.lab),n=Math.floor((MONTHLY.gh.length-i0)/12);det[dk]=simulate(histP(p,r.s),histPathMonthly(i0,n),{N:n,rate:r.rate})}}
   const o=det[dk],Nd=o.buy.length-1,x=o.buy.map((_,k)=>Math.floor(r.s)+k),thru=Math.floor(r.s)+Nd-1,advEnd=(o.buy[Nd]-o.inv[Nd])/o.cpi[Nd]/p.P*100;
   document.getElementById('h-detail-cap').textContent=`Bought ${r.lab} at ${(r.rate*100).toFixed(2)}%, starting rent ${fmtFull(histP(p,r.s).rent0)}/mo (${pct(histP(p,r.s).rent0*12/p.P,1)} of the price a year${HIST_RP==='hist'?', historical':''})${o.refis?`, refinanced ${o.refis}× (last rate ${(o.rateAt.at(-1)*100).toFixed(2)}%)`:''}. Real dollars; today's price and rent scaled by the historical paths.`;
-  const tr=(a,n,c,d)=>({x,y:a.map((v,k)=>v/o.cpi[k]),name:n,mode:'lines',line:{color:c,width:2.5,dash:d},hovertemplate:'%{y:$,.0f}'});
+  const tr=(a,n,c,d,meta)=>({x,y:a.map((v,k)=>v/o.cpi[k]),name:n,meta,mode:'lines',line:{color:c,width:2.5,dash:d},hovertemplate:'%{y:$,.0f}'});
   {const g=(o.buy[Nd]-o.inv[Nd])/o.cpi[Nd],gc=(o.buy[Nd]-o.cash[Nd])/o.cpi[Nd];tk('hdet',`Bought ${r.lab} and held through ${thru} (${nY(Nd)}), in today's dollars: against renting and investing, ${gapTxt(g)} (${advEnd>=0?'+':'−'}${Math.abs(advEnd).toFixed(0)}% of the price); against renting and keeping savings in T-bills, ${gapTxt(gc)}.${o.refis?` The buyer refinanced ${o.refis} time${o.refis>1?'s':''} along the way.`:''}`,'This purchase:')}
-  plot('p-hdet',[tr(o.buy,'Buy',t.buy),tr(o.inv,'Rent + invest',t.inv),tr(o.cash,'Rent + T-bills',t.cash,'dot'),
-    {x,y:o.rateAt.map(v=>v*100),name:'Loan rate',yaxis:'y2',mode:'lines',line:{color:t.neg,width:1.2,shape:'hv'},hovertemplate:'%{y:.2f}%'}],
+  plot('p-hdet',[tr(o.buy,'Buy',t.buy,undefined,'hdet:buy'),tr(o.inv,'Rent + invest',t.inv,undefined,'hdet:inv'),tr(o.cash,'Rent + T-bills',t.cash,'dot','hdet:cash'),
+    {x,y:o.rateAt.map(v=>v*100),name:'Loan rate',meta:'hdet:rate',yaxis:'y2',mode:'lines',line:{color:t.neg,width:1.2,shape:'hv'},hovertemplate:'%{y:.2f}%'}],
     {xaxis:X('Year'),yaxis:Yd("Net worth, today's $"),yaxis2:{overlaying:'y',side:'right',title:{text:'Loan rate',font:{size:11}},ticksuffix:'%',showgrid:false,tickfont:{family:'IBM Plex Mono',color:t.neg}},margin:{l:64,r:44,t:10,b:innerWidth<600?72:48}});
   wireHistClicks()
 }

@@ -503,3 +503,4 @@ body.simple .tech{display:none!important}
 details.trn>summary .trl::before,details.trz>summary::before{content:"+";display:inline-block;width:14px;color:var(--muted);font-family:var(--mono)}
 details.trn[open]>summary .trl::before,details.trz[open]>summary::before{content:"−"}
 .trz>summary{list-style:none}.trz>summary::-webkit-details-marker{display:none}
+.trex{font-size:13px;margin:14px 0 4px;padding-top:8px;border-top:1px solid var(--line)}

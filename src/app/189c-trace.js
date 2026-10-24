@@ -15,7 +15,7 @@ function traceNodes(X){const {p,o,tr}=X,LS=tr.LS,E=t=>tr.ends[t],Yr=y=>tr.years[
   const M=(k,f)=>{let n=X.memo.get(k);if(!n){n=f();n.key=k;X.memo.set(k,n)}return n};
   const tx=p.taxOn,taxable=tx&&p.acct==='taxable',mv=tr.move,YL=y=>`year ${y+1}`,TL=t=>t?`after ${nY(t)}`:'at the start';
   // ---- leaves and composite nodes ----
-  const set=(pk,v,u,id,o2)=>Object.assign({label:settingLabel(id||pk),v,u,leaf:'set',id:id||pk,pk},o2);
+  const set=(pk,v,u,id,o2)=>Object.assign({label:settingLabel(id||pk),v,u,leaf:'set',id:id||pk,pk,over:!!(info.over&&pk in info.over)},o2);
   const con=(label,v,u,o2)=>Object.assign({label,v,u,leaf:'const'},o2);
   const dat=(label,v,u,src,o2)=>Object.assign({label,v,u,leaf:'data',src},o2);
   const why=(label,v,u,note,rel)=>({label,v,u,leaf:'note',note,pk:rel||[]});
@@ -30,12 +30,14 @@ function traceNodes(X){const {p,o,tr}=X,LS=tr.LS,E=t=>tr.ends[t],Yr=y=>tr.years[
     if(path.monthly){const ks=months(m=>y*12+m),v=ks.reduce((a,k)=>a*(1+path[key][k]),1)-1;
       return fn(`${SERNAME[key]}, ${YL(y)}`,v,'%','compound12',()=>ks.map(k=>pathM(key,k)),a=>a.reduce((s,g)=>s*(1+g),1)-1,a=>`${a.map(g=>'(1 + '+fv(g,'%')+')').join(' × ')} − 1`)}
     const v=path[key][y];
-    if(info.kind==='hist')return dat(`${SERNAME[key]}, ${info.y0+y}`,v,'%',SER_SRC[key],{note:info.note});
-    if(info.kind==='mc'){const yr=Y0+info.i0+info.idx[y],raw=SER_RAW[key][info.i0+info.idx[y]]/100,sh=info.SH[key];
+    if(info.kind==='hist')return dat(`${(info.names&&info.names[key])||SERNAME[key]}, ${info.y0+y}`,v,'%',(info.src&&info.src[key])||SER_SRC[key],{note:info.note});
+    if(info.kind==='mc'){const yr=Y0+info.i0+info.idx[y],raw=(info.raw&&info.raw[key]||SER_RAW[key])[info.i0+info.idx[y]]/100,sh=info.SH[key],nm=(info.names&&info.names[key])||SERNAME[key];
+      if(key==='gh'&&info.ghBase&&info.ghBase[y]!==v){const b=info.ghBase[y];return fn(`Own-home price growth, simulated ${YL(y)}`,v,'%','idioYear',()=>[fn(`${nm}, simulated ${YL(y)} (drawn from ${yr})`,b,'%','recenter',()=>[dat(`${nm}, ${yr}`,raw,'%',SER_SRC[key]),con('Shift that centres the history on your setting',sh,'n',{pk:[key],sec:'monte-carlo'})],([r,s2])=>Math.exp(Math.log(1+r)+s2)-1),
+        con('Own-home price shock this year (simulated)',(1+v)/(1+b),'x',{sec:'monte-carlo',pk:['idio','idioMode']})],([g,k])=>(1+g)*k-1)}
       return fn(`${SERNAME[key]}, simulated ${YL(y)} (drawn from ${yr})`,v,'%','recenter',()=>[dat(`${SERNAME[key]}, ${yr}`,raw,'%',SER_SRC[key]),con('Shift that centres the history on your setting',sh,'n',{note:`ln(1 + your ${SERNAME[key].toLowerCase()}) − average ln(1 + history)`,pk:[key],sec:'monte-carlo'})],
         ([r,s])=>Math.exp(Math.log(1+r)+s)-1,([r,s])=>`exp(ln(1 + ${fv(r,'%')}) + ${s.toFixed(4)}) − 1`)}
     return set(key,v,'%')});
-  const pathM=(key,k)=>dat(`${SERNAME[key]}, ${info.dates?info.dates[k]:'month '+(k+1)}`,path[key][k],'%',SER_SRC_M[key],{note:info.note});
+  const pathM=(key,k)=>dat(`${(info.names&&info.names[key])||SERNAME[key]}, ${info.dates?info.dates[k]:'month '+(k+1)}`,path[key][k],'%',SER_SRC_M[key],{note:info.note});
   const mret=(key,y,m)=>path.monthly?pathM(key,y*12+m):M(`mr:${key}:${y}`,()=>{const a=pathY(key,y);
     return fn(`${SERNAME[key]}, per month in ${YL(y)}`,Math.pow(1+a.v,1/12)-1,'%','perMonth',()=>[a],([g])=>Math.pow(1+g,1/12)-1,([g])=>`(1 + ${fv(g,'%')})^(1/12) − 1`)});
   const gf=(key,y)=>M(`gf:${key}:${y}`,()=>{const a=pathY(key,y);return fn(`1 + ${SERNAME[key].toLowerCase()}, ${YL(y)}`,1+a.v,'x','onePlus',()=>[a],([g])=>1+g)});
@@ -72,7 +74,7 @@ function traceNodes(X){const {p,o,tr}=X,LS=tr.LS,E=t=>tr.ends[t],Yr=y=>tr.years[
     const col=ltv=>L.ltv_upper.findIndex(u=>ltv<=u+1e-9),row=L.rows[p.fico],ref=L.rows[L.reference.score];
     return fn('Credit-score rate adjustment',LS.cAdj,'%','llpa',()=>[dat(`Fannie Mae price adjustment, score ${p.fico}, ${pct(1-p.dp,0)} loan-to-value`,row[col(1-p.dp)],'pts',['llpa'],{pk:['fico','credit','dp']}),
       dat('Same for the survey borrower (760–779, 80% loan-to-value)',ref[col(L.reference.ltv)],'pts',['llpa'],{pk:['credit']}),set('ptsCut',p.ptsCut||0.0025,'%')],([a,b,c])=>(a-b)*c,([a,b,c])=>`(${a} − ${b}) × ${fv(c,'%')}`)});
-  const quote=()=>M('quote',()=>{const rin=X.opt.rate!=null?X.opt.rate:p.rate,base=X.opt.rate!=null?con('Mortgage rate tested',rin,'%'):set('rate',p.rate,'%',p.term===15?'rate15':'rate',{pk:['rate','term']});
+  const quote=()=>M('quote',()=>{const rin=X.opt.rate!=null?X.opt.rate:p.rate,base=X.opt.rate!=null?con(info.rateLabel||'Mortgage rate tested',rin,'%',{src:info.rateSrc||[]}):set('rate',p.rate,'%',p.term===15?'rate15':'rate',{pk:['rate','term']});
     return LS.type==='arm'?fn('ARM starting rate',rin-(p.rate-(p.armRate!=null?p.armRate:p.rate)),'%','armQuote',()=>[base,set('rate',p.rate,'%','rate'),set('armRate',p.armRate,'%')],([a,b,c])=>a-(b-c)):base});
   const rate0=()=>M('r0',()=>fn('Your loan rate at purchase',LS.rate,'%','rate0',()=>[quote(),cAdj(),set('pts',p.pts||0,'n'),set('ptsCut',p.ptsCut||0,'%')],([q,c,n,k])=>Math.max(0,q+c-n*k),null,{pk:['loanType']}));
   const rateM=(y,m)=>M(`rate:${y}:${m}`,()=>{const e=evAt(y,m);if(!e)return rate0();if(e.move)return moveRate(e.y);const q=e.ev,lab=`Loan rate from ${YL(e.y)}, month ${e.m+1}`;
@@ -218,6 +220,7 @@ function traceNodes(X){const {p,o,tr}=X,LS=tr.LS,E=t=>tr.ends[t],Yr=y=>tr.years[
   const nwCash=t=>M('nwC:'+t,()=>sum(`Rent + T-bills net worth ${TL(t)}`,o.cash[t],'$','nwCash',()=>[[1,V('C',t)]]));
   const nwRental=t=>M('nwX:'+t,()=>{const e=E(t),pf=e.pX>=0?(taxable?e.pX-e.ltcgE*Math.max(0,e.pX-e.bX):e.pX):e.pX;
     return sum(`Rent + rental property net worth ${TL(t)}`,o.rental[t],'$','nwRental',()=>[[1,con('Rental property: sale value less loan and taxes',e.rentalNet,'$',{sec:'rent-rental-property',pk:['dpR','ratePrem','vacR','mgmt','landShare','rate30','rentalOn'],note:'the rental-property path is not itemized further'})],[1,con('Rental path portfolio after tax',pf,'$',{pk:['rentalOn']})]])});
+  const defl=(nd,c,lab)=>fn(lab||nd.label+", today's dollars",nd.v/c.v,'$','real',()=>[nd,c],([a,b])=>a/b,([a,b])=>`${fv(a,'$')} ÷ ${fv(b,'x')}`);
   const real=(nd,c,lab)=>REAL?fn(lab||nd.label+", today's dollars",nd.v/c.v,'$','real',()=>[nd,c],([a,b])=>a/b,([a,b])=>`${fv(a,'$')} ÷ ${fv(b,'x')}`):nd;
   const ownAvg=y=>M('oa:'+y,()=>sum(`Owner's average monthly cost, ${YL(y)}`,months(m=>Mo(y,m).own).reduce((a,b)=>a+b,0)/12,'$','avg12',()=>months(m=>[1/12,own(y,m)])));
   const budget=y=>M('bud:'+y,()=>fn(`Monthly budget, ${YL(y)}`,o.budget[y+1],'$','budget',()=>[ownAvg(y),rentY(y)],([a,b])=>Math.max(a,b)));
@@ -226,7 +229,7 @@ function traceNodes(X){const {p,o,tr}=X,LS=tr.LS,E=t=>tr.ends[t],Yr=y=>tr.years[
   /* model options read by the run: listed under every result */
   const opts=()=>['taxOn','acct','filing','loanType','term','refiOn','moveMode','extraMode','muMode','ltcgMode','stMode','pmiScale','pmiAppr','ttAuto','rentalOn','idioMode','volAdj'].filter(id=>document.getElementById(id))
     .map(id=>{const el=document.getElementById(id);return set(id,el.value,'opt',id,{opt:el.options?el.options[el.selectedIndex].text:el.value,pk:OPT_PK[id]||[id]})});
-  return {X,p,o,tr,helocN,nwBuy,nwInv,nwCash,nwRental,homeNet,liq,V,H,bal,cpi,cpiMid,real,intY,prinY,preY,ptaxY,maintY,insMo,byInf,pmiY,taxSave,hhY,hhTaxM,rentY,own,ownAvg,budget,retY,taxY,addY,saleNet,homeTax,sellRate,closeRate,ptsCost,loanAmt,loanBase,opts,sum,fn,prod,con,why,set,months,Yr,Mo,E}}
+  return {X,p,o,tr,helocN,defl,pathY,rateEnd:t=>t===0?rate0():rateM(t-1,11),nwBuy,nwInv,nwCash,nwRental,homeNet,liq,V,H,bal,cpi,cpiMid,real,intY,prinY,preY,ptaxY,maintY,insMo,byInf,pmiY,taxSave,hhY,hhTaxM,rentY,own,ownAvg,budget,retY,taxY,addY,saleNet,homeTax,sellRate,closeRate,ptsCost,loanAmt,loanBase,opts,sum,fn,prod,con,why,set,months,Yr,Mo,E}}
 /* settings an option brings with it: read by the model, but only used when the option is on */
 const OPT_PK={refiOn:['refiOn','refiTh'],taxOn:['taxOn','y0','incGrowth','income','mu','niit','niitAuto','stRate','impShare'],rentalOn:['rentalOn','vacR','mgmt','dpR','ratePrem','landShare','rate30']};
 const SER_RAW={gh:HOME,gr:RENTG,rs:STK,rb:BOND,rc:BILL,inf:INF};

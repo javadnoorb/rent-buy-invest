@@ -14,10 +14,9 @@
 'use strict';
 const { chromium } = require(process.env.PLAYWRIGHT_PATH || 'playwright');
 const URL = process.env.URL || 'http://127.0.0.1:8765/index.html?view=detailed';
-const PENDING = new Set(['p-tor', 'p-heat', 'p-ptr', 'p-opt', 'p-spag', 'p-hheat', 'p-hdet', 'p-fan', 'p-prob', 'p-mchist', 'p-mcsc', 'p-mcrate',
-  'p-loc', 'p-locsc', 'p-sbs', 'p-cmp', 'p-scen', 'p-cum', 'p-metro', 'p-roll', 'p-corr', 'p-mort', 'p-zori']);
+const PENDING = new Set(['p-loc', 'p-locsc', 'p-sbs', 'p-cmp', 'p-scen', 'p-cum', 'p-metro', 'p-roll', 'p-corr', 'p-mort', 'p-zori']);
 // equations only reached by recipes not written yet
-const EQ_PENDING = new Set(['recenter', 'compound12']);
+const EQ_PENDING = new Set();
 let pass = 0, fail = 0; const fails = [];
 const ok = (c, name, detail) => { if (c) pass++; else { fail++; fails.push(name + (detail ? ' — ' + detail : '')); } };
 
@@ -85,9 +84,12 @@ function walkTrees(roots) {
 
   /* ---- coverage and plot = trace on every tab, in three places ---- */
   const tabs = await page.$$eval('[role="tab"]', t => t.map(e => e.dataset.tab).filter(k => k !== 'method'));
-  for (const place of ['us', 'san-francisco', 'cleveland']) {
-    await setPlace(place); await page.waitForTimeout(800);
-    for (const k of tabs) {
+  const runs = [['us', tabs], ['san-francisco', tabs], ['cleveland', tabs], ['us, monthly Backtest', ['hist']], ['us, own-home risk compounding yearly', ['mc', 'proj']]];
+  for (const [place, tabList] of runs) {
+    if (/monthly/.test(place)) await page.evaluate(() => { const s = document.getElementById('h-mode'); s.value = 'monthly'; s.dispatchEvent(new Event('change', { bubbles: true })); });
+    else if (/yearly/.test(place)) { await page.evaluate(() => { const s = document.getElementById('idioMode'); s.value = 'yearly'; s.dispatchEvent(new Event('change', { bubbles: true })); }); await page.waitForTimeout(800); }
+    else { await setPlace(place); await page.waitForTimeout(800); }
+    for (const k of tabList) {
       await page.evaluate(k => showTab(k), k);
       await page.waitForFunction(k => [...document.querySelectorAll(`#tab-${k} .plot`)].every(el => !el.offsetParent || el.querySelector('svg.main-svg') || el.dataset.err), k, { timeout: k === 'mc' ? 30000 : 10000 }).catch(() => {});
       await page.waitForTimeout(k === 'mc' ? 1500 : 300);
@@ -97,10 +99,13 @@ function walkTrees(roots) {
         document.querySelectorAll(`#tab-${CUR} .plot`).forEach(el => { if (!el.offsetParent || !el.data || PENDING.includes(el.id)) return; out.charts++;
           el.data.forEach((d, ci) => { if (!d.meta) { out.noMeta.push(`${el.id}[${ci}] ${d.name || d.type || ''}`); return; } if (/^deco:/.test(d.meta)) return;
             const f = TRACE_RECIPES[d.meta]; if (!f) { out.noRecipe.push(`${el.id}: ${d.meta}`); return; }
-            const n = (d.y || d.x || []).length, idx = n <= 20 ? [...Array(n).keys()] : [...new Set([0, Math.floor(n / 4), Math.floor(n / 2), n - 1])];
-            idx.forEach(i => { const pt = { curveNumber: ci, pointNumber: i, x: d.x && d.x[i], y: d.y && d.y[i], customdata: d.customdata && d.customdata[i] };
+            const n = (d.y || d.x || []).length, pick = n => n <= 20 ? [...Array(n).keys()] : [...new Set([0, Math.floor(n / 4), Math.floor(n / 2), n - 1])];
+            const hist = d.type === 'histogram' ? (el.calcdata[ci] || []).map((c, b) => ({ curveNumber: ci, pointNumber: b, x: c.p, y: c.s, pointNumbers: c.pts })).filter(c => c.y > 0) : null;
+            const pts = hist ? [hist[0], hist[Math.floor(hist.length / 2)], hist[hist.length - 1]].filter(Boolean) : d.type === 'heatmap' ? [[0, 0], [d.y.length - 1, d.x.length - 1], [Math.floor(d.y.length / 2), Math.floor(d.x.length / 3)]].map(([i, j]) => ({ curveNumber: ci, pointNumber: [i, j], x: d.x[j], y: d.y[i], z: d.z[i][j] }))
+              : pick(n).map(i => ({ curveNumber: ci, pointNumber: i, x: d.x && d.x[i], y: d.y && d.y[i], customdata: d.customdata && d.customdata[i] }));
+            pts.filter(pt => pt.z !== null && (pt.y != null || pt.z != null)).forEach(pt => { const i = pt.pointNumber;
               let r; try { r = f(pt, el); } catch (e) { out.mismatch.push(`${el.id} ${d.meta}[${i}]: ${e.message}`); return; }
-              const at = r.at || 'y', want = at === 'customdata' ? pt.customdata : at === 'customdata1' ? pt.customdata[1] : at === 'x' ? pt.x : pt.y;
+              const at = r.at || 'y', want = at === 'customdata' ? pt.customdata : at === 'customdata1' ? pt.customdata[1] : at === 'x' ? pt.x : at === 'xnum' ? +pt.x : at === 'z' ? pt.z : pt.y;
               out.points++; roots.push(r.node);
               if (!(Math.abs(r.node.v - want) <= 1e-6 * Math.max(1, Math.abs(want)))) out.mismatch.push(`${el.id} ${d.meta}[${i}]: plotted ${want}, trace ${r.node.v}`); }); }); });
         const w = walkTrees(roots); out.bad = w.bad.slice(0, 5); out.eqs = w.eqs; out.noEq = w.noEq; return out; }, [...PENDING]);

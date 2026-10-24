@@ -74,3 +74,86 @@ function gapNode(T,i){const p=T.p,N=p.N,{gap,parts}=gapParts(p,T.o),lab=i<parts.
       [1,T.fn(`Tax on selling the portfolios at year ${N} (renter − buyer)`,T.real(T.con('',T.o.liqTax[N].r-T.o.liqTax[N].b,'$'),cN).v,'$',null,()=>[rl(T.V('R',N),cN),rl(T.liq('R',N),cN),rl(T.V('B',N),cN),rl(T.liq('B',N),cN)],([vr,lr,vb,lb])=>(vr-lr)-(vb-lb))]]);
     default:{const others=parts.filter(x=>x[0]!==lab),known=others.reduce((a,x)=>a+x[1],0);
       return T.fn(lab,v,'$','gapRest',()=>[dGap(),T.con('All the other parts above, added up',known,'$')],([g,k])=>g-k,null,{note:'what the renter\'s portfolio earned beyond the buyer\'s, before tax: what is left once every other part is counted'})}}}
+/* ---- runs with some settings changed (Sensitivity, Optimizer): traced on demand and kept while the settings stay ---- */
+const TRACE_ALT=new Map();
+function traceAlt(over,N){const k=LAST_KEY+'|'+REAL+'|'+JSON.stringify(over)+'|'+N;let T=TRACE_ALT.get(k);
+  if(!T){if(TRACE_ALT.size>80)TRACE_ALT.clear();const q=Object.assign({},P,over),n=N||q.N;T=traceRun(q,constPath(q,n),{kind:'const',over},{N:n});TRACE_ALT.set(k,T)}return T}
+const overText=over=>Object.entries(over).filter(([k])=>k!=='rate30'&&k!=='rateLR'&&k!=='term').map(([k,v])=>`${settingLabel(k==='N'?'N':k)} ${k==='N'||k==='P'||k==='rent0'?(k==='N'?v+' years':fmtFull(v)):fv(v,'%')}`).join(', ');
+/* buy minus rent after t years, in the chosen dollars */
+function gapAt(T,t,lab,note){const c=T.cpi(t),b=T.real(T.nwBuy(t),c),r=T.real(T.nwInv(t),c);return T.sum(lab||`Buy minus rent after ${nY(t)}`,b.v-r.v,'$','gapTotal',()=>[[1,b],[-1,r]],note?{note}:undefined)}
+Object.assign(TRACE_RECIPES,{
+  'tor:lo':pt=>torRecipe(pt,'lo'),'tor:hi':pt=>torRecipe(pt,'hi'),
+  'heat:z':pt=>{const p=P,g=+pt.x,r=+pt.y,wc=1-p.ws-p.wb,rs=p.ws>0?(r/100-p.wb*p.rb-wc*p.rc)/p.ws:p.rs,over={gh:g/100,rs},T=traceAlt(over);
+    return {title:`Home ${g}%/yr, portfolio ${r}%/yr`,T,at:'z',node:gapAt(T,p.N,`Buy minus rent at year ${p.N}`,`run with home appreciation ${pct(g/100)} and the S&P 500 return set to ${pct(rs,2)}, so the portfolio mix returns ${pct(r/100)} before fees`)}},
+  'ptr:line':pt=>{const m=pt.customdata,T=traceAlt({rent0:P.rent0*m},30),t=yr(pt);return {title:`Rent ${fmtFull(P.rent0*m)}, year ${t}`,T,node:gapAt(T,t,`Buy minus rent after ${nY(t)}, rent ${fmtFull(P.rent0*m)}/mo`)}},
+  'opt:z':pt=>{const T=traceAlt(optOver(+pt.x),30),h=Math.round(+pt.y);return {title:`${pt.x}% down, ${nY(h)}`,T,at:'z',node:gapAt(T,h,`Buy minus rent after ${nY(h)}, ${pt.x}% down`)}},
+  'opt:best':pt=>{const h=Math.round(+pt.y),DP=[0,3.5,5,10,15,20,25,30,40,50,60,80,100],kids=DP.map(d=>gapAt(traceAlt(optOver(d),30),h,`${d}% down`)),bi=kids.reduce((b,k,i)=>k.v>kids[b].v?i:b,0);
+    return {title:`Best down payment, ${nY(h)}`,at:'xnum',node:traceBase().fn(`Down payment with the largest buy − rent after ${nY(h)}`,DP[bi],'n','argmax',()=>kids,a=>DP[a.reduce((b,v,i)=>v>a[b]?i:b,0)],null,{note:`each down payment is a separate run with a ${OPT_TERM}-year loan`})}}});
+const optOver=dp=>({term:OPT_TERM,rate:OPT_TERM===15?P.rate15:P.rate30,dp:dp/100});
+function torRecipe(pt,side){const {rows}=tornado(P),row=rows[pt.pointNumber],ov=torOver(P,row.row)[side],T=traceAlt(ov),B=traceBase(),N=T.p.N;
+  return {title:`${row.lab}: ${side==='lo'?'lower':'higher'}`,T,at:'x',node:B.sum(`Change in buy − rent at year ${P.N}: ${overText(ov)}`,gapAt(T,N).v-gapAt(B,P.N).v,'$','torDelta',()=>[[1,gapAt(T,N,`Buy minus rent with ${overText(ov)}`)],[-1,gapAt(B,P.N,'Buy minus rent at your settings')]])}}
+/* ---- Backtest: each purchase is its own run on the historical path, traced on demand ---- */
+function histCtx(){const useNow=document.getElementById('h-rate').value==='now',useMetro=document.getElementById('h-home').value==='metro',mode=document.getElementById('h-mode').value==='monthly'&&MONTHLY?'monthly':'annual',m=curMetro();return {useNow,useMetro,mode,m}}
+function traceHist(run,full){const c=histCtx(),p=P,q=histP(p,run.s),key=`h|${LAST_KEY}|${HIST_RP}|${c.mode}|${c.useNow}|${c.useMetro}|${VOLADJ}|${run.lab}|${full?1:0}`;let T=TRACE_ALT.get(key);if(T)return T;
+  const over=HIST_RP==='hist'?{rent0:q.rent0}:{},metro=c.useMetro&&c.m&&c.m.slug!=='us',names=metro?{gh:`Home price growth (${c.m.name} where available, else U.S.)`,gr:`Rent growth (${c.m.name} where available, else U.S.)`}:null;
+  const rateInfo=c.useNow?{rateLabel:'Mortgage rate (your rate today, by your choice)'}:{rateLabel:`Average mortgage rate in ${run.lab}`,rateSrc:['fredMort']};
+  let path,info,N;
+  if(c.mode==='annual'){N=full?LAST_Y-run.s+1:run.N;path=histPathAnnual(run.s,N,homeSeries(c.useMetro),rentSeries(c.useMetro));info=Object.assign({kind:'hist',y0:run.s,over,names,src:metro?{gh:['fhfa'],gr:['fredRent']}:null},rateInfo)}
+  else{const i0=MONTHLY.dates.indexOf(run.lab);N=full?Math.floor((MONTHLY.gh.length-i0)/12):run.N;path=histPathMonthly(i0,N);info=Object.assign({kind:'hist',y0:Math.floor(run.s),dates:MONTHLY.dates.slice(i0,i0+N*12),over},rateInfo)}
+  T=traceRun(q,path,info,{N,rate:run.rate});if(TRACE_ALT.size>80)TRACE_ALT.clear();TRACE_ALT.set(key,T);return T}
+const histRun=lab=>HIST_RUNS&&HIST_RUNS.runs.find(q=>q.lab===lab);
+/* buy minus the renter, as a share of the purchase price, after inflation (the Backtest's measure) */
+function histAdv(T,k){const c=T.cpi(k),b=T.defl(T.nwBuy(k),c),r=T.defl(HIST_CMP==='cash'?T.nwCash(k):T.nwInv(k),c);
+  return T.fn(`Buy − (${HIST_CMP==='cash'?'rent + T-bills':'rent + invest'}) after ${nY(k)}, % of the purchase price`,(b.v-r.v)/T.p.P*100,'n','advPct',()=>[b,r,T.set('P',T.p.P,'$')],([x,y,P0])=>(x-y)/P0*100)}
+Object.assign(TRACE_RECIPES,{
+  'hist:line':(pt,el)=>{const nm=el.data[pt.curveNumber].name.replace(/^Bought (.*) \(selected\)$/,'$1'),run=histRun(nm),k=yr(pt),T=traceHist(run);return {title:`Bought ${run.lab}, after ${nY(k)}`,T,node:histAdv(T,k)}},
+  'hist:z':pt=>{const [i,j]=pt.pointNumber,run=HIST_RUNS.runs[j],h=i+1,T=traceHist(run);return {title:`Bought ${run.lab}, after ${nY(h)}`,T,at:'z',node:histAdv(T,h)}},
+  'hist:median':pt=>{const h=yr(pt),rs=HIST_RUNS.runs.filter(r=>r.adv.length>h),kids=rs.map(r=>histAdv(traceHist(r),h)),B=traceBase(),med=a=>{const v=a.slice().sort((x,y)=>x-y);return v[Math.floor(v.length/2)]};
+    return {title:`Median across purchases, after ${nY(h)}`,node:B.fn(`Median buy − rent after ${nY(h)}, % of the price, over ${rs.length} purchases`,med(kids.map(k=>k.v)),'n','median',()=>kids,med)}},
+  'hdet:buy':pt=>hdetRecipe(pt,'buy'),'hdet:inv':pt=>hdetRecipe(pt,'inv'),'hdet:cash':pt=>hdetRecipe(pt,'cash'),
+  'hdet:rate':pt=>{const run=histSelRun(),T=traceHist(run,true),k=Math.round(+pt.x)-Math.floor(run.s),r=T.rateEnd(k);
+    return {title:`Loan rate, ${pt.x}`,T,node:T.fn(`Loan rate ${k?`after ${nY(k)}`:'at purchase'} (percent)`,r.v*100,'n','pct',()=>[r],([a])=>a*100)}}});
+function histSelRun(){const v=document.getElementById('h-year').value,c=histCtx();return c.mode==='annual'?histRun(v):histRun(v+'-01')}
+function hdetRecipe(pt,w){const run=histSelRun(),T=traceHist(run,true),k=Math.round(+pt.x)-Math.floor(run.s),nd=w==='buy'?T.nwBuy(k):w==='inv'?T.nwInv(k):T.nwCash(k);
+  return {title:`Bought ${run.lab}, ${pt.x}`,T,node:T.defl(nd,T.cpi(k))}}
+/* ---- Monte Carlo: the simulation is rerun once here with every path's inputs kept, so any path can be traced ---- */
+let MC_PATHS=null;
+function mcPaths(){if(!MC)return null;if(MC_PATHS&&MC_PATHS.key===MC.key&&MC_PATHS.n===MC.n)return MC_PATHS;const c=mcControls();
+  const cfg={n:MC.n,bl:c.bl,from:c.from,rc:c.rc,home:homeSeries(true),rent:rentSeries(true),real:REAL,keepAll:true};
+  return MC_PATHS={key:MC.key,n:MC.n,cfg,r:mcCore(P,cfg).res,T:new Map()}}
+function mcTrace(s){const K=mcPaths(),k=K.r.paths[s];let T=K.T.get(s);if(T)return T;const m=curMetro(),metro=m&&m.slug!=='us'&&(m.hpi||m.rentG);
+  T=traceRun(P,k.path,{kind:'mc',idx:k.idx,i0:K.r.i0,SH:K.r.SH,raw:K.r.src,ghBase:k.ghBase,names:metro?{gh:`Home price growth (${m.name} where available, else U.S.)`,gr:`Rent growth (${m.name} where available, else U.S.)`}:null},{N:30,saleShock:k.saleShock,saleShock2:k.saleShock2,maintShock:k.maintShock});
+  K.T.set(s,T);return T}
+const mcVal=(w,s,y)=>{const T=mcTrace(s),nd=w==='buy'?T.nwBuy(y):w==='inv'?T.nwInv(y):w==='cash'?T.nwCash(y):T.nwRental(y);return T.real(nd,T.cpi(y),`Path ${s+1}: ${{buy:'buy',inv:'rent + invest',cash:'rent + T-bills',rental:'rent + rental property'}[w]} after ${nY(y)}${REAL?", today's dollars":''}`)};
+/* a quantile as Monte Carlo reports it: sorted values, interpolated between the two around position (n−1)·f; both
+   neighbours are traced in full */
+function mcQuant(lab,vals,f,nodeOf,u){const idx=vals.map((v,i)=>i).sort((a,b)=>vals[a]-vals[b]),pos=(vals.length-1)*f,lo=Math.floor(pos),hi=Math.min(lo+1,vals.length-1),fr=pos-lo,B=traceBase();
+  const a=nodeOf(idx[lo]),b=nodeOf(idx[hi]);
+  return B.fn(lab,q(vals,f),u||'$','quantile',()=>[a,b,B.con(`Position between them (${lo+1}th and ${hi+1}th of ${vals.length})`,fr,'x',{sec:'monte-carlo'})],([x,y,t])=>x+(y-x)*t,([x,y,t])=>`${fv(x,u||'$')} + (${fv(y,u||'$')} − ${fv(x,u||'$')}) × ${t.toFixed(3)}`,{note:`${Math.round(f*100)}th percentile of ${vals.length.toLocaleString('en-US')} simulated futures`})}
+const mcMedianPath=vals=>{const idx=vals.map((v,i)=>i).sort((a,b)=>vals[a]-vals[b]);return idx[Math.floor((idx.length-1)/2)]};
+Object.assign(TRACE_RECIPES,{
+  'mc:buy':pt=>mcFan(pt,'buy'),'mc:inv':pt=>mcFan(pt,'inv'),'mc:cash':pt=>mcFan(pt,'cash'),'mc:rental':pt=>mcFan(pt,'rental'),
+  'mc:pwin':pt=>mcShare(pt,'inv'),'mc:pwinc':pt=>mcShare(pt,'cash'),'mc:pwinr':pt=>mcShare(pt,'rental'),
+  'mc:pmove':pt=>{const h=yr(pt),n=MC.n,B=traceBase(),c=Math.round(MC.pMove*n);
+    return {title:`With moving risk, ${nY(h)}`,node:B.fn(`Share of futures where buying wins, counting early moves`,MC.pMove,'%','share',()=>[B.con(`Futures where buying is ahead when the household sells (at year ${h} or an earlier move, less any forced-sale discount)`,c,'n',{sec:'moving-risk',pk:['hz','stressMult','forcedDisc']}),B.con('Futures simulated',n,'n',{sec:'monte-carlo'})],([a,b])=>a/b)}},
+  'mc:hist':(pt,el)=>{const h=Math.min(P.N,MC.N),d=MC.res.buy.map((b,s)=>b[h]-MC.res.inv[s][h]),cd=el.data[pt.curveNumber].customdata,ids=(pt.pointNumbers||[]).map(i=>cd[i]),B=traceBase(),vals=ids.map(s=>d[s]),s=ids.length?ids[mcMedianPath(vals)]:0;
+    const ex=ids.length?{label:`The middle path in this bin (path ${s+1}), traced in full`,node:mcGap(s,h)}:null;
+    return {title:`Paths in this bin, year ${h}`,examples:ex?[ex]:[],node:B.fn(`Futures whose buy − (rent + invest) at year ${h} falls in this bin`,ids.length,'n','count',()=>[B.con(`Futures from ${fmt(Math.min(...vals))} to ${fmt(Math.max(...vals))}`,ids.length,'n',{sec:'monte-carlo'})],([a])=>a)}},
+  'mc:sc':pt=>{const s=pt.pointNumber,h=Math.min(P.N,MC.N),T=mcTrace(s);
+    return {title:`Path ${s+1}`,T,examples:[{label:`Path ${s+1}: buy − (rent + invest) at year ${h}, traced in full`,node:mcGap(s,h)}],node:mcPortAnn(T,h,s)}},
+  'mc:rate':pt=>{const k=yr(pt)-1,K=mcPaths(),vals=MC.res.rates.map(a=>a[k]*100);
+    return {title:`Market rate, year ${k+1}`,node:mcQuant(`Median market mortgage rate in year ${k+1} (percent)`,vals,0.5,s=>traceBase().con(`Path ${s+1}: simulated market rate, year ${k+1}`,K.r.rates[s][k]*100,'n',{sec:'monte-carlo',pk:['rate','rateLR'],note:'pulled toward your expected later rate, moved by inflation changes and a historical shock'}),'n')}}});
+function mcFan(pt,w){const y=yr(pt),arr=MC.res[w].map(a=>a[y]),s=mcMedianPath(arr);
+  return {title:`${{buy:'Buy',inv:'Rent + invest',cash:'Rent + T-bills',rental:'Rent + rental'}[w]}, median, year ${y}`,T:mcTrace(s),node:mcQuant(`Median ${{buy:'buy',inv:'rent + invest',cash:'rent + T-bills',rental:'rent + rental'}[w]} net worth after ${nY(y)}`,arr,0.5,s2=>mcVal(w,s2,y))}}
+function mcShare(pt,w){const y=yr(pt),n=MC.n,R=MC.res,B=traceBase(),c=R.buy.filter((a,s)=>(w==='rental'?R.rental[s][y]:a[y])>(w==='cash'?R.cash[s][y]:R.inv[s][y])).length;
+  const vs=w==='cash'?'rent + T-bills':'rent + invest',d=R.buy.map((a,s)=>(w==='rental'?R.rental[s][y]:a[y])-(w==='cash'?R.cash[s][y]:R.inv[s][y])),s=mcMedianPath(d);
+  return {title:`Chance ${w==='rental'?'the rental property':'buying'} wins, year ${y}`,examples:[{label:`The middle future (path ${s+1}), traced in full`,node:mcGap(s,y,w)}],
+    node:B.fn(`Share of futures where ${w==='rental'?'the rental property':'buying'} beats ${vs} after ${nY(y)}`,w==='inv'?MC.pWin[y]:w==='cash'?MC.pWinC[y]:MC.pWinR[y],'%','share',()=>[B.con(`Futures where it is ahead after ${nY(y)}`,c,'n',{sec:'monte-carlo'}),B.con('Futures simulated',n,'n',{sec:'monte-carlo'})],([a,b])=>a/b)}}
+function mcGap(s,y,w){const T=mcTrace(s),c=T.cpi(y),a=T.real(w==='rental'?T.nwRental(y):T.nwBuy(y),c),b=T.real(w==='cash'?T.nwCash(y):T.nwInv(y),c);
+  return T.sum(`Path ${s+1}: ${w==='rental'?'rental property':'buy'} minus ${w==='cash'?'rent + T-bills':'rent + invest'} after ${nY(y)}`,a.v-b.v,'$','gapTotal',()=>[[1,a],[-1,b]])}
+/* the portfolio's annualized return over h years on one path, as the scatter plots it (yearly, before tax) */
+function mcPortAnn(T,h,s){const p=T.p,lv=p.lev!=null?p.lev:1,path=T.X.path,yrs=[...Array(h)].map((_,y)=>y);
+  const ry=y=>{const g=p.ws*path.rs[y]+p.wb*path.rb[y]+(1-p.ws-p.wb)*path.rc[y];return T.fn(`Portfolio return, simulated year ${y+1}`,lv*g-(lv-1)*path.rc[y]-Math.max(0,lv-1)*(p.spread||0)-p.fee,'%','rhoYear',
+    ()=>[T.set('ws',p.ws,'%'),T.pathY('rs',y),T.set('wb',p.wb,'%'),T.pathY('rb',y),T.pathY('rc',y),T.set('lev',lv,'x'),T.set('spread',p.spread||0,'%'),T.set('fee',p.fee,'%')],
+    ([ws,rs,wb,rb,rc,l,sp,f])=>l*(ws*rs+wb*rb+(1-ws-wb)*rc)-(l-1)*rc-Math.max(0,l-1)*sp-f)};
+  return T.fn(`Path ${s+1}: portfolio return, annualized over ${nY(h)} (percent)`,MC.res.gP[s],'n','annualize',()=>yrs.map(ry),a=>(Math.exp(a.reduce((x,r)=>x+Math.log(Math.max(0.01,1+r)),0)/h)-1)*100)}

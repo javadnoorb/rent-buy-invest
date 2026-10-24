@@ -31,13 +31,13 @@ function renderMC(){if(mcFresh(true)){drawMC();return}
 function drawMC(){if(!MC)return;mcSync();
   const t=theme(),{res,N,n}=MC,h=Math.min(P.N,MC.N),x=[...Array(h+1)].map((_,k)=>k);
   document.getElementById('mc-note').textContent=`Own-home price risk ${pct(P.idio)} (${P.idioMode==='sale'?'one-time at sale':'compounding yearly'}) and moving risk ${pct(P.hz)}/yr are set under Life & risk preferences. Upkeep varies year to year around its average (coefficient of variation ${MAINT_CV}), so big repairs arrive in lumps. Mortgage-rate changes are sampled from the same years (observed 1973–2025; earlier years modeled from inflation changes, slope ${DM_FIT.b.toFixed(2)}, residual s.d. ${DM_FIT.s.toFixed(2)} pts).`;
-  const band=(arr,name,col)=>{const cut=f=>x.map(y=>q(arr.map(a=>a[y]),f));const p5=cut(.05),p25=cut(.25),p50=cut(.5),p75=cut(.75),p95=cut(.95);
-    return [{x,y:p95,mode:'lines',line:{width:0},showlegend:false,hoverinfo:'skip',legendgroup:name},
-     {x,y:p5,mode:'lines',line:{width:0},fill:'tonexty',fillcolor:hexA(col,.12),showlegend:false,legendgroup:name,hoverinfo:'skip'},
-     {x,y:p75,mode:'lines',line:{width:0},showlegend:false,hoverinfo:'skip',legendgroup:name},
-     {x,y:p25,mode:'lines',line:{width:0},fill:'tonexty',fillcolor:hexA(col,.28),showlegend:false,legendgroup:name,hoverinfo:'skip'},
-     {x,y:p50,mode:'lines',line:{color:col,width:2.6},name:name+' (median)',legendgroup:name,customdata:x.map((_,k)=>[p5[k],p95[k]]),hovertemplate:'%{y:$,.0f} <span style="opacity:.7">[5–95%: %{customdata[0]:$,.0f} – %{customdata[1]:$,.0f}]</span>'}]};
-  plot('p-fan',[...band(res.cash,'Rent + T-bills',t.cash),...band(res.inv,'Rent + invest',t.inv),...band(res.buy,'Buy',t.buy)].concat(P.rentalOn&&res.rental.length?band(res.rental,'Rent + rental',t.rp):[]),{xaxis:X('Years from today'),yaxis:Yd('Net worth, '+basisLabel())});
+  const band=(arr,name,col,meta)=>{const cut=f=>x.map(y=>q(arr.map(a=>a[y]),f));const p5=cut(.05),p25=cut(.25),p50=cut(.5),p75=cut(.75),p95=cut(.95);
+    return [{x,y:p95,meta:'deco:band',mode:'lines',line:{width:0},showlegend:false,hoverinfo:'skip',legendgroup:name},
+     {x,y:p5,meta:'deco:band',mode:'lines',line:{width:0},fill:'tonexty',fillcolor:hexA(col,.12),showlegend:false,legendgroup:name,hoverinfo:'skip'},
+     {x,y:p75,meta:'deco:band',mode:'lines',line:{width:0},showlegend:false,hoverinfo:'skip',legendgroup:name},
+     {x,y:p25,meta:'deco:band',mode:'lines',line:{width:0},fill:'tonexty',fillcolor:hexA(col,.28),showlegend:false,legendgroup:name,hoverinfo:'skip'},
+     {x,y:p50,meta,mode:'lines',line:{color:col,width:2.6},name:name+' (median)',legendgroup:name,customdata:x.map((_,k)=>[p5[k],p95[k]]),hovertemplate:'%{y:$,.0f} <span style="opacity:.7">[5–95%: %{customdata[0]:$,.0f} – %{customdata[1]:$,.0f}]</span>'}]};
+  plot('p-fan',[...band(res.cash,'Rent + T-bills',t.cash,'mc:cash'),...band(res.inv,'Rent + invest',t.inv,'mc:inv'),...band(res.buy,'Buy',t.buy,'mc:buy')].concat(P.rentalOn&&res.rental.length?band(res.rental,'Rent + rental',t.rp,'mc:rental'):[]),{xaxis:X('Years from today'),yaxis:Yd('Net worth, '+basisLabel())});
   // risk table
   const W0=P.P*(P.dp+P.close),floor=Math.max(1000,0.01*W0);
   const stats=(arr,lq)=>{const w=arr.map(a=>a[h]);const sorted=[...w].sort((a,b)=>a-b);const k=Math.max(1,Math.floor(0.05*w.length));
@@ -53,20 +53,21 @@ function drawMC(){if(!MC)return;mcSync();
     `<tr><td>Chance buying beats rent + invest, fixed horizon</td><td>${pct(MC.pWin[h])}</td>${'<td></td>'.repeat(KS.length-1)}</tr><tr><td>Chance buying beats rent + invest, with ${pct(P.hz,0)}/yr chance of moving${P.stressMult>1||P.forcedDisc>0?', likelier and at a discount in bad years':''}</td><td>${pct(MC.pMove)}</td>${'<td></td>'.repeat(KS.length-1)}</tr>`+
     (MC.pWinR?`<tr><td>Chance the rental property beats rent + invest</td>${'<td></td>'.repeat(KS.length-1)}<td>${pct(MC.pWinR[h])}</td></tr>`:'')+'</tbody>';
   const xx=[...Array(N+1)].map((_,k)=>k);
-  plot('p-prob',[{x:xx,y:MC.pWin,name:'vs rent + invest',mode:'lines',line:{color:t.inv,width:2.5},hovertemplate:'%{y:.0%}'},
-    {x:xx,y:MC.pWinC,name:'vs rent + T-bills',mode:'lines',line:{color:t.cash,width:2.5,dash:'dot'},hovertemplate:'%{y:.0%}'},
-    ...(MC.pWinR?[{x:xx,y:MC.pWinR,name:'rental property vs rent + invest',mode:'lines',line:{color:t.rp,width:2,dash:'dashdot'},hovertemplate:'%{y:.0%}'}]:[]),
-    {x:[h],y:[MC.pMove],mode:'markers',name:'with moving risk',marker:{size:10,color:t.ink,symbol:'diamond'},hovertemplate:'with random moving: %{y:.0%}<extra></extra>'}],
+  plot('p-prob',[{x:xx,y:MC.pWin,meta:'mc:pwin',name:'vs rent + invest',mode:'lines',line:{color:t.inv,width:2.5},hovertemplate:'%{y:.0%}'},
+    {x:xx,y:MC.pWinC,meta:'mc:pwinc',name:'vs rent + T-bills',mode:'lines',line:{color:t.cash,width:2.5,dash:'dot'},hovertemplate:'%{y:.0%}'},
+    ...(MC.pWinR?[{x:xx,y:MC.pWinR,meta:'mc:pwinr',name:'rental property vs rent + invest',mode:'lines',line:{color:t.rp,width:2,dash:'dashdot'},hovertemplate:'%{y:.0%}'}]:[]),
+    {x:[h],y:[MC.pMove],meta:'mc:pmove',mode:'markers',name:'with moving risk',marker:{size:10,color:t.ink,symbol:'diamond'},hovertemplate:'with random moving: %{y:.0%}<extra></extra>'}],
     {xaxis:X('Horizon (years)'),yaxis:Yt('P(buy wins)',{tickformat:'.0%',range:[0,1]}),shapes:[{type:'line',x0:0,x1:N,y0:.5,y1:.5,line:{color:t.muted,dash:'dash',width:1}},{type:'line',x0:h,x1:h,y0:0,y1:1,line:{color:t.line,width:1}}]});
   const d=res.buy.map((b,s)=>b[h]-res.inv[s][h]);
   document.getElementById('mc-histcap').textContent=`Buy minus (rent + invest) at year ${h}. Median ${fmt(q(d,.5))}, 5th pct ${fmt(q(d,.05))}, 95th pct ${fmt(q(d,.95))}.`;
   // two series on the same bins, so the colour has a legend: paths where buying ends ahead and where renting does
   {const lo=Math.min(...d),hi=Math.max(...d),xb={start:lo,end:hi+1e-9,size:Math.max(1,(hi-lo)/60)};
-  plot('p-mchist',[{x:d.filter(v=>v<=0),type:'histogram',xbins:xb,autobinx:false,name:'Renting ahead',marker:{color:hexA(t.inv,.8)},hovertemplate:'%{x}<br>%{y} paths<extra>renting ahead</extra>'},
-    {x:d.filter(v=>v>0),type:'histogram',xbins:xb,autobinx:false,name:'Buying ahead',marker:{color:hexA(t.buy,.8)},hovertemplate:'%{x}<br>%{y} paths<extra>buying ahead</extra>'}],
+  const ids=d.map((_,s)=>s);  // customdata: each value's path, for the trace panel
+  plot('p-mchist',[{x:d.filter(v=>v<=0),customdata:ids.filter(s=>d[s]<=0),meta:'mc:hist',type:'histogram',xbins:xb,autobinx:false,name:'Renting ahead',marker:{color:hexA(t.inv,.8)},hovertemplate:'%{x}<br>%{y} paths<extra>renting ahead</extra>'},
+    {x:d.filter(v=>v>0),customdata:ids.filter(s=>d[s]>0),meta:'mc:hist',type:'histogram',xbins:xb,autobinx:false,name:'Buying ahead',marker:{color:hexA(t.buy,.8)},hovertemplate:'%{x}<br>%{y} paths<extra>buying ahead</extra>'}],
     {hovermode:'closest',barmode:'overlay',bargap:0.02,xaxis:{...X('Buy − (rent + invest), '+basisLabel()),tickprefix:'$',tickformat:'~s'},yaxis:Yt('Paths'),shapes:[{type:'line',x0:0,x1:0,yref:'paper',y0:0,y1:1,line:{color:t.ink,width:1.5}}]})}
   const dm=Math.max(1,...d.map(Math.abs));
-  plot('p-mcsc',[{x:res.gH,y:res.gP,mode:'markers',type:'scatter',marker:{size:4,color:d,cmin:-dm,cmax:dm,colorscale:divScale(t).map(([k,c],i)=>[k,i===4?t.muted:c]),opacity:.8,
+  plot('p-mcsc',[{x:res.gH,y:res.gP,meta:'mc:sc',mode:'markers',type:'scatter',marker:{size:4,color:d,cmin:-dm,cmax:dm,colorscale:divScale(t).map(([k,c],i)=>[k,i===4?t.muted:c]),opacity:.8,
     colorbar:advBar(t,`Buy − rent<br>at year ${h}`,'$')},hovertemplate:'home %{x:.1f}%/yr, portfolio %{y:.1f}%/yr<br>%{marker.color:$,.0f}<extra></extra>'}],
     {hovermode:'closest',xaxis:X(`Own-home appreciation, annualized over ${h} yr (%)`),yaxis:Yt('Portfolio return, annualized (%)')});
   const yr=[...Array(N)].map((_,k)=>k+1),rq=f=>yr.map((_,k)=>100*q(res.rates.map(a=>a[k]),f));
@@ -80,8 +81,8 @@ function drawMC(){if(!MC)return;mcSync();
    tk('mcsc',`When your home's yearly gain was no more than 4 points below the portfolio's, buying won ${n1?pct(a1/n1,0):'—'} of the time; when the portfolio beat the home by more than that, ${n2?pct(a2/n2,0):'—'}.`+(n1&&a1/n1>0.5?' Leverage is why the home doesn\'t need to match the portfolio to win.':''));
    const k=Math.min(5,N),hit=res.rates.filter(a=>Math.min(...a.slice(0,k))<=P.rate-P.refiTh).length/n;
    tk('mcrate',`In ${pct(hit,0)} of futures the market rate falls at least ${(P.refiTh*100).toFixed(2)} points below your ${pct(P.rate,2)} within ${nY(k)}${P.refiOn?`, triggering a refinance; ${pct(nref,0)} of paths refinance at least once (${avgRef.toFixed(2)} times on average)`:' (refinancing is off)'}.`)}
-  plot('p-mcrate',[{x:yr,y:rq(.95),mode:'lines',line:{width:0},showlegend:false,hoverinfo:'skip'},{x:yr,y:rq(.05),mode:'lines',line:{width:0},fill:'tonexty',fillcolor:hexA(t.neg,isDark(t)?.3:.15),name:'5–95%',hoverinfo:'skip'},
-    {x:yr,y:rq(.5),mode:'lines',line:{color:t.neg,width:2.5},name:'Median market rate',hovertemplate:'%{y:.2f}%'}],
+  plot('p-mcrate',[{x:yr,y:rq(.95),meta:'deco:band',mode:'lines',line:{width:0},showlegend:false,hoverinfo:'skip'},{x:yr,y:rq(.05),meta:'deco:band',mode:'lines',line:{width:0},fill:'tonexty',fillcolor:hexA(t.neg,isDark(t)?.3:.15),name:'5–95%',hoverinfo:'skip'},
+    {x:yr,y:rq(.5),meta:'mc:rate',mode:'lines',line:{color:t.neg,width:2.5},name:'Median market rate',hovertemplate:'%{y:.2f}%'}],
     {xaxis:X('Years from today'),yaxis:Yt('30-year market rate',{ticksuffix:'%'})});
 }
 

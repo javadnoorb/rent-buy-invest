@@ -90,5 +90,5 @@ const DIV_LIGHT=['#0d366b','#1c5cab','#3987e5','#9ec5f4','#e4e3df','#f3b39b','#e
 const DIV_DARK=['#4a9bff','#2f7de0','#2361ad','#1d3f6e','#3a3a37','#6e3322','#b04a24','#e0602b','#ff7a45'];
 const divScale=t=>{const c=isDark(t)?DIV_DARK:DIV_LIGHT;return c.map((v,i)=>[i/(c.length-1),v])};
 /* break-even line (z = 0) drawn over a heatmap */
-const zeroContour=(x,y,z,t)=>({x,y,z,type:'contour',showscale:false,hoverinfo:'skip',contours:{coloring:'none',start:0,end:0,size:1,showlabels:false},line:{color:t.ink,width:2,dash:'dot'},connectgaps:false,name:'break-even',showlegend:false});
+const zeroContour=(x,y,z,t)=>({x,y,z,type:'contour',meta:'deco:contour',showscale:false,hoverinfo:'skip',contours:{coloring:'none',start:0,end:0,size:1,showlabels:false},line:{color:t.ink,width:2,dash:'dot'},connectgaps:false,name:'break-even',showlegend:false});
 
