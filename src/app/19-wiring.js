@@ -23,10 +23,7 @@ function restore(){try{const o=JSON.parse(localStorage.getItem('rbi-inputs')||'n
   setRaw(o,o.v===4);if(o.REAL===false)REAL=false;const m=METROS.find(x=>x.slug===o.metro);if(m){const ms=metroStart(m),btn=document.getElementById('metroPreset');btn.hidden=!ms;if(ms)btn.textContent=`${m.name} ${ms}–2025 avg`;updateMetroHints(m);applyStateCap(m)}}catch(e){}}
 function validate(){document.querySelectorAll('aside input[type=number],aside input[data-money]').forEach(el=>{const v=unfmt(el.value);el.classList.toggle('bad',v===''||!isFinite(parseFloat(v)))})}
 let timer=null;
-function syncLoanFields(){const t=document.getElementById('loanType').value;
-  ['armRate','armYears','armMargin'].forEach(id=>document.getElementById(id).closest('.f').hidden=t!=='arm');
-  document.getElementById('pmi').closest('.f').hidden=t==='fha';
-  ['ttBuy','ttSell'].forEach(id=>document.getElementById(id).closest('.f').hidden=false)}
+function syncLoanFields(){syncDeps()}
 let LAST_KEY='';
 function update(){clearTimeout(timer);timer=setTimeout(()=>{VOLADJ=document.getElementById('volAdj').value!=='0';applyTT();applyRentMode();syncLoanFields();formatMoneyAll();markChanged();const raw=getRaw(),key=JSON.stringify(raw)+REAL;if(key===LAST_KEY&&P)return;LAST_KEY=key;if(LAST_RAW)noteBulkChange(LAST_RAW,raw);LAST_RAW=raw;validate();syncQuick();persist();P=readP();
   {const muEl=document.getElementById('mu');const auto=P.muMode==='auto';muEl.disabled=auto;if(auto)muEl.value=Math.round(P.mu*100);

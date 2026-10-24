@@ -409,3 +409,7 @@ table.sbs td:not(:first-child),table.sbs th:not(:first-child){text-align:right;w
 table.sbs tr.sbs-head td{font-weight:600}
 
 .hbtns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+
+/* settings that depend on another one: indented under it, hidden while it is off */
+.f.dep{margin-left:10px;padding-left:10px;border-left:2px solid var(--line)}
+.f.dep-off{display:none!important}

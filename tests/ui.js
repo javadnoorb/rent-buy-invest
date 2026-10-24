@@ -225,6 +225,13 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
   const r1 = await page.evaluate(() => [loanSetup(P, P.rate).rate, pmiRate(Object.assign({}, P, { dp: 0.05 }), 0.05) / pmiRate(Object.assign({}, P, { dp: 0.05, fico: '760-779' }), 0.05), CREDIT.pmi.rel['639-']]);
   ok(Math.abs(r1[0] - r0 - 0.0053125) < 1e-9 && Math.abs(r1[1] - r1[2]) < 1e-9, 'credit 639 or lower: +0.53 pts and higher PMI', JSON.stringify([r0, r1]));
   await set({ fico: '760-779', metro: 'us' }); await page.waitForTimeout(300);
+  /* dependent settings: hidden while the setting they depend on makes them irrelevant */
+  const vis = id => page.evaluate(id => !document.getElementById(id).closest('.f').classList.contains('dep-off'), id);
+  const d0 = [await vis('armRate'), await vis('pmi'), await vis('mu'), await vis('refiTh')];
+  await set({ loanType: 'arm', dp: '5', taxOn: '0' }); await page.evaluate(() => syncDeps());
+  const d1 = [await vis('armRate'), await vis('pmi'), await vis('mu')];
+  ok(!d0[0] && !d0[1] && d0[2] && d1[0] && d1[1] && !d1[2], 'dependent settings show and hide with their parent', JSON.stringify([d0, d1]));
+  await set({ loanType: 'fixed', dp: '20', taxOn: '1' }); await page.evaluate(() => syncDeps());
 
   /* Spanish: ?lang=es loads the dictionary and translates the page as it renders; the choice is remembered */
   await page.goto(base + 'index.html?lang=es');
