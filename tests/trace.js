@@ -119,8 +119,9 @@ function walkTrees(roots) {
   await setPlace('us'); await page.waitForTimeout(600);
 
   /* ---- registry: every entry used, every section real ---- */
-  const reg = await page.evaluate(() => { showTab('method'); return { all: Object.keys(EQ), method: [...EQ_METHOD], badSec: Object.entries(EQ).filter(([, e]) => !document.getElementById('m-' + e.s)).map(([k, e]) => `${k} → ${e.s}`) }; });
+  const reg = await page.evaluate(() => { showTab('method'); return { all: Object.keys(EQ), method: [...EQ_METHOD], html: Object.entries(EQ).filter(([, e]) => /[<>&]/.test(e.t)).map(([k]) => k), badSec: Object.entries(EQ).filter(([, e]) => !document.getElementById('m-' + e.s)).map(([k, e]) => `${k} → ${e.s}`) }; });
   const unused = reg.all.filter(k => !eqSeen.has(k) && !reg.method.includes(k) && !EQ_PENDING.has(k));
+  ok(!reg.html.length, 'registry: no equation uses a raw <, > or & (write \\lt, \\gt; they break the HTML around the TeX)', reg.html.join(', '));
   ok(!reg.badSec.length, 'registry: every equation names a Method section that exists', reg.badSec.join(', '));
   ok(!unused.length, 'registry: every equation is used by a trace or a Method block', unused.join(', '));
 

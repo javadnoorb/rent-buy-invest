@@ -129,7 +129,7 @@ const EQ={
   count:{t:String.raw`\#\{\text{futures in the bin}\}`,s:'monte-carlo'},
   idioYear:{t:String.raw`g'_y = (1+g_y)\,e^{\sigma_h\varepsilon_y - \sigma_h^2/2} - 1`,s:'monte-carlo'},
   rhoYear:{t:String.raw`\rho_y = \lambda(w_s r^{stk}_y + w_b r^{bond}_y + w_c r^{bill}_y) - (\lambda-1)r^{bill}_y - \max(0,\lambda-1)s_b - f`,s:'monte-carlo'},
-  annualize:{t:String.raw`\big(\exp\big(\tfrac{1}{h}\textstyle\sum_{y<h}\ln\max(0.01,\ 1+\rho_y)\big) - 1\big) \times 100`,s:'monte-carlo'},
+  annualize:{t:String.raw`\big(\exp\big(\tfrac{1}{h}\textstyle\sum_{y \lt h}\ln\max(0.01,\ 1+\rho_y)\big) - 1\big) \times 100`,s:'monte-carlo'},
   gapTotal:{t:String.raw`\text{gap}_N = W^{buy}_N - W^{inv}_N`,s:'where-the-gap-comes-from'},
   gapSum:{t:String.raw`\textstyle\sum_y x_y / \bar\Pi_y`,s:'where-the-gap-comes-from'},
   gapHome:{t:String.raw`H_N - P`,s:'where-the-gap-comes-from'},
