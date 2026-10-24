@@ -19,7 +19,7 @@ function renderSbs(){const T=document.getElementById('sbsT');if(!T)return;
   Promise.all(SBS.map(sbsSlug)).then(ms=>{
     ['sbsA','sbsB'].forEach((id,i)=>{const el=document.getElementById(id);if(document.activeElement!==el)el.value=ms[i]?ms[i].name:''});
     if(!ms[0]||!ms[1]){T.innerHTML='';document.getElementById('tk-sbs').textContent='Pick two places to compare.';return}
-    const [a,b]=ms.map(sbsRow),N=P.N,sg=v=>v>=0?'+':'−',col=v=>`style="color:var(${v>=0?'--buy':'--inv'})"`;
+    const [a,b]=ms.map(sbsRow),N=P.N,sg=v=>v>=0?'+':'−',col=v=>`style="color:var(${v>=0?'--buy-t':'--inv-t'})"`;
     const dM=(x,y,f)=>{const d=y-x;return Math.abs(d)<0.5?'same':(d>0?'+':'−')+f(Math.abs(d))};
     /** @type {any[]} */const rows=[
       ['Home price',a.q.P,b.q.P,fmt],['Comparable rent',a.rent,b.rent,v=>fmtFull(v)+'/mo'],
@@ -36,7 +36,7 @@ function renderSbs(){const T=document.getElementById('sbsT');if(!T)return;
     const w=(r)=>r.gap>=0?`buying comes out ahead by ${fmt(r.gap)}`:`renting and investing comes out ahead by ${fmt(-r.gap)}`;
     const why=/** @type {[string,number][]} */([['price',b.q.P/a.q.P-1],['rent',b.rent/a.rent-1]]).map(([k,v])=>`${k} ${v>=0?'+':'−'}${pct(Math.abs(v),0)}`).join(', ');
     const t=theme(),line=(r,c,dash)=>({x:r.o.buy.map((_,k)=>k),y:r.o.buy.map((v,k)=>adj(v-r.o.inv[k],r.o.cpi[k])),mode:'lines',name:r.m.name,line:{color:c,width:2.5,dash},hovertemplate:'%{y:$,.0f}<extra>'+r.m.name+'</extra>'});
-    plot('p-sbs',[line(a,t.buy,'solid'),line(b,t.inv,'dot')],Object.assign(layout({hovermode:'x unified'}),{xaxis:X('Years'),yaxis:Yd('Buy − (rent + invest) ('+basisLabel()+')'),
+    plot('p-sbs',[line(a,placePal(t)[0],'solid'),line(b,placePal(t)[1],'dot')],Object.assign(layout({hovermode:'x unified'}),{xaxis:X('Years'),yaxis:Yd('Buy − (rent + invest) ('+basisLabel()+')'),
       shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:t.muted,width:1}}]}));
     document.getElementById('tk-sbs').innerHTML=`<strong>${a.m.name}</strong>: ${w(a)}. <strong>${b.m.name}</strong>: ${w(b)}. Compared with ${a.m.name}, ${b.m.name} has ${why}${a.ptr&&b.ptr?`, so homes cost ${b.ptr>a.ptr?'more':'less'} relative to rent (${b.ptr.toFixed(1)} vs ${a.ptr.toFixed(1)} years of rent)`:''}.`;
   }).catch(()=>{document.getElementById('sbsMsg').textContent='Could not load county or ZIP data; check your connection.'})}

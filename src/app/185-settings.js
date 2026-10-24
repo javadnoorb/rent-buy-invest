@@ -37,6 +37,17 @@ function setMode(m){SET_MODE=m==='all'?'all':'basic';const aside=document.getEle
   document.querySelectorAll('#setMode button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.m===SET_MODE)));
   if(SET_MODE==='basic')aside.querySelectorAll('details:not(.nocore)').forEach(d=>d.open=true);
   try{localStorage.setItem('rbi-setmode',SET_MODE)}catch(e){}if(P)markChanged()}
+/* Simple / Detailed view: Simple hides the technical tabs and cards (marked .tech) and keeps the settings to the basic
+   list; Detailed shows everything. Remembered per device; ?view=detailed or ?view=simple in the address sets it. */
+let VIEW='simple';
+function initialView(){const q=new URLSearchParams(location.search).get('view');if(q==='simple'||q==='detailed')return q;let v=null;try{v=localStorage.getItem('rbi-view')}catch(e){}return v==='detailed'?'detailed':'simple'}
+function setView(v,quiet){VIEW=v==='detailed'?'detailed':'simple';document.body.classList.toggle('simple',VIEW==='simple');
+  document.querySelectorAll('#viewMode button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===VIEW)));
+  try{localStorage.setItem('rbi-view',VIEW)}catch(e){}
+  if(quiet)return;
+  if(VIEW==='simple'){setMode('basic');if(document.querySelector(`.tabs .tech[data-tab="${CUR}"]`))showTab('proj')}
+  else setMode('all');
+  if(typeof RENDER!=='undefined'&&RENDER[CUR])requestAnimationFrame(()=>{RENDER[CUR]();resizePlots()})}
 let GROUP_STATE=null;
 function filterSettings(q){q=q.trim().toLowerCase();const groups=[...document.querySelectorAll('aside details')];document.getElementById('aside').classList.toggle('searching',!!q);
   if(q&&!GROUP_STATE)GROUP_STATE=groups.map(d=>d.open);
@@ -56,6 +67,7 @@ function wireSettings(){
   document.querySelectorAll('aside details').forEach(d=>d.classList.toggle('nocore',!d.querySelector('.f.core')));
   document.querySelector('aside').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(b&&b.closest('.amode'))setMode(b.dataset.m)});
   {let m=null;try{m=localStorage.getItem('rbi-setmode')}catch(e){}setMode(m||'basic')}
+  setView(initialView(),true);document.getElementById('viewMode').addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b)setView(b.dataset.v)});
   let saved=null;try{saved=JSON.parse(localStorage.getItem('rbi-groups')||'null')}catch(e){}
   const groups=[...document.querySelectorAll('aside details')];
   if(saved&&saved.length===groups.length)groups.forEach((d,i)=>d.open=saved[i]);

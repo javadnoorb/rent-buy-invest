@@ -7,7 +7,7 @@
 const fs = require('fs'), path = require('path');
 const { chromium } = require(process.env.PLAYWRIGHT_PATH || 'playwright');
 const args = process.argv.slice(2), out = args.find(a => !a.startsWith('--')) || 'sweep';
-const dark = args.includes('--dark'), ui = args.indexOf('--url'), url = ui >= 0 ? args[ui + 1] : 'http://127.0.0.1:8765/index.html';
+const dark = args.includes('--dark'), ui = args.indexOf('--url'), url = ui >= 0 ? args[ui + 1] : 'http://127.0.0.1:8765/index.html?view=detailed';
 fs.mkdirSync(out, { recursive: true });
 (async () => {
   const b = await chromium.launch(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {});

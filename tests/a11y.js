@@ -12,7 +12,7 @@ const AXE = require.resolve(process.env.AXE_PATH || 'axe-core/axe.min.js');
   for (const [scheme, width] of [['light', 1280], ['dark', 1280], ['light', 390]]) {
     const page = await browser.newPage({ viewport: { width, height: 900 }, colorScheme: scheme });
     await page.route(/^https?:\/\//, r => r.abort());
-    await page.goto('file://' + path.join(__dirname, '..', 'index.html'));
+    await page.goto('file://' + path.join(__dirname, '..', 'index.html') + '?view=detailed');
     await page.waitForTimeout(800);
     await page.addScriptTag({ path: AXE });
     const check = async (where) => { const t0 = Date.now(); try { return await check1(where) } finally { if (process.env.A11Y_TIMES) console.log(`  ${scheme} ${width} ${where}: ${Date.now() - t0} ms`) } };

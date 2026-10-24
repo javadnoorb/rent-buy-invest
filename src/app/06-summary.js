@@ -1,6 +1,6 @@
 /* ===================== Summary ===================== */
 function affCell(own1,p){if(!p.income)return 'n/a';const fe=own1/(p.income/12),be=(own1+p.debt)/(p.income/12);
-  const col=fe<=0.28&&be<=0.36?'--buy':(be<=0.43?'--cash':'--neg');
+  const col=fe<=0.28&&be<=0.36?'--good':(be<=0.43?'--warn':'--bad');
   return `<span style="color:var(${col})">${pct(fe,0)}</span><span class="sub" style="font-family:var(--body)"> · all debt ${pct(be,0)}</span>`}
 function summary(){
   mcSync();const p=P,o=BASE,N=p.N,c=o.cpi[N];
@@ -18,10 +18,14 @@ function summary(){
   const rp=p.rentalOn&&o.rental[N]!=null?adj(o.rental[N],c):null;
   const opts=[['buy','Buy',b],['inv','Rent + invest',iv],['cash','Rent + T-bills',ca]].concat(rp!=null?[['rp','Rent + rental property',rp]]:[]),mx=Math.max(...opts.map(o=>o[2]),1),top=Math.max(...opts.map(o=>o[2]));
   const best=(k,v)=>v===top&&!(even&&(k==='buy'||k==='inv'));
+  // what "invest" means at these settings: by default an S&P 500 index fund (stock returns are the S&P 500's, dividends included)
+  {const wc=Math.max(0,1-p.ws-p.wb),parts=[[p.ws,'an S&P 500 index fund'],[p.wb,'10-year Treasury bonds'],[wc,'T-bills']].filter(x=>x[0]>0.001),
+    mix=parts.length===1?parts[0][1]:parts.map(([w,l])=>`${pct(w,0)} ${l.replace(/^an /,'')}`).join(', ');
+   document.getElementById('invDef').textContent=`"Invest" means the savings go into ${mix}${p.lev>1?`, ${p.lev}× leveraged`:''}${p.acct==='sheltered'?', in a tax-sheltered account':''}${p.fee>0?`, after ${pct(p.fee,2)} a year in fees`:''}. Change this under Investing.`}
   document.getElementById('bars').innerHTML=opts.map(([k,lab,v])=>`<div class="bar ${best(k,v)?'win':''}"><span class="lab">${lab}${best(k,v)?'<span class="pill">best</span>':''}</span><span class="track"><span class="fill" style="display:block;width:${Math.max(0,v/mx*100).toFixed(1)}%;background:var(--${k})"></span></span><span class="val">${fmt(v)}</span></div>`).join('');
   document.getElementById('miniSum').innerHTML=even?`About even at year ${N}`:`<span class="who ${d>=0?'buy':'inv'}">${d>=0?'Buying':'Renting'}</span> ahead by <strong>${fmt(Math.abs(d))}</strong> at year ${N}`;document.getElementById('miniN').textContent=N+' yr';
   document.getElementById('fabSub').textContent=`${pct(p.dp,p.dp<0.1&&Math.round(p.dp*1000)%10?1:0)} down · ${pct(p.rate,2)} · ${N} yr`;
-  document.getElementById('sheetlive').innerHTML=`Year ${N}: buy ${fmt(b)} · rent + invest ${fmt(iv)} · gap <strong style="color:var(${d>=0?'--buy':'--inv'})">${d>=0?'+':''}${fmt(d)}</strong>`;
+  document.getElementById('sheetlive').innerHTML=`Year ${N}: buy ${fmt(b)} · rent + invest ${fmt(iv)} · gap <strong style="color:var(${d>=0?'--buy-t':'--inv-t'})">${d>=0?'+':''}${fmt(d)}</strong>`;
   const stat=([k,v,h])=>`<div class="stat"${h?` title="${h}"`:''}><div class="k">${k}</div><div class="v">${v}</div></div>`;
   document.getElementById('vgrid').innerHTML=[
    ['Buying pulls ahead',beY?`year ${beY}`:`not by year ${N}`,'first year from which buying stays ahead through your horizon'],
@@ -32,7 +36,7 @@ function summary(){
   document.getElementById('vgrid2').innerHTML=[
    ['Break-even rent',beRent?fmtFull(beRent)+'/mo':'n/a','rent at which the two main paths tie at your horizon'],
    ['Break-even home growth',beG!=null?pct(beG)+'/yr':'n/a','home appreciation at which they tie'],
-   [`Expected gap with ${pct(p.hz,0)}/yr move risk`,`<span style="color:var(${ex>=0?'--buy':'--inv'})">${ex>=0?'+':''}${fmt(ex)}</span>`,'weighted by the chance of selling early'],
+   [`Expected gap with ${pct(p.hz,0)}/yr move risk`,`<span style="color:var(${ex>=0?'--buy-t':'--inv-t'})">${ex>=0?'+':''}${fmt(ex)}</span>`,'weighted by the chance of selling early'],
    ...(p.hz>0?[['Chance you sell early',pct(1-Math.pow(1-p.hz,N-1),0),`before year ${N}, at a ${pct(p.hz,0)} chance of moving each year; the average stay is ${(Array.from({length:N},(_,k)=>k+1).reduce((a,t)=>a+t*(t<N?p.hz*Math.pow(1-p.hz,t-1):Math.pow(1-p.hz,N-1)),0)).toFixed(1)} years`]]:[]),
    ['Rent + T-bills',fmt(ca),'renting and keeping savings in T-bills'],
   ].map(stat).join('');

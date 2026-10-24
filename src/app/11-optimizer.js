@@ -3,9 +3,11 @@ function renderOpt(){renderAfford();
   const t=theme(),p=P,DP=[0,3.5,5,10,15,20,25,30,40,50,60,80,100],H=[...Array(30)].map((_,k)=>k+1);
   const q0=Object.assign({},p,{term:OPT_TERM,rate:OPT_TERM===15?p.rate15:p.rate30});
   const res=DP.map(dp=>{const q=Object.assign({},q0,{dp:dp/100});const o=simulate(q,constPath(q,30),{N:30});return H.map(h=>adj(o.buy[h]-o.inv[h],o.cpi[h]))});
-  const z=H.map((h,j)=>DP.map((_,i)=>res[i][j]));const zmax=Math.max(1,...z.flat().map(Math.abs));
+  const z=H.map((h,j)=>DP.map((_,i)=>res[i][j]));
+  // colour range from the 90th percentile of |gap|, so a few extreme long-horizon cells saturate instead of washing out the rest
+  const za=z.flat().map(Math.abs).sort((a,b)=>a-b),zmax=Math.max(1,za[Math.floor(za.length*0.9)]);
   const best=H.map((h,j)=>{let bi=0;DP.forEach((_,i)=>{if(res[i][j]>res[bi][j])bi=i});return DP[bi]});
-  plot('p-opt',[{x:DP.map(String),y:H,z,type:'heatmap',zmin:-zmax,zmax,colorscale:divScale(t),colorbar:advBar(t,'Buy − rent','$'),customdata:z.map(r=>r.map(v=>(100*v/p.P).toFixed(0))),hovertemplate:'%{x}% down, after %{y} yr: buy − rent %{z:$,.0f} (%{customdata}% of price)<extra></extra>'},
+  plot('p-opt',[{x:DP.map(String),y:H,z,type:'heatmap',zsmooth:'best',zmin:-zmax,zmax,colorscale:divScale(t),colorbar:advBar(t,'Buy − rent','$'),customdata:z.map(r=>r.map(v=>(100*v/p.P).toFixed(0))),hovertemplate:'%{x}% down, after %{y} yr: buy − rent %{z:$,.0f} (%{customdata}% of price)<extra></extra>'},
     {x:DP.map(String),y:H,z,type:'contour',contours:{start:0,end:0,size:1,coloring:'none'},line:{color:t.ink,width:1.5},showscale:false,hoverinfo:'skip'},
     {x:best.map(String),y:H,mode:'markers',marker:{size:7,color:t.ink,symbol:'circle'},name:'Best down payment',hovertemplate:'best at %{y} yr: %{x}% down<extra></extra>'}],
     {hovermode:'closest',showlegend:false,xaxis:{...X(`Down payment (%), ${OPT_TERM}-year loan`),type:'category'},yaxis:Yt('Horizon (years)'),annotations:advEnds(t)});

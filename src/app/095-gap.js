@@ -18,7 +18,7 @@ function gapParts(p,o){const N=p.N,c=o.cpi[N],LS=loanSetup(p,p.rate),sum=k=>o.fl
   const known=parts.reduce((a,x)=>a+x[1],0);parts.push(['Renter\'s investment returns, before tax',gap-known]);
   return {gap,parts:parts.filter(([lab,v])=>Math.abs(v)>=1||/Rent|returns/.test(lab))}}
 /* Drawn as a walk of thick arrows: each part starts where the previous one ended and points right (in buying's
-   favor, green) or left (renting's, blue); dotted lines join the steps and the value sits at each arrow's tip. The
+   favor, orange) or left (renting's, blue); dotted lines join the steps and the value sits at each arrow's tip. The
    last row is the total, drawn from zero. An invisible bar per row carries the hover text. On phones the names and
    values go above the arrows so the arrows get the full width. */
 function renderGap(o){const t=theme(),p=P,{gap,parts}=gapParts(p,o),narrow=innerWidth<600;

@@ -34,9 +34,9 @@ function renderLoc(){
   const th=cols.map(([k,l])=>`<th><button type="button" class="srt${LOC_SORT===k?' on':''}" data-k="${k}" aria-label="Sort by ${l}">${l}${LOC_SORT===k?(LOC_DIR<0?' ▾':' ▴'):''}</button></th>`).join('');
   const mx=Math.max(...rows.map(r=>Math.abs(r.gap)),1);
   const body=rows.map(r=>{const on=LOC_SEL.includes(r.m.slug),cur=r.m.slug===P.metro;
-    const hc=r.hti==null?'':r.hti<=0.28?'--buy':r.hti<=0.36?'--cash':'--neg';
+    const hc=r.hti==null?'':r.hti<=0.28?'--good':r.hti<=0.36?'--warn':'--bad';
     return `<tr class="${cur?'cur':''}"><td><label class="lsel"><input type="checkbox" data-s="${r.m.slug}" ${on?'checked':''}> ${r.m.name}${cur?' <span class="pill">yours</span>':''}</label></td>
-    <td class="gapc"><span class="gbar" style="--w:${(Math.abs(r.gap)/mx*100).toFixed(1)}%;--c:var(${r.gap>=0?'--buy':'--inv'})"></span><span style="color:var(${r.gap>=0?'--buy':'--inv'})">${r.gap>=0?'+':'−'}${fmt(Math.abs(r.gap))}</span></td>
+    <td class="gapc"><span class="gbar" style="--w:${(Math.abs(r.gap)/mx*100).toFixed(1)}%;--c:var(${r.gap>=0?'--buy':'--inv'})"></span><span style="color:var(${r.gap>=0?'--buy-t':'--inv-t'})">${r.gap>=0?'+':'−'}${fmt(Math.abs(r.gap))}</span></td>
     <td>${r.beY?'year '+r.beY:'not by year '+N}</td><td>${fmtFull(r.own1)}</td><td>${r.hti==null?'—':`<span style="color:var(${hc})">${pct(r.hti,0)}</span>`}</td>
     <td>${fmt(r.q.P)}</td><td>${fmtFull(r.rent)}</td><td>${r.ptr.toFixed(1)}</td><td>${fmt(r.cash)}</td></tr>`}).join('');
   document.getElementById('locT').innerHTML=`<thead><tr>${th}</tr></thead><tbody>${body}</tbody>`;
@@ -50,13 +50,13 @@ function renderLoc(){
     (isFinite(corr)?`Across locations the price-to-rent ratio and the buy advantage correlate at ${corr.toFixed(2).replace('-','−')}: ${corr<-0.5?'where homes are expensive relative to rent, renting tends to win':'the ratio alone does not decide it here'}.`:'');
   drawLoc(rows);renderSbs()}
 function drawLoc(rows){
-  const t=theme(),N=P.N,sel=rows.filter(r=>LOC_SEL.includes(r.m.slug)),pal=[t.buy,t.inv,t.cash,t.rp,t.neg,t.ink];
-  plot('p-loc',sel.map((r,i)=>({x:r.o.buy.map((_,k)=>k),y:r.o.buy.map((b,k)=>adj(b-r.o.inv[k],r.o.cpi[k])),mode:'lines',name:r.m.name,line:{color:pal[i%pal.length],width:r.m.slug===P.metro?3:2,dash:i>=3?'dot':'solid'},hovertemplate:'%{y:$,.0f}<extra>'+r.m.name+'</extra>'})),
+  const t=theme(),N=P.N,sel=rows.filter(r=>LOC_SEL.includes(r.m.slug)),pal=placePal(t);
+  plot('p-loc',sel.map((r,i)=>({x:r.o.buy.map((_,k)=>k),y:r.o.buy.map((b,k)=>adj(b-r.o.inv[k],r.o.cpi[k])),mode:'lines',name:r.m.name,line:{color:pal[i%pal.length],width:r.m.slug===P.metro?3:2,dash:i>=pal.length?'dot':'solid'},hovertemplate:'%{y:$,.0f}<extra>'+r.m.name+'</extra>'})),
     Object.assign(layout({hovermode:'x unified'}),{xaxis:X('Years'),yaxis:Yd('Buy − (rent + invest) ('+basisLabel()+')'),shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:t.muted,width:1}}]}));
   const lab=placeLabels(document.getElementById('p-locsc'),rows.map(r=>({x:r.ptr,y:r.gap,text:r.m.name,pri:(r.m.slug===P.metro?2e9:0)+(LOC_SEL.includes(r.m.slug)?1e9:0)+Math.abs(r.gap)})));
-  plot('p-locsc',[{x:rows.map(r=>r.ptr),y:rows.map(r=>r.gap),text:lab.text,customdata:rows.map(r=>r.m.name),mode:'markers+text',textposition:lab.pos,textfont:{size:9,color:t.muted},
+  plot('p-locsc',[...[['Buying ahead',t.buy],['Renting ahead',t.inv]].map(([name,color])=>({x:[null],y:[null],mode:'markers',name,marker:{size:8,color},hoverinfo:'skip'})),{x:rows.map(r=>r.ptr),y:rows.map(r=>r.gap),text:lab.text,customdata:rows.map(r=>r.m.name),mode:'markers+text',showlegend:false,textposition:lab.pos,textfont:{size:9,color:t.muted},
     marker:{size:rows.map(r=>r.m.slug===P.metro?12:8),color:rows.map(r=>r.gap>=0?t.buy:t.inv),line:{width:rows.map(r=>LOC_SEL.includes(r.m.slug)?1.5:0),color:t.ink}},hovertemplate:'%{customdata}<br>price ÷ yearly rent %{x:.1f}<br>buy − (rent + invest) %{y:$,.0f}<extra></extra>'}],
-    Object.assign(layout(),{xaxis:{...X('Price ÷ yearly rent'),range:lab.xr},yaxis:{...Yd(`Buy − (rent + invest) at year ${N}, ${basisLabel()}`),range:lab.yr},showlegend:false,shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:t.muted,width:1}}]}))}
+    Object.assign(layout(),{xaxis:{...X('Price ÷ yearly rent'),range:lab.xr},yaxis:{...Yd(`Buy − (rent + invest) at year ${N}, ${basisLabel()}`),range:lab.yr},shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:t.muted,width:1}}]}))}
 /* Point labels that don't collide: points are taken most important first and each label goes to the first of eight
    spots around its point whose box (estimated from the chart's size and fixed axis ranges) overlaps no placed label,
    no other point and stays inside the plot; a label with no free spot is left to the hover text. */

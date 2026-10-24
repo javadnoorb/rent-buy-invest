@@ -48,9 +48,10 @@ function drawMC(){if(!MC)return;mcSync();
   const best=k=>{const vals=KS.map(s=>S[s][k]);return k==='sd'||k==='lq'?null:Math.max(...vals)};
   document.getElementById('risk-cap').textContent=`At year ${h}, ${basisLabel()}, across ${n.toLocaleString()} paths. Floor of ${fmt(floor)} applied to wealth in the certainty equivalent.`;
   document.getElementById('riskT').innerHTML=`<thead><tr><th>Metric</th><th><span class="swatch" style="background:var(--buy)"></span>Buy</th><th><span class="swatch" style="background:var(--inv)"></span>Rent + invest</th><th><span class="swatch" style="background:var(--cash)"></span>Rent + T-bills</th>${KS.includes('rp')?'<th><span class="swatch" style="background:var(--rp)"></span>Rent + rental</th>':''}</tr></thead><tbody>`+
-    rows.map(([lab,k,f])=>{const b=best(k);return `<tr${k==='ce'?' class="hl"':''}><td>${lab}</td>${KS.map(s=>`<td${b!=null&&S[s][k]===b?' style="color:var(--'+s+')"':''}>${f(S[s][k])}</td>`).join('')}</tr>`}).join('')+
-    `<tr><td>Buying wins, fixed horizon</td><td colspan="${KS.length}">${pct(MC.pWin[h])}</td></tr><tr><td>Buying wins, with ${pct(P.hz,0)}/yr chance of moving${P.stressMult>1||P.forcedDisc>0?', likelier and at a discount in bad years':''}</td><td colspan="${KS.length}">${pct(MC.pMove)}</td></tr>`+
-    (MC.pWinR?`<tr><td>Rental property beats rent + invest</td><td colspan="${KS.length}">${pct(MC.pWinR[h])}</td></tr>`:'')+'</tbody>';
+    rows.map(([lab,k,f])=>{const b=best(k);return `<tr${k==='ce'?' class="hl"':''}><td>${lab}</td>${KS.map(s=>`<td${b!=null&&S[s][k]===b?' style="color:var(--'+s+'-t)"':''}>${f(S[s][k])}</td>`).join('')}</tr>`}).join('')+
+    // win shares compare two paths, so each sits in the column of the path it is about (not spread across all columns)
+    `<tr><td>Chance buying beats rent + invest, fixed horizon</td><td>${pct(MC.pWin[h])}</td>${'<td></td>'.repeat(KS.length-1)}</tr><tr><td>Chance buying beats rent + invest, with ${pct(P.hz,0)}/yr chance of moving${P.stressMult>1||P.forcedDisc>0?', likelier and at a discount in bad years':''}</td><td>${pct(MC.pMove)}</td>${'<td></td>'.repeat(KS.length-1)}</tr>`+
+    (MC.pWinR?`<tr><td>Chance the rental property beats rent + invest</td>${'<td></td>'.repeat(KS.length-1)}<td>${pct(MC.pWinR[h])}</td></tr>`:'')+'</tbody>';
   const xx=[...Array(N+1)].map((_,k)=>k);
   plot('p-prob',[{x:xx,y:MC.pWin,name:'vs rent + invest',mode:'lines',line:{color:t.inv,width:2.5},hovertemplate:'%{y:.0%}'},
     {x:xx,y:MC.pWinC,name:'vs rent + T-bills',mode:'lines',line:{color:t.cash,width:2.5,dash:'dot'},hovertemplate:'%{y:.0%}'},
@@ -59,11 +60,14 @@ function drawMC(){if(!MC)return;mcSync();
     {xaxis:X('Horizon (years)'),yaxis:Yt('P(buy wins)',{tickformat:'.0%',range:[0,1]}),shapes:[{type:'line',x0:0,x1:N,y0:.5,y1:.5,line:{color:t.muted,dash:'dash',width:1}},{type:'line',x0:h,x1:h,y0:0,y1:1,line:{color:t.line,width:1}}]});
   const d=res.buy.map((b,s)=>b[h]-res.inv[s][h]);
   document.getElementById('mc-histcap').textContent=`Buy minus (rent + invest) at year ${h}. Median ${fmt(q(d,.5))}, 5th pct ${fmt(q(d,.05))}, 95th pct ${fmt(q(d,.95))}.`;
-  plot('p-mchist',[{x:d,type:'histogram',nbinsx:60,marker:{color:d.map(v=>v>0?hexA(t.buy,.75):hexA(t.inv,.75))},hovertemplate:'%{x}<br>%{y} paths<extra></extra>'}],
-    {hovermode:'closest',bargap:0.02,showlegend:false,xaxis:{...X('Buy − (rent + invest), '+basisLabel()),tickprefix:'$',tickformat:'~s'},yaxis:Yt('Paths'),shapes:[{type:'line',x0:0,x1:0,yref:'paper',y0:0,y1:1,line:{color:t.ink,width:1.5}}]});
+  // two series on the same bins, so the colour has a legend: paths where buying ends ahead and where renting does
+  {const lo=Math.min(...d),hi=Math.max(...d),xb={start:lo,end:hi+1e-9,size:Math.max(1,(hi-lo)/60)};
+  plot('p-mchist',[{x:d.filter(v=>v<=0),type:'histogram',xbins:xb,autobinx:false,name:'Renting ahead',marker:{color:hexA(t.inv,.8)},hovertemplate:'%{x}<br>%{y} paths<extra>renting ahead</extra>'},
+    {x:d.filter(v=>v>0),type:'histogram',xbins:xb,autobinx:false,name:'Buying ahead',marker:{color:hexA(t.buy,.8)},hovertemplate:'%{x}<br>%{y} paths<extra>buying ahead</extra>'}],
+    {hovermode:'closest',barmode:'overlay',bargap:0.02,xaxis:{...X('Buy − (rent + invest), '+basisLabel()),tickprefix:'$',tickformat:'~s'},yaxis:Yt('Paths'),shapes:[{type:'line',x0:0,x1:0,yref:'paper',y0:0,y1:1,line:{color:t.ink,width:1.5}}]})}
   const dm=Math.max(1,...d.map(Math.abs));
   plot('p-mcsc',[{x:res.gH,y:res.gP,mode:'markers',type:'scatter',marker:{size:4,color:d,cmin:-dm,cmax:dm,colorscale:divScale(t).map(([k,c],i)=>[k,i===4?t.muted:c]),opacity:.8,
-    colorbar:{title:{text:'advantage, '+basisLabel(),side:'right'},thickness:10,outlinewidth:0,tickprefix:'$',tickformat:'~s'}},hovertemplate:'home %{x:.1f}%/yr, portfolio %{y:.1f}%/yr<br>%{marker.color:$,.0f}<extra></extra>'}],
+    colorbar:advBar(t,`Buy − rent<br>at year ${h}`,'$')},hovertemplate:'home %{x:.1f}%/yr, portfolio %{y:.1f}%/yr<br>%{marker.color:$,.0f}<extra></extra>'}],
     {hovermode:'closest',xaxis:X(`Own-home appreciation, annualized over ${h} yr (%)`),yaxis:Yt('Portfolio return, annualized (%)')});
   const yr=[...Array(N)].map((_,k)=>k+1),rq=f=>yr.map((_,k)=>100*q(res.rates.map(a=>a[k]),f));
   const nref=res.refis.filter(v=>v>0).length/n,avgRef=res.refis.reduce((a,b)=>a+b,0)/n;
@@ -75,9 +79,9 @@ function drawMC(){if(!MC)return;mcSync();
    let a1=0,n1=0,a2=0,n2=0;res.gH.forEach((g,i)=>{const w=d[i]>0;if(g>res.gP[i]-4){n1++;if(w)a1++}else{n2++;if(w)a2++}});
    tk('mcsc',`When your home's yearly gain was no more than 4 points below the portfolio's, buying won ${n1?pct(a1/n1,0):'—'} of the time; when the portfolio beat the home by more than that, ${n2?pct(a2/n2,0):'—'}.`+(n1&&a1/n1>0.5?' Leverage is why the home doesn\'t need to match the portfolio to win.':''));
    const k=Math.min(5,N),hit=res.rates.filter(a=>Math.min(...a.slice(0,k))<=P.rate-P.refiTh).length/n;
-   tk('mcrate',`In ${pct(hit,0)} of futures the market rate falls at least ${(P.refiTh*100).toFixed(2)} points below your ${pct(P.rate,2)} within ${nY(k)}${P.refiOn?', triggering a refinance':' (refinancing is off)'}.`)}
+   tk('mcrate',`In ${pct(hit,0)} of futures the market rate falls at least ${(P.refiTh*100).toFixed(2)} points below your ${pct(P.rate,2)} within ${nY(k)}${P.refiOn?`, triggering a refinance; ${pct(nref,0)} of paths refinance at least once (${avgRef.toFixed(2)} times on average)`:' (refinancing is off)'}.`)}
   plot('p-mcrate',[{x:yr,y:rq(.95),mode:'lines',line:{width:0},showlegend:false,hoverinfo:'skip'},{x:yr,y:rq(.05),mode:'lines',line:{width:0},fill:'tonexty',fillcolor:hexA(t.neg,isDark(t)?.3:.15),name:'5–95%',hoverinfo:'skip'},
     {x:yr,y:rq(.5),mode:'lines',line:{color:t.neg,width:2.5},name:'Median market rate',hovertemplate:'%{y:.2f}%'}],
-    {xaxis:X('Years from today'),yaxis:Yt('30-yr rate',{ticksuffix:'%'}),margin:{t:innerWidth<600?54:38},annotations:[{xref:'paper',yref:'paper',x:0,y:1,xanchor:'left',yanchor:'bottom',align:'left',showarrow:false,text:P.refiOn?`${pct(nref,0)} of paths refinance at least once<br>${avgRef.toFixed(2)} refis on average`:'refinancing is off',font:{size:11,color:t.muted}}]});
+    {xaxis:X('Years from today'),yaxis:Yt('30-year market rate',{ticksuffix:'%'})});
 }
 

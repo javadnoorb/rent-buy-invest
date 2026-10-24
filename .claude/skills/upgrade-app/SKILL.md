@@ -52,7 +52,7 @@ concrete example, a proposed fix, and an explicit list of what it checked and fo
    reformatting the codebase.
 
 While they run, also do a **visual sweep** yourself: `node .claude/skills/upgrade-app/sweep.js <outdir>` screenshots
-every chart on every tab at desktop and phone width (light and dark with `--dark`); then
+every chart on every tab at desktop and phone width, in the Detailed view (light and dark with `--dark`); then
 `python3 .claude/skills/upgrade-app/montage.py <outdir>` tiles them so a few image reads cover all charts. Look for
 missing axis titles, overlapping labels, clipped annotations, legends colliding with titles, empty or half-drawn series
 (e.g. zeros on a log axis), unreadable dark-mode bands.
@@ -112,3 +112,20 @@ changes, then what was **not** done and why, and any uncertain facts. Offer the 
 - Typing into a field must replace the value (select on focus) and money fields keep separators while typing.
 - Reserve the height of anything filled in by script (market cards) and mark Basic-mode groups in the HTML to avoid
   layout shift.
+- Colour: run the dataviz skill's validator (`validate_palette.js`, light and dark surfaces, `--pairs all`) before changing
+  series colours; don't eyeball. Marks use the validated series colours; coloured text uses the darker `--*-t` tokens
+  (4.5:1 on cards and takeaways, axe checks it); status meanings (affordability) use `--good/--warn/--bad`, never the
+  buy/rent colours; places get their own palette (`placePal`). Diverging maps: saturated at both ends, grey midpoint,
+  dark-mode version; continuous heat maps use `zsmooth:'best'`; set the colour range from a percentile when a few
+  cells are extreme. When colours change, search the help texts for colour words ("green", "red") and update them.
+- Figures read like a paper's: axis titles name the variable and unit only; results ("buying won in 51%…", base values,
+  refinance shares) go in the takeaway, not in axis titles or annotations. Every colour encoding needs a legend or a
+  colour bar (dummy marker traces give scatter/histogram colours a legend). Reference lines go under the data
+  (`plot()` sets `layer:'below'`, except over heatmaps). Use dollars when the price is fixed; % of price only when
+  comparing different purchases.
+- Simple / Detailed view: technical tabs and cards carry `class="tech"`; tests and the sweep open `?view=detailed`.
+- References: each Method section lists its sources (`MREF` in `16-method.js`, checked by a UI test); every setting has
+  a `.hint` element (an empty one is hidden) so location hints are never dropped; constants fitted from data get a
+  refit test (`RENT_ELAST` in `tests/validate.js`); check links with `scripts/check_links.py` from a temporary probe
+  workflow, then replace dead ones from official sources found by search (an agent can do this in the background).
+- A source with several documents needs one entry per URL; a list joined into one href is a broken link.

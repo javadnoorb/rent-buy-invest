@@ -38,7 +38,7 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
   }).listen(0);
   const base = `http://127.0.0.1:${server.address().port}/`;
   await page.addInitScript(() => { try { if (!sessionStorage.getItem('init')) { localStorage.clear(); sessionStorage.setItem('init', '1'); } localStorage.setItem('rbi-wz', '1'); } catch (e) {} });
-  await page.goto(base + 'index.html');
+  await page.goto(base + 'index.html?view=detailed');
   await page.waitForFunction(() => document.getElementById('vhead').textContent !== 'Computing…', null, { timeout: 30000 });
   let pass = 0, fail = 0; const fails = [];
   const ok = (c, name, detail) => { if (c) pass++; else { fail++; fails.push(name + (detail ? ' — ' + detail : '')); } };
@@ -67,7 +67,7 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
 
   /* affordability colors follow 28/36 and 43% */
   const col = await page.evaluate(() => { const p = Object.assign({}, P, { income: 120000, debt: 0 }), m = 10000; return [affCell(0.25 * m, p), affCell(0.33 * m, Object.assign({}, p, { debt: 0 })), affCell(0.5 * m, p)].map(h => (h.match(/var\((--\w+)\)/) || [])[1]); });
-  ok(col[0] === '--buy' && col[1] === '--cash' && col[2] === '--neg', 'affordability colors', col.join(','));
+  ok(col[0] === '--good' && col[1] === '--warn' && col[2] === '--bad', 'affordability colors (status colours, not the buy/rent colours)', col.join(','));
 
   /* undo bar: shows for a location change, not for one edit that also recalculates transfer taxes or tax rates */
   await set({ metro: 'boston' }); ok(!(await page.isHidden('#undoBar')), 'undo bar after a location change');
@@ -279,6 +279,12 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
   await page.goBack(); await page.waitForTimeout(700);
   const bk3 = await page.evaluate(() => [CUR, document.getElementById('ciBack').hidden]);
   ok(bk1[0] === 'method' && bk1[1] && /Where the gap/.test(bk1[2]) && bk2[0] === 'proj' && bk2[1] && bk2[2] && bk3[0] === 'proj' && bk3[1], 'back from a chart-note link to the chart', JSON.stringify([bk1, bk2, bk3]));
+  /* Simple / Detailed view: Simple hides the technical tabs and cards and uses the basic settings; Detailed shows them */
+  await page.click('#viewMode [data-v="simple"]'); await page.waitForTimeout(400);
+  const vs = await page.evaluate(() => [VIEW, getComputedStyle(document.querySelector('.tabs [data-tab="mc"]')).display, getComputedStyle(document.getElementById('p-liq').closest('.card')).display, SET_MODE]);
+  await page.click('#viewMode [data-v="detailed"]'); await page.waitForTimeout(400);
+  const vd = await page.evaluate(() => [VIEW, getComputedStyle(document.querySelector('.tabs [data-tab="mc"]')).display, SET_MODE]);
+  ok(vs[0] === 'simple' && vs[1] === 'none' && vs[2] === 'none' && vs[3] === 'basic' && vd[0] === 'detailed' && vd[1] !== 'none' && vd[2] === 'all', 'Simple view hides technical tabs and cards; Detailed shows them', JSON.stringify([vs, vd]));
   /* Taxes card: rows add up; the gap chart's investment-tax part equals the table's renter-minus-buyer investment taxes */
   const taxCk = await page.evaluate(() => { const o = simulate(P, constPath(P, P.N), { N: P.N, detail: true }), rows = taxRows(P, o), g = gapParts(P, o).parts.find(x => /^Tax on investments/.test(x[0]));
     const inv = rows.filter(r => /dividends|selling the investments/.test(r[0])).reduce((a, r) => a + r[2] - r[1], 0);

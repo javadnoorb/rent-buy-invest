@@ -57,7 +57,9 @@ function wrapTitles(L){if(innerWidth>=600)return;for(const k of Object.keys(L)){
 function plot(id,data,lay){const el=document.getElementById(id);
   if(PLOTLY_STATE==='loading'){PLOT_WAIT.set(id,[data,lay]);if(!el.dataset.wait){el.dataset.wait=1;el.innerHTML='<div class="note plotwait">Loading chart…</div>'}describeChart(el);return}
   if(el.dataset.wait){el.innerHTML='';delete el.dataset.wait}
-  try{if(el.dataset.err){el.innerHTML='';delete el.dataset.err}const L=fitAxes(data,layout(lay));wrapTitles(L);Plotly.react(el,data,L,CFG);describeChart(el)}
+  try{if(el.dataset.err){el.innerHTML='';delete el.dataset.err}const L=fitAxes(data,layout(lay));wrapTitles(L);
+    // reference lines and bands go under the data (a marker on a guide line stays visible), except over a heatmap, which would hide them
+    if(L.shapes&&!data.some(d=>d.type==='heatmap'))L.shapes=L.shapes.map(s=>s.layer?s:Object.assign({},s,{layer:'below'}));Plotly.react(el,data,L,CFG);describeChart(el)}
   catch(e){console.error(id,e);el.dataset.err=1;el.innerHTML=`<div class="note">This chart could not be drawn (${String(e.message||e).slice(0,160)}).</div>`}}
 const X=(t)=>({...layout().xaxis,title:{text:t,font:{size:11}}});
 const Yd=(t)=>({...layout().yaxis,title:{text:t,font:{size:11}},tickprefix:'$',tickformat:'~s'});
@@ -68,11 +70,20 @@ function advBar(t,title,unit){return {title:{text:title,side:'top',font:{size:11
   ...(unit==='$'?{tickformat:'$~s'}:{ticksuffix:'%'})}}
 function advEnds(t){return [[1,'bottom','▲ Buying<br>ahead',t.buy],[0,'top','▼ Renting<br>ahead',t.inv]].map(([y,ya,text,color])=>
   ({xref:'paper',yref:'paper',x:1.02,xanchor:'left',y:y===1?.87:.13,yanchor:ya,showarrow:false,align:'left',text,font:{size:10,color}}))}
-/* Diverging scale for "renting wins" (blue, negative) vs "buying wins" (green, positive): 9 steps, darker and more
-   saturated toward the extremes, a light neutral at zero that differs from the card background, and a dark-mode version. */
+/* Diverging scale for "renting wins" (blue, negative) vs "buying wins" (red-orange, positive), the same hues as the two
+   paths: 9 steps, saturated at both ends (never fading to white), through a neutral grey at zero that differs from
+   the card, with a dark-mode version whose ends stay saturated and whose middle is a dark grey. */
+/* colours for places (Locations, side by side): their own hues, so a place is never mistaken for "buy" (red-orange) or
+   "rent + invest" (blue); fixed order, validated for colour-blind separation of neighbours in light and dark mode */
+const placePal=t=>isDark(t)?['#9085e9','#199e70','#c98500','#d55181','#2e9e2e']:['#6250d6','#1baf7a','#c98500','#d55181','#008300'];
+/* one-hue sequential scale (violet, light to dark; reversed in dark mode so later values stay the most visible) for an
+   ordered quantity that is neither buy nor rent, such as the year of purchase */
+const SEQ_LIGHT=['#d9d4f5','#b2a8ec','#8a7be0','#6250d6','#4733a8','#2f1f78'],SEQ_DARK=['#3a3170','#4f43a0','#6a5cc8','#8a7ee0','#aea4ee','#d4cff8'];
+function seqAt(seq,f){const x=Math.max(0,Math.min(1,f))*(seq.length-1),i=Math.min(seq.length-2,Math.floor(x)),u=x-i,h=c=>[1,3,5].map(k=>parseInt(c.slice(k,k+2),16));
+  const a=h(seq[i]),b=h(seq[i+1]);return '#'+a.map((v,j)=>Math.round(v+(b[j]-v)*u).toString(16).padStart(2,'0')).join('')}
 const isDark=t=>{const h=(t.bg||'#fff').replace('#','');const n=parseInt(h.length===3?h.split('').map(c=>c+c).join(''):h,16);return ((n>>16&255)*.299+(n>>8&255)*.587+(n&255)*.114)<128};
-const DIV_LIGHT=['#0b2a73','#2449b8','#5b7fe0','#a9bdf3','#eceee9','#a8e0c1','#4fb784','#1d8452','#08502c'];
-const DIV_DARK=['#c7d3ff','#8ea6ff','#5a78e6','#2c4291','#2b3230','#23664a','#3aa775','#7fdcae','#c9f3dd'];
+const DIV_LIGHT=['#0d366b','#1c5cab','#3987e5','#9ec5f4','#e4e3df','#f3b39b','#e8693a','#b8441c','#7a2810'];
+const DIV_DARK=['#4a9bff','#2f7de0','#2361ad','#1d3f6e','#3a3a37','#6e3322','#b04a24','#e0602b','#ff7a45'];
 const divScale=t=>{const c=isDark(t)?DIV_DARK:DIV_LIGHT;return c.map((v,i)=>[i/(c.length-1),v])};
 /* break-even line (z = 0) drawn over a heatmap */
 const zeroContour=(x,y,z,t)=>({x,y,z,type:'contour',showscale:false,hoverinfo:'skip',contours:{coloring:'none',start:0,end:0,size:1,showlabels:false},line:{color:t.ink,width:2,dash:'dot'},connectgaps:false,name:'break-even',showlegend:false});

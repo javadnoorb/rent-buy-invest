@@ -115,6 +115,7 @@ function init(){
   let tab='proj';try{tab=localStorage.getItem('rbi-tab')||'proj'}catch(e){}
   if(location.hash&&RENDER[location.hash.slice(1)])tab=location.hash.slice(1);
   if(!RENDER[tab])tab='proj';
+  if(initialView()==='simple'&&document.querySelector(`.tabs .tech[data-tab="${tab}"]`))tab='proj';
   ['cmpA','cmpB'].forEach(id=>document.getElementById(id).addEventListener('change',e=>{e.target.dataset.touched=1;renderCompare(loadSc())}));
   P=readP();BASE=simulate(P,constPath(P,P.N));CUR=tab;update();showTab(tab);
   let seen=false;try{seen=!!localStorage.getItem('rbi-wz')}catch(e){}
