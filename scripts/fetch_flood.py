@@ -8,10 +8,11 @@
   where at least 1% of homes carry a policy (other counties use their state's median).
 The app's default flood cost for a location is the average across all homes: share insured × typical cost
 (metros: their counties weighted by number of homes). pen = {county: [share insured, share in SFHA, homes]}.
-Only re-downloads the policy sample when the file is older than 25 days. Keeps the existing file on failure.
+Queries run 8 at a time (about 5 minutes in all). Only re-downloads the policy sample when the file is older than 25 days. Keeps the existing file on failure.
 Run: python3 scripts/fetch_flood.py [out.json] [--max-counties N]
 """
 import csv, io, json, os, sys, time, urllib.error, urllib.parse, urllib.request
+from concurrent.futures import ThreadPoolExecutor
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 args = [a for a in sys.argv[1:] if not a.startswith('--')]
 OUT = args[0] if args else os.path.join(ROOT, 'data', 'flood.json')
@@ -58,21 +59,18 @@ if __name__ == '__main__':
     fresh = old.get('fetched_utc') and time.time() - time.mktime(time.strptime(old['fetched_utc'], '%Y-%m-%dT%H:%M:%SZ')) < 25 * 86400
     cost, state_cost = dict(old.get('cost') or {}), dict(old.get('state_cost') or {})
     if not fresh or '--force' in sys.argv:
-        cost, state_cost, done = {}, {}, 0
-        for st in sorted({v['state'] for v in pen.values() if v.get('state')}):
-            ab = {k: v for k, v in pen.items() if v.get('state') == st}
-            fips2 = next(iter(ab))[:2]
+        # one query per state and per county with enough policies, 8 at a time
+        states = sorted({k[:2] for k, v in pen.items() if v.get('state')})
+        counties = [f for f, v in sorted(pen.items(), key=lambda kv: -kv[1]['n']) if v['take'] >= 0.01 and v['n'] >= 200][:MAXC]
+        def median_cost(code):
             try:
-                v = costs(f"startswith(censusGeoid,'{fips2}')", since)
-                if len(v) >= 30: state_cost[fips2] = round(median(v))
-            except Exception as e: print('state', st, e)
-        for f, v in sorted(pen.items(), key=lambda kv: -kv[1]['n']):
-            if v['take'] < 0.01 or v['n'] < 200 or done >= MAXC: continue
-            try:
-                c = costs(f"startswith(censusGeoid,'{f}')", since); done += 1
-                if len(c) >= 30: cost[f] = round(median(c))
-            except Exception as e: print('county', f, e)
-            time.sleep(0.2)
+                c = costs(f"startswith(censusGeoid,'{code}')", since)
+                return code, (round(median(c)) if len(c) >= 30 else None)
+            except Exception as e:
+                print('query', code, e); return code, None
+        with ThreadPoolExecutor(max_workers=8) as ex:
+            state_cost = {k: v for k, v in ex.map(median_cost, states) if v}
+            cost = {k: v for k, v in ex.map(median_cost, counties) if v}
         print(f'policy costs: {len(cost)} counties, {len(state_cost)} states')
     if len(pen) < 2500 or len(state_cost) < 30: print('flood data incomplete; keeping the existing file'); sys.exit(0)
     json.dump({'source_title': 'FEMA OpenFEMA: NFIP Residential Penetration Rates and NFIP policies (single-family primary residences, median yearly cost incl. fees, policies effective in the past year)',

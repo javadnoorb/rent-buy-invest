@@ -22,6 +22,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
+        with: { fetch-depth: 0 }  # full history, so a main that moved during the run can be merged
       - uses: actions/setup-python@v6
         with: { python-version: '3.12' }
       - uses: actions/setup-node@v5
@@ -64,8 +65,15 @@ jobs:
           if git diff --cached --quiet; then echo "No data changes."; exit 0; fi
           git diff --cached --stat
           git commit -m "Refresh public data $(date -u +%F)"
-          # if main moved during the run, fail rather than merge over it; the next run starts from the new main
-          git push origin HEAD:main || { echo "::error::main changed during the run; run Refresh data again"; exit 1; }
+          # if main moved during the run (a code push), merge it and push again: the refresh only touches data/.
+          # A merge conflict means main changed the same data files; then stop and let the next run start fresh.
+          for i in 1 2 3; do
+            git push origin HEAD:main && exit 0
+            echo "main moved during the run; merging it (attempt $i)"
+            git fetch origin main
+            git merge --no-edit origin/main || { git merge --abort; echo "::error::main changed the same data files during the run; run Refresh data again"; exit 1; }
+          done
+          echo "::error::could not push to main after 3 attempts"; exit 1
       - name: Report stale sources as an issue
         # a source that keeps failing leaves its old data in place; when its newest date is too old, say so in one issue
         if: success()
