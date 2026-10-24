@@ -54,7 +54,7 @@ jobs:
           node tests/lint.js
           node tests/run.js
           python3 tests/test_scripts.py
-          npm i --no-save --no-audit --no-fund playwright-core@1.47.2
+          npm i --no-save --no-audit --no-fund playwright-core@1.56.1
           PLAYWRIGHT_PATH=playwright-core CHROME_PATH=/usr/bin/google-chrome node tests/smoke.js
           PLAYWRIGHT_PATH=playwright-core CHROME_PATH=/usr/bin/google-chrome node tests/ui.js
       - name: Commit to main if changed

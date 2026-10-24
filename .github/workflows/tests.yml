@@ -44,7 +44,7 @@ jobs:
           PLAYWRIGHT_PATH: playwright-core
           CHROME_PATH: /usr/bin/google-chrome
         run: |
-          npm i --no-save --no-audit --no-fund playwright-core@1.47.2 axe-core@4.10.2
+          npm i --no-save --no-audit --no-fund playwright-core@1.56.1 axe-core@4.10.2
           node tests/smoke.js
       - name: UI logic tests (headline, ties, undo, counties, chart descriptions)
         env:
