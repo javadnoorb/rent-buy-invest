@@ -42,7 +42,6 @@ function copyText(txt,msgEl,okMsg){const done=()=>{msgEl.textContent=okMsg;setTi
 const STANDALONE_SITE=(()=>{try{return window.top===window.self&&/^https?:$/.test(location.protocol)}catch(e){return false}})();
 function setBasis(){document.getElementById('realBtn').setAttribute('aria-pressed',REAL);document.getElementById('nomBtn').setAttribute('aria-pressed',!REAL);update()}
 function init(){
-  {const lb=document.getElementById('langBtn');if(LANG==='es'){lb.textContent='English';lb.lang='en';lb.setAttribute('aria-label','View in English')}lb.addEventListener('click',()=>setLang(LANG==='es'?'en':'es'))}
   buildInputs();buildMetroSelect();buildSnap();buildMethod();const hadSaved=(()=>{try{return !!localStorage.getItem('rbi-inputs')}catch(e){return false}})();restore();wireWizard();wireSettings();wireLoc();wireHelp();wireMini();wireShareUndo();wireCounty();wireRentTag();wireAfford();{const tb=document.querySelector('.tabs'),sn=document.getElementById('snap');const sf=()=>sn.classList.toggle('more-r',sn.scrollLeft+sn.clientWidth<sn.scrollWidth-4);tb.addEventListener('scroll',tabFade,{passive:true});sn.addEventListener('scroll',sf,{passive:true});addEventListener('resize',()=>{tabFade();sf()});tabFade();sf()}
   if(STANDALONE_SITE){const sp=new URLSearchParams(location.search).get('s');const st=sp&&decodeState(sp);if(st){setRaw(st);if(st.REAL===false)REAL=false;const m=METROS.find(x=>x.slug===st.metro);if(m)updateMetroHints(m);history.replaceState(null,'',location.pathname)}}
   const shareBtn=document.getElementById('shareLink');shareBtn.hidden=!STANDALONE_SITE;
@@ -108,8 +107,7 @@ function loadScript(u){return new Promise((res,rej)=>{const sc=document.createEl
 (async()=>{
   // the cartesian build (scatter, bar, heatmap, contour, histogram) is all the app draws: about 1.4 MB instead of 4.6 MB
   const urls=LOCAL_LIBS.concat(['https://cdn.jsdelivr.net/npm/plotly.js-cartesian-dist-min@2.35.2/plotly-cartesian.min.js','https://unpkg.com/plotly.js-cartesian-dist-min@2.35.2/plotly-cartesian.min.js','https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js']);
-  // the numbers render right away; charts are drawn when the library has loaded. Spanish needs its dictionary first.
-  await i18nInit();i18nStart();
+  // the numbers render right away; charts are drawn when the library has loaded
   init();
   for(const u of urls){if(window.Plotly)break;try{await loadScript(u)}catch(e){}}
   if(!window.Plotly){window.Plotly={react(){throw new Error('the charting library did not load; check your connection and reload')}}}

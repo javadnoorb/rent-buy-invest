@@ -217,6 +217,7 @@ details.how[open] summary{margin-bottom:2px}
 .vhead{font-size:clamp(20px,3vw,28px);line-height:1.2}
 .vhead .who.buy{color:var(--buy)} .vhead .who.inv{color:var(--inv)}
 .vhead .vamt{font-variant-numeric:tabular-nums;white-space:nowrap}
+.vhead .vbasis{font-size:.6em;font-weight:400;color:var(--muted);white-space:nowrap}
 .answer{font-size:14px;background:none;padding:0;color:var(--ink)}
 .answer .conf{margin-right:8px}
 .vgrid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}

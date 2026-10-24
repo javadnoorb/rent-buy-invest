@@ -91,6 +91,7 @@ const HELP={
  moveYear:['Move year','The year of the planned move. It must come before the horizon to have an effect.'],
  volAdj:['Scale price swings','FHFA\'s home-price indexes leave out jumbo loans and swing less than Case-Shiller\'s. On keeps FHFA\'s timing and long-run growth but scales the ups and downs to Case-Shiller\'s size.'],
  heloc:['Home-equity line','A credit line secured by the home, up to this share of its value minus the mortgage (lenders typically allow 80–85%). It is counted as reserve cash in the liquidity checks but never drawn. Banks can freeze or cut lines when prices fall, as many did in 2008.'],
+ basis:['Today\'s vs. nominal dollars','Nominal dollars are the amounts you would actually see in the future. Today\'s dollars divide each future amount by the inflation expected up to that year (your inflation setting), so $100k in year 10 means what $100k buys now. The switch rescales every future amount: the headline, the Projection, Sensitivity, Monte Carlo, Locations and Scenarios charts, the yearly table and its CSV. It never changes which side wins, only the size of the gap. Amounts paid today (price, rent, cash needed, the Optimizer and affordability figures) are the same either way, and the Backtest and Data tabs always use today\'s dollars, adjusted with the inflation that actually happened.'],
  hz:['Chance of moving','Yearly chance you have to sell earlier than planned. Census surveys find about 4% of people in owned homes move each year, a typical stay of about 17 years; owners under 45 move more than twice as often.'],
  stressMult:['Moves likelier in bad years','How much more likely an early move is when home prices or stocks just fell (job loss and price drops tend to come together). Used in the simulations only.'],
  forcedDisc:['Forced-sale discount','How much below market value you would sell if forced to sell in a downturn. Research finds about 3–7% for sales after a bankruptcy or death, 27% for foreclosures.'],
@@ -100,7 +101,6 @@ const HELP={
  // ---------- top card ----------
  metro:['Location','Fills in local home price, rent, property tax, insurance and transfer taxes, and uses local home-price and rent history in the backtest and simulations. Your own numbers are better when you have them.'],
  N:['Horizon','How many years until you would sell and compare. Buying has large upfront and exit costs, so it usually needs several years to win.'],
- basis:['Today\'s vs. nominal dollars','Today\'s dollars remove inflation so future amounts are comparable to money now. Nominal shows the actual future dollar amounts.'],
  verdict:['What "comes out ahead" means','Each path\'s net worth if you sold everything at the horizon: home sold (after commission, transfer taxes, mortgage payoff and tax) plus investments cashed out after tax. Both households spend the same each month; whoever pays less invests the difference.'],
  conf:['How sure is the answer?','Share of 600 simulated futures (built from real historical years) in which buying ends ahead at your horizon. Very likely: 80%+ one way. Close call: 45–55%.'],
  paths:['The three paths','Buy: buy the home and invest any month owning is cheaper than renting. Rent + invest: rent and invest the down payment and any monthly savings in the portfolio. Rent + T-bills: same, but keep the money in Treasury bills (low risk).'],
@@ -190,7 +190,7 @@ function addHelp(el,key,title,where){if(!el||el.querySelector(':scope > .hlp'))r
 let POP=null,POP_FOR=null;
 function closeHelp(){if(POP){POP.hidden=true;POP_FOR=null}}
 function openHelp(btn){const k=btn.dataset.h;let t,b;
-  if(k.startsWith('chart:')){const id=k.slice(6);t=tr(enText(btn.closest('.card').querySelector('h2')).trim());b=CHART_HELP[id]+' <em>See "How to read this" below the chart for details.</em>'}
+  if(k.startsWith('chart:')){const id=k.slice(6);t=btn.closest('.card').querySelector('h2').textContent.trim();b=CHART_HELP[id]+' <em>See "How to read this" below the chart for details.</em>'}
   else if(k.startsWith('card:')){t=k.slice(5);b=CARD_HELP[t]||''}
   else{const h=HELP[k];if(!h)return;[t,b]=h}
   if(!POP){POP=document.createElement('div');POP.className='hpop';POP.setAttribute('role','dialog');POP.setAttribute('aria-live','polite');document.body.appendChild(POP)}
@@ -228,8 +228,8 @@ function wireHelp(){
 const STAT_HELP={'Buying pulls ahead':'st_pull','Owning, month 1':'st_own1','Cash to buy':'st_cash','Housing / income':'st_hti','Break-even rent':'st_beRent','Break-even home growth':'st_beG','Rent + T-bills':'st_cashpath'};
 const RISK_HELP={'Mean':'r_mean','Median':'r_med','5th percentile':'r_p5','95th percentile':'r_p95','Expected shortfall (worst 5%)':'r_es','Standard deviation':'r_sd','Liquid < 3 months of costs (first 5 yrs)':'r_lq'};
 function decorateHelp(){
-  document.querySelectorAll('.stat .k').forEach(k=>{if(k.querySelector('.hlp'))return;const txt=enText(k).trim();const key=STAT_HELP[txt]||(txt.startsWith('Expected gap')?'st_exp':null);if(key)k.insertAdjacentHTML('beforeend',' '+helpBtn(key,HELP[key][0]))});
-  document.querySelectorAll('.chip .k').forEach(k=>{if(k.querySelector('.hlp'))return;const t=enText(k).trim();if(CARD_HELP[t])k.insertAdjacentHTML('beforeend',' '+helpBtn('card:'+t,t))});
+  document.querySelectorAll('.stat .k').forEach(k=>{if(k.querySelector('.hlp'))return;const txt=k.textContent.trim();const key=STAT_HELP[txt]||(txt.startsWith('Expected gap')?'st_exp':null);if(key)k.insertAdjacentHTML('beforeend',' '+helpBtn(key,HELP[key][0]))});
+  document.querySelectorAll('.chip .k').forEach(k=>{if(k.querySelector('.hlp'))return;const t=k.textContent.trim();if(CARD_HELP[t])k.insertAdjacentHTML('beforeend',' '+helpBtn('card:'+t,t))});
   const w=document.getElementById('why');if(w&&w.textContent.trim()&&!w.querySelector('.hlp'))w.insertAdjacentHTML('afterbegin',helpBtn('why',HELP.why[0])+' ');
-  document.querySelectorAll('#riskT tbody tr td:first-child').forEach(td=>{if(td.querySelector('.hlp'))return;const t=enText(td).trim();const key=RISK_HELP[t]||(t.startsWith('Certainty equivalent')?'r_ce':null);if(key)td.insertAdjacentHTML('beforeend',' '+helpBtn(key,HELP[key][0]))});
+  document.querySelectorAll('#riskT tbody tr td:first-child').forEach(td=>{if(td.querySelector('.hlp'))return;const t=td.textContent.trim();const key=RISK_HELP[t]||(t.startsWith('Certainty equivalent')?'r_ce':null);if(key)td.insertAdjacentHTML('beforeend',' '+helpBtn(key,HELP[key][0]))});
 }

@@ -1,6 +1,6 @@
 <div class="wrap">
 <header>
-  <div class="hrow"><h1>Rent, Buy or Invest</h1><span class="hbtns"><button id="langBtn" class="ghost" translate="no" lang="es" aria-label="Ver en español">Español</button><button id="openWizard" class="ghost">Quick setup</button></span></div>
+  <div class="hrow"><h1>Rent, Buy or Invest</h1><span class="hbtns"><button id="openWizard" class="ghost">Quick setup</button></span></div>
   <p class="lede">Compares buying a home with renting and investing the difference, on the same monthly budget. Results are what you'd have if you sold everything, after costs and taxes. Every figure links to its source.</p>
   <p class="asof muted" id="asof"></p>
 </header>
@@ -100,7 +100,7 @@
       <div class="takeaway" id="tk-liq"></div>
       <details class="how"><summary>How to read this</summary><dl class="read"><dt>What you see</dt><dd>x: years. y: months of household costs that liquid assets could cover, on a log scale. Red dotted lines mark 3 and 6 months, the usual emergency-fund guidance.</dd><dt>What to look for</dt><dd>Whether the buyer stays below 3 months for several years. That is when a job loss or a big repair would force borrowing or a sale. The renter is usually far above the lines because nothing is locked in a house.</dd><dt>Keep in mind</dt><dd>Assumes neither household keeps a separate emergency fund. A home-equity line of credit can help the buyer, but lenders cut those lines in downturns.</dd></dl></details></div>
     </div>
-    <div class="card"><h2>Year-by-year table</h2><p class="cap">Copy as CSV to paste into a spreadsheet.</p>
+    <div class="card"><h2>Year-by-year table</h2><p class="cap">Amounts in <span id="ytBasis">today's $</span>. Copy as CSV to paste into a spreadsheet.</p>
       <div class="controls"><button id="copyCsv">Copy CSV</button><span class="sub" id="copyMsg"></span></div>
       <div class="tablewrap"><table id="ytable"></table></div>
       <details class="how"><summary>Show raw CSV text</summary><textarea class="csv" id="csvText" readonly></textarea></details>
@@ -141,7 +141,7 @@
   <section class="panel" id="tab-hist" hidden>
     <div class="card">
       <h2>If you had made this decision in the past</h2>
-      <p class="cap">Your price, rent and cost settings replayed through actual historical sequences of home prices, rents, stock, bond and bill returns, inflation and mortgage rates, including refinancing if enabled.</p>
+      <p class="cap">Your price, rent and cost settings replayed through actual historical sequences of home prices, rents, stock, bond and bill returns, inflation and mortgage rates, including refinancing if enabled. Always in today's dollars (adjusted with actual inflation); the Today's $ / Nominal $ switch doesn't apply to these replays.</p>
       <div class="controls">
         <label>Data <select id="h-mode"><option value="annual">Annual, 1972–2025</option><option value="monthly">Monthly, 1987–2026</option></select></label>
         <label>Mortgage rate <select id="h-rate"><option value="hist">Actual rate then</option><option value="now">My rate</option></select></label>

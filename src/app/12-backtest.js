@@ -36,7 +36,7 @@ function renderHist(){
   plot('p-hheat',[{x:xs,y:H,z,type:'heatmap',zmin:-zmax,zmax,colorscale:divScale(t),hoverongaps:false,colorbar:{title:{text:'% of price',side:'right'},thickness:10,outlinewidth:0},
     customdata:H.map(()=>runs.map(r=>r.lab)),hovertemplate:'bought %{customdata}, after %{y} yr: %{z:.0f}%<extra></extra>'},
     zeroContour(xs,H,z,t)],
-    {hovermode:'closest',xaxis:X(`Start · buying won in ${(share*100).toFixed(0)}% of ${win.length} starts at ${p.N} yr`),yaxis:Yt('Horizon (years)')});
+    {hovermode:'closest',xaxis:X(`Year of purchase · buying won in ${(share*100).toFixed(0)}% of ${win.length} starts at ${p.N} yr`),yaxis:Yt('Horizon (years)')});
   {const at=win.map(r=>({lab:r.lab,v:r.adv[p.N]})).sort((a,b)=>a.v-b.v);
    if(at.length){const md=at[Math.floor(at.length/2)].v,w=at[0],bst=at.at(-1);
      tk('spag',`Over ${at.length} historical starts with at least ${nY(p.N)} of data, buying won ${pct(share,0)} of the time. The median outcome was ${sgnP(md)} of the price; the worst was ${sgnP(w.v)} (bought ${w.lab}) and the best ${sgnP(bst.v)} (bought ${bst.lab}).`,'In history:');
@@ -51,6 +51,6 @@ function renderHist(){
   {const Nn=o.buy.length-1,g=(o.buy[Nn]-o.inv[Nn])/o.cpi[Nn];tk('hdet',`Bought ${r.lab}, after ${nY(Nn)}: ${gapTxt(g)} in today's dollars.${o.refis?` The buyer refinanced ${o.refis} time${o.refis>1?'s':''} along the way.`:''}`,'This start:')}
   plot('p-hdet',[tr(o.buy,'Buy',t.buy),tr(o.inv,'Rent + invest',t.inv),tr(o.cash,'Rent + T-bills',t.cash,'dot'),
     {x,y:o.rateAt.map(v=>v*100),name:'Loan rate',yaxis:'y2',mode:'lines',line:{color:t.neg,width:1.2,shape:'hv'},hovertemplate:'%{y:.2f}%'}],
-    {xaxis:X('Year'),yaxis:Yd('Real net worth'),yaxis2:{overlaying:'y',side:'right',ticksuffix:'%',showgrid:false,tickfont:{family:'IBM Plex Mono',color:t.neg}},margin:{l:64,r:44,t:10,b:innerWidth<600?72:48}});
+    {xaxis:X('Year'),yaxis:Yd("Net worth, today's $"),yaxis2:{overlaying:'y',side:'right',title:{text:'Loan rate',font:{size:11}},ticksuffix:'%',showgrid:false,tickfont:{family:'IBM Plex Mono',color:t.neg}},margin:{l:64,r:44,t:10,b:innerWidth<600?72:48}});
 }
 

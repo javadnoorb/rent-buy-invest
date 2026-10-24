@@ -336,7 +336,6 @@ data_js = (f"const LOCAL_LIBS={json.dumps([VENDOR['plotly']] if PWA else [])};\n
            "const SNAP=JSON.parse(document.getElementById('snapshot-data').textContent);\n"
            f"const RES={json.dumps(RES)};\nconst D0={json.dumps(D0)};\nconst FCST={json.dumps(FCST)};\n"
            f"const COUNTIES={json.dumps(COUNTIES, separators=(',', ':'))};\n"
-           f"const I18N_ES={'null' if PWA else open(D('src', 'i18n', 'es.json')).read()};\n"
            f"const CREDIT={json.dumps({'llpa': LR.get('llpa'), 'pmi': LR.get('pmi_fico')}, separators=(',', ':'))};\n"
            f"const STATE_RULES={json.dumps(_rules_embed(), separators=(',', ':'))};\n"
            f"const METROS={json.dumps(METROS, separators=(',', ':'))};\nconst MONTHLY={json.dumps(MONTHLY, separators=(',', ':'))};\n")

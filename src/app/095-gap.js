@@ -17,8 +17,7 @@ function gapParts(p,o){const N=p.N,c=o.cpi[N],LS=loanSetup(p,p.rate),sum=k=>o.fl
 /* Drawn as a walk of thick arrows: each part starts where the previous one ended and points right (in buying's
    favor, green) or left (renting's, blue); dotted lines join the steps and the value sits at each arrow's tip. The
    last row is the total, drawn from zero. An invisible bar per row carries the hover text. On phones the names and
-   values go above the arrows so the arrows get the full width. Labels are translated here (tr) rather than by the page
-   observer so the chart sizes its margin for the shown language. */
+   values go above the arrows so the arrows get the full width. */
 function renderGap(o){const t=theme(),p=P,{gap,parts}=gapParts(p,o),narrow=innerWidth<600;
   const rows=parts.map(([lab,v])=>({lab,v})),n=rows.length;let run=0;rows.forEach(r=>{r.a=run;run+=r.v;r.b=run});
   rows.push({lab:'Buy minus rent',v:gap,a:0,b:gap,total:true});
@@ -33,15 +32,15 @@ function renderGap(o){const t=theme(),p=P,{gap,parts}=gapParts(p,o),narrow=inner
     txt.push((r.total?'<b>':'')+(r.v>=0?'+':'')+fmt(r.v)+(r.total?'</b>':''));tpos.push(r.b>=r.a?'middle right':'middle left')});
   sh.push({type:'line',xref:'x',yref:'paper',x0:0,x1:0,y0:0,y1:1,line:{color:t.muted,width:1}},
     {type:'line',xref:'paper',yref:'y',x0:0,x1:1,y0:.5,y1:.5,line:{color:t.line,width:1}});
-  const ys=rows.map((r,i)=>y(i)),ticks=rows.map(r=>r.total?`<b>${tr(r.lab)}</b>`:tr(r.lab));
+  const ys=rows.map((r,i)=>y(i)),ticks=rows.map(r=>r.total?`<b>${r.lab}</b>`:r.lab);
   const names=narrow?rows.map((r,i)=>({xref:'paper',yref:'y',x:0,y:y(i)+.12,xanchor:'left',yanchor:'bottom',showarrow:false,
-    text:`${r.total?'<b>':''}${tr(r.lab)} <span style="color:${r.v>=0?t.buy:t.inv}">${r.v>=0?'+':''}${fmt(r.v)}</span>${r.total?'</b>':''}`,font:{size:11}})):[];
-  const dir=`<span style="color:${t.inv}">${tr('← favors renting')}</span>   <span style="color:${t.buy}">${tr('favors buying →')}</span>`;
+    text:`${r.total?'<b>':''}${r.lab} <span style="color:${r.v>=0?t.buy:t.inv}">${r.v>=0?'+':''}${fmt(r.v)}</span>${r.total?'</b>':''}`,font:{size:11}})):[];
+  const dir=`<span style="color:${t.inv}">← favors renting</span>   <span style="color:${t.buy}">favors buying →</span>`;
   plot('p-gap',[{type:'bar',orientation:'h',y:ys,x:bx,base,width:.9,marker:{color:'rgba(0,0,0,0)'},customdata:rows.map(r=>[r.lab,r.v]),
       hovertemplate:'%{customdata[0]}: %{customdata[1]:$,.0f}<extra></extra>'},
     {type:'scatter',mode:'text',visible:!narrow,x:tx,y:ty,text:txt,textposition:tpos,textfont:{color:tcol,family:'IBM Plex Mono, monospace',size:narrow?10:11},
       cliponaxis:false,hoverinfo:'skip'}],
-    {xaxis:{...Yd(basisLabel()),range:[lo-pad,hi+pad],title:{text:narrow?`${dir}<br>${tr(`At year ${p.N}, ${basisLabel()}`)}`:`${dir}      ${tr(`Effect on buy minus rent at year ${p.N}, ${basisLabel()}`)}`,font:{size:11}}},
+    {xaxis:{...Yd(basisLabel()),range:[lo-pad,hi+pad],title:{text:narrow?`${dir}<br>At year ${p.N}, ${basisLabel()}`:`${dir}      Effect on buy minus rent at year ${p.N}, ${basisLabel()}`,font:{size:11}}},
      yaxis:{automargin:true,tickvals:ys,ticktext:ticks,showticklabels:!narrow,range:[-.6,n+.6],showgrid:false,zeroline:false},hovermode:'closest',
      margin:{l:10,r:10,t:10,b:narrow?70:44},showlegend:false,shapes:sh,annotations:names});
   const pos=parts.filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]),neg=parts.filter(x=>x[1]<0).sort((a,b)=>a[1]-b[1]);

@@ -16,7 +16,7 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   // the page and data files (refreshed monthly, e.g. data/counties.json) are network-first, so updates show up
-  const isPage = req.mode === 'navigate' || (url.origin === location.origin && (url.pathname.endsWith('.html') || (url.pathname.includes('/data/') || url.pathname.includes('/i18n/'))));
+  const isPage = req.mode === 'navigate' || (url.origin === location.origin && (url.pathname.endsWith('.html') || url.pathname.includes('/data/')));
   if (isPage) {
     e.respondWith(fetch(req).then(r => { const c = r.clone(); caches.open(CACHE).then(cc => cc.put(req, c)); return r; })
       .catch(() => caches.match(req).then(r => r || (req.mode === 'navigate' ? caches.match('./index.html') : Response.error()))));

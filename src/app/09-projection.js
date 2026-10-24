@@ -33,7 +33,7 @@ function renderProj(){
     {x,y:o.pB.map((v,k)=>adj(v,o.cpi[k])),name:"Buyer's portfolio",stackgroup:'a',line:{color:t.inv,width:0},fillcolor:hexA(t.inv,.4),hovertemplate:'%{y:$,.0f}'},
     {x,y:o.H.map((v,k)=>adj(v,o.cpi[k])),name:'Home value',mode:'lines',line:{color:t.muted,dash:'dot',width:1.5},hovertemplate:'%{y:$,.0f}'},
     {x,y:o.bal.map((v,k)=>adj(v,o.cpi[k])),name:'Mortgage balance',mode:'lines',line:{color:t.neg,dash:'dash',width:1.5},hovertemplate:'%{y:$,.0f}'}],
-    {xaxis:X('Years from today'),yaxis:Yd(basisLabel())});
+    {xaxis:X('Years from today'),yaxis:Yd('Value, '+basisLabel())});
   const bud=o.budget.map((b,k)=>b||o.budget[1]||1);
   plot('p-liq',[
     {x,y:o.lqB.map((v,k)=>v/bud[k]),name:'Buyer',mode:'lines',line:{color:t.buy,width:2.5},hovertemplate:'%{y:.1f} months'},
@@ -46,7 +46,7 @@ function renderProj(){
   const v=(r,k)=>{const x=r[k];if(x==null)return '';if(k==='year')return x;if(k==='hti')return pct(x,0);if(k==='mortRate')return (x*100).toFixed(2)+'%';return Math.round(adj(x,r.cpiIndex)).toLocaleString('en-US')};
   document.getElementById('ytable').innerHTML='<thead><tr>'+cols.map(c=>`<th>${c[1]}</th>`).join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+cols.map(c=>`<td>${v(r,c[0])}</td>`).join('')+'</tr>').join('')+'</tbody>';
   const csv=[cols.map(c=>c[1]+(c[0]!=='year'&&c[0]!=='mortRate'?` (${basisLabel()})`:'')).join(',')].concat(rows.map(r=>cols.map(c=>{const x=r[c[0]];if(x==null)return '';if(c[0]==='year')return x;if(c[0]==='mortRate')return (x*100).toFixed(3);if(c[0]==='hti')return (x*100).toFixed(1);return Math.round(adj(x,r.cpiIndex))}).join(','))).join('\n');
-  document.getElementById('csvText').value=csv;
+  document.getElementById('csvText').value=csv;document.getElementById('ytBasis').textContent=basisLabel();
   {const N=P.N,c=o.cpi[N],gap=adj(o.buy[N]-o.inv[N],c);
    let t1=`At year ${N}: ${gapTxt(gap)}. `+(be?(be<=N?`Buying pulls ahead for good in year ${be}.`:`Buying pulls ahead only after year ${be}.`):`Buying does not pull ahead within ${nY(N)} at these growth rates.`);
    if(showBand&&MC&&MC.res){const r=(a,f)=>q(a.map(x=>x[N]),f);t1+=` In the middle half of simulated futures, buying ends at ${fmt(r(MC.res.buy,.25))}–${fmt(r(MC.res.buy,.75))} and renting-and-investing at ${fmt(r(MC.res.inv,.25))}–${fmt(r(MC.res.inv,.75))}${r(MC.res.buy,.75)>r(MC.res.inv,.25)&&r(MC.res.inv,.75)>r(MC.res.buy,.25)?', so the ranges overlap and luck could decide it':''}.`}

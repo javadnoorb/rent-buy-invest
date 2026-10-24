@@ -56,7 +56,7 @@ function drawLoc(rows){
   const lab=placeLabels(document.getElementById('p-locsc'),rows.map(r=>({x:r.ptr,y:r.gap,text:r.m.name,pri:(r.m.slug===P.metro?2e9:0)+(LOC_SEL.includes(r.m.slug)?1e9:0)+Math.abs(r.gap)})));
   plot('p-locsc',[{x:rows.map(r=>r.ptr),y:rows.map(r=>r.gap),text:lab.text,customdata:rows.map(r=>r.m.name),mode:'markers+text',textposition:lab.pos,textfont:{size:9,color:t.muted},
     marker:{size:rows.map(r=>r.m.slug===P.metro?12:8),color:rows.map(r=>r.gap>=0?t.buy:t.inv),line:{width:rows.map(r=>LOC_SEL.includes(r.m.slug)?1.5:0),color:t.ink}},hovertemplate:'%{customdata}<br>price ÷ yearly rent %{x:.1f}<br>buy − rent+invest %{y:$,.0f}<extra></extra>'}],
-    Object.assign(layout(),{xaxis:{...X('Price ÷ yearly rent'),range:lab.xr},yaxis:{...Yd(`Buy − rent+invest at year ${N}`),range:lab.yr},showlegend:false,shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:t.muted,width:1}}]}))}
+    Object.assign(layout(),{xaxis:{...X('Price ÷ yearly rent'),range:lab.xr},yaxis:{...Yd(`Buy − rent+invest at year ${N}, ${basisLabel()}`),range:lab.yr},showlegend:false,shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:t.muted,width:1}}]}))}
 /* Point labels that don't collide: points are taken most important first and each label goes to the first of eight
    spots around its point whose box (estimated from the chart's size and fixed axis ranges) overlaps no placed label,
    no other point and stays inside the plot; a label with no free spot is left to the hover text. */

@@ -13,8 +13,8 @@ function summary(){
   const beG=bisect(g=>advAt(p,{gh:g}),-0.15,0.25);
   const o30=simulate(Object.assign({},p,{N:Math.max(N,1)}),constPath(p,N),{N});
   const ex=expectedWithMoving(o30,p);
-  document.getElementById('vhead').innerHTML=even?`After ${N} year${N>1?'s':''}, buying and renting end up about even <span class="vamt">(${d>=0?'+':'−'}${fmt(Math.abs(d))} for buying)</span>`:
-    `${d>=0?'<span class="who buy">Buying</span>':'<span class="who inv">Renting and investing</span>'} comes out ahead by <span class="vamt">${fmt(Math.abs(d))}</span> after ${N} year${N>1?'s':''}`;
+  document.getElementById('vhead').innerHTML=even?`After ${N} year${N>1?'s':''}, buying and renting end up about even <span class="vamt">(${d>=0?'+':'−'}${fmt(Math.abs(d))} for buying, ${basisLabel()})</span>`:
+    `${d>=0?'<span class="who buy">Buying</span>':'<span class="who inv">Renting and investing</span>'} comes out ahead by <span class="vamt">${fmt(Math.abs(d))}</span> <span class="vbasis">(${basisLabel()})</span> after ${N} year${N>1?'s':''}`;
   const rp=p.rentalOn&&o.rental[N]!=null?adj(o.rental[N],c):null;
   const opts=[['buy','Buy',b],['inv','Rent + invest',iv],['cash','Rent + T-bills',ca]].concat(rp!=null?[['rp','Rent + rental property',rp]]:[]),mx=Math.max(...opts.map(o=>o[2]),1),top=Math.max(...opts.map(o=>o[2]));
   const best=(k,v)=>v===top&&!(even&&(k==='buy'||k==='inv'));

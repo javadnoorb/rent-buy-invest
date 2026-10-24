@@ -46,12 +46,6 @@ function fitAxes(data,L){for(const k of Object.keys(L)){const m=k.match(/^([xy])
     const cat=ax.type==='category'||ax.tickvals||data.some(d=>(d[m[1]+'axis']||m[1])===ref&&Array.isArray(d[m[1]])&&typeof d[m[1]][0]==='string'&&ax.type!=='date'&&!/^\d{4}-\d\d/.test(d[m[1]][0]));
     if(cat)delete ax.nticks}
   return L}
-/* In Spanish, chart text (trace names, category labels, axis titles, annotations) is translated before drawing, so
-   margins and legends are sized for the words shown; the page observer then finds nothing left to change. */
-function i18nFig(data,L){if(LANG==='en'||!I18N_DICT)return;const s=v=>typeof v==='string'?tr(v):v,arr=a=>Array.isArray(a)&&typeof a[0]==='string'&&!/^\d{4}-\d\d/.test(a[0])?a.map(s):a;
-  for(const d of data){if(d.name)d.name=s(d.name);d.x=arr(d.x);d.y=arr(d.y)}
-  for(const k of Object.keys(L)){const ax=L[k];if(!/^[xy]axis\d*$/.test(k)||!ax)continue;if(ax.title&&ax.title.text)ax.title=Object.assign({},ax.title,{text:s(ax.title.text)});if(ax.ticktext)ax.ticktext=ax.ticktext.map(s)}
-  if(L.annotations)L.annotations=L.annotations.map(a=>Object.assign({},a,a.text?{text:s(a.text)}:{},typeof a.y==='string'?{y:s(a.y)}:{},typeof a.x==='string'?{x:s(a.x)}:{}))}
 /* on phones long axis titles and corner notes wrap onto lines of at most n characters (text with markup is left alone) */
 function wrapText(tx,n){if(typeof tx!=='string'||/<(?!br>)/.test(tx))return tx;
   return tx.split('<br>').map(line=>{const out=[];let cur='';for(const w of line.split(' ')){if(cur&&(cur+' '+w).length>n){out.push(cur);cur=w}else cur=cur?cur+' '+w:w}out.push(cur);return out.join('<br>')}).join('<br>')}
@@ -61,7 +55,7 @@ function wrapTitles(L){if(innerWidth>=600)return;for(const k of Object.keys(L)){
 function plot(id,data,lay){const el=document.getElementById(id);
   if(PLOTLY_STATE==='loading'){PLOT_WAIT.set(id,[data,lay]);if(!el.dataset.wait){el.dataset.wait=1;el.innerHTML='<div class="note plotwait">Loading chart…</div>'}describeChart(el);return}
   if(el.dataset.wait){el.innerHTML='';delete el.dataset.wait}
-  try{if(el.dataset.err){el.innerHTML='';delete el.dataset.err}const L=fitAxes(data,layout(lay));i18nFig(data,L);wrapTitles(L);Plotly.react(el,data,L,CFG);describeChart(el)}
+  try{if(el.dataset.err){el.innerHTML='';delete el.dataset.err}const L=fitAxes(data,layout(lay));wrapTitles(L);Plotly.react(el,data,L,CFG);describeChart(el)}
   catch(e){console.error(id,e);el.dataset.err=1;el.innerHTML=`<div class="note">This chart could not be drawn (${String(e.message||e).slice(0,160)}).</div>`}}
 const X=(t)=>({...layout().xaxis,title:{text:t,font:{size:11}}});
 const Yd=(t)=>({...layout().yaxis,title:{text:t,font:{size:11}},tickprefix:'$',tickformat:'~s'});

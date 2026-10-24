@@ -32,7 +32,6 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
     const json = { '/data/counties.json': ROWS, '/data/county_fmr.json': FMR, '/data/county_hpi/53.json': HPI53, '/data/zip/98.json': ZIP98 }[u];
     if (u === '/data/counties.json') countyFetches++;
     if (json) { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(json)); }
-    if (u === '/i18n/es.json') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(fs.readFileSync(path.join(ROOT, 'src/i18n/es.json'))); }
     const f = path.join(ROOT, path.normalize(u));
     if (!f.startsWith(ROOT) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); return res.end(); }
     res.writeHead(200); fs.createReadStream(f).pipe(res);
@@ -228,6 +227,10 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
   /* charts: an axis of named categories keeps every label (no tick limit) and every axis sizes its margin to its labels */
   const ax = await page.evaluate(() => { const L = fitAxes([{ y: ['a', 'b'], x: [1, 2] }], { xaxis: { nticks: 6 }, yaxis: { nticks: 5 } }); return [L.yaxis.nticks, L.xaxis.nticks, L.yaxis.automargin, L.xaxis.automargin]; });
   ok(ax[0] === undefined && ax[1] === 6 && ax[2] && ax[3], 'category axes show every label; numeric axes keep their tick limit', JSON.stringify(ax));
+  /* the dollar basis is named in the headline and switches with the toggle */
+  const bh = await page.evaluate(async () => { const a = document.getElementById('vhead').textContent; document.getElementById('nomBtn').click(); await new Promise(r => setTimeout(r, 900));
+    const b = document.getElementById('vhead').textContent; document.getElementById('realBtn').click(); await new Promise(r => setTimeout(r, 900)); return [a, b]; });
+  ok(/today's \$/.test(bh[0]) && /nominal \$/.test(bh[1]), 'headline names the dollar basis', JSON.stringify(bh));
   /* dependent settings: hidden while the setting they depend on makes them irrelevant */
   const vis = id => page.evaluate(id => !document.getElementById(id).closest('.f').classList.contains('dep-off'), id);
   const d0 = [await vis('armRate'), await vis('pmi'), await vis('mu'), await vis('refiTh')];
@@ -235,22 +238,6 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
   const d1 = [await vis('armRate'), await vis('pmi'), await vis('mu')];
   ok(!d0[0] && !d0[1] && d0[2] && d1[0] && d1[1] && !d1[2], 'dependent settings show and hide with their parent', JSON.stringify([d0, d1]));
   await set({ loanType: 'fixed', dp: '20', taxOn: '1' }); await page.evaluate(() => syncDeps());
-
-  /* Spanish: ?lang=es loads the dictionary and translates the page as it renders; the choice is remembered */
-  await page.goto(base + 'index.html?lang=es');
-  await page.waitForFunction(() => document.getElementById('vhead').textContent !== 'Computing…' && /años|año/.test(document.getElementById('vhead').textContent), null, { timeout: 30000 });
-  const es = await page.evaluate(() => ({ lang: document.documentElement.lang, head: document.getElementById('vhead').textContent, tabs: [...document.querySelectorAll('[role=tab]')].map(t => t.textContent),
-    btn: document.getElementById('langBtn').textContent, sumry: document.querySelector('aside details summary').textContent, method: document.getElementById('tab-method').lang }));
-  ok(es.lang === 'es' && /(Comprar|Alquilar).*(sale ganando|empatados)/.test(es.head), 'Spanish headline', JSON.stringify(es));
-  ok(es.tabs.includes('Proyección') && es.tabs.includes('Ubicaciones') && es.btn === 'English', 'Spanish tabs and the switch back', es.tabs.join(','));
-  ok(/Vivienda e hipoteca/.test(es.sumry) && es.method === 'en', 'settings translated; Method tab marked as English');
-  await page.click('.hlp[data-h="hz"], .hlp'); await page.waitForTimeout(300);
-  ok(await page.evaluate(() => { const p = document.querySelector('.pop:not([hidden]), [role=dialog]:not([hidden])'); return !p || !/\b(the|and|your)\b/.test(p.textContent) }), 'help popup in Spanish');
-  await page.evaluate(() => closeHelp && closeHelp());
-  await page.goto(base + 'index.html'); await page.waitForTimeout(800);
-  ok(await page.evaluate(() => LANG === 'es'), 'Spanish is remembered without ?lang');
-  await page.evaluate(() => setLang('en')); await page.waitForTimeout(1500);
-  ok(await page.evaluate(() => LANG === 'en' && document.documentElement.lang === 'en'), 'switching back to English');
 
   ok(!errors.length, 'no page errors', errors.join(' | '));
   await browser.close(); server.close();

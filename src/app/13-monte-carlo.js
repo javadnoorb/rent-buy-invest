@@ -63,7 +63,7 @@ function drawMC(){if(!MC)return;mcSync();
     {hovermode:'closest',bargap:0.02,showlegend:false,xaxis:{...X('Buy − rent&invest, '+basisLabel()),tickprefix:'$',tickformat:'~s'},yaxis:Yt('Paths'),shapes:[{type:'line',x0:0,x1:0,yref:'paper',y0:0,y1:1,line:{color:t.ink,width:1.5}}]});
   const dm=Math.max(1,...d.map(Math.abs));
   plot('p-mcsc',[{x:res.gH,y:res.gP,mode:'markers',type:'scatter',marker:{size:4,color:d,cmin:-dm,cmax:dm,colorscale:divScale(t).map(([k,c],i)=>[k,i===4?t.muted:c]),opacity:.8,
-    colorbar:{title:{text:'advantage',side:'right'},thickness:10,outlinewidth:0,tickprefix:'$',tickformat:'~s'}},hovertemplate:'home %{x:.1f}%/yr, portfolio %{y:.1f}%/yr<br>%{marker.color:$,.0f}<extra></extra>'}],
+    colorbar:{title:{text:'advantage, '+basisLabel(),side:'right'},thickness:10,outlinewidth:0,tickprefix:'$',tickformat:'~s'}},hovertemplate:'home %{x:.1f}%/yr, portfolio %{y:.1f}%/yr<br>%{marker.color:$,.0f}<extra></extra>'}],
     {hovermode:'closest',xaxis:X(`Own-home appreciation, annualized over ${h} yr (%)`),yaxis:Yt('Portfolio return, annualized (%)')});
   const yr=[...Array(N)].map((_,k)=>k+1),rq=f=>yr.map((_,k)=>100*q(res.rates.map(a=>a[k]),f));
   const nref=res.refis.filter(v=>v>0).length/n,avgRef=res.refis.reduce((a,b)=>a+b,0)/n;
@@ -79,6 +79,6 @@ function drawMC(){if(!MC)return;mcSync();
    tk('mcrate',`In ${pct(hit,0)} of futures the market rate falls at least ${(P.refiTh*100).toFixed(2)} points below your ${pct(P.rate,2)} within ${nY(k)}${P.refiOn?', triggering a refinance':' (refinancing is off)'}.`)}
   plot('p-mcrate',[{x:yr,y:rq(.95),mode:'lines',line:{width:0},showlegend:false,hoverinfo:'skip'},{x:yr,y:rq(.05),mode:'lines',line:{width:0},fill:'tonexty',fillcolor:hexA(t.neg,.15),name:'5–95%',hoverinfo:'skip'},
     {x:yr,y:rq(.5),mode:'lines',line:{color:t.neg,width:2.5},name:'Median market rate',hovertemplate:'%{y:.2f}%'}],
-    {xaxis:X('Years from today'),yaxis:Yt('30-yr rate',{ticksuffix:'%'}),margin:{t:innerWidth<600?54:38},annotations:[{xref:'paper',yref:'paper',x:0,y:1,xanchor:'left',yanchor:'bottom',align:'left',showarrow:false,text:P.refiOn?`${tr(`${pct(nref,0)} of paths refinance at least once`)}<br>${tr(`${avgRef.toFixed(2)} refis on average`)}`:'refinancing is off',font:{size:11,color:t.muted}}]});
+    {xaxis:X('Years from today'),yaxis:Yt('30-yr rate',{ticksuffix:'%'}),margin:{t:innerWidth<600?54:38},annotations:[{xref:'paper',yref:'paper',x:0,y:1,xanchor:'left',yanchor:'bottom',align:'left',showarrow:false,text:P.refiOn?`${pct(nref,0)} of paths refinance at least once<br>${avgRef.toFixed(2)} refis on average`:'refinancing is off',font:{size:11,color:t.muted}}]});
 }
 
