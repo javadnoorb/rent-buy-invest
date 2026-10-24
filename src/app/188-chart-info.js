@@ -44,7 +44,7 @@ function ciHTML(k){const c=CHART_INFO[k];if(!c)return '';const sec=id=>{const d=
   return (model?`<div><b>Model:</b> ${model}</div>`:'')+(data?`<div><b>Data:</b> ${data}</div>`:'')+`<div><b>Assumptions:</b> ${asm||''}${c.note?(asm?' — ':'')+c.note:''}</div>`}
 function refreshChartInfo(){document.querySelectorAll('details.how[open] dd.cinfo').forEach(dd=>dd.innerHTML=ciHTML(dd.dataset.c))}
 /* open a setting in the assumptions panel (the bottom sheet on phones) and focus it */
-function gotoSetting(id){const el=document.getElementById(id);if(!el)return;const fab=document.getElementById('fab');
+function gotoSetting(id){const el=document.getElementById(id);if(!el)return;if(SET_MODE==='basic'&&!CORE.includes(id))setMode('all');const fab=document.getElementById('fab');
   if(fab&&getComputedStyle(fab).display!=='none'&&!fab.hidden)fab.click();
   const g=el.closest('details');if(g)g.open=true;setTimeout(()=>{el.scrollIntoView({behavior:'smooth',block:'center'});el.focus({preventScroll:true})},60)}
 function gotoMethod(id){showTab('method');setTimeout(()=>{const d=document.getElementById(id);if(!d)return;d.hidden=false;d.open=true;d.scrollIntoView({behavior:'smooth',block:'start'})},120)}

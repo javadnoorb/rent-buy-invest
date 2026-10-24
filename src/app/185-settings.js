@@ -26,10 +26,19 @@ function markChanged(){let total=0;const per=new Map();
     if(ch&&!row.classList.contains('dep-off')){total++;const d=row.closest('details');per.set(d,(per.get(d)||0)+1)}});
   document.querySelectorAll('aside details').forEach(d=>{const s=d.querySelector('summary');if(!s.dataset.base)s.dataset.base=s.textContent;const n=per.get(d)||0;
     s.innerHTML=`<span>${s.dataset.base}</span>${n?`<span class="gchg">${n} changed</span>`:''}`});
+  const hid=SET_MODE==='basic'?F.filter(f=>!CORE.includes(f[1])&&isChanged(f[1])&&!document.getElementById(f[1]).closest('.dep-off')).length:0;
+  document.getElementById('modeNote').innerHTML=SET_MODE==='basic'?(hid?`${hid} other changed setting${hid>1?'s':''} · <button type="button" class="linkbtn" data-m="all">show</button>`:'the inputs that matter most'):'';
   document.getElementById('achg').innerHTML=total?`${total} setting${total>1?'s':''} changed from the defaults · <button type="button" class="linkbtn" id="resetAllTop">reset all</button>`:'All settings at their defaults for this location';
   const rb=document.getElementById('resetAllTop');if(rb)rb.onclick=()=>document.getElementById('reset').click()}
+/* Basic shows the settings that move the answer most; All shows every setting. A search always looks through all of them. */
+const CORE=['P','dp','rate','term','rent0','ptax','ins','maint','gh','gr','rs','inf','income'];
+let SET_MODE='basic';
+function setMode(m){SET_MODE=m==='all'?'all':'basic';const aside=document.getElementById('aside');aside.classList.toggle('basic',SET_MODE==='basic');
+  document.querySelectorAll('#setMode button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===SET_MODE));
+  if(SET_MODE==='basic')aside.querySelectorAll('details:not(.nocore)').forEach(d=>d.open=true);
+  try{localStorage.setItem('rbi-setmode',SET_MODE)}catch(e){}if(P)markChanged()}
 let GROUP_STATE=null;
-function filterSettings(q){q=q.trim().toLowerCase();const groups=[...document.querySelectorAll('aside details')];
+function filterSettings(q){q=q.trim().toLowerCase();const groups=[...document.querySelectorAll('aside details')];document.getElementById('aside').classList.toggle('searching',!!q);
   if(q&&!GROUP_STATE)GROUP_STATE=groups.map(d=>d.open);
   let any=false;
   groups.forEach((d,gi)=>{let hits=0;d.querySelectorAll('.f').forEach(row=>{const txt=row.textContent.toLowerCase();const hit=!q||txt.includes(q);row.hidden=!hit;if(hit&&!row.classList.contains('dep-off'))hits++});
@@ -43,6 +52,10 @@ function wireSettings(){
   document.querySelector('aside').addEventListener('click',e=>{const b=e.target.closest('.rst');if(b){e.preventDefault();resetField(b.dataset.rst);if(b.dataset.rst==='beds')setRentFromBeds();update();return}
     const h=e.target.closest('.f .hint');if(h&&!e.target.closest('a'))h.classList.toggle('open')});
   document.getElementById('aq').addEventListener('input',e=>filterSettings(e.target.value));
+  CORE.forEach(id=>document.getElementById(id).closest('.f').classList.add('core'));
+  document.querySelectorAll('aside details').forEach(d=>d.classList.toggle('nocore',!d.querySelector('.f.core')));
+  document.querySelector('aside').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(b&&b.closest('.amode'))setMode(b.dataset.m)});
+  {let m=null;try{m=localStorage.getItem('rbi-setmode')}catch(e){}setMode(m||'basic')}
   let saved=null;try{saved=JSON.parse(localStorage.getItem('rbi-groups')||'null')}catch(e){}
   const groups=[...document.querySelectorAll('aside details')];
   if(saved&&saved.length===groups.length)groups.forEach((d,i)=>d.open=saved[i]);

@@ -237,6 +237,12 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
     const box = document.createElement('div'); box.innerHTML = ciHTML('nw');
     return { missing, links: box.querySelectorAll('[data-ci-sec]').length, sets: box.querySelectorAll('[data-ci-set]').length, folded: [...document.querySelectorAll('details.tfold')].every(d => !d.open) }; });
   ok(!ci.missing.length && ci.links >= 3 && ci.sets >= 8 && ci.folded, 'chart notes on every chart; tables folded', JSON.stringify(ci));
+  /* Basic shows the core settings only, says when hidden settings were changed, and a search looks through all of them */
+  const bm = await page.evaluate(async () => { const vis = () => [...document.querySelectorAll('aside .f')].filter(r => getComputedStyle(r).display !== 'none' && !r.hidden && r.closest('details:not([hidden])') && getComputedStyle(r.closest('details')).display !== 'none').length;
+    setMode('basic'); const b = vis(); const n0 = +((document.getElementById('modeNote').textContent.match(/^(\d+)/) || [0, 0])[1]); setMode('all'); const a = vis(); const h = document.getElementById('hoa'); h.value = '150'; h.dispatchEvent(new Event('input', { bubbles: true }));
+    await new Promise(r => setTimeout(r, 600)); setMode('basic'); const note = document.getElementById('modeNote').textContent; filterSettings('hoa'); const q = vis(); filterSettings('');
+    resetField('hoa'); update(); setMode('all'); return { b, a, note, q, n0 }; });
+  ok(bm.b === 13 && bm.a > 60 && new RegExp('^' + (bm.n0 + 1) + ' other changed').test(bm.note) && bm.q === 1, 'Basic / All settings', JSON.stringify(bm));
   /* dependent settings: hidden while the setting they depend on makes them irrelevant */
   const vis = id => page.evaluate(id => !document.getElementById(id).closest('.f').classList.contains('dep-off'), id);
   const d0 = [await vis('armRate'), await vis('pmi'), await vis('mu'), await vis('refiTh')];
