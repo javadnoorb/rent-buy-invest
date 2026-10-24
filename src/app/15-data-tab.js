@@ -1,6 +1,6 @@
 /* ===================== Data tab ===================== */
 let dataDone=false;
-function renderData(){
+function renderData(){renderDataInventory();
   const t=theme(),x=[1927,...YEARS];
   const cum=a=>{let v=1;const out=[1];a.forEach((r,i)=>{v*=(1+r/100);out.push(v/(CPIL[i+1]/CPIL[0]))});return out};
   plot('p-cum',[

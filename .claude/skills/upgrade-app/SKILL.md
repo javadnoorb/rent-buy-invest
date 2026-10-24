@@ -129,3 +129,9 @@ changes, then what was **not** done and why, and any uncertain facts. Offer the 
   refit test (`RENT_ELAST` in `tests/validate.js`); check links with `scripts/check_links.py` from a temporary probe
   workflow, then replace dead ones from official sources found by search (an agent can do this in the background).
 - A source with several documents needs one entry per URL; a list joined into one href is a broken link.
+- Every dataset belongs in the Data tab's inventory (`151-data-inventory.js`); a UI test fails when a cited source is
+  missing from it. Show each figure's data period (from `SNAP.items`), not the fetch date, in one date style.
+- On phones, don't line-clamp or ellipsize sentences: write a shorter version that fits (`.lede .lshort`); a UI test
+  checks the header and market cards at 390px.
+- State what each path must do to earn its result (the renter's up-front and monthly investing, `investPlan`), not
+  only the outcome.

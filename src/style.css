@@ -319,7 +319,7 @@ table.notation td:last-child{color:var(--muted)}
 }
 
 /* Android phones (e.g. Galaxy A52, 412px wide) */
-.chip .k{display:flex;align-items:center;gap:2px;white-space:nowrap}
+.chip .k{display:flex;align-items:flex-start;gap:2px}
 .chip .k .hlp{margin-left:auto}
 .hz .row{justify-content:flex-start}
 .hz .row .seg{margin-left:auto}
@@ -354,7 +354,7 @@ table.loct td:first-child{min-width:150px}
 @media (prefers-reduced-motion:reduce){.plot:empty{animation:none}}
 /* market cards: label truncates so the help button never overlaps it */
 .chip .k{min-width:0}
-.chip .kt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.chip .kt{min-width:0}
 .chip .k .hlp{margin-left:auto;flex:none}
 .snap.more-r{-webkit-mask-image:linear-gradient(to right,#000 90%,transparent);mask-image:linear-gradient(to right,#000 90%,transparent)}
 /* compact answer bar */
@@ -430,14 +430,14 @@ aside.basic:not(.searching) .f:not(.core),aside.basic:not(.searching) details.no
 .vnote .warn,#vnote .warn{color:var(--neg)}
 /* the market cards are filled in by script: reserve their row so the page doesn't jump when they appear */
 .snap{min-height:var(--snap-h,136px)}
+.lede .lshort{display:none}
 @media (max-width:600px){
-  /* phones: shorter intro and compact cards, so the answer starts higher on the first screen */
-  .lede{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  /* phones: a shorter intro (the full one doesn't fit; a cut-off one reads badly) and compact cards, so the answer starts higher on the first screen */
+  .lede .llong{display:none}.lede .lshort{display:inline}
   :root{--snap-h:96px}
   .snap{grid-auto-columns:minmax(132px,42%)!important}
   .chip{padding:6px 8px}
   .chip .v{font-size:15px}
-  .chip .s{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 }
 /* touch: larger invisible hit areas for the small "?" buttons, and the words next to the answer's "?" open it too */
 .vlab{cursor:pointer}
@@ -461,6 +461,9 @@ input,select,h2,h3,.plot,details,.card{scroll-margin-top:var(--smt)}
 @media print{.ciback{display:none!important}}
 .hint:empty{display:none}
 body.simple .tech{display:none!important}
+.kv.inv td{white-space:normal;text-align:left;font-family:var(--body);vertical-align:top}.kv.inv th{text-align:left}.kv.inv td:first-child{min-width:170px}.kv.inv td:nth-child(3){white-space:nowrap}
+.kv.inv tr.grp th{background:var(--sunk);color:var(--ink);font-weight:600;font-size:12.5px;padding:6px 8px;position:static}
+.invplan{margin:8px 0 0;font-size:13.5px;line-height:1.5;padding:8px 10px;border-left:3px solid var(--inv);background:var(--sunk);border-radius:0 6px 6px 0;max-width:90ch}
 .invdef{margin:4px 0 0;font-size:12.5px}
 .viewseg{margin-right:8px}.viewseg button{padding:6px 10px;font-size:13px}
 .subh{font-size:14px;margin:14px 0 4px}.facts{margin:0 0 6px;padding-left:20px;font-size:13.5px;line-height:1.5}.facts li{margin:3px 0}

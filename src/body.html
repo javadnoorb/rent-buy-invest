@@ -2,7 +2,7 @@
 <a class="skip" href="#vtop">Skip to the calculator</a>
 <header>
   <div class="hrow"><h1>Rent, Buy or Invest</h1><span class="hbtns"><span class="seg viewseg" id="viewMode" role="group" aria-label="How much detail"><button type="button" data-v="simple" aria-pressed="true">Simple</button><button type="button" data-v="detailed" aria-pressed="false">Detailed</button></span><button id="openWizard" class="ghost">Quick setup</button></span></div>
-  <p class="lede">Compares buying a home with renting and investing the difference, on the same monthly budget. Results are what you'd have if you sold everything, after costs and taxes. Data-based figures link to their source; planning values are marked "assumption".</p>
+  <p class="lede"><span class="llong">Compares buying a home with renting and investing the difference, on the same monthly budget. Results are what you'd have if you sold everything, after costs and taxes. Data-based figures link to their source; planning values are marked "assumption".</span><span class="lshort">Buying vs. renting and investing the difference, on the same budget, after costs and taxes.</span></p>
   <p class="asof muted" id="asof"></p>
 </header>
 
@@ -49,6 +49,7 @@
     </div>
     <div class="bars" id="bars"></div>
     <p class="sub invdef" id="invDef"></p>
+    <div class="invplan" id="invPlan"></div>
     <div class="vgrid" id="vgrid"></div>
     <p class="why" id="why"></p>
     <details class="more"><summary>More numbers</summary>
@@ -258,6 +259,9 @@
 
   <!-- DATA -->
   <section class="panel" id="tab-data" hidden>
+    <div class="card"><h2>Every dataset in the app</h2><p class="cap">What each dataset is, what the app uses it for, its period or date, and where it comes from. The charts below show the history; the Method tab shows how each is used.</p>
+      <div class="tablewrap" style="max-height:none"><table class="kv inv" id="invT"></table></div>
+    </div>
     <div class="card"><h2>Cumulative real growth, 1928–2025</h2><p class="cap">$1 at the end of 1927, deflated by CPI-U, log scale. Stocks include dividends; the home index is price only.</p><div class="plot tall" id="p-cum"></div>
       <div class="takeaway" id="tk-cum"></div>
       <details class="how"><summary>How to read this</summary><dl class="read"><dt>What you see</dt><dd>y: what $1 invested at the end of 1927 grew to, after inflation, on a log scale. Equal vertical distances mean equal percentage growth.</dd><dt>What to look for</dt><dd>Stocks grow far faster but fall hard (1929, 1973, 2000, 2008). Home prices barely beat inflation over long stretches.</dd><dt>Keep in mind</dt><dd>The home line is price only. Owning also saves you rent, which is the main return on a home and why this app models rent explicitly.</dd></dl></details></div>

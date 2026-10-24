@@ -279,6 +279,19 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
   await page.goBack(); await page.waitForTimeout(700);
   const bk3 = await page.evaluate(() => [CUR, document.getElementById('ciBack').hidden]);
   ok(bk1[0] === 'method' && bk1[1] && /Where the gap/.test(bk1[2]) && bk2[0] === 'proj' && bk2[1] && bk2[2] && bk3[0] === 'proj' && bk3[1], 'back from a chart-note link to the chart', JSON.stringify([bk1, bk2, bk3]));
+  /* Data tab: every source the app cites is in the dataset table (numbered sub-sources through their parent) */
+  const invMiss = await page.evaluate(() => { const used = new Set(dataInventory().flatMap(g => g[1]).flatMap(r => r[3].map(x => x[0])));
+    return Object.keys(SRC).filter(k => !used.has(k) && !used.has(k.replace(/_\d+$/, ''))); });
+  ok(!invMiss.length, 'Data tab lists every dataset the app cites', invMiss.join(', '));
+  /* the renter's side: up-front cash and the monthly amounts to invest are stated under the answer */
+  const plan = await page.evaluate(() => document.getElementById('invPlan').textContent);
+  ok(/renter invests \$[\d,]+ at the start/.test(plan) && /\/mo in year 1|buyer invests the difference/.test(plan), 'renter investing plan shown', plan.slice(0, 160));
+  /* phone: nothing at the top of the page is cut off with an ellipsis or a line clamp */
+  await page.setViewportSize({ width: 390, height: 844 }); await page.waitForTimeout(400);
+  const cut = await page.evaluate(() => [...document.querySelectorAll('header *, #snap *')].filter(e => { if (!e.offsetParent) return false; const cs = getComputedStyle(e);
+    return (cs.textOverflow === 'ellipsis' || cs.webkitLineClamp !== 'none') && (e.scrollWidth > e.clientWidth + 1 || e.scrollHeight > e.clientHeight + 1); }).map(e => e.className));
+  await page.setViewportSize({ width: 1280, height: 900 }); await page.waitForTimeout(400);
+  ok(!cut.length, 'phone: header and market cards are not cut off', cut.join(', '));
   /* Simple / Detailed view: Simple hides the technical tabs and cards and uses the basic settings; Detailed shows them */
   await page.click('#viewMode [data-v="simple"]'); await page.waitForTimeout(400);
   const vs = await page.evaluate(() => [VIEW, getComputedStyle(document.querySelector('.tabs [data-tab="mc"]')).display, getComputedStyle(document.getElementById('p-liq').closest('.card')).display, SET_MODE]);

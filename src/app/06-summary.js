@@ -2,6 +2,19 @@
 function affCell(own1,p){if(!p.income)return 'n/a';const fe=own1/(p.income/12),be=(own1+p.debt)/(p.income/12);
   const col=fe<=0.28&&be<=0.36?'--good':(be<=0.43?'--warn':'--bad');
   return `<span style="color:var(${col})">${pct(fe,0)}</span><span class="sub" style="font-family:var(--body)"> · all debt ${pct(be,0)}</span>`}
+/* The renter's side of the comparison: rent + invest only reaches its result if the renter invests the buyer's
+   up-front cash and, each month that renting is cheaper, the difference (and the buyer invests it in months when owning
+   is cheaper). Amounts per month are year averages in the chosen dollars. */
+function investPlan(p){const N=p.N,o=simulate(p,constPath(p,N),{N,detail:true}),fl=o.flow.slice(0,N),sh=p.investShare;
+  const C0=p.P*(p.dp+p.close)+p.moveIn+loanSetup(p,p.rate).ptsCost,r=fl.map(f=>adj(Math.max(0,f.own-f.rent)*sh,f.cpi)),bI=fl.map(f=>adj(Math.max(0,f.rent-f.own)*sh,f.cpi));
+  const flip=r.findIndex((v,y)=>y>0&&v<=0&&r[y-1]>0),mid=Math.min(N,5),tot=r.reduce((a,v)=>a+v*12,0),totB=bI.reduce((a,v)=>a+v*12,0);
+  const at=y=>`${fmtFull(r[y-1])}/mo in year ${y}`,spend=advAt(p,{investShare:0}),cur=advAt(p,{});
+  let monthly=r[0]>0?`then, each month, the difference between owning and renting costs, on average after the owner's tax savings: ${at(1)}${mid>1&&Math.abs(r[mid-1]-r[0])>=1?`, ${at(mid)}`:''}${N>mid&&flip<0&&Math.abs(r[N-1]-r[mid-1])>=1?`, ${at(N)}`:''}`:'';
+  if(flip>0)monthly+=`, until year ${flip}; from year ${flip+1} renting costs more than owning, so the buyer invests the difference instead`;
+  else if(r[0]<=0)monthly=`nothing more each month: renting costs more than owning from the start, so the buyer invests the difference (${fmtFull(bI[0])}/mo in year 1)`;
+  return `<b>To get the rent + invest result, the renter invests</b> ${fmtFull(C0)} at the start (what the buyer spends on the ${[['down payment',1],['closing costs',1],['moving in',p.moveIn>0],['points',p.pts>0]].filter(x=>x[1]).map(x=>x[0]).join(', ').replace(/, ([^,]*)$/,' and $1')}), ${monthly}. `+
+    `Over ${nY(N)} that is ${fmt(C0+tot)} put in by the renter${totB>=1?` and ${fmt(totB)} by the buyer`:''}${sh<1?` (${pct(sh,0)} of each month's savings, as set)`:''}.`+
+    (sh>0?` If the monthly savings were spent instead of invested, buying would end ${spend>=0?'ahead':'behind'} by ${fmt(Math.abs(spend))}${Math.sign(spend)!==Math.sign(cur)?', which flips the answer':''}.`:'')}
 function summary(){
   mcSync();const p=P,o=BASE,N=p.N,c=o.cpi[N];
   const b=adj(o.buy[N],c),iv=adj(o.inv[N],c),ca=adj(o.cash[N],c),d=b-iv;
@@ -22,6 +35,7 @@ function summary(){
   {const wc=Math.max(0,1-p.ws-p.wb),parts=[[p.ws,'an S&P 500 index fund'],[p.wb,'10-year Treasury bonds'],[wc,'T-bills']].filter(x=>x[0]>0.001),
     mix=parts.length===1?parts[0][1]:parts.map(([w,l])=>`${pct(w,0)} ${l.replace(/^an /,'')}`).join(', ');
    document.getElementById('invDef').textContent=`"Invest" means the savings go into ${mix}${p.lev>1?`, ${p.lev}× leveraged`:''}${p.acct==='sheltered'?', in a tax-sheltered account':''}${p.fee>0?`, after ${pct(p.fee,2)} a year in fees`:''}. Change this under Investing.`}
+  document.getElementById('invPlan').innerHTML=investPlan(p);
   document.getElementById('bars').innerHTML=opts.map(([k,lab,v])=>`<div class="bar ${best(k,v)?'win':''}"><span class="lab">${lab}${best(k,v)?'<span class="pill">best</span>':''}</span><span class="track"><span class="fill" style="display:block;width:${Math.max(0,v/mx*100).toFixed(1)}%;background:var(--${k})"></span></span><span class="val">${fmt(v)}</span></div>`).join('');
   document.getElementById('miniSum').innerHTML=even?`About even at year ${N}`:`<span class="who ${d>=0?'buy':'inv'}">${d>=0?'Buying':'Renting'}</span> ahead by <strong>${fmt(Math.abs(d))}</strong> at year ${N}`;document.getElementById('miniN').textContent=N+' yr';
   document.getElementById('fabSub').textContent=`${pct(p.dp,p.dp<0.1&&Math.round(p.dp*1000)%10?1:0)} down · ${pct(p.rate,2)} · ${N} yr`;
