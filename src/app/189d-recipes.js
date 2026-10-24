@@ -31,7 +31,7 @@ function unrecNode(T,part,y){const u=T.o.unrec[y],Yv=T.Yr(y),lab=part==='rent'?`
   return T.real(n,T.cpi(y+1),lab+", today's dollars")}
 function liqNode(T,who,t){const bud=t?T.budget(t-1):T.fn('Monthly budget (year 1, used at the start)',T.o.budget[1]||1,'$',null,()=>[T.budget(0)],([b])=>b,null,{sym:'\\text{budget}_1'});
   const a=who==='R'?T.liq('R',t):who==='H'?T.sum(`Buyer's liquid assets plus the home-equity line ${t?`after ${nY(t)}`:'at the start'}`,T.o.lqB[t]+T.o.heloc[t],'$','liqLine',()=>[[1,T.liq('B',t)],[1,T.helocN(t)]]):T.liq('B',t);
-  return T.fn(`${who==='R'?'Renter':'Buyer'}'s liquid assets in months of budget, ${t?`after ${nY(t)}`:'at the start'}`,a.v/bud.v,'mo','months',()=>[a,bud],([x,b])=>x/b)}
+  return T.fn(`${who==='R'?'Renter':'Buyer'}'s liquid assets in months of budget, ${t?`after ${nY(t)}`:'at the start'}`,a.v/bud.v,'mo','months',()=>[a,bud],([x,b])=>x/b,null,{sym:who==='R'?'n^{liq}_{rent,t}':who==='H'?'n^{liq+line}_{buy,t}':'n^{liq}_{buy,t}'})}
 const TRACE_RECIPES={
   'nw:buy':pt=>{const T=traceBase(),t=yr(pt);return {title:`Buy, year ${t}`,node:T.real(T.nwBuy(t),T.cpi(t))}},
   'nw:inv':pt=>{const T=traceBase(),t=yr(pt);return {title:`Rent + invest, year ${t}`,node:T.real(T.nwInv(t),T.cpi(t))}},
@@ -78,7 +78,7 @@ function gapNode(T,i){const p=T.p,N=p.N,{gap,parts}=gapParts(p,T.o),lab=i<parts.
 const TRACE_ALT=new Map();
 function traceAlt(over,N){const k=LAST_KEY+'|'+REAL+'|'+JSON.stringify(over)+'|'+N;let T=TRACE_ALT.get(k);
   if(!T){if(TRACE_ALT.size>80)TRACE_ALT.clear();const q=Object.assign({},P,over),n=N||q.N;T=traceRun(q,constPath(q,n),{kind:'const',over},{N:n});TRACE_ALT.set(k,T)}return T}
-const overText=over=>Object.entries(over).filter(([k])=>k!=='rate30'&&k!=='rateLR'&&k!=='term').map(([k,v])=>`${settingLabel(k==='N'?'N':k)} ${k==='N'||k==='P'||k==='rent0'?(k==='N'?v+' years':fmtFull(v)):fv(v,'%')}`).join(', ');
+const overText=over=>{const e=Object.entries(over).filter(([k])=>!(k==='sellBase'&&'sell' in over)),f=e.filter(([k])=>k!=='rate30'&&k!=='rateLR'&&k!=='term');return (f.length?f:e).map(([k,v])=>`${settingLabel(k==='N'?'N':k)} ${k==='N'||k==='P'||k==='rent0'?(k==='N'?v+' years':fmtFull(v)):fv(v,'%')}`).join(', ')};
 /* buy minus rent after t years, in the chosen dollars */
 function gapAt(T,t,lab,note){const c=T.cpi(t),b=T.real(T.nwBuy(t),c),r=T.real(T.nwInv(t),c);return T.sum(lab||`Buy minus rent after ${nY(t)}`,b.v-r.v,'$','gapTotal',()=>[[1,b],[-1,r]],note?{note}:undefined)}
 Object.assign(TRACE_RECIPES,{
@@ -91,7 +91,7 @@ Object.assign(TRACE_RECIPES,{
     return {title:`Best down payment, ${nY(h)}`,at:'xnum',node:traceBase().fn(`Down payment with the largest buy − rent after ${nY(h)}`,DP[bi],'n','argmax',()=>kids,a=>DP[a.reduce((b,v,i)=>v>a[b]?i:b,0)],null,{note:`each down payment is a separate run with a ${OPT_TERM}-year loan`})}}});
 const optOver=dp=>({term:OPT_TERM,rate:OPT_TERM===15?P.rate15:P.rate30,dp:dp/100});
 function torRecipe(pt,side){const {rows}=tornado(P),row=rows[pt.pointNumber],ov=torOver(P,row.row)[side],T=traceAlt(ov),B=traceBase(),N=T.p.N;
-  return {title:`${row.lab}: ${side==='lo'?'lower':'higher'}`,T,at:'x',node:B.sum(`Change in buy − rent at year ${P.N}: ${overText(ov)}`,gapAt(T,N).v-gapAt(B,P.N).v,'$','torDelta',()=>[[1,gapAt(T,N,`Buy minus rent with ${overText(ov)}`)],[-1,gapAt(B,P.N,'Buy minus rent at your settings')]])}}
+  return {title:`${row.lab}: ${side==='lo'?'lower':'higher'}`,T,at:'x',node:B.sum(`Change in buy − rent at year ${P.N}: ${overText(ov)}`,gapAt(T,N).v-gapAt(B,P.N).v,'$','torDelta',()=>[[1,Object.assign(gapAt(T,N,`Buy minus rent with ${overText(ov)}`),{sym:'\\text{gap}^{changed}_N'})],[-1,gapAt(B,P.N,'Buy minus rent at your settings')]])}}
 /* ---- Backtest: each purchase is its own run on the historical path, traced on demand ---- */
 function histCtx(){const useNow=document.getElementById('h-rate').value==='now',useMetro=document.getElementById('h-home').value==='metro',mode=document.getElementById('h-mode').value==='monthly'&&MONTHLY?'monthly':'annual',m=curMetro();return {useNow,useMetro,mode,m}}
 function traceHist(run,full){const c=histCtx(),p=P,q=histP(p,run.s),key=`h|${LAST_KEY}|${HIST_RP}|${c.mode}|${c.useNow}|${c.useMetro}|${VOLADJ}|${run.lab}|${full?1:0}`;let T=TRACE_ALT.get(key);if(T)return T;

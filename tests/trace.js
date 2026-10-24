@@ -34,6 +34,9 @@ function walkTrees(roots) {
       else if (own && !symMatch(role, own) && !(EQID[nd.eq] || []).includes(j)) noSym.add(`${nd.eq}: "${k.label}" is called ${role} here but ${own} on its own card`);
       // a part may not carry the whole's name (B_t = B_t − …): a recursive equation must name its parts one period back
       if (role && b.kids.length > 1 && symNorm(role) === symNorm(ownSym(nd))) noSym.add(`${nd.eq}: "${k.label}" has the same name as the whole (${role})`); });
+    // one symbol, one quantity: two different parts of one card may not share a symbol (except the terms of a series)
+    if (nd.eq && !EQSERIES.has(nd.eq)) { const seenSym = new Map(); b.kids.forEach((k, j) => { const r = symFor(nd, b, j); if (!r || k.u === 'opt') return; const key = symNorm(r);
+      if (seenSym.has(key) && seenSym.get(key) !== k) noSym.add(`${nd.eq}: "${seenSym.get(key).label}" and "${k.label}" share the symbol ${r}`); else seenSym.set(key, k); }); }
     b.kids.forEach(walk); };
   roots.forEach(walk);
   return { n: seen.size, bad, eqs: [...eqs], pks: [...pks], noEq: [...noEq], noSym: [...noSym] };
@@ -134,6 +137,10 @@ function walkTrees(roots) {
   await setPlace('us'); await page.waitForTimeout(600);
 
   /* ---- registry: every entry used, every section real ---- */
+  const dup = await page.evaluate(() => { const by = new Map(), add = (s2, who) => { if (!s2) return; const k = symNorm(s2); if (!by.has(k)) by.set(k, []); by.get(k).push(who); };
+    Object.keys(EQ).forEach(id => { if (!EQT[id]) add(eqLhs(id), 'eq:' + id); }); Object.entries(SETSYM).forEach(([k, v]) => add(v, 'set:' + k));
+    return [...by].filter(([, v]) => v.length > 1 && !SYMSAME.some(g => v.every(x => g.includes(x)))).map(([k, v]) => `${k}: ${v.join(', ')}`); });
+  ok(!dup.length, 'registry: no symbol is defined for two different quantities (SYMSAME lists deliberate aliases)', dup.join(' | '));
   const reg = await page.evaluate(() => { showTab('method'); return { all: Object.keys(EQ), method: [...EQ_METHOD], html: Object.entries(EQ).filter(([, e]) => /[<>&]/.test(e.t)).map(([k]) => k), badSec: Object.entries(EQ).filter(([, e]) => !document.getElementById('m-' + e.s)).map(([k, e]) => `${k} → ${e.s}`) }; });
   const unused = reg.all.filter(k => !eqSeen.has(k) && !reg.method.includes(k) && !EQ_PENDING.has(k));
   ok(!reg.html.length, 'registry: no equation uses a raw <, > or & (write \\lt, \\gt; they break the HTML around the TeX)', reg.html.join(', '));

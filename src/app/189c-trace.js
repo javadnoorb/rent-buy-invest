@@ -12,7 +12,9 @@ const SER_SRC_M={gh:['fhfa'],gr:['fredRent'],inf:['fredCPI'],rs:['mSp'],rb:['mTb
 function traceRun(p,path,info,opt){opt=Object.assign({N:p.N},opt||{},{trace:true,detail:true});const o=simulate(p,path,opt);
   return traceNodes({p,path,info:info||{kind:'const'},o,tr:o.tr,N:opt.N,opt,memo:new Map()})}
 function traceNodes(X){const {p,o,tr}=X,LS=tr.LS,E=t=>tr.ends[t],Yr=y=>tr.years[y],Mo=(y,m)=>tr.years[y].mo[m],path=X.path,info=X.info;
-  const M=(k,f)=>{let n=X.memo.get(k);if(!n){n=f();n.key=k;X.memo.set(k,n)}return n};
+  // month-level portfolio quantities carry their account: V^{rent}_t, \text{return}^{buy}_t, ... (one symbol, one quantity)
+  const ACCSYM={VM:'V',ret:'\\text{return}',tax:'\\text{tax}',add:'\\text{added}'},ASY0={B:'buy',R:'rent',C:'cash'};
+  const M=(k,f)=>{let n=X.memo.get(k);if(!n){n=f();const a=k.match(/^(VM|ret|tax|add)([BRC]):/);if(a&&!n.key)n.sym=`${ACCSYM[a[1]]}^{${ASY0[a[2]]}}_t`;if(!n.key)n.key=k;X.memo.set(k,n)}return n};
   const tx=p.taxOn,taxable=tx&&p.acct==='taxable',mv=tr.move,YL=y=>`year ${y+1}`,TL=t=>t?`after ${nY(t)}`:'at the start';
   // ---- leaves and composite nodes ----
   const set=(pk,v,u,id,o2)=>Object.assign({label:settingLabel(id||pk),v,u,leaf:'set',id:id||pk,pk,over:!!(info.over&&pk in info.over)},o2);
@@ -65,7 +67,7 @@ function traceNodes(X){const {p,o,tr}=X,LS=tr.LS,E=t=>tr.ends[t],Yr=y=>tr.years[
   // ---- the home ----
   const priceAt=y=>y===0?set('P',p.P,'$'):H(y);
   const closeRate=()=>M('close',()=>sum('Buyer closing costs, share of the price',p.close,'%','close',()=>[[1,set('closeBase',p.closeBase,'%','close')],[1,set('ttBuy',p.ttBuy,'%')]],{pk:['close']}));
-  const H=t=>M('H:'+t,()=>t===0?set('P',p.P,'$'):!E(t).owned?why(`Home value ${TL(t)}`,0,'$','sold at the planned move; the buyer rents from then on',['moveMode','moveYear']):
+  const H=t=>M('H:'+t,()=>t===0?set('P',p.P,'$'):!E(t).owned?why(`Home value ${TL(t)}`,0,'$','sold at the planned move; the buyer rents from then on',['moveMode','moveYear'],'H_t'):
     prod(`Home value ${TL(t)}`,E(t).H,'$','home',()=>[set('P',p.P,'$')].concat(upto(t).map(y=>gf('gh',y)))));
   const loanAmt=()=>M('L',()=>fn('Loan amount',LS.L,'$',LS.type==='fha'?'loanFHA':'loan',()=>[set('P',p.P,'$'),set('dp',p.dp,'%')].concat(LS.type==='fha'?[con('FHA upfront premium, added to the loan',0.0175,'%',{src:['lr_fha'],pk:['loanType']})]:[]),
     a=>a[0]*(1-a[1])*(a[2]!=null?1+a[2]:1)));
@@ -75,8 +77,8 @@ function traceNodes(X){const {p,o,tr}=X,LS=tr.LS,E=t=>tr.ends[t],Yr=y=>tr.years[
     const col=ltv=>L.ltv_upper.findIndex(u=>ltv<=u+1e-9),row=L.rows[p.fico],ref=L.rows[L.reference.score];
     return fn('Credit-score rate adjustment',LS.cAdj,'%','llpa',()=>[dat(`Fannie Mae price adjustment, score ${p.fico}, ${pct(1-p.dp,0)} loan-to-value`,row[col(1-p.dp)],'pts',['llpa'],{pk:['fico','credit','dp']}),
       dat('Same for the survey borrower (760–779, 80% loan-to-value)',ref[col(L.reference.ltv)],'pts',['llpa'],{pk:['credit']}),set('ptsCut',p.ptsCut||0.0025,'%')],([a,b,c])=>(a-b)*c,([a,b,c])=>`(${a} − ${b}) × ${fv(c,'%')}`)});
-  const quote=()=>M('quote',()=>{const rin=X.opt.rate!=null?X.opt.rate:p.rate,base=X.opt.rate!=null?con(info.rateLabel||'Mortgage rate tested',rin,'%',{src:info.rateSrc||[],sym:'r_{quote}'}):set('rate',p.rate,'%',p.term===15?'rate15':'rate',{pk:['rate','term']});
-    return LS.type==='arm'?fn('ARM starting rate',rin-(p.rate-(p.armRate!=null?p.armRate:p.rate)),'%','armQuote',()=>[base,set('rate',p.rate,'%','rate',{sym:'r_{30}'}),set('armRate',p.armRate,'%')],([a,b,c])=>a-(b-c)):base});
+  const quote=()=>M('quote',()=>{const rin=X.opt.rate!=null?X.opt.rate:p.rate,base=X.opt.rate!=null?con(info.rateLabel||'Mortgage rate tested',rin,'%',{src:info.rateSrc||[],sym:'r_{test}'}):set('rate',p.rate,'%',p.term===15?'rate15':'rate',{pk:['rate','term']});
+    return LS.type==='arm'&&X.opt.rate==null?set('armRate',p.armRate,'%',undefined,{pk:['armRate','rate']}):LS.type==='arm'?fn('ARM starting rate',rin-(p.rate-(p.armRate!=null?p.armRate:p.rate)),'%','armQuote',()=>[base,set('rate',p.rate,'%','rate'),set('armRate',p.armRate,'%')],([a,b,c])=>a-(b-c)):base});
   const rate0=()=>M('r0',()=>fn('Your loan rate at purchase',LS.rate,'%','rate0',()=>[quote(),cAdj(),set('pts',p.pts||0,'n'),set('ptsCut',p.ptsCut||0,'%')],([q,c,n,k])=>Math.max(0,q+c-n*k),null,{pk:['loanType']}));
   const rateM=(y,m)=>M(`rate:${y}:${m}`,()=>{const e=evAt(y,m);if(!e)return rate0();if(e.move)return moveRate(e.y);const q=e.ev,lab=`Loan rate from ${YL(e.y)}, month ${e.m+1}`;
     if(q.k==='refi')return sum(lab+' (refinanced)',q.rate,'%','refiRate',()=>[[1,mktM(e.y,e.m)],[1,cAdj()]],{pk:['refiOn','refiTh']});
@@ -125,7 +127,7 @@ function traceNodes(X){const {p,o,tr}=X,LS=tr.LS,E=t=>tr.ends[t],Yr=y=>tr.years[
     return fn(lab,q.pmi,'$','pmi',()=>[pmiRateN(y),y>0&&mv&&mv.mode==='buy'&&mv.y<=y?balStart(mv.y):loanAmt()],([r,L])=>r*L/12,null,{pk:['pmiAppr']})});
   const hhY=y=>M('hh:'+y,()=>Yr(y).hhInc>0?fn(`House-hack rent received per month, ${YL(y)}`,Yr(y).hhInc,'$','hh',()=>[set('hhRent',p.hhRent,'$'),fn(`Market rent index, ${YL(y)}`,Yr(y).mktIdx,'x','mktIdx',()=>[mkt(y),set('rent0',p.rent0,'$')],([a,b])=>a/b),set('hhVac',p.hhVac,'%')],([r,k,v])=>r*k*(1-v)):
     why('House-hack rent received',0,'$','no part of the home is rented out',['hhRent','hhShare','hhVac'],'R^{hh,net}_y'));
-  const taxSave=y=>M('ts:'+y,()=>{const T=Yr(y).tax;if(!T)return why(`Income tax saved by owning, ${YL(y)}`,0,'$','taxes are off',['taxOn']);
+  const taxSave=y=>M('ts:'+y,()=>{const T=Yr(y).tax;if(!T)return why(`Income tax saved by owning, ${YL(y)}`,0,'$','taxes are off',['taxOn'],'S_y');
     const kids=()=>[muN(y),dB(y),dR(y),set('stDed',p.stDed?1:0,'n'),set('stRate',p.stRate,'%'),intY(y),f750(y),ptaxY(y),con('Share of the home you live in',T.own_s,'%',{pk:['hhShare','hhRent']})];
     return fn(`Income tax saved by owning, ${YL(y)}`,T.benefit,'$','taxSave',kids,([mu,b,r,sd,st,i,f,pt,os])=>mu*(b-r)+(sd?st*(i*f+pt)*os:0),([mu,b,r,sd,st,i,f,pt,os])=>`${fv(mu,'%')} × (${fv(b,'$')} − ${fv(r,'$')})${sd?` + ${fv(st,'%')} × (${fv(i,'$')} × ${f.toFixed(3)} + ${fv(pt,'$')}) × ${os.toFixed(2)}`:''}`,{sec:'federal-and-state-tax-saving'})});
   const stdN=y=>M('std:'+y,()=>fn(`Standard deduction, ${YL(y)}`,Yr(y).tax.std,'$','std',()=>[con(`2026 standard deduction, ${p.filing==='mfj'?'married joint':'single'}`,p.filing==='mfj'?32200:16100,'$',{src:['irs26'],pk:['filing']}),con('Indexing from 2026 to the start year',LS.tk,'x',{pk:['y0','inf']}),infIdx(y)],([s,k,i])=>s*k*i));
@@ -168,18 +170,18 @@ function traceNodes(X){const {p,o,tr}=X,LS=tr.LS,E=t=>tr.ends[t],Yr=y=>tr.years[
     ([c,P0,k])=>mv.mode==='rent'?c:(c-k*P0>P0?c-k*P0-P0:c-k*P0<0?c-k*P0:0),null,{pk:['moveMode']}));
   const Vstart=(a,y)=>a==='B'&&mv&&mv.y===y?M('VBm:'+y,()=>sum(`Buyer's portfolio at the start of ${YL(y)}, after the move`,Yr(y).pB,'$','moveAdd',()=>[[1,V('B',y)],[1,moveCashN(y)]])):V(a,y);
   const VM=(a,y,m)=>M(`VM${a}:${y}:${m}`,()=>m===0?Vstart(a,y):sum(`${ACC[a]}, start of ${YL(y)} month ${m+1}`,Mo(y,m)[a].v0,'$','ledgerMonth',()=>{const q=Mo(y,m-1)[a];
-    return [[1,VM(a,y,m-1),'V_{t-1}'],[1,retM(a,y,m-1),'\\text{return}_{t-1}'],[-1,taxM(a,y,m-1),'\\text{tax}_{t-1}'],q.brw?[1,brwM(a,y,m-1),'\\text{overdraft}_{t-1}']:null,q.clamp?[1,con('Floor at zero',q.clamp,'$'),'\\text{floor}_{t-1}']:null,[1,addM(a,y,m-1),'\\text{added}_{t-1}']]}));
+    const X1=ASY[a];return [[1,VM(a,y,m-1),`V^{${X1}}_{t-1}`],[1,retM(a,y,m-1),`\\text{return}^{${X1}}_{t-1}`],[-1,taxM(a,y,m-1),`\\text{tax}^{${X1}}_{t-1}`],q.brw?[1,brwM(a,y,m-1),`\\text{overdraft}^{${X1}}_{t-1}`]:null,q.clamp?[1,con('Floor at zero',q.clamp,'$'),`\\text{floor}^{${X1}}_{t-1}`]:null,[1,addM(a,y,m-1),`\\text{added}^{${X1}}_{t-1}`]]}));
   const retM=(a,y,m)=>M(`ret${a}:${y}:${m}`,()=>{const q=Mo(y,m)[a];if(a!=='C'&&q.v0<0)return why('Investment return',0,'$','the account is overdrawn (see borrowing cost)',[],'\\text{return}_t');
     return prod(`Investment return, ${YL(y)} month ${m+1}`,q.ret,'$',a==='C'?'returnCash':'return',()=>[VM(a,y,m),a==='C'?mret('rc',y,m):rho(y,m)])});
   const taxM=(a,y,m)=>M(`tax${a}:${y}:${m}`,()=>{const q=Mo(y,m)[a],lab=`Tax on dividends and interest, ${YL(y)} month ${m+1}`;
     if(a==='C')return tx?fn(lab,q.tax,'$','taxCash',()=>[VM(a,y,m),mret('rc',y,m),muE(y)],([v,r,mu])=>v*r*mu):why(lab,0,'$','taxes are off',['taxOn'],'\\text{tax}_t');
     if(!taxable)return why(lab,0,'$',tx?'sheltered account: no tax':'taxes are off',['acct','taxOn'],'\\text{tax}_t');
     return q.v0<0?why(lab,0,'$','the account is overdrawn',[],'\\text{tax}_t'):prod(lab,q.tax,'$','invTax',()=>[VM(a,y,m),tau(y,m)])});
-  const brwM=(a,y,m)=>fn(`Interest on the overdraft, ${YL(y)} month ${m+1}`,Mo(y,m)[a].brw,'$','overdraft',()=>[VM(a,y,m),mret('rc',y,m),con('Borrowing premium over T-bills',BORROW_PREM,'%')],([v,r,b])=>v*(r+b/12));
+  const brwM=(a,y,m)=>fn(`Interest on the overdraft, ${YL(y)} month ${m+1}`,Mo(y,m)[a].brw,'$','overdraft',()=>[VM(a,y,m),mret('rc',y,m),con('Borrowing premium over T-bills',BORROW_PREM,'%',{sym:'0.03'})],([v,r,b])=>v*(r+b/12),null,{sym:`\\text{overdraft}^{${ASY[a]}}_t`});
   const addM=(a,y,m)=>M(`add${a}:${y}:${m}`,()=>{const q=Mo(y,m);
     if(a!=='B')return fn(`Renter invests, ${YL(y)} month ${m+1}`,q.addR,'$','investR',()=>[set('investShare',p.investShare,'%'),dlt(y,m)],([s,d])=>s*Math.max(0,d));
     const x=fn(`Buyer invests, ${YL(y)} month ${m+1}`,q.addB,'$','investB',()=>[set('investShare',p.investShare,'%'),dlt(y,m)],([s,d])=>s*Math.max(0,-d));
-    if(!q.xB)return x;x.sym='\\text{added}^{budget}_t';const pp=Math.abs(q.xB-((q.x||0)-(q.pre||0)))>1e-6;
+    if(!q.xB)return x;x.sym='\\text{added}^{buy,budget}_t';const pp=Math.abs(q.xB-((q.x||0)-(q.pre||0)))>1e-6;
     return sum(`Buyer adds to the portfolio, ${YL(y)} month ${m+1}`,q.addB+q.xB,'$','investBx',()=>[[1,x],[1,fn('Extra payment not used on the loan',q.xB,'$','extraInvest',()=>[set('extraPay',p.extraPay||0,'$'),preM(y,m)].concat(pp?[con('Scheduled payment kept after payoff',q.xB-((q.x||0)-(q.pre||0)),'$')]:[]),a2=>a2[0]-a2[1]+(a2[2]||0),null,{pk:['extraMode']})]])});
   const retY=(a,y)=>M(`retY${a}:${y}`,()=>sumMonths(`Investment returns in ${YL(y)}`,y,'$','sum12',q=>q[a].ret,m=>retM(a,y,m)));
   const taxY=(a,y)=>M(`taxY${a}:${y}`,()=>sumMonths(`Tax on dividends and interest in ${YL(y)}`,y,'$','sum12',q=>q[a].tax,m=>taxM(a,y,m)));
@@ -197,8 +199,8 @@ function traceNodes(X){const {p,o,tr}=X,LS=tr.LS,E=t=>tr.ends[t],Yr=y=>tr.years[
   const basis=(a,t)=>M(`bs${a}:${t}`,()=>{const v=a==='B'?E(t).bB:E(t).bR;if(t===0)return a==='B'?con('Cost basis at the start',0,'$',{sym:'\\text{basis}_0'}):cash0();const y=t-1;
     const binc=months(m=>Mo(y,m)[a].binc).reduce((s,x)=>s+x,0),add=months(m=>a==='B'?Mo(y,m).addB+(Mo(y,m).xB||0):Mo(y,m).addR).reduce((s,x)=>s+x,0),b0=a==='B'?Yr(y).bB:Yr(y).bR,start=a==='B'?E(y).bB:E(y).bR,rest=v-b0-binc-add;
     return sum(`Cost basis of the ${a==='B'?"buyer's":"renter's"} portfolio ${TL(t)}`,v,'$','basis',()=>[[1,basis(a,y),`\\text{basis}^{${ASY[a]}}_{t-1}`],Math.abs(b0-start)>0.005?[1,con('Cash from the planned move',b0-start,'$'),'\\text{cash from the move}']:null,
-      [1,sumMonths(`Taxed income reinvested in ${YL(y)}`,y,'$','sum12',q=>q[a].binc,m=>Mo(y,m)[a].v0<0||!taxable?why(`Taxed income reinvested, month ${m+1}`,Mo(y,m)[a].binc,'$',taxable?'the account is overdrawn':'no tax on this account',['acct','taxOn'],'\\text{taxed income}_t'):fn(`Taxed income reinvested, month ${m+1}`,Mo(y,m)[a].binc,'$','binc',()=>[VM(a,y,m),incM(y,m),tau(y,m)],([v2,i,tt])=>v2*(i-tt))),'\\text{taxed income}_y'],
-      [1,addY(a,y),'\\text{added}_y'],Math.abs(rest)>0.005?[1,con('Reset when the account was empty or overdrawn',rest,'$'),'\\text{reset}']:null],{sym:`\\text{basis}^{${ASY[a]}}_t`})});
+      [1,sumMonths(`Taxed income reinvested in ${YL(y)}`,y,'$','sum12',q=>q[a].binc,m=>Mo(y,m)[a].v0<0||!taxable?why(`Taxed income reinvested, month ${m+1}`,Mo(y,m)[a].binc,'$',taxable?'the account is overdrawn':'no tax on this account',['acct','taxOn'],`\\text{taxed income}^{${ASY[a]}}_t`):fn(`Taxed income reinvested, month ${m+1}`,Mo(y,m)[a].binc,'$','binc',()=>[VM(a,y,m),incM(y,m),tau(y,m)],([v2,i,tt])=>v2*(i-tt),null,{sym:`\\text{taxed income}^{${ASY[a]}}_t`})),`\\text{taxed income}^{${ASY[a]}}_y`],
+      [1,addY(a,y),`\\text{added}^{${ASY[a]}}_y`],Math.abs(rest)>0.005?[1,con('Reset when the account was empty or overdrawn',rest,'$'),'\\text{reset}']:null],{sym:`\\text{basis}^{${ASY[a]}}_t`})});
   const liq=(a,t)=>M(`liq${a}:${t}`,()=>{const v=a==='B'?E(t).lb:E(t).lr,lab=`${ACC[a]} after tax on selling it, ${TL(t)}`;
     return taxable?fn(lab,v,'$','liquid',()=>[V(a,t),ltcgE(t),basis(a,t)],([w,k,b])=>w-k*Math.max(0,w-b),null,{sym:`W^{liq}_{${ASY[a]},t}`}):fn(lab,v,'$',null,()=>[V(a,t)],([w])=>w,null,{note:tx?'sheltered account: no tax on selling':'taxes are off',pk:['acct','taxOn'],sym:`W^{liq}_{${ASY[a]},t}`})});
   // ---- the home sale at the end of year t ----
@@ -210,7 +212,7 @@ function traceNodes(X){const {p,o,tr}=X,LS=tr.LS,E=t=>tr.ends[t],Yr=y=>tr.years[
   const impTot=t=>M('imp:'+t,()=>{const y0=E(t).purchY,ys=[...Array(Math.max(0,t-y0))].map((_,k)=>y0+k);
     return fn(`Improvements added to the basis ${TL(t)}`,E(t).imp,'$','improve',()=>[set('impShare',p.impShare,'%')].concat(ys.map(maintY)),([s,...ms])=>s*ms.reduce((a,b)=>a+b,0))});
   const gainN=t=>M('gain:'+t,()=>{const v=saleNet(t).v-E(t).basis-E(t).imp-(held(t)>=2?LS.excl:0);
-    return sum(`Taxable gain on the home ${TL(t)}`,v,'$','gain',()=>[[1,saleNet(t)],[-1,homeBasis(t)],[-1,impTot(t)],[-1,held(t)>=2?con(`Home-sale exclusion, ${p.filing==='mfj'?'married joint':'single'}`,LS.excl,'$',{src:['irs121'],pk:['filing'],sym:'E'}):why('Home-sale exclusion',0,'$','held less than 2 years: no exclusion',[],'E')]])});
+    return sum(`Taxable gain on the home ${TL(t)}`,v,'$','gain',()=>[[1,saleNet(t)],[-1,homeBasis(t)],[-1,impTot(t)],[-1,held(t)>=2?con(`Home-sale exclusion, ${p.filing==='mfj'?'married joint':'single'}`,LS.excl,'$',{src:['irs121'],pk:['filing'],sym:'\\text{Excl}'}):why('Home-sale exclusion',0,'$','held less than 2 years: no exclusion',[],'\\text{Excl}')]])});
   const homeTax=t=>M('htx:'+t,()=>!tx?why(`Tax on the home sale ${TL(t)}`,0,'$','taxes are off',['taxOn'],'T^{sale}_t'):
     fn(`Tax on the home sale ${TL(t)}`,E(t).ltcgE*Math.max(0,gainN(t).v),'$','homeTax',()=>[ltcgE(t),gainN(t)],([k,g])=>k*Math.max(0,g)));
   const homeNet=t=>M('hn:'+t,()=>!E(t).owned?why(`Home equity after selling ${TL(t)}`,0,'$','sold at the planned move',['moveMode','moveYear'],'\\text{Eq}_t'):
