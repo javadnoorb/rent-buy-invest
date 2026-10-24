@@ -185,7 +185,11 @@ function buildMethod(){
     METROS.filter(m=>m.slug!=='us'&&!m.county).map(m=>`<li>${m.name}: ${['price','rent','ptax','ins','hpi'].map(k=>m.src&&m.src[k]?`<a target="_blank" rel="noopener" href="${m.src[k].u}">${({price:'price',rent:'rent',ptax:'property tax',ins:'insurance',hpi:'home-price index'})[k]}</a>`:null).filter(Boolean).join(' · ')}</li>`).join('');
 }
 /* MathJax (2.3 MB) is loaded the first time a tab with formulas opens, not with the page */
-function typeset(el,tries=0){if(window.MathJax&&MathJax.typesetPromise){MathJax.typesetPromise([el]).catch(()=>{});return}
+/* a display equation wider than its box scrolls sideways; keyboard users reach it with Tab (and scroll with the arrows) */
+function eqFocus(el){el.querySelectorAll('mjx-container[display="true"]').forEach(c=>{if(c.scrollWidth>c.clientWidth+1)c.tabIndex=0})}
+// equations typeset inside a closed section have no width yet: check again when it opens
+document.addEventListener('toggle',e=>{const t=/** @type {any} */(e.target);if(t&&t.open&&t.querySelector)eqFocus(t)},true);
+function typeset(el,tries=0){if(window.MathJax&&MathJax.typesetPromise){MathJax.typesetPromise([el]).then(()=>eqFocus(el)).catch(()=>{});return}
   if(!document.getElementById('mathjax-lib')){const sc=document.createElement('script');sc.id='mathjax-lib';sc.src=MATHJAX_SRC;sc.async=true;document.head.appendChild(sc)}
   if(tries<120)setTimeout(()=>typeset(el,tries+1),250)}
 
