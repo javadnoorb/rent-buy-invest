@@ -1,0 +1,15 @@
+{
+  // Type check of the app's JavaScript (no build step, nothing emitted): node_modules/.bin/tsc -p .
+  // The files are plain scripts that share one global scope, concatenated by build.py in this order.
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "target": "es2022",
+    "lib": ["es2022", "dom", "dom.iterable"],
+    "strict": false,
+    "skipLibCheck": true,
+    "noUnusedLocals": true
+  },
+  "include": ["src/model.js", "src/app/*.js", "types/*.d.ts"]
+}

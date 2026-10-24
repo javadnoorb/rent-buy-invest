@@ -27,7 +27,7 @@ function locRows(){
       hti:q.income?own1/(q.income/12):null,beY:breakevenYear(o),diff:own1-q.rent0}})}
 function renderLoc(){
   if(!LOC_SEL){let s=null;try{s=JSON.parse(localStorage.getItem('rbi-loc')||'null')}catch(e){}LOC_SEL=Array.isArray(s)&&s.length?s:[...new Set([P.metro,'boston','raleigh','austin','minneapolis'])].slice(0,4)}
-  const rows=locRows(),t=theme(),N=P.N;
+  const rows=locRows(),N=P.N;
   const key={name:r=>r.m.name,P:r=>r.q.P,rent:r=>r.rent,ptr:r=>r.ptr,own1:r=>r.own1,cash:r=>r.cash,hti:r=>r.hti??9,beY:r=>r.beY??99,gap:r=>r.gap}[LOC_SORT];
   rows.sort((a,b)=>{const x=key(a),y=key(b);return (typeof x==='string'?x.localeCompare(y):x-y)*LOC_DIR});
   const cols=[['name','Location'],['gap',`Buy − rent+invest, yr ${N}`],['beY','Buying pulls ahead'],['own1','Owning, month 1'],['hti','Housing ÷ income'],['P','Home price'],['rent','Rent'],['ptr','Price ÷ yearly rent'],['cash','Cash to buy']];
@@ -64,7 +64,7 @@ function placeLabels(el,pts){const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y),px=(Mat
   const xr=[Math.min(...xs)-px*.06,Math.max(...xs)+px*.06],yr=[Math.min(...ys)-py*.08,Math.max(...ys)+py*.12];
   const W=Math.max(200,(el&&el.clientWidth||600)-110),H=Math.max(150,(el&&el.clientHeight||380)-100);
   const X=x=>(x-xr[0])/(xr[1]-xr[0])*W,Y=y=>(yr[1]-y)/(yr[1]-yr[0])*H,cw=5.2,ch=11,gap=6;
-  const spots=[['top center',0,-1],['bottom center',0,1],['middle right',1,0],['middle left',-1,0],['top right',1,-1],['top left',-1,-1],['bottom right',1,1],['bottom left',-1,1]];
+  const spots=/** @type {[string,number,number][]} */([['top center',0,-1],['bottom center',0,1],['middle right',1,0],['middle left',-1,0],['top right',1,-1],['top left',-1,-1],['bottom right',1,1],['bottom left',-1,1]]);
   const boxes=pts.map(p=>{const x=X(p.x),y=Y(p.y);return [x-5,y-5,x+5,y+5]}),hit=(a,b)=>a[0]<b[2]&&b[0]<a[2]&&a[1]<b[3]&&b[1]<a[3];
   const text=pts.map(()=>''),pos=pts.map(()=>'top center');
   pts.map((p,i)=>i).sort((a,b)=>pts[b].pri-pts[a].pri).forEach(i=>{const p=pts[i],x=X(p.x),y=Y(p.y),w=p.text.length*cw;
@@ -72,4 +72,4 @@ function placeLabels(el,pts){const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y),px=(Mat
       if(b[0]<0||b[2]>W||b[1]<0||b[3]>H)continue;
       if(boxes.some((o,j)=>j!==i&&hit(b,o)))continue;boxes.push(b);text[i]=p.text;pos[i]=name;break}});
   return {text,pos,xr,yr}}
-function wireLoc(){wireSbs();document.querySelectorAll('#locMode button').forEach(b=>b.addEventListener('click',()=>{LOC_MODE=b.dataset.m;document.querySelectorAll('#locMode button').forEach(x=>x.setAttribute('aria-pressed',x===b));renderLoc()}))}
+function wireLoc(){wireSbs();document.querySelectorAll('#locMode button').forEach(b=>b.addEventListener('click',()=>{LOC_MODE=b.dataset.m;document.querySelectorAll('#locMode button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));renderLoc()}))}

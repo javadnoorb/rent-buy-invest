@@ -1,6 +1,6 @@
 name: Tests
 # Runs on every push and pull request. Two jobs in parallel:
-#   checks — static lint, model math tests, data-script parser tests and the build (seconds)
+#   checks — static lint, type check, model math tests, data-script parser tests and the build (seconds)
 #   smoke  — the built page in the runner's preinstalled Chrome with the real chart and formula libraries, UI logic tests
 #            and an axe-core accessibility check
 on: [push, pull_request]
@@ -18,6 +18,10 @@ jobs:
         with: { python-version: '3.12' }
       - name: Lint
         run: node tests/lint.js
+      - name: Type check (TypeScript over the plain JavaScript; tsconfig.json)
+        run: |
+          npm i --no-save --no-audit --no-fund typescript@5.6.3
+          npx tsc -p .
       - name: Model tests
         run: node tests/run.js
       - name: Data script parsers (offline samples)

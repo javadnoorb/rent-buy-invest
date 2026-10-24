@@ -44,7 +44,6 @@ function summary(){
     `Owning month 1: ${fmtFull(own1)}/mo; housing/income ${p.income?pct(fe,0):'n/a'}, all debt ${p.income?pct(be,0):'n/a'}`+(MC?`\nMonte Carlo: buying wins in ${pct(MC.pWin[Math.min(N,MC.N)])} of ${MC.n} paths`:'');
   // explanation
   const tor=tornado(p),top2=tor.rows.slice(-2).reverse();
-  const verb=x=>x.hi>x.lo?'raising':'lowering';
   const why=[];
   why.push(`<strong>Biggest drivers:</strong> ${top2.map(r=>`${r.lab.replace(/ ±.*/,'').toLowerCase()} (${fmt(Math.max(Math.abs(r.lo),Math.abs(r.hi)))} swing)`).join(' and ')}.`);
   if(d<0){why.push(`Buying would tie if rent were ${beRent?fmtFull(beRent):'much higher'} instead of ${fmtFull(p.rent0)}${beG!=null?`, or if homes appreciated ${pct(beG)}/yr instead of ${pct(p.gh)}`:''}.`)}

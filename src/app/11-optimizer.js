@@ -11,7 +11,7 @@ function renderOpt(){renderAfford();
     {hovermode:'closest',showlegend:false,xaxis:{...X(`Down payment (%), ${OPT_TERM}-year loan`),type:'category'},yaxis:Yt('Horizon (years)')});
   const HS=[3,5,7,10,15,20,30];
   const solve=(h,key,lo,hi,map)=>{const q=Object.assign({},p,{N:h});const r=bisect(v=>advAt(q,map?map(v):{[key]:v}),lo,hi,32);return r};
-  const rowsDef=[['Rent ($/mo)',h=>solve(h,'rent0',10,Math.max(500,p.rent0*6)),v=>fmtFull(v),fmtFull(p.rent0)],
+  /** @type {any[]} */const rowsDef=[['Rent ($/mo)',h=>solve(h,'rent0',10,Math.max(500,p.rent0*6)),v=>fmtFull(v),fmtFull(p.rent0)],
     ['Home appreciation (%/yr)',h=>solve(h,'gh',-0.2,0.3),v=>pct(v),pct(p.gh)],
     ['Stock return (%/yr)',h=>p.ws>0?solve(h,'rs',-0.1,0.4):null,v=>pct(v),pct(p.rs)],
     ['Mortgage rate (%)',h=>solve(h,'rate',0.0,0.2,v=>({rate:v,rate30:v,rateLR:v})),v=>pct(v,2),pct(p.rate,2)],

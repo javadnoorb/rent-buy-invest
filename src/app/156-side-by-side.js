@@ -21,7 +21,7 @@ function renderSbs(){const T=document.getElementById('sbsT');if(!T)return;
     if(!ms[0]||!ms[1]){T.innerHTML='';document.getElementById('tk-sbs').textContent='Pick two places to compare.';return}
     const [a,b]=ms.map(sbsRow),N=P.N,sg=v=>v>=0?'+':'−',col=v=>`style="color:var(${v>=0?'--buy':'--inv'})"`;
     const dM=(x,y,f)=>{const d=y-x;return Math.abs(d)<0.5?'same':(d>0?'+':'−')+f(Math.abs(d))};
-    const rows=[
+    /** @type {any[]} */const rows=[
       ['Home price',a.q.P,b.q.P,fmt],['Comparable rent',a.rent,b.rent,v=>fmtFull(v)+'/mo'],
       ['Price ÷ yearly rent',a.ptr,b.ptr,v=>v.toFixed(1),(x,y)=>(y-x>=0?'+':'−')+Math.abs(y-x).toFixed(1)],
       ['Property tax',a.q.ptax,b.q.ptax,v=>pct(v,2),(x,y)=>(y-x>=0?'+':'−')+(Math.abs(y-x)*100).toFixed(2)+' pts'],
@@ -34,7 +34,7 @@ function renderSbs(){const T=document.getElementById('sbsT');if(!T)return;
       `<tr><th scope="row">Buying pulls ahead</th><td>${a.beY?'year '+a.beY:'> '+N+' yrs'}</td><td>${b.beY?'year '+b.beY:'> '+N+' yrs'}</td><td></td></tr>`+
       rows.map(([l,x,y,f,df])=>`<tr><th scope="row">${l}</th><td>${f(x)}</td><td>${f(y)}</td><td>${df?df(x,y):dM(x,y,f)}</td></tr>`).join('')+'</tbody>';
     const w=(r)=>r.gap>=0?`buying comes out ahead by ${fmt(r.gap)}`:`renting and investing comes out ahead by ${fmt(-r.gap)}`;
-    const why=[['price',b.q.P/a.q.P-1],['rent',b.rent/a.rent-1]].map(([k,v])=>`${k} ${v>=0?'+':'−'}${pct(Math.abs(v),0)}`).join(', ');
+    const why=/** @type {[string,number][]} */([['price',b.q.P/a.q.P-1],['rent',b.rent/a.rent-1]]).map(([k,v])=>`${k} ${v>=0?'+':'−'}${pct(Math.abs(v),0)}`).join(', ');
     const t=theme(),line=(r,c,dash)=>({x:r.o.buy.map((_,k)=>k),y:r.o.buy.map((v,k)=>adj(v-r.o.inv[k],r.o.cpi[k])),mode:'lines',name:r.m.name,line:{color:c,width:2.5,dash},hovertemplate:'%{y:$,.0f}<extra>'+r.m.name+'</extra>'});
     plot('p-sbs',[line(a,t.buy,'solid'),line(b,t.inv,'dot')],Object.assign(layout({hovermode:'x unified'}),{xaxis:X('Years'),yaxis:Yd('Buy − rent+invest ('+basisLabel()+')'),
       shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:t.muted,width:1}}]}));

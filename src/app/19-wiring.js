@@ -1,6 +1,6 @@
 /* ===================== Wiring ===================== */
 const RENDER={proj:renderProj,sens:renderSens,opt:renderOpt,hist:renderHist,mc:()=>{renderMC();typeset(document.getElementById('tab-mc'))},loc:renderLoc,scen:renderScen,data:renderData,method:()=>typeset(document.getElementById('tab-method'))};
-function showTab(k){CUR=k;document.querySelectorAll('.tabs button').forEach(b=>{b.setAttribute('aria-selected',b.dataset.tab===k);b.tabIndex=b.dataset.tab===k?0:-1});
+function showTab(k){CUR=k;document.querySelectorAll('.tabs button').forEach(b=>{b.setAttribute('aria-selected',String(b.dataset.tab===k));b.tabIndex=b.dataset.tab===k?0:-1});
   Object.keys(RENDER).forEach(t=>document.getElementById('tab-'+t).hidden=t!==k);try{localStorage.setItem('rbi-tab',k)}catch(e){}
   const ab=document.querySelector(`.tabs button[data-tab="${k}"]`),tb=ab&&ab.parentElement;if(tb&&tb.scrollTo)tb.scrollTo({left:ab.offsetLeft-(tb.clientWidth-ab.offsetWidth)/2,behavior:'smooth'});
   requestAnimationFrame(()=>RENDER[k]())}

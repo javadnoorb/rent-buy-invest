@@ -13,7 +13,7 @@ if(typeof MORT_OVERRIDE!=='undefined'&&MORT_OVERRIDE&&MORT_OVERRIDE.length===MOR
 /* National home prices: Shiller's reconstruction through 1986 and Case-Shiller 1987–1991 (both as published by Damodaran);
    from 1992 FHFA's U.S. purchase-only index, December to December, scaled around its mean by volK so the swings keep
    Case-Shiller's size. The values above are the defaults; the build passes HOME_OVERRIDE from data/monthly.json. */
-if(typeof HOME_OVERRIDE!=='undefined'&&HOME_OVERRIDE)for(const y in HOME_OVERRIDE){const i=y-Y0;if(i>=0&&i<HOME.length)HOME[i]=HOME_OVERRIDE[y]}
+if(typeof HOME_OVERRIDE!=='undefined'&&HOME_OVERRIDE)for(const y in HOME_OVERRIDE){const i=+y-Y0;if(i>=0&&i<HOME.length)HOME[i]=HOME_OVERRIDE[y]}
 const NY=STK.length, YEARS=[...Array(NY)].map((_,i)=>Y0+i);
 const INF=YEARS.map((_,i)=>(CPIL[i+1]/CPIL[i]-1)*100);
 const RENTG=YEARS.map((_,i)=>(RENTL[i+1]/RENTL[i]-1)*100);

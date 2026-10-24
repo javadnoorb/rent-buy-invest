@@ -5,7 +5,7 @@ function bisect(f,lo,hi,it=40){let flo=f(lo),fhi=f(hi);if(!isFinite(flo)||!isFin
 function breakevenYear(o){const a=o.buy.map((b,k)=>b-o.inv[k]);for(let k=1;k<a.length;k++){if(a[k]>=0&&a.slice(k).every(v=>v>=0))return k}return null}
 function movingWeights(h,N){const w=[];for(let t=1;t<=N;t++)w.push(t<N?h*Math.pow(1-h,t-1):Math.pow(1-h,N-1));return w}
 function expectedWithMoving(o,p){const w=movingWeights(p.hz,p.N);let s=0;for(let t=1;t<=p.N;t++)s+=w[t-1]*adj(o.buy[t]-o.inv[t],o.cpi[t]);return s}
-const TORNADO=[['Home appreciation ±1 pt','gh',0.01],['Stock return ±2 pt','rs',0.02],['Rent growth ±1 pt','gr',0.01],['Mortgage rate ±1 pt','rate',0.01],
+/** @type {any[]} */const TORNADO=[['Home appreciation ±1 pt','gh',0.01],['Stock return ±2 pt','rs',0.02],['Rent growth ±1 pt','gr',0.01],['Mortgage rate ±1 pt','rate',0.01],
   ['Inflation ±1 pt','inf',0.01],['Rent ±10%','rent0',0.1,'rel'],['Price ±10%','P',0.1,'rel'],['Maintenance ±0.5 pt','maint',0.005],
   ['Property tax ±0.3 pt','ptax',0.003],['Selling costs ±2 pt','sell',0.02],['Down payment ±10 pt','dp',0.1],['Horizon ±3 yr','N',3],['Later market rate ±1 pt','rateLR',0.01]];
 function tornado(p){const base=advAt(p,{});return {base,rows:TORNADO.map(([lab,k,d,rel])=>{const dd=rel?p[k]*d:d;let lo=p[k]-dd,hi=p[k]+dd;

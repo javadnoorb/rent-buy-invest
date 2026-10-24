@@ -16,7 +16,7 @@ function affCash(p){const v=numOf('affCash');return isFinite(v)&&v>0?v:p.P*(p.dp
 function renderAfford(){const p=P,el=document.getElementById('affT');if(!el)return;const cash=affCash(p),inc=p.income;
   const ph=document.getElementById('affCash');if(document.activeElement!==ph&&!ph.value)ph.placeholder=Math.round(cash).toLocaleString('en-US');
   if(!inc){el.innerHTML='<p class="sub">Enter your household income in the settings (Taxes &amp; income) to see what you can afford.</p>';return}
-  const rows=[['Comfortable','housing ≤ 28% of income, all debt ≤ 36%',maxPrice(p,cash,0.28,0.36)],['Lender limit','all debt ≤ 43% of income',maxPrice(p,cash,0.43,0.43)]];
+  /** @type {any[]} */const rows=[['Comfortable','housing ≤ 28% of income, all debt ≤ 36%',maxPrice(p,cash,0.28,0.36)],['Lender limit','all debt ≤ 43% of income',maxPrice(p,cash,0.43,0.43)]];
   const now=affordAt(p,p.P,p.P*(p.dp+p.close)+p.moveIn),need=now?[Math.max(now.piti/0.28,(now.piti+p.debt)/0.36)*12,(now.piti+p.debt)/0.43*12]:null;
   el.innerHTML=rows.map(([lab,rule,a],i)=>`<div class="affrow${i===0?' hl':''}"><div class="k">${lab} <span class="sub">${rule}</span></div>`+
       (a?`<div class="v">${fmtFull(a.P)} <button type="button" class="qlink" data-aff="${a.P}|${a.dp.toFixed(4)}">use this price</button></div>

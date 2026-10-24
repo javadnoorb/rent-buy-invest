@@ -86,7 +86,7 @@ function buildMetroSelect(){const sel=document.getElementById('metro');sel.inner
    Rent: HUD's Fair Market Rents by bedrooms when available (they include utilities, so × the county's contract-to-gross
    rent ratio), else the ACS median contract rent × kR. Price history: FHFA's county index, loaded per state on pick. */
 let COUNTY_ROWS=null,COUNTY_LOAD=null;const COUNTY_HPI={};
-const getJSON=u=>fetch(u).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()});
+const getJSON=u=>fetch(u).then(r=>{if(!r.ok)throw new Error(String(r.status));return r.json()});
 function loadCounties(){if(COUNTY_ROWS)return Promise.resolve(COUNTY_ROWS);if(COUNTY_LOAD)return COUNTY_LOAD;const C=COUNTIES,F=C.fmr;
   const rows=C.rows?Promise.resolve({rows:C.rows}):getJSON(C.file);
   const fmr=!F?Promise.resolve(null):F.rows?Promise.resolve({rows:F.rows}):getJSON(F.file).catch(()=>null);
@@ -124,7 +124,7 @@ function loadZipFile(z){const p=z.slice(0,2),Z=COUNTIES.zip;if(!Z)return Promise
   return ZIP_FILES[p]=ZIP_FILES[p]||getJSON(Z.dir+p+'.json').then(d=>ZIP_DATA[p]=d).catch(()=>{delete ZIP_FILES[p];return null})}
 function ensureZip(z){return loadCounties().then(()=>loadZipFile(z)).then(()=>zipMetro('zip:'+z))}
 function zipMetro(slug){const have=METROS.find(m=>m.slug===slug);if(have)return have;const z=slug.slice(4),d=ZIP_DATA[z.slice(0,2)];if(!d)return null;const r=d.zips[z];if(!r)return null;const [fips,val,rent,tax,gross,sa]=r;
-  const c=COUNTY_ROWS.find(x=>x[0]===fips),C=COUNTIES,us=METROS[0];if(!c)return null;const [,cname,cP,crent,cptax,ins,cfmr,ccg]=c;
+  const c=COUNTY_ROWS.find(x=>x[0]===fips),C=COUNTIES;if(!c)return null;const [,cname,cP,_crent,_cptax,_ins,_cfmr,ccg]=c;
   const cg=rent&&gross?Math.min(1,Math.max(0.6,rent/gross)):ccg,adjR=sa?sa.map(x=>Math.round(x*cg/10)*10):null,M=d.meta;
   const cm=countyMetro('cty:'+fips);
   const m={slug,fips,zip:z,county:true,name:`ZIP ${z} · ${cname}`,P:val?Math.round(val*C.kP/100)*100:cP,ptax:tax&&val?Math.round(tax/val*1e4*nbK(cm.st))/100:cm.ptax,
@@ -171,7 +171,7 @@ function updateMetroHints(m){
   hint('rent0',`${m.name}: ${m.src.rent?m.src.rent.t:''}${d(m.src.rent)} ${srcObj(m.src.rent)} · use a rental comparable to the home`);
   hint('ptax',`${m.src.ptax?m.src.ptax.t:''} ${srcObj(m.src.ptax)}`);
   hint('ins',`${m.src.ins?m.src.ins.t:''} ${srcObj(m.src.ins)}`);
-  {const f=m.flood,F=COUNTIES&&COUNTIES.flood;hint('floodIns',f?`${m.name}: ${pct(f.take,1)} of homes carry NFIP flood insurance${f.cost?`, typically ${fmtFull(f.cost)}/yr`:''}; ${pct(f.sfha,0)} are in the high-risk zone where lenders require it. The default is the average over all homes; if this home is in a flood zone, use its quote. ${linkTo('https://www.fema.gov/about/openfema/data-sets')}`:'check FEMA flood zone or a quote; earthquake insurance is separate')}
+  {const f=m.flood;hint('floodIns',f?`${m.name}: ${pct(f.take,1)} of homes carry NFIP flood insurance${f.cost?`, typically ${fmtFull(f.cost)}/yr`:''}; ${pct(f.sfha,0)} are in the high-risk zone where lenders require it. The default is the average over all homes; if this home is in a flood zone, use its quote. ${linkTo('https://www.fema.gov/about/openfema/data-sets')}`:'check FEMA flood zone or a quote; earthquake insurance is separate')}
   {const h=homesteadFor(m),st=stateOf(m),first=t=>(t||'').split(/(?<=\.)\s/)[0];
    hint('hsEx',h&&h.ex?`${m.fips&&(STATE_RULES.homestead_county||{})[m.fips.slice(0,5)]?first(h.note):`${st}: about ${fmt(h.ex)} off the taxed value${h.estimate?' (an estimate of its effect on the whole tax rate, since it covers only some levies)':''}`}. The property tax rate above is before the exemption, so the typical home pays the Census rate. ${linkTo(h.u)}`:
      `no statewide homestead exemption for ${st||'this location'} in the app's data; local ones may apply`);
@@ -182,7 +182,7 @@ function updateMetroHints(m){
 }
 
 
-function dataAgeDays(){const d=new Date(SNAP.asOf+'T12:00:00');return isFinite(d)?Math.floor((Date.now()-d)/864e5):0}
+function dataAgeDays(){const d=new Date(SNAP.asOf+'T12:00:00');return isFinite(d.getTime())?Math.floor((Date.now()-d.getTime())/864e5):0}
 function dataAgeText(){const n=dataAgeDays();return n<=1?'updated today':n<14?`${n} days ago`:n<60?`${Math.round(n/7)} weeks ago`:`${Math.round(n/30)} months ago`}
 function staleNotice(){const n=dataAgeDays();let el=document.getElementById('stale');
   const off=typeof navigator!=='undefined'&&navigator.onLine===false;

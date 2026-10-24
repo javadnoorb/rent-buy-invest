@@ -5,7 +5,7 @@ function renderProj(){
   renderGap(o);
   const tr=(arr,name,col,dash)=>({x,y:arr.map((v,k)=>adj(v,o.cpi[k])),name,mode:'lines',line:{color:col,width:2.6,dash},hovertemplate:'%{y:$,.0f}'});
   const be=breakevenYear(o);
-  const data=[tr(o.buy,'Buy',t.buy),tr(o.inv,'Rent + invest',t.inv),tr(o.cash,'Rent + T-bills',t.cash,'dot')];
+  /** @type {any[]} */const data=[tr(o.buy,'Buy',t.buy),tr(o.inv,'Rent + invest',t.inv),tr(o.cash,'Rent + T-bills',t.cash,'dot')];
   if(P.rentalOn)data.push(tr(o.rental,'Rent + rental property',t.rp,'dashdot'));
   if(o.refiAt.length){const ys=o.refiAt.map(a=>{const k=Math.min(o.buy.length-1,Math.ceil(a));return adj(o.buy[k],o.cpi[k])});
     data.push({x:o.refiAt.map(a=>Math.ceil(a)),y:ys,mode:'markers',name:'Refinance',marker:{size:9,color:t.bg,line:{color:t.buy,width:2}},hovertemplate:'refinanced<extra></extra>'})}
@@ -16,10 +16,10 @@ function renderProj(){
     data.unshift(...bandOf(MC.res.buy,t.buy,'Buy'),...bandOf(MC.res.inv,t.inv,'Rent + invest'))}
   plot('p-nw',data,{margin:{t:be?24:10},xaxis:{...X('Years from today'),dtick:P.N>15?5:1},yaxis:Yd('Net worth, '+basisLabel()),
      shapes:(be?[{type:'line',x0:be,x1:be,yref:'paper',y0:0,y1:1,line:{color:t.muted,dash:'dash',width:1}}]:[]).concat(o.moved?[{type:'line',x0:o.moved.year,x1:o.moved.year,yref:'paper',y0:0,y1:1,line:{color:t.cash,dash:'dot',width:1.5}}]:[]),
-     annotations:(be?[{x:be,yref:'paper',y:1,text:'break-even',showarrow:false,yanchor:'bottom',font:{size:11,color:t.muted}}]:[]).concat(o.moved?[{x:o.moved.year,yref:'paper',y:0.02,text:o.moved.mode==='buy'?'sell & rebuy':'sell & rent',showarrow:false,xanchor:'left',font:{size:11,color:t.cash}}]:[])});
+     annotations:/** @type {any[]} */(be?[{x:be,yref:'paper',y:1,text:'break-even',showarrow:false,yanchor:'bottom',font:{size:11,color:t.muted}}]:[]).concat(o.moved?[{x:o.moved.year,yref:'paper',y:0.02,text:o.moved.mode==='buy'?'sell & rebuy':'sell & rent',showarrow:false,xanchor:'left',font:{size:11,color:t.cash}}]:[])});
   const yrs=o.flow.map((_,k)=>k+1),fl=o.flow;
   const comp=[['interest','Interest',t.neg],['principal','Principal',t.buy],['ptax','Property tax',hexA(t.cash,.85)],['ins','Insurance',hexA(t.accent,.55)],['maint','Maintenance',hexA(t.muted,.75)],['hoa','HOA',hexA(t.accent,.3)],['hh','House-hack income, after tax',hexA(t.buy,.6)],['util','Extra utilities',hexA(t.cash,.45)],['pmi','PMI',hexA(t.neg,.45)],['refi','Refinance cost',hexA(t.ink,.35)],['tax','Tax savings',hexA(t.buy,.35)]];
-  const fdata=comp.filter(([k])=>fl.some(f=>Math.abs(f[k])>0.5)).map(([k,n,c])=>({x:yrs,y:fl.map(f=>adj(f[k],f.cpi)),name:n,type:'bar',marker:{color:c},hovertemplate:'%{y:$,.0f}'}));
+  const fdata=/** @type {any[]} */(comp.filter(([k])=>fl.some(f=>Math.abs(f[k])>0.5)).map(([k,n,c])=>({x:yrs,y:fl.map(f=>adj(f[k],f.cpi)),name:n,type:'bar',marker:{color:c},hovertemplate:'%{y:$,.0f}'})));
   fdata.push({x:yrs,y:fl.map(f=>adj(f.rent,f.cpi)),name:'Rent',mode:'lines+markers',line:{color:t.inv,width:2.5},marker:{size:5},hovertemplate:'%{y:$,.0f}'});
   plot('p-flow',fdata,{barmode:'relative',xaxis:X('Year'),yaxis:Yd('Per month, '+basisLabel())});
   const u=o.unrec;

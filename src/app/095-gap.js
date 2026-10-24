@@ -19,7 +19,7 @@ function gapParts(p,o){const N=p.N,c=o.cpi[N],LS=loanSetup(p,p.rate),sum=k=>o.fl
    last row is the total, drawn from zero. An invisible bar per row carries the hover text. On phones the names and
    values go above the arrows so the arrows get the full width. */
 function renderGap(o){const t=theme(),p=P,{gap,parts}=gapParts(p,o),narrow=innerWidth<600;
-  const rows=parts.map(([lab,v])=>({lab,v})),n=rows.length;let run=0;rows.forEach(r=>{r.a=run;run+=r.v;r.b=run});
+  const rows=/** @type {any[]} */(parts.map(([lab,v])=>({lab,v}))),n=rows.length;let run=0;rows.forEach(r=>{r.a=run;run+=r.v;r.b=run});
   rows.push({lab:'Buy minus rent',v:gap,a:0,b:gap,total:true});
   const xs=rows.flatMap(r=>[r.a,r.b]),lo=Math.min(0,...xs),hi=Math.max(0,...xs),span=(hi-lo)||1,pad=span*(narrow?.03:.13);
   const y=i=>n-i,dy=narrow?-.14:0,head=span*.022,sh=[],bx=[],base=[],txt=[],tx=[],ty=[],tpos=[],tcol=[];

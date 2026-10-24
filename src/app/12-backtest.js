@@ -23,8 +23,8 @@ function renderHist(){
       const o=simulate(p,histPathMonthly(s,N),{N,rate});const d=MONTHLY.dates[s];runs.push({s:+d.slice(0,4)+(+d.slice(5,7)-1)/12,lab:d,N,adv:o.buy.map((b,k)=>(b-o.inv[k])/o.cpi[k]/p.P*100),o,rate,jan:d.endsWith('-01')})}}
   const lines=mode==='annual'?runs:runs.filter(r=>r.jan);
   const s0=lines[0].s,s1=lines.at(-1).s;
-  const sp=lines.map(r=>{const c=(r.s-s0)/(s1-s0||1);return {x:r.adv.map((_,k)=>k),y:r.adv,mode:'lines',name:r.lab,showlegend:false,
-    line:{width:1.3,color:`rgba(${Math.round(40+180*c)},${Math.round(90+40*(1-c))},${Math.round(200-150*c)},0.7)`},hovertemplate:`start ${r.lab}: %{y:.0f}%<extra></extra>`}});
+  const sp=/** @type {any[]} */(lines.map(r=>{const c=(r.s-s0)/(s1-s0||1);return {x:r.adv.map((_,k)=>k),y:r.adv,mode:'lines',name:r.lab,showlegend:false,
+    line:{width:1.3,color:`rgba(${Math.round(40+180*c)},${Math.round(90+40*(1-c))},${Math.round(200-150*c)},0.7)`},hovertemplate:`start ${r.lab}: %{y:.0f}%<extra></extra>`}}));
   const med=[];for(let h=0;h<=30;h++){const v=runs.filter(r=>r.adv.length>h).map(r=>r.adv[h]).sort((a,b)=>a-b);if(v.length>=5)med.push([h,v[Math.floor(v.length/2)]])}
   sp.push({x:med.map(m=>m[0]),y:med.map(m=>m[1]),mode:'lines',name:'Median across starts',line:{color:t.ink,width:3.5},hovertemplate:'median %{y:.0f}%<extra></extra>'});
   plot('p-spag',sp,{hovermode:'closest',xaxis:X('Years after purchase'),yaxis:Yt('Buy − rent&invest, real, % of price',{ticksuffix:'%'}),

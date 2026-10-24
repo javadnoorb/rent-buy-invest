@@ -34,7 +34,7 @@ function markChanged(){let total=0;const per=new Map();
 const CORE=['P','dp','rate','term','rent0','ptax','ins','maint','gh','gr','rs','inf','income'];
 let SET_MODE='basic';
 function setMode(m){SET_MODE=m==='all'?'all':'basic';const aside=document.getElementById('aside');aside.classList.toggle('basic',SET_MODE==='basic');
-  document.querySelectorAll('#setMode button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===SET_MODE));
+  document.querySelectorAll('#setMode button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.m===SET_MODE)));
   if(SET_MODE==='basic')aside.querySelectorAll('details:not(.nocore)').forEach(d=>d.open=true);
   try{localStorage.setItem('rbi-setmode',SET_MODE)}catch(e){}if(P)markChanged()}
 let GROUP_STATE=null;
