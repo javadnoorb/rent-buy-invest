@@ -132,16 +132,28 @@ function walkTrees(roots) {
   ok(!reg.badSec.length, 'registry: every equation names a Method section that exists', reg.badSec.join(', '));
   ok(!unused.length, 'registry: every equation is used by a trace or a Method block', unused.join(', '));
 
-  /* ---- the panel opens from a real click on a chart point ---- */
-  await page.evaluate(() => showTab('proj')); await page.waitForTimeout(600);
-  const xy = await page.evaluate(() => { const el = document.getElementById('p-nw'), fl = el._fullLayout, i = el.data.findIndex(d => d.meta === 'nw:buy'), d = el.data[i], k = d.x.length - 1;
-    el.scrollIntoView({ block: 'center' }); const r = el.getBoundingClientRect();
-    return { x: r.left + fl._size.l + fl.xaxis.d2p(d.x[k]), y: r.top + fl._size.t + fl.yaxis.d2p(d.y[k]) }; });
-  await page.mouse.move(xy.x, xy.y); await page.waitForTimeout(200); await page.mouse.click(xy.x, xy.y); await page.waitForTimeout(800);
-  const pn = await page.evaluate(() => { const p = document.getElementById('trp'); return p && !p.hidden ? { sub: document.getElementById('trpS').textContent, rows: p.querySelectorAll('.trn').length, eq: !!p.querySelector('.treq') } : null; });
-  ok(pn && /Buy, year/.test(pn.sub) && pn.rows > 3 && pn.eq, 'clicking a point opens the panel with its equation and parts', JSON.stringify(pn));
-  await page.keyboard.press('Escape'); await page.waitForTimeout(200);
-  ok(await page.evaluate(() => document.getElementById('trp').hidden), 'Escape closes the panel');
+  /* ---- a click selects a point; the button opens the panel beside the chart (never over it) ---- */
+  const pointXY = (pg, k) => pg.evaluate(k => { const el = document.getElementById('p-nw'), fl = el._fullLayout, i = el.data.findIndex(d => d.meta === 'nw:buy'), d = el.data[i], j = k < 0 ? d.x.length - 1 : k;
+    const r = el.getBoundingClientRect(); return { x: r.left + fl._size.l + fl.xaxis.d2p(d.x[j]), y: r.top + fl._size.t + fl.yaxis.d2p(d.y[j]) }; }, k);
+  const clickPoint = async (pg, k) => { const xy = await pointXY(pg, k); await pg.mouse.move(xy.x, xy.y); await pg.waitForTimeout(200); await pg.mouse.click(xy.x, xy.y); await pg.waitForTimeout(500); };
+  const panelState = pg => pg.evaluate(() => { const p = document.getElementById('trp'), el = document.getElementById('p-nw'), c = el.getBoundingClientRect(), r = p && !p.hidden ? p.getBoundingClientRect() : null;
+    return { open: !!r, bar: !!document.querySelector('.trbar[data-for="p-nw"]'), sub: r ? document.getElementById('trpS').textContent : '', rows: r ? p.querySelectorAll('.trn').length : 0, eq: !!(r && p.querySelector('.treq')),
+      covered: r ? Math.min(c.right, r.right) - Math.max(c.left, r.left) > 2 && Math.min(c.bottom, r.bottom) - Math.max(c.top, r.top) > 2 : false }; });
+  for (const [W, H, mob] of [[1280, 900, false], [390, 844, true]]) {
+    const pg = W === 1280 ? page : await b.newPage({ viewport: { width: W, height: H }, isMobile: mob, hasTouch: mob });
+    if (pg !== page) { pg.on('pageerror', e => errors.push(e.message)); await pg.goto(URL); await pg.waitForTimeout(2500); await pg.evaluate(() => { try { closeWizard(false); } catch (e) {} }); }
+    await pg.evaluate(() => { showTab('proj'); document.getElementById('p-nw').scrollIntoView({ block: 'center' }); }); await pg.waitForTimeout(600);
+    await clickPoint(pg, -1);
+    const s1 = await panelState(pg);
+    ok(s1.bar && !s1.open, `${W}px: clicking a point selects it and leaves the chart in view (no panel yet)`, JSON.stringify(s1));
+    await pg.click('.trbar[data-for="p-nw"] .trgo'); await pg.waitForTimeout(1200);
+    const s2 = await panelState(pg);
+    ok(s2.open && /Buy, year/.test(s2.sub) && s2.rows > 3 && s2.eq && !s2.covered, `${W}px: "How was this computed?" opens the panel beside the chart, not over it`, JSON.stringify(s2));
+    if (W === 1280) { await clickPoint(pg, 2); const s3 = await panelState(pg); ok(s3.open && /year 2$/.test(s3.sub) && !s3.covered, 'with the panel open, clicking another point updates it', JSON.stringify(s3)); }
+    await pg.keyboard.press('Escape'); await pg.waitForTimeout(300);
+    ok(await pg.evaluate(() => document.getElementById('trp').hidden && !document.body.classList.contains('trace-open')), `${W}px: Escape closes the panel and the page takes its full width back`);
+    if (pg !== page) await pg.close();
+  }
 
   ok(!errors.length, 'no page errors', errors.join(' | '));
   await b.close();

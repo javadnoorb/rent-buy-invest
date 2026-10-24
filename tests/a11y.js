@@ -35,7 +35,7 @@ const AXE = require.resolve(process.env.AXE_PATH || 'axe-core/axe.min.js');
     // the "How this was computed" panel, opened on a chart point with a few lines expanded
     await page.click('[role="tab"][data-tab="proj"]'); await page.waitForTimeout(600);
     await page.evaluate(() => { const el = document.getElementById('p-nw'), i = el.data.findIndex(d => d.meta === 'nw:buy');
-      traceClick(el, { points: [{ curveNumber: i, pointNumber: P.N, x: P.N, y: el.data[i].y[P.N] }] });
+      traceClick(el, { points: [{ curveNumber: i, pointNumber: P.N, x: P.N, y: el.data[i].y[P.N] }] }); document.querySelector('.trbar .trgo').click();
       [...document.querySelectorAll('#trpB details.trn')].slice(0, 6).forEach(d => d.open = true); });
     await page.waitForTimeout(1500); await check('trace panel');
     await page.evaluate(() => closeTrace());
