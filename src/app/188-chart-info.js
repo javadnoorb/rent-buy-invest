@@ -58,5 +58,18 @@ function wireChartInfo(){
     {const sm=dl.closest('details').querySelector('summary');if(sm.textContent==='How to read this')sm.textContent='How to read this · model, data & assumptions'}
     dl.insertAdjacentHTML('beforeend',`<dt>Model, data and assumptions</dt><dd class="cinfo" data-c="${k}"></dd>`);
     dl.closest('details').addEventListener('toggle',e=>{if(e.target.open){const dd=e.target.querySelector('dd.cinfo');dd.innerHTML=ciHTML(dd.dataset.c)}})});
-  document.addEventListener('click',e=>{const a=e.target.closest('a[data-ci-set],a[data-ci-sec]');if(!a)return;e.preventDefault();
-    if(a.dataset.ciSet)gotoSetting(a.dataset.ciSet);else gotoMethod(a.dataset.ciSec)})}
+  document.addEventListener('click',e=>{const a=e.target.closest('a[data-ci-set],a[data-ci-sec]');if(!a)return;e.preventDefault();ciRemember(a);
+    if(a.dataset.ciSet)gotoSetting(a.dataset.ciSet);else gotoMethod(a.dataset.ciSec)});
+  addEventListener('popstate',()=>{if(CI_BACK)ciGoBack()})}
+/* After following a link from a chart's notes, a "Back to <chart>" button (and the browser's back button) returns to
+   the tab and chart the link came from. */
+let CI_BACK=null;
+function ciRemember(a){const card=a.closest('.card'),plot=card&&card.querySelector('.plot'),h=card&&card.querySelector('h2');
+  CI_BACK={tab:CUR,y:scrollY,id:plot?plot.id:null,title:h?h.textContent.replace(/\?/g,'').trim():'the chart'};
+  try{history.pushState({ciBack:1},'')}catch(e){}
+  let b=document.getElementById('ciBack');if(!b){b=document.createElement('button');b.id='ciBack';b.type='button';b.className='ciback';document.body.appendChild(b);
+    b.addEventListener('click',()=>{if(history.state&&history.state.ciBack)history.back();else ciGoBack()})}
+  b.textContent='← Back to '+CI_BACK.title;b.hidden=false}
+function ciGoBack(){const r=CI_BACK;if(!r)return;CI_BACK=null;const b=document.getElementById('ciBack');if(b)b.hidden=true;
+  const aside=document.getElementById('aside');if(aside.classList.contains('open'))document.getElementById('closeSheet').click();
+  if(CUR!==r.tab)showTab(r.tab);setTimeout(()=>{const el=r.id&&document.getElementById(r.id);if(el)el.closest('.card').scrollIntoView({block:'start'});else scrollTo(0,r.y)},150)}

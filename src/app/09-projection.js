@@ -1,5 +1,6 @@
 /* ===================== Projection ===================== */
 function yearlyRows(o){const rows=[];for(let k=0;k<o.buy.length;k++){const f=o.flow[k-1]||{};rows.push({year:k,home:o.H[k],balance:o.bal[k],netEquity:o.eq[k],buyerPortfolio:o.pB[k],buyNW:o.buy[k],renterNW:o.inv[k],cashNW:o.cash[k],ownerMonthly:k?f.own:null,rentMonthly:k?f.rent:null,hti:k&&o.income[k-1]?f.own/(o.income[k-1]/12):null,taxSaving:k?-f.tax*12:null,mortRate:o.rateAt[k],cpiIndex:o.cpi[k]})}return rows}
+let CSV_TEXT='';  // the year-by-year table as CSV, for the Copy CSV button
 function renderProj(){
   const t=theme(),o=simulate(P,constPath(P,P.N),{detail:true}),x=o.buy.map((_,k)=>k);
   renderGap(o);
@@ -39,14 +40,14 @@ function renderProj(){
     {x,y:o.lqB.map((v,k)=>v/bud[k]),name:'Buyer',mode:'lines',line:{color:t.buy,width:2.5},hovertemplate:'%{y:.1f} months'},
     {x,y:o.lqR.map((v,k)=>v/bud[k]),name:'Renter (invest)',mode:'lines',line:{color:t.inv,width:2.5},hovertemplate:'%{y:.1f} months'}]
     .concat(P.heloc>0?[{x,y:o.lqB.map((v,k)=>(v+o.heloc[k])/bud[k]),name:'Buyer + home-equity line',mode:'lines',line:{color:t.buy,width:2,dash:'dot'},hovertemplate:'%{y:.1f} months'}]:[]),
-    {xaxis:X('Years from today'),yaxis:Yt('Months of budget',{type:'log',tickvals:[0.5,1,3,6,12,24,60,120,240,600],ticktext:['0.5','1','3','6','12','24','60','120','240','600']}),
+    {xaxis:X('Years from today'),yaxis:Yt('Months of budget',{rangemode:'tozero'}),  // a linear axis: the buyer often starts at 0, which a log axis can't show
      shapes:[3,6].map(v=>({type:'line',xref:'paper',x0:0,x1:1,y0:v,y1:v,line:{color:t.neg,dash:'dot',width:1}}))});
   // table + csv
   const rows=yearlyRows(o),cols=[['year','Year'],['home','Home value'],['balance','Mortgage'],['netEquity','Net equity'],['buyerPortfolio','Buyer portfolio'],['buyNW','Buy NW'],['renterNW','Rent+invest NW'],['cashNW','Rent+T-bills NW'],['ownerMonthly','Owner $/mo'],['rentMonthly','Rent $/mo'],['taxSaving','Tax saving $/yr'],['hti','Housing / income'],['mortRate','Loan rate']];
   const v=(r,k)=>{const x=r[k];if(x==null)return '';if(k==='year')return x;if(k==='hti')return pct(x,0);if(k==='mortRate')return (x*100).toFixed(2)+'%';return Math.round(adj(x,r.cpiIndex)).toLocaleString('en-US')};
   document.getElementById('ytable').innerHTML='<thead><tr>'+cols.map(c=>`<th>${c[1]}</th>`).join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+cols.map(c=>`<td>${v(r,c[0])}</td>`).join('')+'</tr>').join('')+'</tbody>';
   const csv=[cols.map(c=>c[1]+(c[0]!=='year'&&c[0]!=='mortRate'?` (${basisLabel()})`:'')).join(',')].concat(rows.map(r=>cols.map(c=>{const x=r[c[0]];if(x==null)return '';if(c[0]==='year')return x;if(c[0]==='mortRate')return (x*100).toFixed(3);if(c[0]==='hti')return (x*100).toFixed(1);return Math.round(adj(x,r.cpiIndex))}).join(','))).join('\n');
-  document.getElementById('csvText').value=csv;document.getElementById('ytBasis').textContent=basisLabel();
+  CSV_TEXT=csv;document.getElementById('ytBasis').textContent=basisLabel();
   {const N=P.N,c=o.cpi[N],gap=adj(o.buy[N]-o.inv[N],c),ref=adj(Math.max(o.buy[N],o.inv[N]),c);
    let t1=`At year ${N}: ${gapTxt(gap,ref)}. `+(be?`Buying pulls ahead in year ${be} and stays ahead through year ${N}`+((s=>s&&s.until&&s.until>N?`; at these growth rates renting moves back ahead in year ${s.until}.`:'.')(aheadSpell(runConst(P,{},30).o))):`Buying does not pull ahead within ${nY(N)} at these growth rates.`);
    if(showBand&&MC&&MC.res){const r=(a,f)=>q(a.map(x=>x[N]),f);t1+=` In the middle half of simulated futures, buying ends at ${fmt(r(MC.res.buy,.25))}–${fmt(r(MC.res.buy,.75))} and renting and investing at ${fmt(r(MC.res.inv,.25))}–${fmt(r(MC.res.inv,.75))}${r(MC.res.buy,.75)>r(MC.res.inv,.25)&&r(MC.res.inv,.75)>r(MC.res.buy,.25)?', so the ranges overlap and luck could decide it':''}.`}

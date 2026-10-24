@@ -30,9 +30,11 @@ function printWidthPlots(on){if(!window.Plotly||!Plotly.relayout)return;document
   try{Plotly.relayout(el,on?{width:Math.min(680,el.clientWidth||680),autosize:false}:{width:null,autosize:true})}catch(e){}})}
 function resizePlots(){if(!window.Plotly||!Plotly.Plots)return;document.querySelectorAll('.panel:not([hidden]) .plot').forEach(el=>{try{Plotly.Plots.resize(el)}catch(e){}})}
 function wireShareUndo(){
-  const sh=document.getElementById('shareNative');sh.hidden=!(STANDALONE_SITE&&navigator.share);
-  sh.addEventListener('click',()=>{const url=location.origin+location.pathname+'?s='+encodeURIComponent(encodeState());
-    navigator.share({title:'Rent, Buy or Invest',text:window._summaryText||'',url}).catch(()=>{})});
+  /* one Share button: the device's share sheet where there is one, otherwise the summary and a link that opens the
+     app with these inputs are copied together (the link only on the website, not inside an embedded copy) */
+  document.getElementById('shareBtn').addEventListener('click',()=>{const url=STANDALONE_SITE?location.origin+location.pathname+'?s='+encodeURIComponent(encodeState()):'',txt=window._summaryText||'';
+    if(navigator.share&&STANDALONE_SITE)navigator.share({title:'Rent, Buy or Invest',text:txt,url}).catch(()=>{});
+    else copyText(txt+(url?'\n'+url:''),document.getElementById('actMsg'),url?'Summary and link copied. Anyone opening the link sees these inputs.':'Summary copied.')});
   document.getElementById('printReport').addEventListener('click',()=>window.print());
   // the printout includes "More numbers", opened for the print and closed again after if it was closed
   const more=document.querySelector('.verdict details.more');let wasOpen=true;

@@ -55,20 +55,21 @@ function setBasis(){document.getElementById('realBtn').setAttribute('aria-presse
 function init(){
   buildInputs();buildMetroSelect();buildSnap();buildMethod();const hadSaved=(()=>{try{return !!localStorage.getItem('rbi-inputs')}catch(e){return false}})();restore();wireWizard();wireSettings();wireLoc();wireHelp();wireChartInfo();wireMini();wireShareUndo();wireCounty();wireRentTag();wireAfford();{const tb=document.querySelector('.tabs'),sn=document.getElementById('snap');const sf=()=>sn.classList.toggle('more-r',sn.scrollLeft+sn.clientWidth<sn.scrollWidth-4);tb.addEventListener('scroll',tabFade,{passive:true});sn.addEventListener('scroll',sf,{passive:true});addEventListener('resize',()=>{tabFade();sf()});tabFade();sf()}
   if(STANDALONE_SITE){const sp=new URLSearchParams(location.search).get('s');const st=sp&&decodeState(sp);if(st){if(st.v==null)st.v=7;try{applySaved(st)}catch(e){console.warn('could not apply the shared settings',e)}history.replaceState(null,'',location.pathname)}}
-  const shareBtn=document.getElementById('shareLink');shareBtn.hidden=!STANDALONE_SITE;
-  shareBtn.addEventListener('click',()=>copyText(location.origin+location.pathname+'?s='+encodeURIComponent(encodeState()),document.getElementById('actMsg'),'Link copied. Anyone opening it sees these inputs.'));
-  document.getElementById('copySummary').addEventListener('click',()=>copyText(window._summaryText||'',document.getElementById('actMsg'),'Summary copied.'));
   document.getElementById('nwBand').addEventListener('change',()=>renderProj());
   document.getElementById('realBtn').setAttribute('aria-pressed',REAL);document.getElementById('nomBtn').setAttribute('aria-pressed',!REAL);
   document.getElementById('h-year').max=LAST_Y;
   {const fb=document.getElementById('fcstPreset');fb.hidden=!PRESETS.fcst;if(PRESETS.fcst&&FCST.note){const h=document.createElement('div');h.className='hint muted';h.style.fontSize='11px';h.innerHTML=FCST.note.replace('__GH__',PRESETS.fcst.gh).replace('__GR__',PRESETS.fcst.gr);fb.textContent=FCST.label||fb.textContent;fb.parentElement.after(h)}}
   if(!MONTHLY){const o=document.querySelector('#h-mode option[value=monthly]');o.disabled=true;o.textContent+=' (unavailable)'}
   QUICK.forEach(k=>document.getElementById('q-'+k).addEventListener('input',e=>{if(e.target.value==='')return;if(k==='rent0'&&e.isTrusted)rentTyped();document.getElementById(k).value=unfmt(e.target.value);update()}));
-  document.addEventListener('focusout',e=>{const el=e.target;if(el&&el.dataset&&el.dataset.money!=null)setTimeout(()=>fmtMoneyEl(el),0)});
+  // money fields show thousands separators while typing; the cursor stays after the same digit
+  document.addEventListener('input',e=>{const el=e.target;if(!el.dataset)return;el.dataset.typed='1';if(el.dataset.money==null)return;
+    const v=el.value,pos=el.selectionStart==null?v.length:el.selectionStart,before=v.slice(0,pos).replace(/[^0-9.]/g,'').length,raw=unfmt(v);
+    if(!/^-?\d*\.?\d*$/.test(raw))return;const neg=raw.startsWith('-'),[i,d]=raw.replace('-','').split('.');
+    const f=(neg?'-':'')+(i?Number(i).toLocaleString('en-US'):'')+(d!=null?'.'+d:'');if(f===v)return;
+    el.value=f;let n=0,p=neg?1:0;while(p<f.length&&n<before){if(/[0-9.]/.test(f[p]))n++;p++}try{el.setSelectionRange(p,p)}catch(err){}},true);
+  document.addEventListener('focusout',e=>{const el=e.target;if(el&&el.dataset){delete el.dataset.typed;if(el.dataset.money!=null)setTimeout(()=>fmtMoneyEl(el),0)}});
   document.addEventListener('focusin',e=>{const el=e.target;if(!(el instanceof HTMLInputElement)||!/^(text|number)$/.test(el.type)||el.id==='aq')return;
-    if(el.dataset.money!=null)el.value=unfmt(el.value);
-    if(el.closest('.f,.q,.wizard')){el.addEventListener('mouseup',ev=>ev.preventDefault(),{once:true});setTimeout(()=>{try{el.select()}catch(err){}},0)}});
-  document.addEventListener('focusout',e=>{if(e.target.dataset&&e.target.dataset.money!=null)fmtMoneyEl(e.target)});
+    if(el.closest('.f,.q,.wizard')){el.addEventListener('mouseup',ev=>ev.preventDefault(),{once:true});try{el.select()}catch(err){}setTimeout(()=>{if(document.activeElement===el&&el.selectionStart===el.selectionEnd&&el.selectionEnd===el.value.length&&!el.dataset.typed)try{el.select()}catch(err){}},0)}});
   document.getElementById('N').addEventListener('input',update);
   document.getElementById('metro').addEventListener('change',e=>{applyMetro(e.target.value);update()});
   document.getElementById('beds').addEventListener('change',()=>{setRentFromBeds();update()});
@@ -103,9 +104,11 @@ function init(){
   ['mc-n','mc-b','mc-w','mc-rc'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{if(CUR==='mc'){document.getElementById('mc-note').textContent='Running simulations…';startMC(true)}}));
   document.getElementById('scSave').addEventListener('click',()=>{const nm=document.getElementById('scName').value.trim()||`Scenario ${loadSc().length+1}`;const a=loadSc();a.push({name:nm,raw:getRaw()});
     document.getElementById('scMsg').textContent=saveSc(a)?`Saved "${nm}".`:'Could not save: this browser is blocking storage.';document.getElementById('scName').value='';renderScen()});
-  document.getElementById('copyCsv').addEventListener('click',()=>{const ta=document.getElementById('csvText'),msg=document.getElementById('copyMsg');
-    const fallback=()=>{ta.closest('details').open=true;ta.focus();ta.select();msg.textContent='Text selected below; copy it with your device.'};
-    try{navigator.clipboard.writeText(ta.value).then(()=>{msg.textContent='Copied.'},fallback)}catch(e){fallback()}});
+  // copy the year-by-year table as CSV; where the clipboard is blocked, download it as a file instead
+  document.getElementById('copyCsv').addEventListener('click',()=>{const msg=document.getElementById('copyMsg');
+    const fallback=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([CSV_TEXT],{type:'text/csv'}));a.download='rent-buy-invest.csv';a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),1000);msg.textContent='Copying was blocked, so the CSV was downloaded.'};
+    try{navigator.clipboard.writeText(CSV_TEXT).then(()=>{msg.textContent='Copied. Paste it into a spreadsheet.'},fallback)}catch(e){fallback()}});
   const rerender=()=>RENDER[CUR]();
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change',rerender);
   new MutationObserver(rerender).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});

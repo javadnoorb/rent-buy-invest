@@ -263,6 +263,20 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
       if (!document.getElementById('p-' + k)) bad.push('chart ' + k) });
     return bad; });
   ok(!reg.length, 'settings, Method sections and sources named in lists all exist', reg.join(', '));
+  /* after a link from a chart's notes, the Back button and the browser's back return to the chart */
+  await page.evaluate(() => { const d = document.querySelector('dd.cinfo[data-c="gap"]').closest('details'); d.open = true; });
+  await page.waitForTimeout(200); await page.click('dd.cinfo[data-c="gap"] a[data-ci-sec]'); await page.waitForTimeout(700);
+  const bk1 = await page.evaluate(() => [CUR, !document.getElementById('ciBack').hidden, document.getElementById('ciBack').textContent]);
+  await page.click('#ciBack'); await page.waitForTimeout(700);
+  const bk2 = await page.evaluate(() => { const r = document.getElementById('p-gap').getBoundingClientRect(); return [CUR, document.getElementById('ciBack').hidden, r.top < innerHeight && r.bottom > 0]; });
+  await page.click('dd.cinfo[data-c="gap"] a[data-ci-set]'); await page.waitForTimeout(500); await page.goBack(); await page.waitForTimeout(700);
+  const bk3 = await page.evaluate(() => [CUR, document.getElementById('ciBack').hidden]);
+  ok(bk1[0] === 'method' && bk1[1] && /Where the gap/.test(bk1[2]) && bk2[0] === 'proj' && bk2[1] && bk2[2] && bk3[0] === 'proj' && bk3[1], 'back from a chart-note link to the chart', JSON.stringify([bk1, bk2, bk3]));
+  /* money fields: separators appear while typing, and typing replaces the selected value */
+  await page.click('#q-P'); await page.keyboard.type('1250000'); const lv = await page.evaluate(() => document.getElementById('q-P').value);
+  await page.waitForTimeout(600); const lp = await page.evaluate(() => P.P);
+  await page.click('#q-P'); await page.keyboard.type('366157'); await page.waitForTimeout(600);
+  ok(lv === '1,250,000' && lp === 1250000, 'thousands separators while typing; typing replaces the value', JSON.stringify([lv, lp]));
   /* dependent settings: hidden while the setting they depend on makes them irrelevant */
   const vis = id => page.evaluate(id => !document.getElementById(id).closest('.f').classList.contains('dep-off'), id);
   const d0 = [await vis('armRate'), await vis('pmi'), await vis('mu'), await vis('refiTh')];
