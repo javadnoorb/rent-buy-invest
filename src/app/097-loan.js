@@ -6,7 +6,7 @@ function loanRows(p,o){const LS=loanSetup(p,p.rate),n=p.term*12,ca=creditAdj(p).
   rows.push(['Rate quoted',pct(quote,2)+(LS.type==='arm'?` (${p.armYears||5}-year ARM start)`:p.term===15?' (15-year)':'')]);
   if(Math.abs(ca)>1e-6)rows.push([`Credit score ${String(p.fico).replace('-','–')}`,`${ca>0?'+':'−'}${(Math.abs(ca)*100).toFixed(2)} pts (Fannie Mae price adjustment)`]);
   if(pts>0){const M0=pmt(LS.L,(LS.rate+cut)/12,n),save=M0-M;rows.push([`${pts} discount point${pts===1?'':'s'}`,`−${(cut*100).toFixed(2)} pts for ${fmtFull(LS.ptsCost)} at closing; pays for itself in ${save>0?nY(Math.ceil(LS.ptsCost/save/12)):'never'} (payment ${fmtFull(save)}/mo lower)`])}
-  rows.push(['Your rate',pct(LS.rate,2)+(LS.type==='arm'?`, resets from year ${(p.armYears||5)+1} (caps 2/1/5 or 5/1/5)`:'')]);
+  rows.push(['Your rate',pct(LS.rate,2)+(LS.type==='arm'?`, resets every 6 months from year ${(p.armYears||5)+1} (caps ${Math.round((p.armCapInit!=null?p.armCapInit:0.02)*100)}/${Math.round((p.armCapPer!=null?p.armCapPer:0.01)*100)}/${Math.round((p.armCapLife!=null?p.armCapLife:0.05)*100)}: first reset, each later reset, lifetime)`:'')]);
   rows.push(['Loan',fmtFull(LS.L)+(LS.type==='fha'?` (includes the ${fmtFull(LS.L-p.P*(1-p.dp))} FHA upfront premium)`:'')]);
   rows.push(['Principal and interest',fmtFull(M)+'/mo']);
   const fl=o.flow||[],mi0=fl.length?fl[0].pmi:0;

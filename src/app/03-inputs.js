@@ -69,7 +69,7 @@ const F=[
  ['tax','filing','Filing status','single',null,`2026 standard deduction $16,100 / $32,200 ${sl('irs26')}`,'sel',[['single','Single'],['mfj','Married joint']]],
  ['tax','muMode','Marginal rate','auto',null,'','sel',[['auto','From income (2026 brackets)'],['manual','Enter manually']]],
  ['tax','mu','Marginal federal rate (%)',24,1,`2026 brackets ${sl('irs26')}`],
- ['tax','stMode','State income tax','auto',null,'state brackets for 2026 by the location\'s state; local income taxes not included','sel',[['auto','From the location\'s state'],['manual','Enter manually']]],
+ ['tax','stMode','State income tax','auto',null,'state brackets for 2026 by the location\'s state, plus a county-wide local income tax where one applies; city-only taxes not included','sel',[['auto','From the location\'s state'],['manual','Enter manually']]],
  ['tax','stTax','State & local income tax ($ / yr)',8000,500,`counts toward SALT cap $40,400 ${sl('salt')}`],
  ['tax','oth','Other itemized deductions ($ / yr)',0,500,'charity etc.'],
  ['tax','stRate','State tax on investment income &amp; gains (%)',0,0.5,'add your state rate, e.g. 5 in Massachusetts'],
@@ -105,7 +105,7 @@ function buildInputs(){
     let ctl;
     if(kind==='sel')ctl=`<select id="${id}">${opts.map(([v,t])=>`<option value="${v}">${t}</option>`).join('')}</select>`;
     else{const m=lab.match(/\(([^)]*)\)\s*$/);const u=m?m[1]:'';lab=lab.replace(/\s*\([^)]*\)\s*$/,'');
-      const pre=/^\$/.test(u)?'$':'';let suf=u.replace(/^\$\s*/,'').replace(/\s*\/\s*/g,'/').replace('month','mo');
+      const pre=/^\$/.test(u)?'$':'';let suf=u.replace(/^\$\s*/,'').replace(/\s*\/\s*/g,'/').replace(/\bmonth\b/,'mo');
       if(/of (price|value|loan|balance)/.test(u)){lab+=` <span class="muted">(${u.replace(/^%\s*/,'').replace(/\s*\/\s*yr/,'').trim()})</span>`;suf=u.includes('/ yr')?'%/yr':'%'}
       if(/0 = none/.test(u)){suf='%/yr'}
       if(suf==='$')suf='';

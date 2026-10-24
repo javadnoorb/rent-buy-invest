@@ -6,7 +6,7 @@ function taxRows(p,o){const N=p.N,c=o.cpi[N],T=o.tax.slice(0,N),S=k=>T.reduce((a
   const HN=o.H[N],ttB=p.ttRules?p.P*(closeAt(p,p.P)-p.closeBase):p.P*(p.ttBuy||0),ttS=HN>0?(p.ttRules?HN*(sellAt(p,HN)-p.sellBase):HN*(p.ttSell||0)):0;
   const rows=[['Income tax saved by owning (deductions)',-S('saving'),0],['Property tax',S('ptax'),0],
     ['Transfer taxes (buying, and selling at the end)',ttB+adj(ttS,c),0],['Tax on house-hack rent',S('hh'),0],
-    ['Tax on dividends and interest, each year',S('invB'),S('invR')],[`Tax on selling the investments at year ${N}`,adj(o.liqTax[N].b,c),adj(o.liqTax[N].r,c)],
+    ['Tax on dividends and interest (paid yearly)',S('invB'),S('invR')],[`Tax on selling the investments at year ${N}`,adj(o.liqTax[N].b,c),adj(o.liqTax[N].r,c)],
     ['Tax on the home sale',adj(o.homeTax[N].tax,c),0]].filter(r=>Math.abs(r[1])>=1||Math.abs(r[2])>=1||/Property|saved/.test(r[0]));
   return rows}
 /* plain-language list of the rules that apply, from the yearly records (year 1 and how it changes) */

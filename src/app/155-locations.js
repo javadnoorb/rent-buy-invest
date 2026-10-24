@@ -34,7 +34,7 @@ function renderLoc(){
   const th=cols.map(([k,l])=>`<th><button type="button" class="srt${LOC_SORT===k?' on':''}" data-k="${k}" aria-label="Sort by ${l}">${l}${LOC_SORT===k?(LOC_DIR<0?' ▾':' ▴'):''}</button></th>`).join('');
   const mx=Math.max(...rows.map(r=>Math.abs(r.gap)),1);
   const body=rows.map(r=>{const on=LOC_SEL.includes(r.m.slug),cur=r.m.slug===P.metro;
-    const hc=r.hti==null?'':r.hti<=0.28?'--good':r.hti<=0.36?'--warn':'--bad';
+    const hc=r.hti==null?'':affCol(r.hti,r.hti+(P.debt||0)/(P.income/12));
     return `<tr class="${cur?'cur':''}"><td><label class="lsel"><input type="checkbox" data-s="${r.m.slug}" ${on?'checked':''}> ${r.m.name}${cur?' <span class="pill">yours</span>':''}</label></td>
     <td class="gapc"><span class="gbar" style="--w:${(Math.abs(r.gap)/mx*100).toFixed(1)}%;--c:var(${r.gap>=0?'--buy':'--inv'})"></span><span style="color:var(${r.gap>=0?'--buy-t':'--inv-t'})">${r.gap>=0?'+':'−'}${fmt(Math.abs(r.gap))}</span></td>
     <td>${r.beY?'year '+r.beY:'not by year '+N}</td><td>${fmtFull(r.own1)}</td><td>${r.hti==null?'—':`<span style="color:var(${hc})">${pct(r.hti,0)}</span>`}</td>

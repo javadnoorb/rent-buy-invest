@@ -22,7 +22,7 @@ function flowNode(T,k,y){const lab={interest:'Mortgage interest',principal:'Prin
   return T.real(n,T.cpiMid(y),lab+", today's dollars")}
 const p_hh=(T,y)=>T.p.taxOn&&T.p.hhRent>0?T.hhTaxM(y):T.con('Tax on house-hack rent',0,'$',{sym:'T^{hh}_y'});
 /* the year's unrecoverable costs (Unrecoverable cost chart): cash costs, and the return the owner's equity forgoes */
-function unrecNode(T,part,y){const u=T.o.unrec[y],Yv=T.Yr(y),lab=part==='rent'?`Rent paid in year ${y+1}`:part==='opp'?`Return forgone on the owner's equity, year ${y+1}`:`Owner's cash costs, year ${y+1}`;let n;
+function unrecNode(T,part,y){const u=T.o.unrec[y],Yv=T.Yr(y),lab=part==='rent'?`Renter's rent, insurance and moving costs, year ${y+1}`:part==='opp'?`Return forgone on the owner's equity, year ${y+1}`:`Owner's cash costs, year ${y+1}`;let n;
   if(part==='rent')n=T.fn(lab,u.rent,'$',null,()=>[T.rentY(y)],([a])=>a*12,null,{sym:'12\\,C^{rent}_y'});
   else if(part==='opp')n=T.fn(lab,u.opp,'$','oppCost',()=>[T.fn(`Home equity at the start of year ${y+1}`,Yv.owned?Yv.H-Yv.bal:0,'$',null,()=>[T.H(y),T.con('Mortgage balance at the start of the year',Yv.bal,'$')],([h,b])=>Yv.owned?h-b:0),
     T.sum(`Sum of the 12 monthly portfolio returns, year ${y+1}`,T.months(m=>T.Mo(y,m).ret).reduce((a,b)=>a+b,0),'%','sum12',()=>T.months(m=>[1,T.con(`Portfolio return, month ${m+1}`,T.Mo(y,m).ret,'%',{sym:'\\rho_t'})]),{sym:'\\textstyle\\sum_{t \\in y}\\rho_t'})],([e,r])=>e*r);

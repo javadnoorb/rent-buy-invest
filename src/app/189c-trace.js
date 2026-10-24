@@ -219,7 +219,7 @@ function traceNodes(X){const {p,o,tr}=X,LS=tr.LS,E=t=>tr.ends[t],Yr=y=>tr.years[
     sum(`Home equity after selling ${TL(t)}`,E(t).home,'$','homeNet',()=>[[1,saleNet(t)],[-1,bal(t)],[-1,homeTax(t)]]));
   // ---- results ----
   const nwBuy=t=>M('nwB:'+t,()=>sum(`Buyer's net worth ${TL(t)}`,o.buy[t],'$','nwBuy',()=>[[1,homeNet(t)],[1,liq('B',t)]]));
-  const nwInv=t=>M('nwR:'+t,()=>sum(`Renter's net worth ${TL(t)}`,o.inv[t],'$','nwRent',()=>[[1,liq('R',t)]]));
+  const nwInv=t=>M('nwR:'+t,()=>sum(`Rent + invest net worth ${TL(t)}`,o.inv[t],'$','nwRent',()=>[[1,liq('R',t)]]));
   const nwCash=t=>M('nwC:'+t,()=>sum(`Rent + T-bills net worth ${TL(t)}`,o.cash[t],'$','nwCash',()=>[[1,V('C',t)]]));
   const nwRental=t=>M('nwX:'+t,()=>{const e=E(t),pf=e.pX>=0?(taxable?e.pX-e.ltcgE*Math.max(0,e.pX-e.bX):e.pX):e.pX;
     return sum(`Rent + rental property net worth ${TL(t)}`,o.rental[t],'$','nwRental',()=>[[1,con('Rental property: sale value less loan and taxes',e.rentalNet,'$',{sym:'\\text{rental sale net}_t',sec:'rent-rental-property',pk:['dpR','ratePrem','vacR','mgmt','landShare','rate30','rentalOn','ptaxCapR','ptaxCapRCPI'],note:'the rental-property path is not itemized further'})],[1,con('Rental path portfolio after tax',pf,'$',{pk:['rentalOn'],sym:'W^{liq}_{R,t}'})]])});
@@ -238,4 +238,4 @@ const OPT_PK={moveMode:['moveMode','moveYear'],loanType:['loanType','armYears','
 const SER_RAW={gh:HOME,gr:RENTG,rs:STK,rb:BOND,rc:BILL,inf:INF};
 /* a value with its unit, for the numbers line of an equation */
 function fv(v,u){if(v==null||!isFinite(v))return '—';if(u==='$')return Math.abs(v)<100&&Math.abs(v-Math.round(v))>0.004?(v<0?'−$':'$')+Math.abs(v).toFixed(2):fmtFull(v);
-  if(u==='%'){const a=Math.abs(v*100);return (v<0?'−':'')+a.toFixed(a&&a<0.1?4:a<1?3:2)+'%'}if(u==='x')return v.toFixed(v>=100?0:4);if(u==='mo')return v.toFixed(1)+' months';if(u==='pts')return String(v);if(u==='pp')return (v<0?'−':'')+Math.abs(v).toFixed(2)+'%';if(u==='opt')return String(v);return Number(v).toLocaleString('en-US',{maximumFractionDigits:2})}
+  if(u==='%'){const a=Math.abs(v*100);if(a<5e-7)return '0%';return (v<0?'−':'')+a.toFixed(a&&a<0.1?4:a<1?3:2)+'%'}if(u==='x')return v.toFixed(v>=100?0:4);if(u==='mo')return v.toFixed(1)+' months';if(u==='pts')return String(v);if(u==='pp')return (v<0?'−':'')+Math.abs(v).toFixed(2)+'%';if(u==='opt')return String(v);return Number(v).toLocaleString('en-US',{maximumFractionDigits:2})}

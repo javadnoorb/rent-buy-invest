@@ -55,7 +55,7 @@ It then opens full-screen from its own icon, and works offline after the first v
 - **Share and print:** copy a link, use the phone's share sheet, or print the answer with your inputs (or save it as a PDF). An undo bar lists what changed whenever one action changes several settings.
 - **Help, accessibility and offline:** a "?" next to every setting, number and chart; every chart is announced to screen readers with its title and written takeaway; works offline once installed; warns when market data is more than three weeks old.
 - **Sources:** every data point links to its source; the Method tab lists the formulas, and each of its sections ends with the sources behind it.
-- **Colours:** buy is red-orange, rent + invest blue, rent + T-bills teal, in every chart and table; maps of buy − rent use the same blue ↔ red-orange scale through grey. The palette is checked for colour-blind separation and text contrast; coloured text uses darker versions of the same hues, and affordability ratings use separate status colours (green / amber / red).
+- **Colors:** buy is red-orange, rent + invest blue, rent + T-bills teal, in every chart and table; maps of buy − rent use the same blue ↔ red-orange scale through grey. The palette is checked for colour-blind separation and text contrast; coloured text uses darker versions of the same hues, and affordability ratings use separate status colours (green / amber / red).
 
 ## Repository layout
 

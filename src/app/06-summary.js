@@ -1,6 +1,9 @@
 /* ===================== Summary ===================== */
+/* one colour rule for housing ÷ income everywhere: green within 28/36 (housing / all debt), amber up to the 43% lender
+   limit on all debt, red above */
+const affCol=(fe,be)=>fe<=0.28&&be<=0.36?'--good':(be<=0.43?'--warn':'--bad');
 function affCell(own1,p){if(!p.income)return 'n/a';const fe=own1/(p.income/12),be=(own1+p.debt)/(p.income/12);
-  const col=fe<=0.28&&be<=0.36?'--good':(be<=0.43?'--warn':'--bad');
+  const col=affCol(fe,be);
   return `<span style="color:var(${col})">${pct(fe,0)}</span><span class="sub" style="font-family:var(--body)"> · all debt ${pct(be,0)}</span>`}
 /* The renter's side of the comparison: rent + invest only reaches its result if the renter invests the buyer's
    up-front cash and, each month that renting is cheaper, the difference (and the buyer invests it in months when owning
@@ -9,7 +12,7 @@ function investPlan(p){const N=p.N,o=simulate(p,constPath(p,N),{N,detail:true}),
   const C0=p.P*(p.dp+p.close)+p.moveIn+loanSetup(p,p.rate).ptsCost,r=fl.map(f=>adj(Math.max(0,f.own-f.rent)*sh,f.cpi)),bI=fl.map(f=>adj(Math.max(0,f.rent-f.own)*sh,f.cpi));
   const flip=r.findIndex((v,y)=>y>0&&v<=0&&r[y-1]>0),mid=Math.min(N,5),tot=r.reduce((a,v)=>a+v*12,0),totB=bI.reduce((a,v)=>a+v*12,0);
   const at=y=>`${fmtFull(r[y-1])}/mo in year ${y}`,spend=advAt(p,{investShare:0}),cur=advAt(p,{});
-  let monthly=r[0]>0?`then, each month, the difference between owning and renting costs, on average after the owner's tax savings: ${at(1)}${mid>1&&Math.abs(r[mid-1]-r[0])>=1?`, ${at(mid)}`:''}${N>mid&&flip<0&&Math.abs(r[N-1]-r[mid-1])>=1?`, ${at(N)}`:''}`:'';
+  let monthly=r[0]>0?`then, each month, the difference between owning and renting costs, on average${p.taxOn?' after the owner\'s tax savings':''}: ${at(1)}${mid>1&&Math.abs(r[mid-1]-r[0])>=1?`, ${at(mid)}`:''}${N>mid&&flip<0&&Math.abs(r[N-1]-r[mid-1])>=1?`, ${at(N)}`:''}`:'';
   if(flip>0)monthly+=`, until year ${flip}; from year ${flip+1} renting costs more than owning, so the buyer invests the difference instead`;
   else if(r[0]<=0)monthly=`nothing more each month: renting costs more than owning from the start, so the buyer invests the difference (${fmtFull(bI[0])}/mo in year 1)`;
   return `<b>To get the rent + invest result, the renter invests</b> ${fmtFull(C0)} at the start (what the buyer spends on the ${[['down payment',1],['closing costs',1],['moving in',p.moveIn>0],['points',p.pts>0]].filter(x=>x[1]).map(x=>x[0]).join(', ').replace(/, ([^,]*)$/,' and $1')}), ${monthly}. `+
@@ -42,8 +45,8 @@ function summary(){
   document.getElementById('sheetlive').innerHTML=`Year ${N}: buy ${fmt(b)} · rent + invest ${fmt(iv)} · gap <strong style="color:var(${d>=0?'--buy-t':'--inv-t'})">${d>=0?'+':''}${fmt(d)}</strong>`;
   const stat=([k,v,h])=>`<div class="stat"${h?` title="${h}"`:''}><div class="k">${k}</div><div class="v">${v}</div></div>`;
   document.getElementById('vgrid').innerHTML=[
-   ['Buying pulls ahead',beY?`year ${beY}`:`not by year ${N}`,'first year from which buying stays ahead through your horizon'],
-   ['Owning, month 1',fmtFull(own1)+'/mo','mortgage, tax, insurance, upkeep, HOA, PMI and utilities, before tax savings'],
+   ['Buying pulls ahead',beY?`year ${beY}`:(sp=>sp&&sp.until&&sp.until<=N?`ahead years ${sp.from}–${sp.until-1} only`:`not by year ${N}`)(aheadSpell(o)),'first year from which buying stays ahead through your horizon'],
+   ['Owning, month 1',fmtFull(own1)+'/mo',`mortgage, property tax, insurance (home and flood), upkeep, HOA, mortgage insurance (PMI or FHA) and extra utilities${p.taxOn?', before tax savings':''}`],
    ['Cash to buy',fmtFull(p.P*(p.dp+p.close)+loanSetup(p,p.rate).ptsCost+p.moveIn),'down payment, closing costs, transfer taxes, points and move-in costs'],
    ['Housing / income',affCell(own1,p),'month-1 owning cost as a share of gross income'],
   ].map(stat).join('');
@@ -75,10 +78,13 @@ function summary(){
     why.push(`Putting the extra ${fmtFull(p.extraPay)}/mo toward the mortgage instead of investing it ${g>=0?'adds':'costs'} ${fmt(Math.abs(g))} by year ${N}${off>0?` and pays the loan off in year ${off}`:''}.`)}
   if(o.refis>0)why.push(`The projection refinances ${o.refis} time${o.refis>1?'s':''} as rates move toward ${pct(p.rateLR,2)}.`);
   const own0=own1,rent0=p.rent0+p.rins/12+p.rMove*(p.rMoveCost+p.broker*p.rent0)/12;
-  why.push(own0>rent0?`In month 1, before tax savings, owning costs ${fmtFull(own0-rent0)}/mo more than renting, which the renter invests.`:`In month 1, before tax savings, owning costs ${fmtFull(rent0-own0)}/mo less than renting, which the buyer invests.`);
+  // the plan above gives what is invested after the owner's tax savings; this is the gross month-1 difference
+  {const more=own0>rent0,who=more?'renter':'buyer',sh=p.investShare<1?` (${pct(p.investShare,0)} of it)`:'';
+   why.push(p.taxOn?`In month 1, before tax savings, owning costs ${fmtFull(Math.abs(own0-rent0))}/mo ${more?'more':'less'} than renting; the ${who} invests the difference after the owner's tax savings${sh}.`
+     :`In month 1 owning costs ${fmtFull(Math.abs(own0-rent0))}/mo ${more?'more':'less'} than renting, which the ${who} invests${sh}.`)}
   document.getElementById('why').innerHTML=why.join(' ');
   plainAnswer();
   const ptr=p.P/(p.rent0*12);const m=curMetro();
-  document.getElementById('vnote').innerHTML=`${m.slug!=='us'?`Location: ${m.name}. `:''}Price-to-rent ${ptr.toFixed(1)} (gross rent yield ${pct(1/ptr)}). Values in ${basisLabel()}. ${MC?`Monte Carlo: buying beats renting and investing in <strong>${pct(MC.pWin[Math.min(N,MC.N)])}</strong> of ${MC.n.toLocaleString()} simulated paths at year ${Math.min(N,MC.N)}.`:''}${LOAD_WARN.size?` <span class="warn">Could not load: ${[...LOAD_WARN].join('; ')}.</span>`:''}`;
+  document.getElementById('vnote').innerHTML=`${m.slug!=='us'?`Location: ${m.name}. `:''}Price-to-rent ${ptr.toFixed(1)} (gross rent yield ${pct(1/ptr)}). Values in ${basisLabel()}. ${LOAD_WARN.size?` <span class="warn">Could not load: ${[...LOAD_WARN].join('; ')}.</span>`:''}`;
 }
 

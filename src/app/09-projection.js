@@ -27,7 +27,7 @@ function renderProj(){
   plot('p-unrec',[
     {x:yrs,y:u.map(v=>adj(v.own-v.opp,v.cpi)),name:'Owner: cash costs',meta:'unrec:cash',type:'bar',marker:{color:hexA(t.buy,.8)},hovertemplate:'%{y:$,.0f}'},
     {x:yrs,y:u.map(v=>adj(v.opp,v.cpi)),name:'Owner: forgone return',meta:'unrec:opp',type:'bar',marker:{color:hexA(t.buy,.35)},hovertemplate:'%{y:$,.0f}'},
-    {x:yrs,y:u.map(v=>adj(v.rent,v.cpi)),name:'Renter: rent',meta:'unrec:rent',mode:'lines+markers',line:{color:t.inv,width:2.5},marker:{size:5},hovertemplate:'%{y:$,.0f}'}],
+    {x:yrs,y:u.map(v=>adj(v.rent,v.cpi)),name:'Renter: rent, insurance, moves',meta:'unrec:rent',mode:'lines+markers',line:{color:t.inv,width:2.5},marker:{size:5},hovertemplate:'%{y:$,.0f}'}],
     {barmode:'stack',xaxis:X('Year'),yaxis:Yd('Per year, '+basisLabel())});
   plot('p-comp',[
     {x,y:o.eq.map((v,k)=>adj(v,o.cpi[k])),name:'Net home equity',meta:'comp:eq',stackgroup:'a',line:{color:t.buy,width:0},fillcolor:hexA(t.buy,.55),hovertemplate:'%{y:$,.0f}'},
@@ -51,7 +51,7 @@ function renderProj(){
   const csv=[cols.map(c=>c[1]+(c[0]!=='year'&&c[0]!=='mortRate'?` (${basisLabel()})`:'')).join(',')].concat(rows.map(r=>cols.map(c=>{const x=r[c[0]];if(x==null)return '';if(c[0]==='year')return x;if(c[0]==='mortRate')return (x*100).toFixed(3);if(c[0]==='hti')return (x*100).toFixed(1);return Math.round(adj(x,r.cpiIndex))}).join(','))).join('\n');
   CSV_TEXT=csv;document.getElementById('ytBasis').textContent=basisLabel();
   {const N=P.N,c=o.cpi[N],gap=adj(o.buy[N]-o.inv[N],c),ref=adj(Math.max(o.buy[N],o.inv[N]),c);
-   let t1=`At year ${N}: ${gapTxt(gap,ref)}. `+(be?`Buying pulls ahead in year ${be} and stays ahead through year ${N}`+((s=>s&&s.until&&s.until>N?`; at these growth rates renting moves back ahead in year ${s.until}.`:'.')(aheadSpell(runConst(P,{},30).o))):`Buying does not pull ahead within ${nY(N)} at these growth rates.`);
+   let t1=`At year ${N}: ${gapTxt(gap,ref)}. `+(be?`Buying pulls ahead in year ${be} and stays ahead through year ${N}`+((s=>s&&s.until&&s.until>N?`; at these growth rates renting moves back ahead in year ${s.until}.`:'.')(aheadSpell(runConst(P,{},30).o))):(s=>s&&s.until&&s.until<=N?`Buying is ahead from year ${s.from} to year ${s.until-1}; at these growth rates renting then moves back ahead and is ahead at year ${N}.`:`Buying does not pull ahead within ${nY(N)} at these growth rates.`)(aheadSpell(o)));
    if(showBand&&MC&&MC.res){const r=(a,f)=>q(a.map(x=>x[N]),f);t1+=` In the middle half of simulated futures, buying ends at ${fmt(r(MC.res.buy,.25))}–${fmt(r(MC.res.buy,.75))} and renting and investing at ${fmt(r(MC.res.inv,.25))}–${fmt(r(MC.res.inv,.75))}${r(MC.res.buy,.75)>r(MC.res.inv,.25)&&r(MC.res.inv,.75)>r(MC.res.buy,.25)?', so the ranges overlap and luck could decide it':''}.`}
    if(P.rentalOn&&o.rental[N]!=null){const rv=adj(o.rental[N],c),iv=adj(o.inv[N],c);t1+=` Renting and buying a rental property ends at ${fmt(rv)}, ${rv>=iv?fmt(rv-iv)+' more':fmt(iv-rv)+' less'} than renting and investing in the portfolio.`}
    if(P.moveMode!=='none'){t1+=P.moveYear>0&&P.moveYear<N?` The dotted line marks the planned move in year ${P.moveYear}.`:` The planned move (year ${P.moveYear}) is not before your ${N}-year horizon, so it has no effect; lower it or lengthen the horizon.`}
@@ -60,7 +60,7 @@ function renderProj(){
    tk('flow',`In year 1, on average and after tax savings, owning costs ${fmtFull(f1.own)}/mo against ${fmtFull(f1.rent)}/mo for renting; ${fmtFull(f1.principal)} of that goes to principal and stays yours. `+
      (cheap===0?'Owning is the cheaper month from the start.':cheap>0?`Owning becomes the cheaper month in year ${cheap+1}, as rent rises and the payment stays fixed.`:`Owning stays the more expensive month ${fl.length===1?'in year 1':`in all ${fl.length} years`}.`));
    const u0=u[0],need=(u0.own-u0.rent)/P.P;
-   tk('unrec',`Year 1 unrecoverable cost of owning is ${fmtFull(adj(u0.own,u0.cpi))} (${pct(u0.own/P.P)} of the price) against ${fmtFull(adj(u0.rent,u0.cpi))} of rent. `+
+   tk('unrec',`Year 1 unrecoverable cost of owning is ${fmtFull(adj(u0.own,u0.cpi))} (${pct(adj(u0.own,u0.cpi)/P.P)} of the price) against ${fmtFull(adj(u0.rent,u0.cpi))} of rent, renter's insurance and moving costs. `+
      (need>0?`The home has to gain about ${pct(need)} that year just to match renting; you assume ${pct(P.gh)}.`:`Owning is already ${fmtFull(-adj(u0.own-u0.rent,u0.cpi))} cheaper than renting before any appreciation.`));
    const sh=o.buy[N]>0?o.eq[N]/o.buy[N]:0;
    tk('comp',`At year ${N}, ${pct(Math.max(0,Math.min(1,sh)),0)} of the buyer's net worth is home equity and ${pct(Math.max(0,Math.min(1,1-sh)),0)} is invested. Selling would cost about ${fmt(adj(o.H[N]*P.sell,c))} in commission and fees.`);

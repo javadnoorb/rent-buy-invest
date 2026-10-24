@@ -119,7 +119,7 @@ function buildMethod(){
 
   <h3>Risk adjustment</h3>
   \\[ \\begin{aligned} CE &= \\big(\\mathbb{E}[W^{1-\\gamma}]\\big)^{1/(1-\\gamma)}, \\quad \\gamma \\ne 1 \\\\ CE &= \\exp\\big(\\mathbb{E}[\\ln W]\\big), \\quad \\gamma = 1 \\end{aligned} \\]
-  <dl class="sym"><dt>\\(CE\\)</dt><dd>certainty equivalent: the sure amount worth as much to you as the uncertain outcome</dd><dt>\\(W\\)</dt><dd>simulated net worth at the horizon, floored at 1% of the starting cash</dd><dt>\\(\\gamma\\)</dt><dd>relative risk aversion (0 = risk-neutral)</dd><dt>\\(\\mathbb{E}\\)</dt><dd>average across simulated futures</dd></dl>
+  <dl class="sym"><dt>\\(CE\\)</dt><dd>certainty equivalent: the sure amount worth as much to you as the uncertain outcome</dd><dt>\\(W\\)</dt><dd>simulated net worth at the horizon, floored at the larger of $1,000 or 1% of the starting cash</dd><dt>\\(\\gamma\\)</dt><dd>relative risk aversion (0 = risk-neutral)</dd><dt>\\(\\mathbb{E}\\)</dt><dd>average across simulated futures</dd></dl>
 
   <h3>Home-price volatility scaling</h3>
   \\[ \\begin{aligned} g'_y &= \\bar g_{loc} + k_v\\,(g_y - \\bar g_{loc}) \\\\ k_v &= \\sigma_{CS}/\\sigma_{FHFA} \\end{aligned} \\]
@@ -204,7 +204,7 @@ const MSEC={
  "Renter's monthly cost":['Renting','Lease rent, renter\'s insurance and moving costs.'],
  'Equal budgets':['Basics','Both households spend the same; the cheaper one invests the difference.'],
  'Taxes':['Taxes','Every tax in the model, with links to its formula.'],
- 'Federal and state tax saving':['Taxes','Itemizing vs. the standard deduction, SALT cap and the home-sale exclusion.'],
+ 'Federal and state tax saving':['Taxes','Itemizing vs. the standard deduction, the SALT cap and the state deduction.'],
  'Investment returns, taxes and leverage':['Investing','Portfolio growth, yearly tax drag and borrowing to invest.'],
  "Buyer's net worth":['Basics','What each household would have if it sold everything.'],
  'Transfer taxes':['Taxes','State, county and city taxes when a home changes hands.'],
@@ -212,6 +212,11 @@ const MSEC={
  'Rent + rental property':['Options','Renting your home and owning a rental instead.'],
  'Income growth and affordability':['Taxes','How income moves your bracket and the debt-to-income ratio.'],
  'Planned move':['Options','Selling at a set year, then buying again or renting.'],
+ 'Where the gap comes from':['Basics','The year-N gap split into parts that add up to it exactly.'],
+ 'Affordability':['Basics','The payment lenders count, the 28/36 and 43% limits and the highest price.'],
+ 'Counties':['Data','Where county and ZIP prices, rents and history come from.'],
+ 'Rent estimated from the home price':['Data','The comparable rent for a home of the price you enter.'],
+ 'Extra payments, PMI removal, gains tax and home-equity line':['Options','Paying down the loan, dropping PMI early, gains brackets and borrowing against the home.'],
  'Moving risk':['Risk','Having to sell early, likelier and at a discount in bad years.'],
  'Monte Carlo':['Risk','Simulated futures built from blocks of real history.'],
  'Risk adjustment':['Risk','Certainty equivalent: valuing uncertain outcomes.'],

@@ -42,7 +42,7 @@ function renderData(){renderDataInventory();
   {const below=MORT.filter(v=>v<V.rate30).length/MORT.length,rr=V.rate30-V.cpiYoY;
    tk('mort',`Today's ${V.rate30.toFixed(2)}% is higher than the average rate in ${pct(below,0)} of the years since 1972. After ${V.cpiYoY}% inflation, the real rate is about ${rr.toFixed(1)}%.`,'What stands out:')}
   if(RES.zori&&RES.zori.years){const zy=RES.zori.years;const cpiR=zy.map(y=>RENTG[y-Y0]);
-    document.getElementById('zori-cap').innerHTML=`Annual growth of CPI rent (all existing leases) vs. Zillow Observed Rent Index (asking rents on new leases). ${srcObj(RES.zori)} ${sl('fredRent')}`;
+    document.getElementById('zori-cap').innerHTML=`Annual growth of CPI rent (all existing leases) vs. Zillow Observed Rent Index (asking rents on new leases). Sources: ${RES.zori&&RES.zori.u?linkTo(RES.zori.u,'Zillow'):'Zillow'} · ${sl('fredRent','BLS')}`;
     {const zy=RES.zori.years,gaps=zy.map((y,i)=>RES.zori.yoy[i]-RENTG[y-Y0]),mx=Math.max(...gaps.map(Math.abs)),yi=gaps.map(Math.abs).indexOf(mx);tk('zori',`The largest gap was in ${zy[yi]}: asking rents ${RES.zori.yoy[yi]>=0?'+':''}${RES.zori.yoy[yi].toFixed(1)}% vs. CPI rent ${RENTG[zy[yi]-Y0].toFixed(1)}%. A renter who moves faces the asking-rent change, not the index.`,'What stands out:')}
     plot('p-zori',[{x:zy,y:RES.zori.yoy,meta:'data:zori',name:'Zillow asking rents',type:'bar',marker:{color:hexA(t.inv,.7)},hovertemplate:'%{y:.1f}%'},{x:zy,y:cpiR,meta:'data:rentcpi',name:'CPI rent',mode:'lines+markers',line:{color:t.neg,width:2},hovertemplate:'%{y:.1f}%'}],{xaxis:X('Year'),yaxis:Yt('Annual change',{ticksuffix:'%'})})}
   else{document.getElementById('zori-cap').textContent='Zillow rent history was not available.';}
