@@ -463,6 +463,9 @@ input,select,h2,h3,.plot,details,.card{scroll-margin-top:var(--smt)}
 body.simple .tech{display:none!important}
 .kv.inv td{white-space:normal;text-align:left;font-family:var(--body);vertical-align:top}.kv.inv th{text-align:left}.kv.inv td:first-child{min-width:170px}.kv.inv td:nth-child(3){white-space:nowrap}
 .kv.inv tr.grp th{background:var(--sunk);color:var(--ink);font-weight:600;font-size:12.5px;padding:6px 8px;position:static}
+.hsel{display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;margin:8px 0 2px}.hsel label{display:flex;flex-direction:column;gap:2px;font-size:13px}
+.hsel output{font-family:var(--mono);font-weight:600;margin-left:4px}
+@media (max-width:600px){.hsel{grid-template-columns:1fr}}
 .invplan{margin:8px 0 0;font-size:13.5px;line-height:1.5;padding:8px 10px;border-left:3px solid var(--inv);background:var(--sunk);border-radius:0 6px 6px 0;max-width:90ch}
 .invdef{margin:4px 0 0;font-size:12.5px}
 .viewseg{margin-right:8px}.viewseg button{padding:6px 10px;font-size:13px}

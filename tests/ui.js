@@ -297,7 +297,7 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
   await page.evaluate(() => setHistSel(1990, 15)); await page.waitForTimeout(500);
   const bt = await page.evaluate(() => [document.getElementById('h-year').value, document.getElementById('h-held').value, document.getElementById('tk-hdet').textContent]);
   ok(bt[0] === '1990' && bt[1] === '15' && /Bought 1990 and sold after 15 years \(2005\)/.test(bt[2]), 'Backtest: selecting a scenario updates the inputs and the detail', JSON.stringify(bt));
-  await page.evaluate(() => { document.getElementById('h-held').value = ''; document.getElementById('h-year').value = '2000'; showTab('proj'); }); await page.waitForTimeout(400);
+  await page.evaluate(() => { delete document.getElementById('h-held').dataset.touched; document.getElementById('h-year').value = '2000'; showTab('proj'); }); await page.waitForTimeout(400);
   /* Simple / Detailed view: Simple hides the technical tabs and cards and uses the basic settings; Detailed shows them */
   await page.click('#viewMode [data-v="simple"]'); await page.waitForTimeout(400);
   const vs = await page.evaluate(() => [VIEW, getComputedStyle(document.querySelector('.tabs [data-tab="mc"]')).display, getComputedStyle(document.getElementById('p-liq').closest('.card')).display, SET_MODE]);

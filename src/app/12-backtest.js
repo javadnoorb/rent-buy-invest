@@ -3,7 +3,10 @@ let HIST_RUNS=null;
 /* A click picks the scenario in all three charts: a heat-map cell (purchase, years held), a point on a curve (that
    purchase, held to that point) or a year on the detail chart (held until then). */
 function setHistSel(year,held){const y=document.getElementById('h-year'),h=document.getElementById('h-held');
-  if(year!=null)y.value=String(Math.floor(year));if(held!=null)h.value=String(Math.max(1,Math.round(held)));renderHist()}
+  if(year!=null)y.value=String(Math.floor(year));if(held!=null){h.value=String(Math.max(1,Math.round(held)));h.dataset.touched='1'}renderHist()}
+/* sliders redraw while dragged (the runs are cached); "Held for" follows the horizon until it is moved */
+let HIST_RAF=0;
+function histSlide(e){if(e.target.id==='h-held')e.target.dataset.touched='1';cancelAnimationFrame(HIST_RAF);HIST_RAF=requestAnimationFrame(()=>renderHist())}
 function wireHistClicks(){const on=(id,f)=>{const el=/** @type {any} */(document.getElementById(id));if(el&&el.on&&!el.dataset.selw){el.dataset.selw=1;el.on('plotly_click',e=>{const pt=e&&e.points&&e.points[0];if(pt)f(pt)})}};
   on('p-hheat',pt=>{if(pt.z!=null||pt.data.type!=='heatmap')setHistSel(pt.x,pt.y)});
   on('p-spag',pt=>{const run=HIST_RUNS&&HIST_RUNS.runs.find(q=>q.lab===pt.data.name);setHistSel(run?run.s:null,pt.x)});
@@ -35,9 +38,14 @@ function renderHist(){
       const o=simulate(p,histPathMonthly(s,N),{N,rate});const d=MONTHLY.dates[s];runs.push({s:+d.slice(0,4)+(+d.slice(5,7)-1)/12,lab:d,N,adv:o.buy.map((b,k)=>(b-o.inv[k])/o.cpi[k]/p.P*100),o,rate,jan:d.endsWith('-01')})}}
   HIST_RUNS={key:hkey,runs}}
   // the selected scenario: a purchase (one curve, one heat-map column) and how long it is held (one point, one cell)
-  let ys=parseInt(document.getElementById('h-year').value);if(!(ys>=1972&&ys<=LAST_Y))ys=2000;
+  // slider ranges follow the data: purchase years with at least a year of history, and the years held available
+  const yEl=document.getElementById('h-year'),hEl=document.getElementById('h-held'),yrs=mode==='annual'?runs.map(q=>q.s):runs.filter(q=>q.jan).map(q=>Math.floor(q.s));
+  yEl.min=String(yrs[0]);yEl.max=String(yrs.at(-1));
+  let ys=parseInt(yEl.value);if(!(ys>=yrs[0]&&ys<=yrs.at(-1)))ys=Math.min(yrs.at(-1),Math.max(yrs[0],2000));yEl.value=String(ys);
   const r=mode==='annual'?(runs.find(q=>q.s===ys)||runs.find(q=>q.s===2000)):(runs.find(q=>q.lab===`${ys}-01`)||runs[0]);
-  let hy=parseInt(document.getElementById('h-held').value);if(!(hy>=1))hy=p.N;hy=Math.max(1,Math.min(hy,r.adv.length-1));
+  let hy=hEl.dataset.touched?parseInt(hEl.value):p.N;if(!(hy>=1))hy=p.N;hy=Math.max(1,Math.min(hy,r.adv.length-1));
+  hEl.max=String(r.adv.length-1);hEl.value=String(hy);
+  document.getElementById('h-year-v').textContent=r.lab.replace(/-01$/,'');document.getElementById('h-held-v').textContent=nY(hy);
   const lines=mode==='annual'?runs:runs.filter(r=>r.jan);
   // lines coloured by purchase year on a one-hue violet scale (not the buy/rent colours), with a colour bar for it
   const s0=lines[0].s,s1=lines.at(-1).s,seq=isDark(t)?SEQ_DARK:SEQ_LIGHT;

@@ -158,10 +158,7 @@
         <label>Data <select id="h-mode"><option value="annual">Annual, 1972–2025</option><option value="monthly">Monthly, 1991–2026</option></select></label>
         <label>Mortgage rate <select id="h-rate"><option value="hist">Actual rate then</option><option value="now">My rate</option></select></label>
         <label>Home prices <select id="h-home"><option value="metro">Selected location</option><option value="nat">National</option></select></label>
-        <label>Bought in <input type="number" id="h-year" min="1972" max="2024" value="2000"></label>
-        <label>Held for <input type="number" id="h-held" min="1" max="30" placeholder="horizon"> years</label>
       </div>
-      <p class="sub">Pick a purchase year and how long it is held, or click a curve, a heat-map cell or a year in the detail chart: all three charts follow.</p>
       <p class="sub" id="h-note"></p>
       <div class="plot tall" id="p-spag"></div>
       <div class="takeaway" id="tk-spag"></div>
@@ -171,6 +168,11 @@
       <div class="takeaway" id="tk-hheat"></div>
       <details class="how"><summary>How to read this</summary><dl class="read"><dt>What you see</dt><dd>x: year of purchase. y: years held. Color: outcome as a % of price (orange, buying won; blue, renting won). Dotted line: tie. Black ring: the purchase year and holding period you selected (click any cell to select it; the curve above and the detail below follow). Blank corner: not enough history yet.</dd><dt>What to look for</dt><dd>Vertical stripes mean the purchase date mattered, for example buying just before the 2006 peak. Color changing from bottom to top shows whether holding longer rescued a bad entry.</dd><dt>Keep in mind</dt><dd>History is one path, and today's starting point (high mortgage rates and prices) has few close matches in it.</dd></dl></details></div>
     <div class="card"><h2>Detail: one purchase</h2><p class="cap" id="h-detail-cap"></p><div class="plot" id="p-hdet"></div>
+      <div class="hsel">
+        <label><span>Bought in <output id="h-year-v">2000</output></span><input type="range" id="h-year" min="1972" max="2024" step="1" value="2000"></label>
+        <label><span>Held for <output id="h-held-v">10 years</output></span><input type="range" id="h-held" min="1" max="30" step="1" value="10"></label>
+      </div>
+      <p class="sub">Drag the sliders, or click a curve, a heat-map cell or a year: the highlighted curve and cell above follow.</p>
       <div class="takeaway" id="tk-hdet"></div>
       <details class="how"><summary>How to read this</summary><dl class="read"><dt>What you see</dt><dd>x: calendar year. Left axis: net worth after inflation for the three paths. Right axis (dark-pink steps): the buyer's loan rate, which drops at each refinancing. The dashed line marks the sale at the holding period you selected; click another year to sell then.</dd><dt>What to look for</dt><dd>How crashes, booms and refinancing moved the result for that one start year.</dd><dt>Keep in mind</dt><dd>Change the start year in the box above to step through history.</dd></dl></details></div>
   </section>
