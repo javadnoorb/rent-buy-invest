@@ -6,19 +6,17 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with: { python-version: '3.12' }
-      - name: Parallel FEMA flood fetch (forced), timed
+      - name: Beracha & Johnson (2012) text
         run: |
-          start=$(date +%s)
-          python scripts/fetch_flood.py /tmp/flood.json --force
-          echo "elapsed: $(( $(date +%s) - start )) s"
+          pip -q install pypdf
+          curl -sSL -m 60 -A "Mozilla/5.0" -o b.pdf https://gwern.net/doc/economics/georgism/2012-beracha.pdf; ls -l b.pdf
           python - <<'PY'
-          import json
-          d=json.load(open('/tmp/flood.json'))
-          print('counties with penetration:',len(d['pen']),'county costs:',len(d['cost']),'state costs:',len(d['state_cost']))
-          print('Miami-Dade 12086:',d['pen'].get('12086'),d['cost'].get('12086'),'FL state:',d['state_cost'].get('12'))
+          from pypdf import PdfReader
+          r=PdfReader('b.pdf')
+          for i,p in enumerate(r.pages):
+              print(f'=== PAGE {i+1} ==='); print(p.extract_text())
           PY
