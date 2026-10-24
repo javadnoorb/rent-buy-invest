@@ -52,7 +52,9 @@ function copyText(txt,msgEl,okMsg){const done=()=>{msgEl.textContent=okMsg;setTi
   try{navigator.clipboard.writeText(txt).then(done,()=>{msgEl.textContent='Copy was blocked by the browser.'})}catch(e){msgEl.textContent='Copy was blocked by the browser.'}}
 const STANDALONE_SITE=(()=>{try{return window.top===window.self&&/^https?:$/.test(location.protocol)}catch(e){return false}})();
 function setBasis(){document.getElementById('realBtn').setAttribute('aria-pressed',REAL);document.getElementById('nomBtn').setAttribute('aria-pressed',!REAL);update()}
-function init(){
+/* year ranges in the page ("1928–{LY}") end at the data's last full year */
+function fillYears(){const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);let n;while((n=w.nextNode()))if(n.nodeValue.includes('{LY}'))n.nodeValue=n.nodeValue.split('{LY}').join(String(LAST_Y))}
+function init(){fillYears();
   buildInputs();buildMetroSelect();buildSnap();buildMethod();const hadSaved=(()=>{try{return !!localStorage.getItem('rbi-inputs')}catch(e){return false}})();restore();wireWizard();wireSettings();wireLoc();wireHelp();wireChartInfo();wireMini();wireShareUndo();wireCounty();wireRentTag();wireAfford();{const tb=document.querySelector('.tabs'),sn=document.getElementById('snap');const sf=()=>sn.classList.toggle('more-r',sn.scrollLeft+sn.clientWidth<sn.scrollWidth-4);tb.addEventListener('scroll',tabFade,{passive:true});sn.addEventListener('scroll',sf,{passive:true});addEventListener('resize',()=>{tabFade();sf()});tabFade();sf()}
   if(STANDALONE_SITE){const sp=new URLSearchParams(location.search).get('s');const st=sp&&decodeState(sp);if(st){if(st.v==null)st.v=7;try{applySaved(st)}catch(e){console.warn('could not apply the shared settings',e)}history.replaceState(null,'',location.pathname)}}
   document.getElementById('nwBand').addEventListener('change',()=>renderProj());

@@ -3,7 +3,7 @@ const SRC=Object.assign({
   fredMort:{t:"Freddie Mac Primary Mortgage Market Survey (30-year fixed; annual and monthly averages of weekly rates)",u:"https://www.freddiemac.com/pmms"},
   fredCPI:{t:"BLS: CPI-U, U.S. city average, all items, not seasonally adjusted (CUUR0000SA0)",u:"https://data.bls.gov/timeseries/CUUR0000SA0"},
   fredRent:{t:"BLS: CPI-U rent of primary residence, not seasonally adjusted (CUUR0000SEHA)",u:"https://data.bls.gov/timeseries/CUUR0000SEHA"},
-  damo:{t:"Damodaran, Historical returns on stocks, bonds, bills and real estate, 1928–2025 (NYU Stern)",u:"https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histretSP.html"},
+  damo:{t:"Damodaran, Historical returns on stocks, bonds, bills and real estate, 1928–"+LAST_Y+" (NYU Stern)",u:"https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histretSP.html"},
   shiller:{t:"Robert Shiller, U.S. home price data (pre-1987 real estate series)",u:"http://www.econ.yale.edu/~shiller/data.htm"},
   fhfa:{t:"FHFA House Price Index datasets (purchase-only metro and U.S. monthly indexes)",u:"https://www.fhfa.gov/data/hpi/datasets"},
   irs26:{t:"IRS: 2026 inflation adjustments, standard deduction and brackets",u:"https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill"},

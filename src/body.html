@@ -21,7 +21,7 @@
   <details><summary>Renting</summary><div class="fields" id="g-rent"></div></details>
   <details class="nocore"><summary>Other costs</summary><div class="fields" id="g-other"></div></details>
   <details><summary>Market assumptions</summary><div class="fields">
-    <div class="presets"><button data-preset="long">1928–2025 avg</button><button data-preset="modern">1972–2025 avg</button><button data-preset="fcst" id="fcstPreset" hidden>2026 forecasts</button><button data-preset="now">Current YoY</button><button data-preset="metro" id="metroPreset" hidden>Metro history</button></div>
+    <div class="presets"><button data-preset="long">1928–{LY} avg</button><button data-preset="modern">1972–{LY} avg</button><button data-preset="fcst" id="fcstPreset" hidden>2026 forecasts</button><button data-preset="now">Current YoY</button><button data-preset="metro" id="metroPreset" hidden>Metro history</button></div>
     <div class="hint muted" style="font-size:11px">Presets fill growth rates only. Averages are geometric, computed from the embedded data (<a class="src" target="_blank" rel="noopener" href="https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histretSP.html">Damodaran</a>, <a class="src" target="_blank" rel="noopener" href="https://data.bls.gov/timeseries/CUUR0000SA0">BLS CPI</a>, <a class="src" target="_blank" rel="noopener" href="https://data.bls.gov/timeseries/CUUR0000SEHA">BLS rent</a>).</div>
     <div id="g-mkt" style="display:flex;flex-direction:column;gap:9px"></div></div></details>
   <details class="nocore"><summary>Investing &amp; leverage</summary><div class="fields" id="g-inv"></div></details>
@@ -155,7 +155,7 @@
       <h2>If you had made this decision in the past</h2>
       <p class="cap">Your price, rent and cost settings replayed through actual historical sequences of home prices, rents, stock, bond and bill returns, inflation and mortgage rates, including refinancing if enabled. Every purchase starts at your price. Starting rent "Mine" uses your rent (your rent-to-price ratio) for every purchase year; "Historical" scales your ratio by the national rent-to-price ratio in that year compared with today's. History then moves both. Always in today's dollars (adjusted with actual inflation); the Today's $ / Nominal $ switch doesn't apply to these replays.</p>
       <div class="controls">
-        <label>Data <select id="h-mode"><option value="annual">Annual, 1972–2025</option><option value="monthly">Monthly, 1991–2026</option></select></label>
+        <label>Data <select id="h-mode"><option value="annual">Annual, 1972–{LY}</option><option value="monthly">Monthly, 1991–2026</option></select></label>
         <label>Mortgage rate <select id="h-rate"><option value="hist">Actual rate then</option><option value="now">My rate</option></select></label>
         <span class="hcmp"><span class="sub">Compare buying with</span> <span class="seg" id="h-cmp" role="group" aria-label="Compare buying with"><button type="button" data-c="inv" aria-pressed="true">Rent + invest (S&amp;P 500)</button><button type="button" data-c="cash" aria-pressed="false">Rent + T-bills</button></span></span>
         <span class="hcmp"><span class="sub">Starting rent</span> <span class="seg" id="h-rp" role="group" aria-label="Starting rent"><button type="button" data-r="mine" aria-pressed="true">Mine</button><button type="button" data-r="hist" aria-pressed="false">Historical</button></span></span>
@@ -186,7 +186,7 @@
       <div class="controls">
         <label>Paths <input type="number" id="mc-n" value="1500" min="200" max="10000" step="100"></label>
         <label>Block (yrs) <input type="number" id="mc-b" value="5" min="1" max="20"></label>
-        <label>Sample <select id="mc-w"><option value="1928">1928–2025</option><option value="1972">1972–2025</option></select></label>
+        <label>Sample <select id="mc-w"><option value="1928">1928–{LY}</option><option value="1972">1972–{LY}</option></select></label>
         <label><input type="checkbox" id="mc-rc" checked> Re-center to my assumptions</label>
         <button class="primary" id="mc-run">Run</button>
       </div>
@@ -267,7 +267,7 @@
     <div class="card"><h2>Every dataset in the app</h2><p class="cap">What each dataset is, what the app uses it for, its period or date, and where it comes from. The charts below show the history; the Method tab shows how each is used.</p>
       <div class="tablewrap" style="max-height:none"><table class="kv inv" id="invT"></table></div>
     </div>
-    <div class="card"><h2>Cumulative real growth, 1928–2025</h2><p class="cap">$1 at the end of 1927, deflated by CPI-U, log scale. Stocks include dividends; the home index is price only.</p><div class="plot tall" id="p-cum"></div>
+    <div class="card"><h2>Cumulative real growth, 1928–{LY}</h2><p class="cap">$1 at the end of 1927, deflated by CPI-U, log scale. Stocks include dividends; the home index is price only.</p><div class="plot tall" id="p-cum"></div>
       <div class="takeaway" id="tk-cum"></div>
       <details class="how"><summary>How to read this</summary><dl class="read"><dt>What you see</dt><dd>y: what $1 invested at the end of 1927 grew to, after inflation, on a log scale. Equal vertical distances mean equal percentage growth.</dd><dt>What to look for</dt><dd>Stocks grow far faster but fall hard (1929, 1973, 2000, 2008). Home prices barely beat inflation over long stretches.</dd><dt>Keep in mind</dt><dd>The home line is price only. Owning also saves you rent, which is the main return on a home and why this app models rent explicitly.</dd></dl></details></div>
     <div class="card"><h2>Metro home prices</h2><p class="cap" id="metro-cap">Real home-price index for the selected location against the national index, rebased to 100 in the metro's first year.</p><div class="plot" id="p-metro"></div>
@@ -277,9 +277,9 @@
       <div class="card"><h2>Rolling 10-year real returns</h2><p class="cap">Annualized, ending in the year shown.</p><div class="plot" id="p-roll"></div>
       <div class="takeaway" id="tk-roll"></div>
       <details class="how"><summary>How to read this</summary><dl class="read"><dt>What you see</dt><dd>Each point is the average yearly return after inflation over the previous 10 years.</dd><dt>What to look for</dt><dd>How often stocks had a losing decade (for example the 2000s), and how rarely home prices strayed far from zero after inflation.</dd><dt>Keep in mind</dt><dd>The swings show timing risk: the same asset can return very different amounts depending on when you start.</dd></dl></details></div>
-      <div class="card"><h2>Correlation of annual changes</h2><p class="cap">Pearson correlation, 1928–2025 (mortgage-rate changes 1973–2025).</p><div class="plot" id="p-corr"></div>
+      <div class="card"><h2>Correlation of annual changes</h2><p class="cap">Pearson correlation, 1928–{LY} (mortgage-rate changes 1973–{LY}).</p><div class="plot" id="p-corr"></div>
       <div class="takeaway" id="tk-corr"></div>
-      <details class="how"><summary>How to read this</summary><dl class="read"><dt>What you see</dt><dd>Pearson correlation of yearly changes: +1 moves together, −1 opposite, 0 unrelated.</dd><dt>What to look for</dt><dd>Low correlation between homes and stocks means each diversifies the other. Positive home–inflation correlation makes housing a partial inflation hedge. Rate rises and bond returns move opposite.</dd><dt>Keep in mind</dt><dd>Correlations shift across eras; these are averages over 1928–2025.</dd></dl></details></div>
+      <details class="how"><summary>How to read this</summary><dl class="read"><dt>What you see</dt><dd>Pearson correlation of yearly changes: +1 moves together, −1 opposite, 0 unrelated.</dd><dt>What to look for</dt><dd>Low correlation between homes and stocks means each diversifies the other. Positive home–inflation correlation makes housing a partial inflation hedge. Rate rises and bond returns move opposite.</dd><dt>Keep in mind</dt><dd>Correlations shift across eras; these are averages over 1928–{LY}.</dd></dl></details></div>
     </div>
     <div class="two">
       <div class="card"><h2>Mortgage rates vs. inflation</h2><p class="cap">Annual average 30-year fixed rate and December-to-December CPI-U inflation.</p><div class="plot" id="p-mort"></div>

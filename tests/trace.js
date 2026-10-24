@@ -102,7 +102,12 @@ function walkTrees(roots) {
   /* ---- coverage and plot = trace on every tab, in three places ---- */
   const tabs = await page.$$eval('[role="tab"]', t => t.map(e => e.dataset.tab).filter(k => k !== 'method'));
   const runs = [['us', tabs], ['san-francisco', tabs], ['cleveland', tabs], ['us, monthly Backtest', ['hist']], ['us, own-home risk compounding yearly', ['mc', 'proj']]];
-  for (const [place, tabList] of runs) {
+  // TRACE_SHARD=i/n (scripts/check.sh runs shards in parallel): this run checks every n-th (place, tab); the other phases
+  // are quick and run in every shard, and the "every equation is used" check needs every shard, so it runs only unsharded (as in CI)
+  const [SH_I, SH_N] = (process.env.TRACE_SHARD || '0/1').split('/').map(Number), SHARDED = SH_N > 1;
+  let unit = -1; const mine = () => (++unit) % SH_N === SH_I;
+  for (const [place, tabListAll] of runs) {
+    const tabList = tabListAll.filter(() => mine()); if (!tabList.length) continue;
     if (/monthly/.test(place)) await page.evaluate(() => { const s = document.getElementById('h-mode'); s.value = 'monthly'; s.dispatchEvent(new Event('change', { bubbles: true })); });
     else if (/yearly/.test(place)) { await page.evaluate(() => { const s = document.getElementById('idioMode'); s.value = 'yearly'; s.dispatchEvent(new Event('change', { bubbles: true })); }); await page.waitForTimeout(800); }
     else { await setPlace(place); await page.waitForTimeout(800); }
@@ -142,7 +147,7 @@ function walkTrees(roots) {
     return [...by].filter(([, v]) => v.length > 1 && !SYMSAME.some(g => v.every(x => g.includes(x)))).map(([k, v]) => `${k}: ${v.join(', ')}`); });
   ok(!dup.length, 'registry: no symbol is defined for two different quantities (SYMSAME lists deliberate aliases)', dup.join(' | '));
   const reg = await page.evaluate(() => { showTab('method'); return { all: Object.keys(EQ), method: [...EQ_METHOD], html: Object.entries(EQ).filter(([, e]) => /[<>&]/.test(e.t)).map(([k]) => k), badSec: Object.entries(EQ).filter(([, e]) => !document.getElementById('m-' + e.s)).map(([k, e]) => `${k} → ${e.s}`) }; });
-  const unused = reg.all.filter(k => !eqSeen.has(k) && !reg.method.includes(k) && !EQ_PENDING.has(k));
+  const unused = SHARDED ? [] : reg.all.filter(k => !eqSeen.has(k) && !reg.method.includes(k) && !EQ_PENDING.has(k));
   ok(!reg.html.length, 'registry: no equation uses a raw <, > or & (write \\lt, \\gt; they break the HTML around the TeX)', reg.html.join(', '));
   ok(!reg.badSec.length, 'registry: every equation names a Method section that exists', reg.badSec.join(', '));
   ok(!unused.length, 'registry: every equation is used by a trace or a Method block', unused.join(', '));
@@ -159,7 +164,10 @@ function walkTrees(roots) {
     if (pg !== page) { pg.on('pageerror', e => errors.push(e.message)); await pg.goto(URL); await pg.waitForTimeout(2500); await pg.evaluate(() => { try { closeWizard(false); } catch (e) {} }); }
     await pg.evaluate(() => { showTab('proj'); document.getElementById('p-nw').scrollIntoView({ block: 'center' }); }); await pg.waitForTimeout(600);
     if (W === 1280) { // all lines share one hover (unified): the click picks the line under the pointer, not the first listed
-      const got = []; for (const [k, m, re] of [[3, 'nw:buy', /^Selected: Buy/], [7, 'nw:inv', /^Selected: Rent \+ invest/], [5, 'nw:cash', /^Selected: Rent \+ T-bills/]]) {
+      // click each line where it is farthest from the others (lines can cross, and a point on a crossing is ambiguous)
+      const far = await pg.evaluate(() => { const el = document.getElementById('p-nw'), L = el.data.filter(d => /^nw:/.test(d.meta)), ya = el._fullLayout.yaxis;
+        return Object.fromEntries(L.map(d => { let best = 1, bd = -1; d.x.forEach((_, i) => { if (i < 1) return; const gap = Math.min(...L.filter(o => o !== d).map(o => Math.abs(ya.d2p(o.y[i]) - ya.d2p(d.y[i])))); if (gap > bd) { bd = gap; best = i; } }); return [d.meta, best]; })); });
+      const got = []; for (const [m, re] of [['nw:buy', /^Selected: Buy/], ['nw:inv', /^Selected: Rent \+ invest/], ['nw:cash', /^Selected: Rent \+ T-bills/]]) { const k = far[m];
         await clickPoint(pg, k, m); const t = await pg.evaluate(() => (document.querySelector('.trbar[data-for="p-nw"]') || {}).textContent || ''); got.push(re.test(t) ? 'ok' : t); }
       ok(got.every(x => x === 'ok'), 'clicking a line selects that line', got.join(' | ')); }
     await clickPoint(pg, -1);

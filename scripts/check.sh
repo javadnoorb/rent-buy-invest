@@ -22,7 +22,9 @@ node tests/smoke.js >"$log/smoke" 2>&1 & a=$!
 node tests/ui.js >"$log/ui" 2>&1 & b=$!
 if [ $a11y = 1 ]; then node tests/a11y.js >"$log/a11y" 2>&1 & c=$!; else echo "a11y skipped" >"$log/a11y"; c=; fi
 node tests/layout.js >"$log/layout" 2>&1 & d=$!
-node tests/trace.js >"$log/trace" 2>&1 & e=$!
+# the trace check is the slowest (about 5 min alone): split it into shards run in parallel, more on bigger machines
+ns=$(( $(nproc 2>/dev/null || echo 4) >= 8 ? 3 : 2 )); tr=""
+for i in $(seq 0 $((ns-1))); do TRACE_SHARD=$i/$ns node tests/trace.js >"$log/trace$i" 2>&1 & tr="$tr trace$i:$!"; done
 fail=0
-for t in smoke:$a ui:$b a11y:$c layout:$d trace:$e; do n=${t%%:*}; if [ -z "${t##*:}" ] || wait "${t##*:}"; then tail -1 "$log/$n"; else echo "FAILED: $n"; tail -20 "$log/$n"; fail=1; fi; done
+for t in smoke:$a ui:$b a11y:$c layout:$d$tr; do n=${t%%:*}; if [ -z "${t##*:}" ] || wait "${t##*:}"; then tail -1 "$log/$n"; else echo "FAILED: $n"; tail -20 "$log/$n"; fail=1; fi; done
 exit $fail

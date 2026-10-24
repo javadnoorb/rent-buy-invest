@@ -82,7 +82,7 @@ When the "How to read this" text or a takeaway describes a chart, keep it true a
 
 ```bash
 npm run check:fast        # build, lint, tsc, model tests, validate, parser tests (~5 s)
-npm run check:all         # + smoke, ui, a11y, chart layout, trace in parallel (~3 min; a11y needs axe-core, see setup)
+npm run check:all         # + smoke, ui, a11y, chart layout, trace (in 2-3 shards) in parallel (~5 min on 4 cores; a11y needs axe-core, else skipped)
 ```
 Add a UI test (`tests/ui.js`) for each new behaviour. If a test asserted old wording, update it to the new wording
 rather than weakening it.
@@ -150,3 +150,15 @@ changes, then what was **not** done and why, and any uncertain facts. Offer the 
   user reports an overlap, first make this test fail on the old code (check out the old file), then fix. Fixes that
   worked: a value column beside the chart instead of labels at the data, colour-bar ticks below their marks
   (`CB_TICKS`), `ticklabelstandoff` for the corner where both axes start at 0, fewer ticks on phones.
+- Plotly's unified hover (`hovermode:'x unified'`) reports every line at that x, in trace order: a click handler must
+  pick the point nearest the pointer (`nearestPoint`), not `points[0]`, or every click selects the first series.
+- Anything loaded asynchronously that sets the location (a saved county list) must check it is still the latest choice
+  (`LOC_GEN`): a shared link applied meanwhile was being overwritten by the viewer's own saved county.
+- Layout shift on load came from web fonts swapping in (fonts use `display=optional`) and from the first paint before
+  the script builds the settings and market cards (`html.pre` hides them until `init` finishes, with a CSS fallback).
+  Measure with a PerformanceObserver on `layout-shift`, logging each source's node and rects; block fonts to compare.
+- The deploy publishes `main` only if the latest Tests run on main passed and main changed nothing but `data/` since
+  (pages.yml gate); the weekly refresh runs the full `scripts/check.sh` itself.
+- Quantities that are the same thing must share a symbol and different things must not: `tests/trace.js` checks the
+  registry (`SYMSAME` lists deliberate aliases) and every card's parts.
+

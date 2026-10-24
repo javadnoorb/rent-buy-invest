@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Assemble index.html from src/ and data/."""
-import json, glob, os, math, sys
+import json, glob, os, math, re, sys
 PWA = '--pwa' in sys.argv
 ROOT = os.path.dirname(os.path.abspath(__file__))
 D = lambda *p: os.path.join(ROOT, *p)
@@ -119,7 +119,15 @@ if FP.get('renters_ins'):
     RES['rins'] = {'u': _ri['url'], 'h': f"BLS Consumer Expenditure Survey {_ri['year']}: renters spent ${_ri['value']}/yr on average, counting those without a policy; a policy typically costs more"}
 
 mort = res_raw['mortgage_annual']['value']
-MORT_OVERRIDE = [mort[str(y)] for y in range(1972, 2026)]
+# the yearly 30-year rates the model has (model.js MORT, from 1972): the override must have exactly as many, or the model
+# silently keeps its built-in list, so take that count from model.js and say when the data has years the model lacks
+_mtxt = open(D('src', 'model.js')).read()
+_nm = len(re.search(r'let MORT=\[([^\]]*)\]', _mtxt).group(1).split(','))
+_my = [str(y) for y in range(1972, 1972 + _nm)]
+assert all(y in mort for y in _my), f'research.json mortgage_annual lacks {[y for y in _my if y not in mort]}'
+MORT_OVERRIDE = [mort[y] for y in _my]
+_extra = sorted(y for y in mort if int(y) >= 1972 + _nm)
+if _extra: print(f'warning: research.json has mortgage rates for {", ".join(_extra)}; extend MORT in src/model.js to use them')
 
 # ---------- metros ----------
 # ---------- homeowners insurance by state (data/insurance.json, from scripts/fetch_insurance.py) ----------
@@ -182,6 +190,9 @@ METROS = [{'slug': 'us', 'name': 'United States', 'P': snap['values']['zhvi'], '
 order = ['boston', 'new-york', 'washington-dc', 'philadelphia', 'raleigh', 'charlotte', 'atlanta', 'tampa', 'miami',
          'chicago', 'minneapolis', 'cleveland', 'detroit', 'dallas', 'austin', 'denver', 'phoenix', 'las-vegas',
          'los-angeles', 'san-diego', 'san-francisco', 'seattle', 'portland']
+# every metro file must be in the order list (a new one left out would silently not appear)
+_files = {os.path.basename(p)[6:-5] for p in glob.glob(D('data', 'metro_*.json'))}
+assert _files <= set(order), f'data/metro_*.json not in the build order: {sorted(_files - set(order))}'
 for slug in order:
     f = D('data', f'metro_{slug}.json')
     if not os.path.exists(f): continue
@@ -337,6 +348,10 @@ if os.path.exists(cf):
 
 # the installed (PWA) build serves pinned copies from vendor/; the artifact build can only load from public CDNs
 VENDOR = {'plotly': 'vendor/plotly-cartesian-2.35.2.min.js', 'mathjax': 'vendor/mathjax-3.2.2-tex-svg-full.js'}
+# the files must exist, and the service worker must precache the same chart library (a stale name there makes its
+# install fail, so the installed app would stay on its old cache)
+for _v in VENDOR.values(): assert os.path.exists(D(*_v.split('/'))), f'{_v} is missing'
+assert "'./" + VENDOR['plotly'] + "'" in open(D('sw.js')).read(), f'sw.js does not precache {VENDOR["plotly"]}: update its CORE list and bump CACHE'
 # state rules embedded in the page: county-only parts (local income taxes, county transfer taxes, county exemptions) load
 # with the county list on the site (data/state_rules.json); long notes the page does not show are left out
 COUNTY_RULE_KEYS = ('local_income', 'county_transfer', 'homestead_county', 'local_income_city_notes', 'transfer_city_notes', 'transfer_state_typical_local')

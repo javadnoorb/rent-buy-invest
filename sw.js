@@ -20,7 +20,8 @@ self.addEventListener('fetch', e => {
   // the page and data files (refreshed monthly, e.g. data/counties.json) are network-first, so updates show up
   const isPage = req.mode === 'navigate' || (url.origin === location.origin && (url.pathname.endsWith('.html') || url.pathname.includes('/data/')));
   if (isPage) {
-    e.respondWith(fetch(req).then(r => { const c = r.clone(); caches.open(CACHE).then(cc => cc.put(req, c)); return r; })
+    // only a good response replaces the cached copy (an error page must not become the offline page)
+    e.respondWith(fetch(req).then(r => { if (r.ok) { const c = r.clone(); caches.open(CACHE).then(cc => cc.put(req, c)); } return r; })
       .catch(() => caches.match(req).then(r => r || (req.mode === 'navigate' ? caches.match('./index.html') : Response.error()))));
     return;
   }

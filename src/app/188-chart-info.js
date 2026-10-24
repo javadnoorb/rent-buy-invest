@@ -3,7 +3,7 @@
    data sources (open the source) and the settings it depends on with their current values (open the setting).
    m: Method section ids without the "m-" prefix, d: SRC keys, a: setting ids. Filled in when the box is opened. */
 const CI_SRC={pmms:'Freddie Mac mortgage rates',zillow:'Zillow home values and rents',cpi:'BLS consumer prices',ptaxUS:'Census property tax',ins:'Census ACS insurance costs',
-  fc_spf:'Philadelphia Fed forecasts',damo:'Damodaran annual returns 1928–2025',shiller:'Shiller home prices',fhfa:'FHFA house price index',fredMort:'Freddie Mac rate history',
+  fc_spf:'Philadelphia Fed forecasts',damo:'Damodaran annual returns 1928–'+LAST_Y,shiller:'Shiller home prices',fhfa:'FHFA house price index',fredMort:'Freddie Mac rate history',
   fredCPI:'BLS CPI history',fredRent:'BLS rent CPI history',mTb:'Federal Reserve T-bill and bond yields',mSp:'Shiller monthly S&P 500',irs26:'IRS 2026 tax brackets',
   r_zori:'Zillow observed rent index',beracha:'published 30-year buy-vs-rent study',r_tenure:'Census mover rates',r_idio_vol:'own-home price risk studies',rz_forced_sales:'forced-sale discount study',acs:'Census ACS'};
 const CI_BASE={m:['time-and-growth','equal-budgets'],d:['pmms','zillow','cpi','ptaxUS','ins','damo','shiller']};
