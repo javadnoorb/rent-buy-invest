@@ -76,7 +76,7 @@ function drawMC(){if(!MC)return;mcSync();
    tk('mcsc',`When your home's yearly gain was no more than 4 points below the portfolio's, buying won ${n1?pct(a1/n1,0):'—'} of the time; when the portfolio beat the home by more than that, ${n2?pct(a2/n2,0):'—'}.`+(n1&&a1/n1>0.5?' Leverage is why the home doesn\'t need to match the portfolio to win.':''));
    const k=Math.min(5,N),hit=res.rates.filter(a=>Math.min(...a.slice(0,k))<=P.rate-P.refiTh).length/n;
    tk('mcrate',`In ${pct(hit,0)} of futures the market rate falls at least ${(P.refiTh*100).toFixed(2)} points below your ${pct(P.rate,2)} within ${nY(k)}${P.refiOn?', triggering a refinance':' (refinancing is off)'}.`)}
-  plot('p-mcrate',[{x:yr,y:rq(.95),mode:'lines',line:{width:0},showlegend:false,hoverinfo:'skip'},{x:yr,y:rq(.05),mode:'lines',line:{width:0},fill:'tonexty',fillcolor:hexA(t.neg,.15),name:'5–95%',hoverinfo:'skip'},
+  plot('p-mcrate',[{x:yr,y:rq(.95),mode:'lines',line:{width:0},showlegend:false,hoverinfo:'skip'},{x:yr,y:rq(.05),mode:'lines',line:{width:0},fill:'tonexty',fillcolor:hexA(t.neg,isDark(t)?.3:.15),name:'5–95%',hoverinfo:'skip'},
     {x:yr,y:rq(.5),mode:'lines',line:{color:t.neg,width:2.5},name:'Median market rate',hovertemplate:'%{y:.2f}%'}],
     {xaxis:X('Years from today'),yaxis:Yt('30-yr rate',{ticksuffix:'%'}),margin:{t:innerWidth<600?54:38},annotations:[{xref:'paper',yref:'paper',x:0,y:1,xanchor:'left',yanchor:'bottom',align:'left',showarrow:false,text:P.refiOn?`${pct(nref,0)} of paths refinance at least once<br>${avgRef.toFixed(2)} refis on average`:'refinancing is off',font:{size:11,color:t.muted}}]});
 }

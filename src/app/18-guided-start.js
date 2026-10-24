@@ -3,7 +3,7 @@ let WZ=0;
 function openWizard(){const w=document.getElementById('wizard');WZ=0;
   const sel=document.getElementById('wz-metro');sel.innerHTML=document.getElementById('metro').innerHTML;sel.value=document.getElementById('metro').value;
   const g=id=>document.getElementById(id).value;
-  document.getElementById('wz-P').value=g('P');document.getElementById('wz-rent').value=g('rent0');document.getElementById('wz-dp').value=g('dp');document.getElementById('wz-inc').value=g('income');
+  document.getElementById('wz-P').value=g('P');document.getElementById('wz-rent').value=g('rent0');document.getElementById('wz-dp').value=g('dp');document.getElementById('wz-inc').value=g('income');document.querySelectorAll('#wizard [data-money]').forEach(fmtMoneyEl);
   document.getElementById('wz-N').value=g('N');document.getElementById('wz-Nl').textContent=g('N')+' years';
   w.hidden=false;wzShow();setTimeout(()=>sel.focus(),50)}
 function wzShow(){document.querySelectorAll('.wz-step').forEach((el,i)=>el.hidden=i!==WZ);document.getElementById('wz-back').hidden=WZ===0;
@@ -14,7 +14,7 @@ function closeWizard(apply){const w=document.getElementById('wizard');w.hidden=t
   set('P',v('wz-P'));set('rent0',v('wz-rent'));rentTyped();set('dp',v('wz-dp'));set('income',v('wz-inc'));document.getElementById('N').value=v('wz-N');update()}
 function wireWizard(){
   document.getElementById('wz-metro').addEventListener('change',e=>{const m=METROS.find(x=>x.slug===e.target.value);document.getElementById('metro').value=e.target.value;applyMetro(e.target.value);
-    if(m){document.getElementById('wz-P').value=m.P;document.getElementById('wz-rent').value=m.rent}});
+    if(m){document.getElementById('wz-P').value=m.P;document.getElementById('wz-rent').value=m.rent;document.querySelectorAll('#wizard [data-money]').forEach(fmtMoneyEl)}});
   document.getElementById('wz-N').addEventListener('input',e=>document.getElementById('wz-Nl').textContent=e.target.value+' year'+(e.target.value==='1'?'':'s'));
   document.getElementById('wz-next').addEventListener('click',()=>{if(WZ<2){WZ++;wzShow()}else closeWizard(true)});
   document.getElementById('wz-back').addEventListener('click',()=>{if(WZ>0){WZ--;wzShow()}});

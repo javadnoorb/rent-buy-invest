@@ -207,7 +207,7 @@ function wireHelp(){
   [['metro','metro'],['q-P','P'],['q-rent0','rent0'],['q-dp','dp'],['q-rate','rate']].forEach(([el,k])=>{const lab=document.querySelector(`label[for="${el}"]`);addHelp(lab,k,HELP[k][0])});
   addHelp(document.querySelector('label[for="N"]'),'N',HELP.N[0]);
   document.querySelector('#realBtn').closest('.seg').insertAdjacentHTML('afterend',helpBtn('basis',HELP.basis[0]));
-  document.querySelector('.vtop').insertAdjacentHTML('beforeend',`<div class="vhelp">${helpBtn('verdict','What comes out ahead means')}<span class="sub">what this means</span> ${helpBtn('conf','How sure')}<span class="sub">how sure</span> ${helpBtn('paths','The paths')}<span class="sub">the paths</span></div>`);
+  document.querySelector('.vtop').insertAdjacentHTML('beforeend',`<div class="vhelp">${helpBtn('verdict','What comes out ahead means')}<span class="sub vlab">what this means</span> ${helpBtn('conf','How sure')}<span class="sub vlab">how sure</span> ${helpBtn('paths','The paths')}<span class="sub vlab">the paths</span></div>`);
   // presets and controls
   const pr=document.querySelector('.presets');if(pr)pr.insertAdjacentHTML('beforeend',helpBtn('presets','About presets'));
   [['scName','afterend'],['locMode','afterend']].forEach(([id,w])=>{const el=document.getElementById(id);if(el)el.insertAdjacentHTML(w,helpBtn(id,HELP[id][0]))});
@@ -219,7 +219,7 @@ function wireHelp(){
   // re-rendered content
   const mo=new MutationObserver(()=>decorateHelp());['vgrid','vgrid2','snap','riskT','why'].forEach(id=>{const el=document.getElementById(id);if(el)mo.observe(el,{childList:true})});decorateHelp();
   // clicks
-  document.addEventListener('click',e=>{const b=e.target.closest('.hlp');if(b){e.preventDefault();e.stopPropagation();openHelp(b);return}if(POP&&!POP.hidden&&!e.target.closest('.hpop'))closeHelp()},true);
+  document.addEventListener('click',e=>{const lab=e.target.closest('.vlab'),b=e.target.closest('.hlp')||(lab&&lab.previousElementSibling&&lab.previousElementSibling.matches('.hlp')?lab.previousElementSibling:null);if(b){e.preventDefault();e.stopPropagation();openHelp(b);return}if(POP&&!POP.hidden&&!e.target.closest('.hpop'))closeHelp()},true);
   addEventListener('keydown',e=>{if(e.key==='Escape')closeHelp()});
   addEventListener('scroll',()=>closeHelp(),{passive:true});addEventListener('resize',()=>closeHelp());
   document.getElementById('aside').addEventListener('scroll',()=>closeHelp(),{passive:true});

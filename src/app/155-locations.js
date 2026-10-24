@@ -30,7 +30,7 @@ function renderLoc(){
   const rows=locRows(),N=P.N;
   const key={name:r=>r.m.name,P:r=>r.q.P,rent:r=>r.rent,ptr:r=>r.ptr,own1:r=>r.own1,cash:r=>r.cash,hti:r=>r.hti??9,beY:r=>r.beY??99,gap:r=>r.gap}[LOC_SORT];
   rows.sort((a,b)=>{const x=key(a),y=key(b);return (typeof x==='string'?x.localeCompare(y):x-y)*LOC_DIR});
-  const cols=[['name','Location'],['gap',`Buy − (rent + invest), yr ${N}`],['beY','Buying pulls ahead'],['own1','Owning, month 1'],['hti','Housing ÷ income'],['P','Home price'],['rent','Rent'],['ptr','Price ÷ yearly rent'],['cash','Cash to buy']];
+  const cols=[['name','Location (✓ = in chart)'],['gap',`Buy − (rent + invest), yr ${N}`],['beY','Buying pulls ahead'],['own1','Owning, month 1'],['hti','Housing ÷ income'],['P','Home price'],['rent','Rent'],['ptr','Price ÷ yearly rent'],['cash','Cash to buy']];
   const th=cols.map(([k,l])=>`<th><button type="button" class="srt${LOC_SORT===k?' on':''}" data-k="${k}" aria-label="Sort by ${l}">${l}${LOC_SORT===k?(LOC_DIR<0?' ▾':' ▴'):''}</button></th>`).join('');
   const mx=Math.max(...rows.map(r=>Math.abs(r.gap)),1);
   const body=rows.map(r=>{const on=LOC_SEL.includes(r.m.slug),cur=r.m.slug===P.metro;

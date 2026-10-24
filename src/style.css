@@ -132,7 +132,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
   .fab{display:inline-flex;position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:20;padding:11px 16px;border-radius:999px;background:var(--accent);color:var(--accent-ink);border:0;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.25)}
   .wrap{padding-bottom:64px}
 }
-.f input.bad{outline:2px solid var(--neg)}
+.f input.bad,.q input.bad{outline:2px solid var(--neg)}
 .saved{font-size:11.5px;color:var(--muted)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 /* v4 additions */
@@ -382,10 +382,11 @@ table.loct td:first-child{min-width:150px}
 .print-only{display:none}
 .ptable{border-collapse:collapse;width:100%;font-size:12px}.ptable td{padding:3px 8px;border-bottom:1px solid #ddd}.ptable td:last-child{text-align:right;font-family:var(--mono,monospace)}
 @media print{
-  aside,.tabs,.mini,.fab,.undo,.scrim,.snap,#stale,.controls,.hlp,.vhelp,.tabfade,header p{display:none!important}
+  aside,.tabs,.mini,.fab,.undo,.scrim,.snap,#stale,.controls,.hlp,.vhelp,.tabfade,header p,input[type=range],.seg,.qtag,details.how,.ticks{display:none!important}
   .print-only{display:block;break-inside:avoid;margin:12px 0}
   body,.wrap,main{background:#fff!important;color:#000!important;display:block!important;max-width:none!important;padding:0!important}
-  .card,.verdict{box-shadow:none!important;border:1px solid #ccc!important;break-inside:avoid}
+  .card,.verdict{box-shadow:none!important;border:1px solid #ccc!important;break-inside:auto}
+  .plot,.takeaway,.verdict .bars{break-inside:avoid}
   .plot{max-width:100%;overflow:hidden}
   #openWizard,.verdict details.more>summary{display:none!important}
 }
@@ -425,3 +426,27 @@ details.tfold[open] summary{margin-bottom:6px}
 .amode .sub{font-size:11.5px;color:var(--muted)}
 aside.basic:not(.searching) .f:not(.core),aside.basic:not(.searching) details.nocore{display:none}
 .vnote .warn,#vnote .warn{color:var(--neg)}
+/* the market cards are filled in by script: reserve their row so the page doesn't jump when they appear */
+.snap{min-height:var(--snap-h,136px)}
+@media (max-width:600px){
+  /* phones: shorter intro and compact cards, so the answer starts higher on the first screen */
+  .lede{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  :root{--snap-h:96px}
+  .snap{grid-auto-columns:minmax(132px,42%)!important}
+  .chip{padding:6px 8px}
+  .chip .v{font-size:15px}
+  .chip .s{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+}
+/* touch: larger invisible hit areas for the small "?" buttons, and the words next to the answer's "?" open it too */
+.vlab{cursor:pointer}
+@media (pointer:coarse){.hlp::after{inset:-14px}.vlab{padding:10px 2px}}
+/* visible keyboard focus everywhere */
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* anything scrolled to lands below the sticky answer bar and tab strip; phones keep room for the floating button */
+input,select,h2,h3,.plot,details{scroll-margin-top:120px}
+@media (max-width:900px){main{padding-bottom:88px}}
+/* phones: every tab visible, in two rows, instead of a strip that hides half of them off-screen */
+@media (max-width:600px){.tabs{flex-wrap:wrap;gap:0 2px;-webkit-mask-image:none;mask-image:none}.tabs button{padding:9px 7px;font-size:12.5px}.tlong{display:none}}
+/* "Skip to the calculator": hidden until focused with the keyboard */
+.skip{position:absolute;left:8px;top:-60px;z-index:50;padding:8px 12px;border-radius:8px;background:var(--accent);color:var(--accent-ink)}
+.skip:focus{top:8px}

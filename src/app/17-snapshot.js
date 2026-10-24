@@ -65,7 +65,7 @@ function rentEstimate(m,P,beds){m=m||selMetro();if(!m.rent||!(P>0))return null;
 function applyRentMode(){const m=selMetro(),auto=document.getElementById('rentMode').value==='auto',beds=document.getElementById('beds').value,P=numOf('P'),est=rentEstimate(m,P,beds);
   const h=document.getElementById('rentMode').closest('.f').querySelector('.hint');
   const tag=document.getElementById('rentTag');
-  if(tag){tag.title=est?(auto?`Estimated from the home price (${m.name}); type a rent to use your own`:`Estimate from price: $${est.toLocaleString('en-US')}/mo`):'';
+  if(tag){tag.title=est?(auto?`Estimated for a ${(document.getElementById('beds')||{value:'3'}).value==='any'?'typical':(document.getElementById('beds')||{value:'3'}).value+'-bedroom'} home at this price (${m.name}); type a rent to use your own`:`Estimate from price: $${est.toLocaleString('en-US')}/mo`):'';
     tag.innerHTML=!est?'':auto?'est.':'<button type="button" class="qlink" data-act="rent-est">use est.</button>'}
   if(!est){if(h)h.textContent='';return}
   if(auto)document.getElementById('rent0').value=est;
@@ -80,8 +80,8 @@ function applyTT(){const auto=document.getElementById('ttAuto').value==='auto',e
   if(!m||!m.tt){eb.value=0;es.value=0;return}
   const P=numOf('P')||0,dp=(parseFloat(document.getElementById('dp').value)||0)/100,L=P*(1-dp);
   const t=transferTaxes(m.tt,P,L);eb.value=P?(t.buyer/P*100).toFixed(3):0;es.value=P?(t.seller/P*100).toFixed(3):0}
-function buildMetroSelect(){const sel=document.getElementById('metro');sel.innerHTML=METROS.map(m=>`<option value="${m.slug}">${m.name}</option>`).join('')+
-  (COUNTIES?`<option value="__county">${COUNTIES.zip?'Any county or ZIP code…':'Any U.S. county…'}</option>`:'')}
+function buildMetroSelect(){const sel=document.getElementById('metro'),opt=m=>`<option value="${m.slug}">${m.name}</option>`,cty=COUNTIES?`<option value="__county">${COUNTIES.zip?'Type a county or ZIP code…':'Type a U.S. county…'}</option>`:'';
+  sel.innerHTML=opt(METROS[0])+cty+`<optgroup label="Metro areas">${METROS.slice(1).filter(m=>!m.county).map(opt).join('')}</optgroup>`}
 /* ---- counties: any of ~3,200 counties from Census ACS, added to the location list as they are picked ----
    The list is loaded on first use (fetched from data/counties.json, or embedded in the artifact build) and scaled here:
    value × kP (the U.S. median's change to today's Zillow typical value), tax ÷ value, and the state's insurance.

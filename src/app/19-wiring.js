@@ -1,6 +1,6 @@
 /* ===================== Wiring ===================== */
 const RENDER={proj:renderProj,sens:renderSens,opt:renderOpt,hist:renderHist,mc:()=>{renderMC();typeset(document.getElementById('tab-mc'))},loc:renderLoc,scen:renderScen,data:renderData,method:()=>typeset(document.getElementById('tab-method'))};
-function showTab(k){CUR=k;document.querySelectorAll('.tabs button').forEach(b=>{b.setAttribute('aria-selected',String(b.dataset.tab===k));b.tabIndex=b.dataset.tab===k?0:-1});
+function showTab(k){CUR=k;{const ub=document.getElementById('undoBar');if(ub)ub.hidden=true}document.querySelectorAll('.tabs button').forEach(b=>{b.setAttribute('aria-selected',String(b.dataset.tab===k));b.tabIndex=b.dataset.tab===k?0:-1});
   Object.keys(RENDER).forEach(t=>document.getElementById('tab-'+t).hidden=t!==k);try{localStorage.setItem('rbi-tab',k)}catch(e){}
   const ab=document.querySelector(`.tabs button[data-tab="${k}"]`),tb=ab&&ab.parentElement;if(tb&&tb.scrollTo)tb.scrollTo({left:ab.offsetLeft-(tb.clientWidth-ab.offsetWidth)/2,behavior:'smooth'});
   requestAnimationFrame(()=>RENDER[k]())}
@@ -27,7 +27,12 @@ function migrateSave(o){
 function applySaved(o){migrateSave(o);
   setRaw(o,o.v===4);if(o.REAL===false)REAL=false;const m=METROS.find(x=>x.slug===o.metro);if(m){showMetroPreset(m);updateMetroHints(m);applyStateCap(m)}}
 function restore(){try{const o=JSON.parse(localStorage.getItem('rbi-inputs')||'null');if(!o||![4,5,6,7,8].includes(o.v))return;applySaved(o)}catch(e){console.warn('could not restore saved settings',e)}}
-function validate(){document.querySelectorAll('aside input[type=number],aside input[data-money]').forEach(el=>{const v=unfmt(el.value);el.classList.toggle('bad',v===''||!isFinite(parseFloat(v)))})}
+/* empty or out-of-range numbers are outlined, marked invalid for screen readers and explained on hover; the model
+   uses the default or the nearest allowed value meanwhile */
+function validate(){document.querySelectorAll('aside input[type=number],aside input[data-money],.q input[data-money],.q input[type=number]').forEach(el=>{
+  const id=el.id.replace(/^q-/,''),v=unfmt(el.value),x=parseFloat(v),r=RANGE[id],bad=v===''||!isFinite(x)||!inRange(id,x);
+  el.classList.toggle('bad',bad);if(bad)el.setAttribute('aria-invalid','true');else el.removeAttribute('aria-invalid');
+  el.title=bad?(v===''||!isFinite(x)?'Enter a number':`Allowed: ${r[0].toLocaleString('en-US')} to ${r[1].toLocaleString('en-US')}`):''})}
 let timer=null;
 function syncLoanFields(){syncDeps()}
 let LAST_KEY='';
@@ -59,7 +64,10 @@ function init(){
   {const fb=document.getElementById('fcstPreset');fb.hidden=!PRESETS.fcst;if(PRESETS.fcst&&FCST.note){const h=document.createElement('div');h.className='hint muted';h.style.fontSize='11px';h.innerHTML=FCST.note.replace('__GH__',PRESETS.fcst.gh).replace('__GR__',PRESETS.fcst.gr);fb.textContent=FCST.label||fb.textContent;fb.parentElement.after(h)}}
   if(!MONTHLY){const o=document.querySelector('#h-mode option[value=monthly]');o.disabled=true;o.textContent+=' (unavailable)'}
   QUICK.forEach(k=>document.getElementById('q-'+k).addEventListener('input',e=>{if(e.target.value==='')return;if(k==='rent0'&&e.isTrusted)rentTyped();document.getElementById(k).value=unfmt(e.target.value);update()}));
-  document.addEventListener('focusin',e=>{if(e.target.dataset&&e.target.dataset.money!=null)e.target.value=unfmt(e.target.value)});
+  document.addEventListener('focusout',e=>{const el=e.target;if(el&&el.dataset&&el.dataset.money!=null)setTimeout(()=>fmtMoneyEl(el),0)});
+  document.addEventListener('focusin',e=>{const el=e.target;if(!(el instanceof HTMLInputElement)||!/^(text|number)$/.test(el.type)||el.id==='aq')return;
+    if(el.dataset.money!=null)el.value=unfmt(el.value);
+    if(el.closest('.f,.q,.wizard')){el.addEventListener('mouseup',ev=>ev.preventDefault(),{once:true});setTimeout(()=>{try{el.select()}catch(err){}},0)}});
   document.addEventListener('focusout',e=>{if(e.target.dataset&&e.target.dataset.money!=null)fmtMoneyEl(e.target)});
   document.getElementById('N').addEventListener('input',update);
   document.getElementById('metro').addEventListener('change',e=>{applyMetro(e.target.value);update()});
@@ -128,7 +136,9 @@ function wireMini(){const mini=document.getElementById('mini'),v=document.queryS
   document.getElementById('miniSum').onclick=()=>v.scrollIntoView({behavior:'smooth',block:'start'});
   // floating "Assumptions" button: tucks away while scrolling down, returns when scrolling up
   const fab=document.getElementById('fab');let y0=scrollY;
-  addEventListener('scroll',()=>{const y=scrollY;if(Math.abs(y-y0)<8)return;fab.classList.toggle('tuck',y>y0&&y>300);y0=y},{passive:true});
+  // ...and stays out of the way while the answer itself is on screen (the top card has the main inputs)
+  let overAnswer=false;if('IntersectionObserver' in window)new IntersectionObserver(([e])=>{overAnswer=e.isIntersecting;fab.classList.toggle('tuck',overAnswer)},{threshold:0.15}).observe(document.querySelector('.vtop'));
+  addEventListener('scroll',()=>{const y=scrollY;if(Math.abs(y-y0)<8)return;fab.classList.toggle('tuck',overAnswer||(y>y0&&y>300));y0=y},{passive:true});
   // keyboard: "/" jumps to the settings search, Escape closes the settings sheet
   addEventListener('keydown',e=>{if(e.key==='/'&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();const q=document.getElementById('aq');if(innerWidth<=900)fab.click();setTimeout(()=>q.focus(),innerWidth<=900?300:0)}
     if(e.key==='Escape'&&document.getElementById('aside').classList.contains('open'))document.getElementById('closeSheet').click()})}

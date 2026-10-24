@@ -1,4 +1,5 @@
 <div class="wrap">
+<a class="skip" href="#vtop">Skip to the calculator</a>
 <header>
   <div class="hrow"><h1>Rent, Buy or Invest</h1><span class="hbtns"><button id="openWizard" class="ghost">Quick setup</button></span></div>
   <p class="lede">Compares buying a home with renting and investing the difference, on the same monthly budget. Results are what you'd have if you sold everything, after costs and taxes. Data-based figures link to their source; planning values are marked "assumption".</p>
@@ -8,25 +9,25 @@
 <section class="snap" id="snap" aria-label="Current market data"></section>
 
 <div class="layout">
-<aside id="aside" aria-label="Assumptions">
+<aside id="aside" class="basic" aria-label="Assumptions">
   <div class="ahead"><strong>Assumptions</strong><span class="saved" id="saved"></span><button class="close" id="closeSheet" aria-label="Close assumptions">Done</button></div>
   <div class="amode"><span class="seg" role="group" aria-label="Settings shown" id="setMode"><button type="button" data-m="basic" aria-pressed="true">Basic</button><button type="button" data-m="all" aria-pressed="false">All settings</button></span><span class="sub" id="modeNote"></span></div>
   <div class="sheetlive" id="sheetlive"></div>
   <div class="asearch"><input id="aq" type="search" placeholder="Find a setting (e.g. tax, rent, loan)" aria-label="Find a setting" autocomplete="off"><div class="achg" id="achg"></div></div>
   <p class="anone" id="anone" hidden>No setting matches that search.</p>
   <details open><summary>Home &amp; mortgage</summary><div class="fields" id="g-home"></div></details>
-  <details><summary>Refinancing</summary><div class="fields" id="g-refi"></div></details>
+  <details class="nocore"><summary>Refinancing</summary><div class="fields" id="g-refi"></div></details>
   <details><summary>Owning costs</summary><div class="fields" id="g-own"></div></details>
   <details><summary>Renting</summary><div class="fields" id="g-rent"></div></details>
-  <details><summary>Other costs</summary><div class="fields" id="g-other"></div></details>
+  <details class="nocore"><summary>Other costs</summary><div class="fields" id="g-other"></div></details>
   <details><summary>Market assumptions</summary><div class="fields">
     <div class="presets"><button data-preset="long">1928–2025 avg</button><button data-preset="modern">1972–2025 avg</button><button data-preset="fcst" id="fcstPreset" hidden>2026 forecasts</button><button data-preset="now">Current YoY</button><button data-preset="metro" id="metroPreset" hidden>Metro history</button></div>
     <div class="hint muted" style="font-size:11px">Presets fill growth rates only. Averages are geometric, computed from the embedded data (<a class="src" target="_blank" rel="noopener" href="https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histretSP.html">Damodaran</a>, <a class="src" target="_blank" rel="noopener" href="https://data.bls.gov/timeseries/CUUR0000SA0">BLS CPI</a>, <a class="src" target="_blank" rel="noopener" href="https://data.bls.gov/timeseries/CUUR0000SEHA">BLS rent</a>).</div>
     <div id="g-mkt" style="display:flex;flex-direction:column;gap:9px"></div></div></details>
-  <details><summary>Investing &amp; leverage</summary><div class="fields" id="g-inv"></div></details>
-  <details><summary>Other ways to own</summary><div class="fields" id="g-alt"></div></details>
+  <details class="nocore"><summary>Investing &amp; leverage</summary><div class="fields" id="g-inv"></div></details>
+  <details class="nocore"><summary>Other ways to own</summary><div class="fields" id="g-alt"></div></details>
   <details><summary>Income &amp; taxes</summary><div class="fields" id="g-tax"></div></details>
-  <details><summary>Life &amp; risk preferences</summary><div class="fields" id="g-life"></div></details>
+  <details class="nocore"><summary>Life &amp; risk preferences</summary><div class="fields" id="g-life"></div></details>
   <div style="padding:10px 14px;display:flex;gap:8px;flex-wrap:wrap"><button id="reset">Reset to defaults</button></div>
 </aside>
 
@@ -42,7 +43,7 @@
         <span class="seg" role="group" aria-label="Dollar basis"><button id="realBtn" aria-pressed="true">Today's $</button><button id="nomBtn" aria-pressed="false">Nominal $</button></span></div>
         <input type="range" id="N" min="1" max="30" value="10" aria-label="Horizon in years"><div class="ticks" aria-hidden="true"><span style="left:0%">1</span><span style="left:31.03%">10</span><span style="left:65.5%">20</span><span style="left:100%">30</span></div></div>
     </div>
-    <div class="vtop">
+    <div class="vtop" id="vtop" tabindex="-1">
       <div class="vhead" id="vhead" aria-live="polite">Computing…</div>
       <div class="answer" id="answer" aria-live="polite"></div>
     </div>
@@ -66,11 +67,11 @@
     <button role="tab" data-tab="sens" aria-selected="false">Sensitivity</button>
     <button role="tab" data-tab="opt" aria-selected="false">Optimizer</button>
     <button role="tab" data-tab="hist" aria-selected="false">Backtest</button>
-    <button role="tab" data-tab="mc" aria-selected="false">Monte Carlo &amp; risk</button>
+    <button role="tab" data-tab="mc" aria-selected="false">Monte Carlo<span class="tlong"> &amp; risk</span></button>
     <button role="tab" data-tab="loc" aria-selected="false">Locations</button>
     <button role="tab" data-tab="scen" aria-selected="false">Scenarios</button>
     <button role="tab" data-tab="data" aria-selected="false">Data</button>
-    <button role="tab" data-tab="method" aria-selected="false">Method &amp; sources</button>
+    <button role="tab" data-tab="method" aria-selected="false">Method<span class="tlong"> &amp; sources</span></button>
   </nav>
   </div>
 

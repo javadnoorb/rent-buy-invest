@@ -1,6 +1,6 @@
 /* ===================== State & helpers ===================== */
 let REAL=true,CUR='proj',P=null,BASE=null,MC=null,OPT_TERM=30;
-const fmt=x=>{if(!isFinite(x))return '—';const a=Math.abs(x),s=x<0?'−':'';if(a>=1e6)return s+'$'+(a/1e6).toFixed(a>=1e7?1:2)+'M';if(a>=1e3)return s+'$'+(a/1e3).toFixed(a>=1e5?0:1)+'k';return s+'$'+a.toFixed(0)};
+const fmt=x=>{if(!isFinite(x))return '—';const a=Math.abs(x),s=x<0?'−':'';if(a>=1e12)return s+'$'+(a/1e12).toFixed(1)+'T';if(a>=1e9)return s+'$'+(a/1e9).toFixed(a>=1e10?0:1)+'B';if(a>=1e6)return s+'$'+(a/1e6).toFixed(a>=1e7?1:2)+'M';if(a>=1e3)return s+'$'+(a/1e3).toFixed(a>=1e5?0:1)+'k';return s+'$'+a.toFixed(0)};
 const fmtFull=x=>(x<0?'−$':'$')+Math.round(Math.abs(x)).toLocaleString('en-US');
 /* text from settings, shared links or scenario names, made safe to put into HTML */
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}

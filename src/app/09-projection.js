@@ -12,7 +12,7 @@ function renderProj(){
   const showBand=document.getElementById('nwBand')&&document.getElementById('nwBand').checked&&MC;
   if(showBand){const hh=P.N,xs=[...Array(hh+1)].map((_,k)=>k);
     const bandOf=(arr,col,name)=>{const lo=xs.map(y=>q(arr.map(a=>a[y]),.25)),hi=xs.map(y=>q(arr.map(a=>a[y]),.75));
-      return [{x:xs,y:hi,mode:'lines',line:{width:0},showlegend:false,hoverinfo:'skip'},{x:xs,y:lo,mode:'lines',line:{width:0},fill:'tonexty',fillcolor:hexA(col,.16),name:name+' 25–75%',hoverinfo:'skip'}]};
+      return [{x:xs,y:hi,mode:'lines',line:{width:0},showlegend:false,hoverinfo:'skip'},{x:xs,y:lo,mode:'lines',line:{width:0},fill:'tonexty',fillcolor:hexA(col,isDark(t)?.3:.16),name:name+' 25–75%',hoverinfo:'skip'}]};
     data.unshift(...bandOf(MC.res.buy,t.buy,'Buy'),...bandOf(MC.res.inv,t.inv,'Rent + invest'))}
   plot('p-nw',data,{margin:{t:be?24:10},xaxis:{...X('Years from today'),dtick:P.N>15?5:1},yaxis:Yd('Net worth, '+basisLabel()),
      shapes:(be?[{type:'line',x0:be,x1:be,yref:'paper',y0:0,y1:1,line:{color:t.muted,dash:'dash',width:1}}]:[]).concat(o.moved?[{type:'line',x0:o.moved.year,x1:o.moved.year,yref:'paper',y0:0,y1:1,line:{color:t.cash,dash:'dot',width:1.5}}]:[]),

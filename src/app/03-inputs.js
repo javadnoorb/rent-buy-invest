@@ -128,8 +128,12 @@ function setRaw(o,legacy){if(o.rent0!=null&&(o.rentMode==null||(legacy&&o.rentMo
   // only values a field can hold: a listed option, or a number (shared links and old saves are untrusted input)
   F.forEach(f=>{const v=o[f[1]];if(v==null)return;const el=document.getElementById(f[1]);
     if(f[6]==='sel'){if((f[7]||[]).some(x=>String(x[0])===String(v)))el.value=String(v)}else if(isFinite(parseFloat(unfmt(String(v)))))el.value=String(+unfmt(String(v)))});if(o.N)document.getElementById('N').value=o.N;if(o.metro!=null&&!countyMetro(o.metro))restoreCounty(o.metro);if(o.metro!=null&&METROS.some(m=>m.slug===o.metro))document.getElementById('metro').value=o.metro}
+/* sensible ranges for the main inputs: values outside are flagged in the field and clamped in the model */
+const RANGE={P:[10000,5e7],rent0:[100,50000],dp:[0,100],rate:[0,25],rate15:[0,25],armRate:[0,25],income:[0,1e8],ptax:[0,10],maint:[0,10],sell:[0,20],close:[0,20],
+  ins:[0,1e5],hoa:[0,1e4],gh:[-20,30],gr:[-20,30],inf:[-5,30],rs:[-20,40],rb:[-10,30],rc:[-5,30],ws:[0,100],wb:[0,100],lev:[0,5]};
+function inRange(id,x){const r=RANGE[id];return !r||(x>=r[0]&&x<=r[1])}
 function parseP(raw){
-  const n=id=>{const x=parseFloat(raw[id]);return isFinite(x)?x:DEF[id]};
+  const n=id=>{const x=parseFloat(raw[id]);if(!isFinite(x))return DEF[id];const r=RANGE[id];return r?Math.min(r[1],Math.max(r[0],x)):x};
   const pc=id=>n(id)/100;
   const ws=Math.min(1,Math.max(0,pc('ws'))),wb=Math.min(1-ws,Math.max(0,pc('wb')));
   const term=parseInt(raw.term)||30,loanType=raw.loanType||'fixed',armYears=parseInt(raw.armYears)||5;
