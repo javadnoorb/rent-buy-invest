@@ -15,6 +15,8 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
+  // the analytics beacon (Cloudflare Web Analytics, real host only) is never cached: it must stay current, and offline it just fails
+  if (url.hostname.endsWith('cloudflareinsights.com')) return;
   // the page and data files (refreshed monthly, e.g. data/counties.json) are network-first, so updates show up
   const isPage = req.mode === 'navigate' || (url.origin === location.origin && (url.pathname.endsWith('.html') || url.pathname.includes('/data/')));
   if (isPage) {

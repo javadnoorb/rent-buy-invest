@@ -2,6 +2,8 @@
 
 **Live app:** https://javadnoorb.github.io/rent-buy-invest/
 
+Visits to the live app are counted with Cloudflare Web Analytics (cookieless, no personal data; only on that host, not locally or in tests).
+
 An interactive calculator comparing three paths on the same monthly budget:
 
 - **Buy** a home and invest any monthly surplus.
