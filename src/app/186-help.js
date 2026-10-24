@@ -132,8 +132,7 @@ const HELP={
  'h-mode':['Annual or monthly data','Annual: 1972–2025 with local home and rent history. Monthly: 1991–2026 national data, month by month.'],
  'h-rate':['Mortgage rate in the backtest','Actual rate then: each start year uses that year\'s average mortgage rate. My rate: every start year uses today\'s rate.'],
  'h-home':['Home prices in the backtest','Selected location: the metro\'s own price history where available. National: U.S. average.'],
- 'h-year':['Bought in','Year of purchase for the detail chart. Its curve and heat-map cell are highlighted in the charts above.'],
- 'h-held':['Held for','Years until the sale, marked on the detail chart and by the dot and ring above. Follows your horizon until you move it.'],
+ 'h-year':['Bought in','Year of purchase for the detail chart, followed to the latest data. Its curve and heat-map column are highlighted in the charts above.'],
  optTerm:['Loan term','Switches the optimizer between 30- and 15-year loans.'],
  locMode:['Growth by location','Same: your growth rates in every location. Yours + local: your rates plus each location\'s historical gap to the U.S. average. Local history: each location\'s own past averages.'],
  scName:['Scenario name','Name the current inputs to save them on this device and compare later.'],
@@ -211,8 +210,8 @@ function wireHelp(){
   const pr=document.querySelector('.presets');if(pr)pr.insertAdjacentHTML('beforeend',helpBtn('presets','About presets'));
   [['scName','afterend'],['locMode','afterend']].forEach(([id,w])=>{const el=document.getElementById(id);if(el)el.insertAdjacentHTML(w,helpBtn(id,HELP[id][0]))});
   ['nwBand','mc-n','mc-b','mc-w','mc-rc','h-mode','h-rate','h-home'].forEach(id=>{const el=document.getElementById(id);const lab=el&&el.closest('label');if(lab)lab.insertAdjacentHTML('afterend',helpBtn(id,HELP[id][0]))});
-  // the Backtest sliders: the "?" goes in the label line, so it doesn't take a cell of their grid
-  ['h-year','h-held'].forEach(id=>{const sp=document.getElementById(id).closest('label').querySelector('span');if(sp)sp.insertAdjacentHTML('beforeend',' '+helpBtn(id,HELP[id][0]))});
+  // the Backtest slider: the "?" goes in the label line, so it doesn't take a cell of their grid
+  ['h-year'].forEach(id=>{const sp=document.getElementById(id).closest('label').querySelector('span');if(sp)sp.insertAdjacentHTML('beforeend',' '+helpBtn(id,HELP[id][0]))});
   const ot=document.getElementById('opt30');if(ot)ot.parentElement.insertAdjacentHTML('afterend',helpBtn('optTerm',HELP.optTerm[0]));
   const ca=document.getElementById('cmpB');if(ca)ca.closest('label').insertAdjacentHTML('afterend',helpBtn('cmp',HELP.cmp[0]));
   // chart titles

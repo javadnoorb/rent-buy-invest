@@ -99,7 +99,7 @@ function init(){
   document.querySelectorAll('.tablewrap').forEach(w=>{w.tabIndex=0;w.setAttribute('role','region');
     const h=w.closest('.card')&&w.closest('.card').querySelector('h2,h3');w.setAttribute('aria-label',h?h.textContent.trim():'Table')});
   ['h-rate','h-mode','h-home'].forEach(id=>document.getElementById(id).addEventListener('change',()=>renderHist()));
-  ['h-year','h-held'].forEach(id=>document.getElementById(id).addEventListener('input',histSlide));
+  document.getElementById('h-year').addEventListener('input',histSlide);
   document.getElementById('mc-run').addEventListener('click',()=>{document.getElementById('mc-note').textContent='Running simulations…';startMC(true)});
   ['mc-n','mc-b','mc-w','mc-rc'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{if(CUR==='mc'){document.getElementById('mc-note').textContent='Running simulations…';startMC(true)}}));
   document.getElementById('scSave').addEventListener('click',()=>{const nm=document.getElementById('scName').value.trim()||`Scenario ${loadSc().length+1}`;const a=loadSc();a.push({name:nm,raw:getRaw()});
