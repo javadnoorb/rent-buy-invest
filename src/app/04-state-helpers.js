@@ -16,8 +16,9 @@ function layout(extra){const t=theme();const narrow=innerWidth<600;
   const L=Object.assign({paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',font:{family:'IBM Plex Sans, system-ui, sans-serif',color:t.ink,size:narrow?11:12},
     margin:M,hovermode:'x unified',hoverlabel:{bgcolor:t.bg,bordercolor:t.line,font:{color:t.ink,family:'IBM Plex Mono, monospace'}},
     legend:{orientation:'h',yref:'container',y:0,yanchor:'bottom',x:0,font:{size:narrow?10:11},itemwidth:narrow?24:30,tracegroupgap:4},
-    xaxis:{gridcolor:narrow?hexA(t.line,.55):t.line,zerolinecolor:t.line,linecolor:t.line,tickfont:{family:'IBM Plex Mono, monospace'},nticks:narrow?6:undefined},
-    yaxis:{gridcolor:narrow?hexA(t.line,.55):t.line,zerolinecolor:t.muted,linecolor:t.line,tickfont:{family:'IBM Plex Mono, monospace'},nticks:narrow?5:undefined}},extra||{});
+    xaxis:{gridcolor:narrow?hexA(t.line,.55):t.line,zerolinecolor:t.line,linecolor:t.line,tickfont:{family:'IBM Plex Mono, monospace'},nticks:narrow?6:undefined,ticklabelstandoff:3},
+    // tick labels stand a few pixels off the axes, so the x and y labels at the corner (both 0) don't touch
+    yaxis:{gridcolor:narrow?hexA(t.line,.55):t.line,zerolinecolor:t.muted,linecolor:t.line,tickfont:{family:'IBM Plex Mono, monospace'},nticks:narrow?5:undefined,ticklabelstandoff:4}},extra||{});
   if(extra&&extra.margin)L.margin=Object.assign({},M,extra.margin);  // a chart may set only some sides
   if(TOUCH){L.dragmode=false;Object.keys(L).forEach(k=>{if(/^[xy]axis\d*$/.test(k))L[k]=Object.assign({},L[k],{fixedrange:true})});
     if(!L.xaxis)L.xaxis={fixedrange:true};if(!L.yaxis)L.yaxis={fixedrange:true};
@@ -66,10 +67,12 @@ const Yd=(t)=>({...layout().yaxis,title:{text:t,font:{size:11}},tickprefix:'$',t
 const Yt=(t,extra)=>({...layout().yaxis,title:{text:t,font:{size:11}},...(extra||{})});
 const basisLabel=()=>REAL?"today's $":'nominal $';
 /* colour bar for buy-minus-rent heat maps: a titled scale ($ or %) with which end favours buying and which renting */
-function advBar(t,title,unit){return {title:{text:title,side:'top',font:{size:11}},thickness:10,outlinewidth:0,len:.74,y:.5,
+/* colour bars: title on top; tick labels just below their ticks, so the top label stays clear of the title */
+const cbTitle=text=>({text,side:'top',font:{size:11}}),CB_TICKS={ticklabelposition:'outside bottom'};
+function advBar(t,title,unit){return {title:cbTitle(title),...CB_TICKS,thickness:10,outlinewidth:0,len:.74,y:.5,
   ...(unit==='$'?{tickformat:'$~s'}:{ticksuffix:'%'})}}
 function advEnds(t){return [[1,'bottom','▲ Buying<br>ahead',t.buy],[0,'top','▼ Renting<br>ahead',t.inv]].map(([y,ya,text,color])=>
-  ({xref:'paper',yref:'paper',x:1.02,xanchor:'left',y:y===1?.87:.13,yanchor:ya,showarrow:false,align:'left',text,font:{size:10,color}}))}
+  ({xref:'paper',yref:'paper',x:1.02,xanchor:'left',y:y===1?.87:.1,yanchor:ya,showarrow:false,align:'left',text,font:{size:10,color}}))}
 /* Diverging scale for "renting wins" (blue, negative) vs "buying wins" (red-orange, positive), the same hues as the two
    paths: 9 steps, saturated at both ends (never fading to white), through a neutral grey at zero that differs from
    the card, with a dark-mode version whose ends stay saturated and whose middle is a dark grey. */

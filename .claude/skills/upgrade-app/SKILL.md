@@ -82,7 +82,7 @@ When the "How to read this" text or a takeaway describes a chart, keep it true a
 
 ```bash
 npm run check:fast        # build, lint, tsc, model tests, validate, parser tests (~5 s)
-npm run check:all         # + smoke, ui, a11y in parallel (~2 min; a11y needs axe-core, see setup)
+npm run check:all         # + smoke, ui, a11y, chart layout in parallel (~2 min; a11y needs axe-core, see setup)
 ```
 Add a UI test (`tests/ui.js`) for each new behaviour. If a test asserted old wording, update it to the new wording
 rather than weakening it.
@@ -138,3 +138,8 @@ changes, then what was **not** done and why, and any uncertain facts. Offer the 
   only the outcome.
 - Overlap checks must include drawn shapes, not only text: the gap chart's names collided with its arrows on phones
   (fixed by sizing the chart per row and giving labels a background). A test checks it at 390px.
+- `tests/layout.js` checks every chart at 390, 600, 900 and 1280px and three places: labels overlapping or closer than
+  2px, labels on drawn shapes or crossed by line shapes, anything outside the chart, legends over the plot. When a
+  user reports an overlap, first make this test fail on the old code (check out the old file), then fix. Fixes that
+  worked: a value column beside the chart instead of labels at the data, colour-bar ticks below their marks
+  (`CB_TICKS`), `ticklabelstandoff` for the corner where both axes start at 0, fewer ticks on phones.

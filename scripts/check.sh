@@ -18,6 +18,7 @@ log=$(mktemp -d)
 node tests/smoke.js >"$log/smoke" 2>&1 & a=$!
 node tests/ui.js >"$log/ui" 2>&1 & b=$!
 node tests/a11y.js >"$log/a11y" 2>&1 & c=$!
+node tests/layout.js >"$log/layout" 2>&1 & d=$!
 fail=0
-for t in smoke:$a ui:$b a11y:$c; do n=${t%%:*}; if wait "${t##*:}"; then tail -1 "$log/$n"; else echo "FAILED: $n"; tail -20 "$log/$n"; fail=1; fi; done
+for t in smoke:$a ui:$b a11y:$c layout:$d; do n=${t%%:*}; if wait "${t##*:}"; then tail -1 "$log/$n"; else echo "FAILED: $n"; tail -20 "$log/$n"; fail=1; fi; done
 exit $fail

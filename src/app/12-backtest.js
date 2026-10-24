@@ -27,7 +27,7 @@ function renderHist(){
   const sp=/** @type {any[]} */(lines.map(r=>({x:r.adv.map((_,k)=>k),y:r.adv,mode:'lines',name:r.lab,showlegend:false,
     line:{width:1.3,color:hexA(seqAt(seq,(r.s-s0)/(s1-s0||1)),0.75)},hovertemplate:`bought ${r.lab}: %{y:.0f}%<extra></extra>`})));
   sp.push({x:[null],y:[null],mode:'markers',showlegend:false,hoverinfo:'skip',marker:{color:[s0,s1],cmin:s0,cmax:s1,colorscale:seq.map((c,i)=>[i/(seq.length-1),c]),showscale:true,
-    colorbar:{title:{text:'Year of<br>purchase',side:'top',font:{size:11}},thickness:10,outlinewidth:0,len:.74,tickformat:'d'}}});
+    colorbar:{title:cbTitle('Year of<br>purchase'),...CB_TICKS,thickness:10,outlinewidth:0,len:.74,tickformat:'d'}}});
   const med=[];for(let h=0;h<=30;h++){const v=runs.filter(r=>r.adv.length>h).map(r=>r.adv[h]).sort((a,b)=>a-b);if(v.length>=5)med.push([h,v[Math.floor(v.length/2)]])}
   sp.push({x:med.map(m=>m[0]),y:med.map(m=>m[1]),mode:'lines',name:'Median across starts',line:{color:t.ink,width:3.5},hovertemplate:'median %{y:.0f}%<extra></extra>'});
   plot('p-spag',sp,{hovermode:'closest',xaxis:X('Years after purchase'),yaxis:Yt('Buy − (rent + invest), % of purchase price, after inflation',{ticksuffix:'%'})});

@@ -11,7 +11,7 @@ function renderSens(){
   plot('p-tor',[
     {y:rows.map(r=>r.lab),x:rows.map(r=>r.lo),name:'Input lower',type:'bar',orientation:'h',width:.8,offset:-.4,marker:{color:hexA(t.inv,.85)},hovertemplate:'%{x:$,.0f}<extra>lower</extra>'},
     {y:rows.map(r=>r.lab),x:rows.map(r=>r.hi),name:'Input higher',type:'bar',orientation:'h',width:same.map(s=>s?.4:.8),offset:same.map(s=>s?-.2:-.4),marker:{color:hexA(t.buy,.85)},hovertemplate:'%{x:$,.0f}<extra>higher</extra>'}],
-    {barmode:'overlay',hovermode:'closest',margin:{l:labelWidth(rows.map(r=>r.lab),narrow?10:12),r:14,t:10,b:60},xaxis:{...layout().xaxis,title:{text:`Change in buy − rent at year ${p.N}, ${basisLabel()}`,font:{size:11}},tickprefix:'$',tickformat:'~s'},yaxis:{...layout().yaxis,automargin:true,tickfont:{family:'IBM Plex Sans, system-ui, sans-serif',size:narrow?10:12}},
+    {barmode:'overlay',hovermode:'closest',margin:{l:labelWidth(rows.map(r=>r.lab),narrow?10:12),r:14,t:10,b:60},xaxis:{...layout().xaxis,title:{text:`Change in buy − rent at year ${p.N}, ${basisLabel()}`,font:{size:11}},tickprefix:'$',tickformat:'~s',nticks:narrow?4:undefined},yaxis:{...layout().yaxis,automargin:true,tickfont:{family:'IBM Plex Sans, system-ui, sans-serif',size:narrow?10:12}},
      annotations:none.map(r=>({x:0,y:r.lab,xanchor:'left',xshift:4,showarrow:false,text:'no effect here',font:{size:10,color:t.muted}}))});
   {const top=rows.slice(-3).reverse(),flips=rows.filter(r=>Math.sign(base+r.lo)!==Math.sign(base)||Math.sign(base+r.hi)!==Math.sign(base));
    const nm=r=>r.lab.replace(/ ±.*/,'').toLowerCase(),list=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a.at(-1);
