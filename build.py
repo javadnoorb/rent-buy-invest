@@ -370,6 +370,12 @@ head = '''<title>Rent, Buy or Invest</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 '''
+# Cloudflare Web Analytics, shared with javadnoorb.github.io and its other project pages (the token is
+# public by design). Loaded only on the real host, so local runs and CI smoke tests never count as visits.
+CF_BEACON = ('<script>if(location.hostname==="javadnoorb.github.io"){const s=document.createElement("script");'
+             's.defer=true;s.src="https://static.cloudflareinsights.com/beacon.min.js";'
+             's.setAttribute("data-cf-beacon",\'{"token": "6f290669b842490dbf010fffe3a1cbd2"}\');'
+             'document.head.appendChild(s)}</script>\n')
 mj = '''<script>
 window.MathJax={tex:{inlineMath:[['\\\\(','\\\\)']],displayMath:[['\\\\[','\\\\]']]},options:{enableMenu:false},svg:{fontCache:'global'},startup:{typeset:false}};
 </script>
@@ -389,7 +395,7 @@ if PWA:
             '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">\n'
             '<meta name="apple-mobile-web-app-title" content="Rent·Buy">\n'
             '<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">\n<link rel="icon" type="image/png" href="icons/favicon-32.png">\n'
-            + head +
+            + head + CF_BEACON +
             '<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}'
             'body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-text-size-adjust:100%}img{max-width:100%}[hidden]{display:none!important}</style>\n'
             '</head>\n<body>\n')
