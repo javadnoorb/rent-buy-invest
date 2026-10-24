@@ -59,6 +59,6 @@ function summary(){
   document.getElementById('why').innerHTML=why.join(' ');
   plainAnswer();
   const ptr=p.P/(p.rent0*12);const m=curMetro();
-  document.getElementById('vnote').innerHTML=`${m.slug!=='us'?`Location: ${m.name}. `:''}Price-to-rent ${ptr.toFixed(1)} (gross rent yield ${pct(1/ptr)}). Values in ${basisLabel()}. ${MC?`Monte Carlo: buying beats renting-and-investing in <strong>${pct(MC.pWin[Math.min(N,MC.N)])}</strong> of ${MC.n.toLocaleString()} simulated paths at year ${Math.min(N,MC.N)}.`:''}`;
+  document.getElementById('vnote').innerHTML=`${m.slug!=='us'?`Location: ${m.name}. `:''}Price-to-rent ${ptr.toFixed(1)} (gross rent yield ${pct(1/ptr)}). Values in ${basisLabel()}. ${MC?`Monte Carlo: buying beats renting-and-investing in <strong>${pct(MC.pWin[Math.min(N,MC.N)])}</strong> of ${MC.n.toLocaleString()} simulated paths at year ${Math.min(N,MC.N)}.`:''}${LOAD_WARN.size?` <span class="warn">Could not load: ${[...LOAD_WARN].join('; ')}.</span>`:''}`;
 }
 

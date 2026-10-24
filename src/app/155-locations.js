@@ -3,14 +3,14 @@ let LOC_MODE='same',LOC_SORT='gap',LOC_DIR=-1,LOC_SEL=null;
 function locGrowth(m){
   // geometric-mean home and rent growth since the metro's data begins, and the national average over the same years
   const a=metroAnnual(m,true);const ms=metroStart(m);if(!a||!ms)return null;
-  const from=Math.max(ms,1988),to=2025;
+  const from=Math.max(ms,1988),to=LAST_Y;
   const natRent=RENTL.map((v,i)=>i&&RENTL[i-1]?(v/RENTL[i-1]-1)*100:null);
   const locRent=HOME.map((_,i)=>{const v=m.rentG&&m.rentG[String(Y0+i)];return v==null?null:+v});
   const has=locRent.slice(from-Y0,to-Y0+1).filter(v=>v!=null).length>=10;
   return {from,gh:geo(a,from,to)/100,ghN:geo(HOME,from,to)/100,gr:has?geo(locRent,from,to)/100:null,grN:geo(natRent,from,to)/100}}
 function locParams(base,m){
   const raw=getRaw();const q=Object.assign({},base);
-  q.P=m.P||base.P;q.rent0=m.rent?Math.round(m.rent*bedRatio(m,raw.beds||'3')/10)*10:base.rent0;
+  q.P=m.P||base.P;q.rent0=m.rent?typicalRent(m,raw.beds||'3'):base.rent0;
   const lt=locTax(m);if(lt){q.ptax=lt.rate/100;q.hsEx=lt.ex;q.hsCredit=lt.credit}q.floodIns=m.flood?m.flood.avg:0;
   if(m.ins!=null&&isFinite(m.ins))q.ins=m.ins;q.ptaxCap=(m.ptaxCap||0)/100;q.ptaxCapCPI=!!m.ptaxCapCPI;
   if(raw.ttAuto==='auto'){const t=m.tt?transferTaxes(m.tt,q.P,q.P*(1-q.dp)):{buyer:0,seller:0};q.ttBuy=t.buyer/q.P;q.ttSell=t.seller/q.P;q.close=q.closeBase+q.ttBuy;q.sell=q.sellBase+q.ttSell;q.ttRules=m.tt&&m.tt.length?m.tt:null}

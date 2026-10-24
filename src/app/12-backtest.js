@@ -3,7 +3,7 @@ function metroRentAnnual(m){if(!m||!m.rentG)return null;return YEARS.map(y=>m.re
 function rentSeries(useMetro){const ma=useMetro?metroRentAnnual(curMetro()):null;return RENTG.map((v,i)=>ma&&ma[i]!=null?ma[i]:v)}
 function homeSeries(useMetro){const m=curMetro(),ma=useMetro?metroAnnual(m):null;return HOME.map((v,i)=>ma&&ma[i]!=null?ma[i]:v)}
 function histPathAnnual(start,N,home,rent){const i0=start-Y0;const g=a=>a.slice(i0,i0+N).map(v=>v/100);
-  return {gh:g(home),gr:g(rent||RENTG),rs:g(STK),rb:g(BOND),rc:g(BILL),inf:g(INF),mkt:[...Array(N)].map((_,k)=>{const y=start+k;return y>=MORT0&&y<=2025?MORT[y-MORT0]/100:null})}}
+  return {gh:g(home),gr:g(rent||RENTG),rs:g(STK),rb:g(BOND),rc:g(BILL),inf:g(INF),mkt:[...Array(N)].map((_,k)=>{const y=start+k;return y>=MORT0&&y<=LAST_Y?MORT[y-MORT0]/100:null})}}
 let MGH_ADJ=null;
 function monthlyHome(){if(!VOLADJ||!MONTHLY.ghK||MONTHLY.ghK===1)return MONTHLY.gh;if(MGH_ADJ)return MGH_ADJ;
   const mean=MONTHLY.gh.reduce((a,b)=>a+b,0)/MONTHLY.gh.length;return MGH_ADJ=MONTHLY.gh.map(x=>mean+MONTHLY.ghK*(x-mean))}
@@ -17,7 +17,7 @@ function renderHist(){
   document.getElementById('h-note').textContent=note;
   let runs=[];
   if(mode==='annual'){const home=homeSeries(useMetro),rentS=rentSeries(useMetro);
-    for(let s=1972;s<=2025;s++){const N=Math.min(30,2025-s+1);const rate=useNow?p.rate:MORT[s-MORT0]/100;const o=simulate(p,histPathAnnual(s,N,home,rentS),{N,rate});
+    for(let s=1972;s<=LAST_Y;s++){const N=Math.min(30,LAST_Y-s+1);const rate=useNow?p.rate:MORT[s-MORT0]/100;const o=simulate(p,histPathAnnual(s,N,home,rentS),{N,rate});
       runs.push({s,lab:String(s),N,adv:o.buy.map((b,k)=>(b-o.inv[k])/o.cpi[k]/p.P*100),o,rate})}}
   else{const T=MONTHLY.gh.length;for(let s=0;s+12<=T;s++){const N=Math.min(30,Math.floor((T-s)/12));const rate=useNow?p.rate:MONTHLY.mkt[s];
       const o=simulate(p,histPathMonthly(s,N),{N,rate});const d=MONTHLY.dates[s];runs.push({s:+d.slice(0,4)+(+d.slice(5,7)-1)/12,lab:d,N,adv:o.buy.map((b,k)=>(b-o.inv[k])/o.cpi[k]/p.P*100),o,rate,jan:d.endsWith('-01')})}}
@@ -43,7 +43,7 @@ function renderHist(){
      const decs={};runs.forEach(r=>{if(r.adv.length>p.N){const d=Math.floor(r.s/10)*10;(decs[d]=decs[d]||[]).push(r.adv[p.N]>0)}});
      tk('hheat','Share of starts where buying won at your horizon, by decade bought: '+Object.entries(decs).map(([d,a])=>`${d}s ${pct(a.filter(Boolean).length/a.length,0)}`).join(' · ')+'.','In history:')}
    else{tk('spag','Not enough history for this horizon; shorten it to see results.','In history:');tk('hheat','')}}
-  let ys=parseInt(document.getElementById('h-year').value);if(!(ys>=1972&&ys<=2025))ys=2000;
+  let ys=parseInt(document.getElementById('h-year').value);if(!(ys>=1972&&ys<=LAST_Y))ys=2000;
   const r=mode==='annual'?runs.find(q=>q.s===ys):(runs.find(q=>q.lab===`${ys}-01`)||runs[0]);
   if(!r)return;const o=r.o,x=o.buy.map((_,k)=>Math.floor(r.s)+k);
   document.getElementById('h-detail-cap').textContent=`Bought ${r.lab} at ${(r.rate*100).toFixed(2)}%${o.refis?`, refinanced ${o.refis}× (last rate ${(o.rateAt.at(-1)*100).toFixed(2)}%)`:''}. Real dollars; today's price and rent scaled by the historical paths.`;

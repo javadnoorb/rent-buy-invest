@@ -123,9 +123,11 @@ function formatMoneyAll(){document.querySelectorAll('[data-money]').forEach(fmtM
 /* Setups saved or shared before the rent estimate existed (and v4 saves, which marked them all "my own"): use the
    estimate when the saved rent is just the location's typical rent, i.e. nobody typed it; keep a typed rent. */
 function rentWasDefault(o){const m=METROS.find(x=>x.slug===o.metro);if(!m||!m.rent)return false;
-  return Math.abs(parseFloat(unfmt(o.rent0))-Math.round(m.rent*bedRatio(m,o.beds||'3')/10)*10)<=10}
+  return Math.abs(parseFloat(unfmt(o.rent0))-typicalRent(m,o.beds||'3'))<=10}
 function setRaw(o,legacy){if(o.rent0!=null&&(o.rentMode==null||(legacy&&o.rentMode==='manual')))o=Object.assign({},o,{rentMode:rentWasDefault(o)?'auto':'manual'});
-  F.forEach(f=>{if(o[f[1]]!=null)document.getElementById(f[1]).value=o[f[1]]});if(o.N)document.getElementById('N').value=o.N;if(o.metro!=null&&!countyMetro(o.metro))restoreCounty(o.metro);if(o.metro!=null&&METROS.some(m=>m.slug===o.metro))document.getElementById('metro').value=o.metro}
+  // only values a field can hold: a listed option, or a number (shared links and old saves are untrusted input)
+  F.forEach(f=>{const v=o[f[1]];if(v==null)return;const el=document.getElementById(f[1]);
+    if(f[6]==='sel'){if((f[7]||[]).some(x=>String(x[0])===String(v)))el.value=String(v)}else if(isFinite(parseFloat(unfmt(String(v)))))el.value=String(+unfmt(String(v)))});if(o.N)document.getElementById('N').value=o.N;if(o.metro!=null&&!countyMetro(o.metro))restoreCounty(o.metro);if(o.metro!=null&&METROS.some(m=>m.slug===o.metro))document.getElementById('metro').value=o.metro}
 function parseP(raw){
   const n=id=>{const x=parseFloat(raw[id]);return isFinite(x)?x:DEF[id]};
   const pc=id=>n(id)/100;

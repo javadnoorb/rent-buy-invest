@@ -43,5 +43,4 @@ function renderCompare(list){
   tk('cmp',sa.value===sb.value?'Pick two different scenarios above, or save one first.':`${escapeHtml(A.name)}: ${gapTxt(a.gap)} at year ${a.N}. ${escapeHtml(B.name)}: ${gapTxt(b.gap)} at year ${b.N}.`);
   plot('p-cmp',[...line(A,null,'solid','A'),...line(B,null,'dot','B')],{xaxis:X('Years'),yaxis:Yd('Net worth, '+basisLabel())});
 }
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 

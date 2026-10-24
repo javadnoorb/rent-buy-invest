@@ -7,6 +7,8 @@ function buildSnap(){
   staleNotice();
   document.querySelectorAll('.use').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const v=a.dataset.f==='rent0'?Math.round(a.dataset.v*bedRatio(null,document.getElementById('beds').value)/10)*10:a.dataset.v;if(a.dataset.f==='rent0')rentTyped();document.getElementById(a.dataset.f).value=v;update()}));
 }
+/* a location's typical rent for the bedrooms chosen, rounded to $10 */
+function typicalRent(m,beds){return Math.round(m.rent*bedRatio(m,beds)/10)*10}
 function bedRatio(m,b){if(b==='any')return 1;const k=b==='4'?'4':b;const r=(m&&m.beds&&m.beds[k])||(m&&m.acs&&m.acs.beds&&m.acs.beds[k])||(D0.bedRatio&&D0.bedRatio[k]);return r||1}
 /* the state a location is in (metros carry it; counties and ZIPs end their name with the state) and its rules */
 function stateOf(m){if(!m)return null;if(m.st)return m.st;const n=(m.cname||m.name||'').split(', ').pop();return (STATE_RULES.names||{})[n]||null}
@@ -67,7 +69,7 @@ function applyRentMode(){const m=selMetro(),auto=document.getElementById('rentMo
     tag.innerHTML=!est?'':auto?'est.':'<button type="button" class="qlink" data-act="rent-est">use est.</button>'}
   if(!est){if(h)h.textContent='';return}
   if(auto)document.getElementById('rent0').value=est;
-  const typ=Math.round(m.rent*bedRatio(m,beds)/10)*10,$=x=>'$'+Math.round(x).toLocaleString('en-US');
+  const typ=typicalRent(m,beds),$=x=>'$'+Math.round(x).toLocaleString('en-US');
   if(h)h.textContent=`${auto?'Estimate':'Estimate from price would be'} ${$(est)}/mo: ${m.name} typical ${$(typ)} × (price ÷ ${$(m.P)})^${RENT_ELAST}`}
 function setRentFromBeds(){applyRentMode()}
 function rentTyped(){document.getElementById('rentMode').value='manual'}
@@ -87,12 +89,14 @@ function buildMetroSelect(){const sel=document.getElementById('metro');sel.inner
    rent ratio), else the ACS median contract rent × kR. Price history: FHFA's county index, loaded per state on pick. */
 let COUNTY_ROWS=null,COUNTY_LOAD=null;const COUNTY_HPI={};
 const getJSON=u=>fetch(u).then(r=>{if(!r.ok)throw new Error(String(r.status));return r.json()});
-function loadCounties(){if(COUNTY_ROWS)return Promise.resolve(COUNTY_ROWS);if(COUNTY_LOAD)return COUNTY_LOAD;const C=COUNTIES,F=C.fmr;
+/* data that failed to load, named under the answer so a result missing it isn't silently wrong */
+const LOAD_WARN=new Set();
+function loadCounties(){if(COUNTY_ROWS)return Promise.resolve(COUNTY_ROWS);if(COUNTY_LOAD)return COUNTY_LOAD;const C=COUNTIES,FMR=C.fmr;
   const rows=C.rows?Promise.resolve({rows:C.rows}):getJSON(C.file);
-  const fmr=!F?Promise.resolve(null):F.rows?Promise.resolve({rows:F.rows}):getJSON(F.file).catch(()=>null);
+  const fmr=!FMR?Promise.resolve(null):FMR.rows?Promise.resolve({rows:FMR.rows}):getJSON(FMR.file).catch(()=>{LOAD_WARN.add('HUD county rents (Census rents used)');return null});
   // county-level rules (local income taxes, county transfer taxes) come with the county list on the site
-  const rules=STATE_RULES.countyFile&&!STATE_RULES.county_transfer?getJSON(STATE_RULES.countyFile).then(r=>{for(const k of ['local_income','county_transfer','homestead_county'])STATE_RULES[k]=r[k]}).catch(()=>null):Promise.resolve();
-  const fl=C.flood&&C.flood.file?getJSON(C.flood.file).then(x=>{C.flood=x}).catch(()=>{C.flood=null}):Promise.resolve();
+  const rules=STATE_RULES.countyFile&&!STATE_RULES.county_transfer?getJSON(STATE_RULES.countyFile).then(r=>{for(const k of ['local_income','county_transfer','homestead_county'])STATE_RULES[k]=r[k]}).catch(()=>{LOAD_WARN.add('county tax rules (county transfer and local income taxes left out)')}):Promise.resolve();
+  const fl=C.flood&&C.flood.file?getJSON(C.flood.file).then(x=>{C.flood=x}).catch(()=>{C.flood=null;LOAD_WARN.add('flood insurance data (flood cost set to $0)')}):Promise.resolve();
   COUNTY_LOAD=Promise.all([rows,fmr,rules,fl]).then(([d,f])=>COUNTY_ROWS=d.rows.map(([fips,name,P,rent,tax,gross])=>{
     const h=f&&f.rows[fips],cg=rent&&gross?Math.min(1,Math.max(0.6,rent/gross)):C.cg;
     return [fips,name,Math.round(P*C.kP/100)*100,rent?Math.round(rent*C.kR/10)*10:null,tax?Math.round(tax/P*1e4)/100:null,
@@ -140,7 +144,7 @@ function loadCountyHpi(m){const H=COUNTIES.hpi;if(!H||m.hpi)return;const st=m.fi
   (COUNTY_HPI[st]=COUNTY_HPI[st]||getJSON(H.dir+st+'.json').catch(()=>{delete COUNTY_HPI[st];return null})).then(d=>{
     const v=d&&d.counties[m.fips];if(!v||Object.keys(v).length<10)return;
     m.hpi={values:v,basis:'all-transactions',volK:H.volK};m.hpiSrc={t:`FHFA county index, ${m.name} (all-transactions, developmental); volatility ratio ${H.volK} (metro median)`,u:H.u};m.src.hpi=m.hpiSrc;
-    if(selMetro()!==m)return;const ms=metroStart(m),btn=document.getElementById('metroPreset');btn.hidden=!ms;if(ms)btn.textContent=`${m.name} ${ms}–2025 avg`;
+    if(selMetro()!==m)return;showMetroPreset(m);
     MC=null;LAST_KEY='';update()})}
 /* a saved or shared setup whose location is a county: load the list, then select it */
 function restoreCounty(slug){if(!COUNTIES||!/^(cty|zip):/.test(slug||'')||countyMetro(slug))return;
@@ -159,8 +163,10 @@ function wireCounty(){if(!COUNTIES)return;const sel=document.getElementById('met
 function applyMetro(slug){const m=METROS.find(x=>x.slug===slug);if(!m)return;
   const set=(id,v)=>{if(v!=null&&isFinite(v))document.getElementById(id).value=v};
   set('P',m.P);set('floodIns',m.flood?m.flood.avg:0);{const lt=locTax(m);if(lt){set('ptax',lt.rate);set('hsEx',lt.ex);set('hsCredit',lt.credit)}}set('ins',m.ins);set('ptaxCap',m.ptaxCap||0);document.getElementById('ptaxCapCPI').value=m.ptaxCapCPI?'1':'0';document.getElementById('rentMode').value='auto';applyRentMode();
-  const ms=metroStart(m),btn=document.getElementById('metroPreset');btn.hidden=!ms;if(ms)btn.textContent=`${m.name} ${ms}–2025 avg`;
+  showMetroPreset(m);
   updateMetroHints(m);}
+/* the "<location> 19xx–2025 avg" growth preset, shown when the location has its own price history */
+function showMetroPreset(m){const ms=metroStart(m),btn=document.getElementById('metroPreset');btn.hidden=!ms;if(ms)btn.textContent=`${m.name} ${ms}–${LAST_Y} avg`}
 function updateMetroHints(m){
   const hint=(id,html)=>{const el=document.getElementById(id);const h=el&&el.closest('.f').querySelector('.hint');if(h)h.innerHTML=html};
   const base=Object.fromEntries(F.map(f=>[f[1],f[5]]));

@@ -14,7 +14,7 @@ if(typeof MORT_OVERRIDE!=='undefined'&&MORT_OVERRIDE&&MORT_OVERRIDE.length===MOR
    from 1992 FHFA's U.S. purchase-only index, December to December, scaled around its mean by volK so the swings keep
    Case-Shiller's size. The values above are the defaults; the build passes HOME_OVERRIDE from data/monthly.json. */
 if(typeof HOME_OVERRIDE!=='undefined'&&HOME_OVERRIDE)for(const y in HOME_OVERRIDE){const i=+y-Y0;if(i>=0&&i<HOME.length)HOME[i]=HOME_OVERRIDE[y]}
-const NY=STK.length, YEARS=[...Array(NY)].map((_,i)=>Y0+i);
+const NY=STK.length, YEARS=[...Array(NY)].map((_,i)=>Y0+i), LAST_Y=Y0+NY-1;  // last full calendar year of data
 const INF=YEARS.map((_,i)=>(CPIL[i+1]/CPIL[i]-1)*100);
 const RENTG=YEARS.map((_,i)=>(RENTL[i+1]/RENTL[i]-1)*100);
 /* mortgage-rate change by year (pp); 1973+ observed, earlier modeled from inflation changes */
@@ -34,7 +34,7 @@ const RATE_AR=(()=>{const X=[],Y=[],idx=[];YEARS.forEach((y,i)=>{if(DM_OBS[i]!=n
   const R={alpha:bta[0],kappa:-bta[1],gamma:bta[2],sigma:Math.sqrt(ss/(X.length-k)),mean:-bta[0]/bta[1],res,n:X.length};
   R.theta=R.kappa.toFixed(3);R.beta=R.gamma.toFixed(3);R.sd=R.sigma.toFixed(2);return R})();
 const SER={gh:HOME,gr:RENTG,rs:STK,rb:BOND,rc:BILL,inf:INF};
-function geo(a,from,to){const i0=from-Y0,i1=(to||2025)-Y0;let lp=0,n=0;for(let i=i0;i<=i1;i++){if(a[i]==null)continue;lp+=Math.log(1+a[i]/100);n++}return (Math.exp(lp/n)-1)*100}
+function geo(a,from,to){const i0=from-Y0,i1=(to||LAST_Y)-Y0;let lp=0,n=0;for(let i=i0;i<=i1;i++){if(a[i]==null)continue;lp+=Math.log(1+a[i]/100);n++}return (Math.exp(lp/n)-1)*100}
 const r2=x=>Math.round(x*100)/100;
 /* PMI by down payment: the PMI setting is the rate at 3–5% down; with more down it is scaled by Fannie Mae's standard
    required mortgage-insurance coverage for 30-year fixed loans (Selling Guide B7-1-02: 35% of the loan above 95% LTV,

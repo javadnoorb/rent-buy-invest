@@ -15,7 +15,7 @@ function syncDeps(){const r=getRaw();for(const [id,f] of Object.entries(DEPS)){c
   row.classList.add('dep');row.classList.toggle('dep-off',!f(r))}}
 function baselineFor(id){const m=selMetro();const beds=document.getElementById('beds').value;
   if(m){if(id==='P'&&m.P)return m.P;if(id==='ptax'||id==='hsEx'||id==='hsCredit'){const lt=locTax(m);if(lt)return id==='ptax'?lt.rate:id==='hsEx'?lt.ex:lt.credit;return id==='ptax'?(m.ptax!=null?m.ptax:DEF.ptax):0}
-    if(id==='ins'&&m.ins)return m.ins;if(id==='floodIns')return m.flood?m.flood.avg:0;if(id==='ptaxCap')return m.ptaxCap||0;if(id==='ptaxCapCPI')return m.ptaxCapCPI?'1':'0';if(id==='rent0'&&m.rent)return Math.round(m.rent*bedRatio(m,beds)/10)*10}
+    if(id==='ins'&&m.ins)return m.ins;if(id==='floodIns')return m.flood?m.flood.avg:0;if(id==='ptaxCap')return m.ptaxCap||0;if(id==='ptaxCapCPI')return m.ptaxCapCPI?'1':'0';if(id==='rent0'&&m.rent)return typicalRent(m,beds)}
   return DEF[id]}
 function isChanged(id){const el=document.getElementById(id);if(!el||el.disabled)return false;const base=baselineFor(id);
   if(el.tagName==='SELECT')return String(el.value)!==String(base);

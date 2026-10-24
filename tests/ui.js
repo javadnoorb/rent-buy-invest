@@ -243,6 +243,26 @@ const FCSTV = { rs: JSON.parse(fs.readFileSync(path.join(ROOT, 'data/forecasts_p
     await new Promise(r => setTimeout(r, 600)); setMode('basic'); const note = document.getElementById('modeNote').textContent; filterSettings('hoa'); const q = vis(); filterSettings('');
     resetField('hoa'); update(); setMode('all'); return { b, a, note, q, n0 }; });
   ok(bm.b === 13 && bm.a > 60 && new RegExp('^' + (bm.n0 + 1) + ' other changed').test(bm.note) && bm.q === 1, 'Basic / All settings', JSON.stringify(bm));
+  /* untrusted values (shared links, old saves) can't inject HTML: fields keep only numbers or listed options */
+  const xs = await page.evaluate(async () => { const inc = document.getElementById('income').value;
+    setRaw({ income: '<img/src="x"/onerror="window.PWNED=1">', loanType: '<b>x</b>', P: '400,000' }); printInputs(); await new Promise(r => setTimeout(r, 300));
+    const r = { pwned: !!window.PWNED, income: document.getElementById('income').value, loan: document.getElementById('loanType').value, P: document.getElementById('P').value, imgs: document.querySelectorAll('#printInputs img').length };
+    setRaw({ income: inc, P: '366157' }); update(); return r; });
+  ok(!xs.pwned && xs.imgs === 0 && !/</.test(xs.income) && xs.loan !== '<b>x</b>' && /400/.test(xs.P), 'shared-link values are validated and escaped', JSON.stringify(xs));
+  /* saved setups and shared links from older versions: untouched old defaults are dropped, edited values kept */
+  const mg = await page.evaluate(() => { const capF = CAP_FROM_LOC, taxF = TAX_FROM_LOC;
+    const a = migrateSave({ v: 5, rins: '0', hz: '5.6', pmi: '0.5', metro: 'boston', ptaxCap: '0', stTax: '8000' }), b = migrateSave({ v: 7, ptax: '1.1', floodIns: '0' }), c = migrateSave({ v: 8, ptax: '1.3', hsEx: '0' });
+    const r = { a: [a.rins, a.hz, a.pmi, a.ptaxCap, a.stMode], b: [b.ptax, b.floodIns, TAX_FROM_LOC && TAX_FROM_LOC.ptax], c: c.ptax };
+    CAP_FROM_LOC = capF; TAX_FROM_LOC = taxF; return r; });
+  ok(JSON.stringify(mg) === JSON.stringify({ a: [null, null, null, null, 'auto'], b: [null, null, '1.1'], c: '1.3' }), 'old saves and links are brought up to date', JSON.stringify(mg));
+  /* every list that names settings, Method sections or sources refers to ones that exist */
+  const reg = await page.evaluate(() => { const ids = new Set(F.map(f => f[1])), bad = [];
+    Object.keys(DEPS).concat(CORE, QUICK).forEach(id => { if (!ids.has(id)) bad.push('setting ' + id) });
+    Object.entries(CHART_INFO).forEach(([k, c]) => { c.a.forEach(id => { if (!ids.has(id)) bad.push(k + ': setting ' + id) });
+      c.m.forEach(m => { if (!document.getElementById('m-' + m)) bad.push(k + ': method ' + m) }); c.d.forEach(d => { if (!SRC[d]) bad.push(k + ': source ' + d) });
+      if (!document.getElementById('p-' + k)) bad.push('chart ' + k) });
+    return bad; });
+  ok(!reg.length, 'settings, Method sections and sources named in lists all exist', reg.join(', '));
   /* dependent settings: hidden while the setting they depend on makes them irrelevant */
   const vis = id => page.evaluate(id => !document.getElementById(id).closest('.f').classList.contains('dep-off'), id);
   const d0 = [await vis('armRate'), await vis('pmi'), await vis('mu'), await vis('refiTh')];

@@ -105,10 +105,8 @@ RES['sources'] = {k: v for k, v in RES['sources'].items() if v.get('u') and v.ge
 
 # ---------- realism parameters and forecasts (optional files) ----------
 def load(name):
-    for d in (D('data'), os.path.join(os.path.dirname(ROOT), 'rvb', 'data')):
-        f = os.path.join(d, name)
-        if os.path.exists(f): return json.load(open(f))
-    return None
+    f = D('data', name)
+    return json.load(open(f)) if os.path.exists(f) else None
 REAL = load('realism.json') or {}
 exec(open(D('build_params.py')).read()) if os.path.exists(D('build_params.py')) else None
 D0_EXTRA = globals().get('D0_EXTRA', {'renewGap': 0, 'incGrowth': 3.0, 'stressMult': 2, 'forcedDisc': 3, 'vacR': 7, 'dpR': 25, 'ratePrem': 0.6, 'mgmt': 9})
@@ -340,6 +338,8 @@ data_js = (f"const LOCAL_LIBS={json.dumps([VENDOR['plotly']] if PWA else [])};\n
            f"const STATE_RULES={json.dumps(_rules_embed(), separators=(',', ':'))};\n"
            f"const METROS={json.dumps(METROS, separators=(',', ':'))};\nconst MONTHLY={json.dumps(MONTHLY, separators=(',', ':'))};\n")
 
+# JSON embedded in <script> must not contain '</' (it would end the script block); '<\/' means the same in JSON and JS
+data_js = data_js.replace('</', '<\\/')
 css = open(D('src', 'style.css')).read()
 body = open(D('src', 'body.html')).read()
 model = open(D('src', 'model.js')).read()
@@ -378,8 +378,9 @@ else:
     tail = ''
 out = (head + '<style>' + css + '</style>\n' + body +
        '\n<!-- SNAPSHOT: current market figures. Weekly refresh edits only this block. -->\n'
-       '<script id="snapshot-data" type="application/json">\n' + json.dumps(snap, indent=1) + '\n</script>\n' + mj +
+       '<script id="snapshot-data" type="application/json">\n' + json.dumps(snap, indent=1).replace('</', '<\\/') + '\n</script>\n' + mj +
        '<script id="model-script">\n"use strict";\nconst MORT_OVERRIDE=' + json.dumps(MORT_OVERRIDE) + ';\nconst HOME_OVERRIDE=' + json.dumps(HOME_OVERRIDE) + ';\n' + model + '\n</script>\n<script>\n"use strict";\n' + data_js + app + '\n</script>\n' + tail)
+assert len(METROS) >= 20, f'only {len(METROS)} locations: data/metro_*.json missing?'
 os.makedirs(os.path.dirname(os.path.abspath(OUT)), exist_ok=True)
 open(OUT, 'w').write(out)
-print('built', len(out), 'bytes; metros', len(METROS), '; monthly', bool(MONTHLY))
+print('built', len(out.encode()), 'bytes; metros', len(METROS), '; monthly', bool(MONTHLY))

@@ -2,9 +2,11 @@
 /* Phone share sheet (where the browser has one), a printable one-page report, and an undo bar that lists what changed
    whenever one action changes three or more settings (location, presets, the setup wizard, loading a scenario). */
 let LAST_RAW=null,UNDO_RAW=null,UNDO_T=0;
+/* label and value of a setting as HTML-safe text (values can come from a shared link) */
 function settingLabel(id){if(id==='N')return 'Horizon';if(id==='metro')return 'Location';const f=F.find(x=>x[1]===id);
-  return f?f[2].replace(/\s*\([^)]*\)\s*$/,'').replace(/&amp;/g,'&'):id}
-function settingValue(id,v){if(id==='N')return nY(+v);if(id==='metro'){const m=METROS.find(x=>x.slug===v);return m?m.name:v}
+  return escapeHtml(f?f[2].replace(/\s*\([^)]*\)\s*$/,'').replace(/&amp;/g,'&'):id)}
+function settingValue(id,v){return escapeHtml(settingText(id,v))}
+function settingText(id,v){if(id==='N')return nY(+v);if(id==='metro'){const m=METROS.find(x=>x.slug===v);return m?m.name:v}
   const f=F.find(x=>x[1]===id);if(!f)return String(v);
   if(f[6]==='sel'){const o=(f[7]||[]).find(o=>String(o[0])===String(v));return o?o[1]:String(v)}
   const u=(f[2].match(/\(([^)]*)\)\s*$/)||[])[1]||'',x=parseFloat(v);if(!isFinite(x))return String(v);

@@ -7,8 +7,11 @@ function showTab(k){CUR=k;document.querySelectorAll('.tabs button').forEach(b=>{
 function tabFade(){const t=document.querySelector('.tabs');if(!t)return;t.classList.toggle('more-l',t.scrollLeft>4);t.classList.toggle('more-r',t.scrollLeft+t.clientWidth<t.scrollWidth-4)}
 const QUICK=['P','rent0','dp','rate'];
 function syncQuick(){QUICK.forEach(k=>{const q=document.getElementById('q-'+k),m=document.getElementById(k);if(document.activeElement!==q){q.value=unfmt(m.value);if(q.dataset.money!=null)fmtMoneyEl(q)}})}
-function persist(){try{localStorage.setItem('rbi-inputs',JSON.stringify(Object.assign(getRaw(),{REAL,v:8})));document.getElementById('saved').textContent='saved on this device'}catch(e){}}
-function restore(){try{const o=JSON.parse(localStorage.getItem('rbi-inputs')||'null');if(!o||![4,5,6,7,8].includes(o.v))return;
+function persist(){try{localStorage.setItem('rbi-inputs',JSON.stringify(Object.assign(getRaw(),{REAL,v:SAVE_V})));document.getElementById('saved').textContent='saved on this device'}catch(e){}}
+/* Brings a saved setup or shared link from an older version up to date (version v; links made before links carried
+   a version count as 7). Untouched old defaults are dropped so the new defaults apply; edited values are kept. */
+const SAVE_V=8;
+function migrateSave(o){
   // saves before v6 hold the old defaults for renter's insurance ($0) and the chance of moving (5.6%, Redfin): use the new ones
   if(o.v<6){if(+o.rins===0)delete o.rins;if(+o.hz===5.6)delete o.hz}
   // saves before v7: PMI was 0.5% at any down payment, and only California metros had an assessment cap; an untouched
@@ -20,7 +23,10 @@ function restore(){try{const o=JSON.parse(localStorage.getItem('rbi-inputs')||'n
   // saves before v8: property tax was the all-owner Census rate with no homestead exemption; an untouched rate becomes the
   // new-buyer rate before the exemption, with the location's exemption and credit
   if(o.v<8&&o.hsEx==null){TAX_FROM_LOC={ptax:o.ptax,floodIns:o.floodIns};delete o.ptax;if(!(+o.floodIns>0))delete o.floodIns}
-  setRaw(o,o.v===4);if(o.REAL===false)REAL=false;const m=METROS.find(x=>x.slug===o.metro);if(m){const ms=metroStart(m),btn=document.getElementById('metroPreset');btn.hidden=!ms;if(ms)btn.textContent=`${m.name} ${ms}–2025 avg`;updateMetroHints(m);applyStateCap(m)}}catch(e){}}
+  return o}
+function applySaved(o){migrateSave(o);
+  setRaw(o,o.v===4);if(o.REAL===false)REAL=false;const m=METROS.find(x=>x.slug===o.metro);if(m){showMetroPreset(m);updateMetroHints(m);applyStateCap(m)}}
+function restore(){try{const o=JSON.parse(localStorage.getItem('rbi-inputs')||'null');if(!o||![4,5,6,7,8].includes(o.v))return;applySaved(o)}catch(e){console.warn('could not restore saved settings',e)}}
 function validate(){document.querySelectorAll('aside input[type=number],aside input[data-money]').forEach(el=>{const v=unfmt(el.value);el.classList.toggle('bad',v===''||!isFinite(parseFloat(v)))})}
 let timer=null;
 function syncLoanFields(){syncDeps()}
@@ -35,7 +41,7 @@ function update(){clearTimeout(timer);timer=setTimeout(()=>{VOLADJ=document.getE
      `rate ${c.rate>=0?'+':'−'}${Math.abs(c.rate*100).toFixed(2)} pts vs the survey borrower (Fannie Mae price adjustments ${linkTo(L.source_url)}, at your points-to-rate setting)${P.dp<0.2?`; PMI × ${c.pmi.toFixed(2)} ${linkTo(CREDIT.pmi.source_url)}`:''}. First-time buyers with income at or below the area median pay no adjustment.`}}document.getElementById('Nlab').textContent=P.N+' year'+(P.N>1?'s':'');
   BASE=simulate(P,constPath(P,P.N));if(MC&&MC.key!==mcKey())MC=null;
   summary();RENDER[CUR]();refreshChartInfo();if(CUR!=='mc'&&!mcFresh(false))startMC(false)},150)}
-function encodeState(){return btoa(unescape(encodeURIComponent(JSON.stringify(Object.assign(getRaw(),{REAL})))))}
+function encodeState(){return btoa(unescape(encodeURIComponent(JSON.stringify(Object.assign(getRaw(),{REAL,v:SAVE_V})))))}
 function decodeState(s){try{return JSON.parse(decodeURIComponent(escape(atob(s))))}catch(e){return null}}
 function copyText(txt,msgEl,okMsg){const done=()=>{msgEl.textContent=okMsg;setTimeout(()=>msgEl.textContent='',2500)};
   try{navigator.clipboard.writeText(txt).then(done,()=>{msgEl.textContent='Copy was blocked by the browser.'})}catch(e){msgEl.textContent='Copy was blocked by the browser.'}}
@@ -43,13 +49,13 @@ const STANDALONE_SITE=(()=>{try{return window.top===window.self&&/^https?:$/.tes
 function setBasis(){document.getElementById('realBtn').setAttribute('aria-pressed',REAL);document.getElementById('nomBtn').setAttribute('aria-pressed',!REAL);update()}
 function init(){
   buildInputs();buildMetroSelect();buildSnap();buildMethod();const hadSaved=(()=>{try{return !!localStorage.getItem('rbi-inputs')}catch(e){return false}})();restore();wireWizard();wireSettings();wireLoc();wireHelp();wireChartInfo();wireMini();wireShareUndo();wireCounty();wireRentTag();wireAfford();{const tb=document.querySelector('.tabs'),sn=document.getElementById('snap');const sf=()=>sn.classList.toggle('more-r',sn.scrollLeft+sn.clientWidth<sn.scrollWidth-4);tb.addEventListener('scroll',tabFade,{passive:true});sn.addEventListener('scroll',sf,{passive:true});addEventListener('resize',()=>{tabFade();sf()});tabFade();sf()}
-  if(STANDALONE_SITE){const sp=new URLSearchParams(location.search).get('s');const st=sp&&decodeState(sp);if(st){setRaw(st);if(st.REAL===false)REAL=false;const m=METROS.find(x=>x.slug===st.metro);if(m)updateMetroHints(m);history.replaceState(null,'',location.pathname)}}
+  if(STANDALONE_SITE){const sp=new URLSearchParams(location.search).get('s');const st=sp&&decodeState(sp);if(st){if(st.v==null)st.v=7;try{applySaved(st)}catch(e){console.warn('could not apply the shared settings',e)}history.replaceState(null,'',location.pathname)}}
   const shareBtn=document.getElementById('shareLink');shareBtn.hidden=!STANDALONE_SITE;
   shareBtn.addEventListener('click',()=>copyText(location.origin+location.pathname+'?s='+encodeURIComponent(encodeState()),document.getElementById('actMsg'),'Link copied. Anyone opening it sees these inputs.'));
   document.getElementById('copySummary').addEventListener('click',()=>copyText(window._summaryText||'',document.getElementById('actMsg'),'Summary copied.'));
   document.getElementById('nwBand').addEventListener('change',()=>renderProj());
   document.getElementById('realBtn').setAttribute('aria-pressed',REAL);document.getElementById('nomBtn').setAttribute('aria-pressed',!REAL);
-  document.getElementById('h-year').max=2025;
+  document.getElementById('h-year').max=LAST_Y;
   {const fb=document.getElementById('fcstPreset');fb.hidden=!PRESETS.fcst;if(PRESETS.fcst&&FCST.note){const h=document.createElement('div');h.className='hint muted';h.style.fontSize='11px';h.innerHTML=FCST.note.replace('__GH__',PRESETS.fcst.gh).replace('__GR__',PRESETS.fcst.gr);fb.textContent=FCST.label||fb.textContent;fb.parentElement.after(h)}}
   if(!MONTHLY){const o=document.querySelector('#h-mode option[value=monthly]');o.disabled=true;o.textContent+=' (unavailable)'}
   QUICK.forEach(k=>document.getElementById('q-'+k).addEventListener('input',e=>{if(e.target.value==='')return;if(k==='rent0'&&e.isTrusted)rentTyped();document.getElementById(k).value=unfmt(e.target.value);update()}));

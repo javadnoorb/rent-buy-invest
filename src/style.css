@@ -424,3 +424,4 @@ details.tfold[open] summary{margin-bottom:6px}
 .amode{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 14px 0}
 .amode .sub{font-size:11.5px;color:var(--muted)}
 aside.basic:not(.searching) .f:not(.core),aside.basic:not(.searching) details.nocore{display:none}
+.vnote .warn,#vnote .warn{color:var(--neg)}
