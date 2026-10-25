@@ -39,8 +39,9 @@ function openTrace(r,el){const pn=tracePanel();TRACE_OPEN={el,r,stack:[{node:r.n
   const card=el&&el.closest('.card'),h=card&&card.querySelector('h2');
   document.getElementById('trpS').textContent=(h?h.textContent.replace(/\?/g,'').trim()+' · ':'')+r.title;
   const was=!pn.hidden;pn.hidden=false;document.body.classList.add('trace-open');document.body.classList.toggle('trace-dock',traceDock());
-  // phones: the sheet takes the space below the chart (a third to 60% of the screen), so the whole chart stays visible
-  if(!traceDock()&&el){const sh=document.querySelector('.stickyhead'),top=sh?sh.getBoundingClientRect().bottom:0,h=Math.round(Math.min(innerHeight*0.6,Math.max(innerHeight/3,innerHeight-top-el.getBoundingClientRect().height-16)));
+  // phones: the sheet takes the space below the chart (at least a quarter of the screen, at most 60%), so the whole chart
+  // stays visible even when the sticky header is taller (fallback fonts, two rows of tabs)
+  if(!traceDock()&&el){const sh=document.querySelector('.stickyhead'),top=sh?sh.getBoundingClientRect().bottom:0,h=Math.round(Math.min(innerHeight*0.6,Math.max(Math.min(innerHeight/4,220),innerHeight-top-el.getBoundingClientRect().height-16)));
     document.documentElement.style.setProperty('--trh',h+'px')}
   renderTraceCard();
   // keep the chart in view: docked, the page narrows and the charts redraw to fit; on phones the chart moves above the sheet

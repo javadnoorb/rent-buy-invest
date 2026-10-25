@@ -158,7 +158,8 @@ function walkTrees(roots) {
   const clickPoint = async (pg, k, meta) => { const xy = await pointXY(pg, k, meta); await pg.mouse.move(xy.x, xy.y); await pg.waitForTimeout(200); await pg.mouse.click(xy.x, xy.y); await pg.waitForTimeout(500); };
   const panelState = pg => pg.evaluate(() => { const p = document.getElementById('trp'), el = document.getElementById('p-nw'), c = el.getBoundingClientRect(), r = p && !p.hidden ? p.getBoundingClientRect() : null;
     return { open: !!r, bar: !!document.querySelector('.trbar[data-for="p-nw"]'), sub: r ? document.getElementById('trpS').textContent : '', rows: r ? p.querySelectorAll('.trrow').length : 0, eq: !!(r && p.querySelector('.treq')),
-      covered: r ? Math.min(c.right, r.right) - Math.max(c.left, r.left) > 2 && Math.min(c.bottom, r.bottom) - Math.max(c.top, r.top) > 2 : false }; });
+      covered: r ? Math.min(c.right, r.right) - Math.max(c.left, r.left) > 2 && Math.min(c.bottom, r.bottom) - Math.max(c.top, r.top) > 2 : false,
+      at: r ? { chart: [Math.round(c.top), Math.round(c.bottom)], panelTop: Math.round(r.top), head: Math.round((document.querySelector('.stickyhead') || { getBoundingClientRect: () => ({ bottom: 0 }) }).getBoundingClientRect().bottom), vh: innerHeight } : null }; });
   for (const [W, H, mob] of [[1280, 900, false], [390, 844, true]]) {
     const pg = W === 1280 ? page : await b.newPage({ viewport: { width: W, height: H }, isMobile: mob, hasTouch: mob });
     if (pg !== page) { pg.on('pageerror', e => errors.push(e.message)); await pg.goto(URL); await pg.waitForTimeout(2500); await pg.evaluate(() => { try { closeWizard(false); } catch (e) {} }); }
