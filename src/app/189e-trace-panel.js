@@ -46,7 +46,7 @@ function openTrace(r,el){const pn=tracePanel();TRACE_OPEN={el,r,stack:[{node:r.n
   // keep the chart in view: docked, the page narrows and the charts redraw to fit; on phones the chart moves above the sheet
   // (measured again after each scroll: the sticky header changes height as the page scrolls)
   const fit=n=>{if(!el)return;const r=el.getBoundingClientRect(),sh=document.querySelector('.stickyhead'),top2=sh?sh.getBoundingClientRect().bottom:0,
-    bottom=traceDock()?innerHeight:innerHeight-pn.getBoundingClientRect().height;if((r.top<top2-2||r.bottom>bottom+2)&&Math.abs(r.top-top2-6)>3){scrollBy({top:r.top-top2-6,behavior:'instant'});if(n<3)requestAnimationFrame(()=>fit(n+1))}};
+    bottom=traceDock()?innerHeight:innerHeight-pn.getBoundingClientRect().height;if((r.top<top2-2||r.bottom>bottom-1)&&Math.abs(r.top-top2-6)>3){scrollBy({top:r.top-top2-6,behavior:'instant'});if(n<3)requestAnimationFrame(()=>fit(n+1))}};
   requestAnimationFrame(()=>{if(!was&&traceDock())resizePlots();requestAnimationFrame(()=>fit(0))});
   if(!was)pn.querySelector('.trx').focus({preventScroll:true})}
 const trUnit=(v,u)=>u==='opt'?String(v):fv(v,u);
