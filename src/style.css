@@ -267,7 +267,7 @@ table.notation td:last-child{color:var(--muted)}
 @media (max-width:600px){.method mjx-container[display="true"]{font-size:86%!important}.method mjx-container{font-size:94%}}
 /* an inline formula longer than a phone line shrinks to fit it (not a scroll box: those must be keyboard-reachable)
    instead of widening the page */
-@media (max-width:600px){.method mjx-container:not([display="true"]){display:inline-block;max-width:100%;vertical-align:middle}.method mjx-container:not([display="true"])>svg{max-width:100%;height:auto}}
+@media (max-width:600px){.method mjx-container:not([display="true"]){display:inline-block;max-width:100%;vertical-align:middle;overflow:visible}.method mjx-container:not([display="true"])>svg{max-width:100%;height:auto}}
 /* pop-up help */
 .hlp{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;min-height:0!important;min-width:0!important;padding:0!important;margin:0 0 0 4px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);font:600 10.5px/1 system-ui,sans-serif;cursor:pointer;vertical-align:middle;flex:none;position:relative}
 .hlp::after{content:"";position:absolute;inset:-8px}
