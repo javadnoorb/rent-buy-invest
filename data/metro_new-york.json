@@ -160,21 +160,21 @@
   "note": "Years without a metro series use the BLS regional large-metro (size A) rent index."
  },
  "acs": {
-  "year": 2024,
+  "year": 2025,
   "geo_id": "310M700US35620",
   "name": "New York-Newark-Jersey City, NY-NJ Metro Area",
-  "median_tax": 9973.0,
-  "median_value": 648800.0,
-  "eff_tax_pct": 1.537,
-  "median_gross_rent": 1851.0,
+  "median_tax": 10001.0,
+  "median_value": 691700.0,
+  "eff_tax_pct": 1.446,
+  "median_gross_rent": 1932.0,
   "rent_ratio_by_bedrooms": {
-   "0": 0.881,
-   "1": 0.923,
-   "2": 1.019,
-   "3": 1.182,
-   "4": 1.403
+   "0": 0.871,
+   "1": 0.918,
+   "2": 1.034,
+   "3": 1.175,
+   "4": 1.346
   },
-  "source_title": "Census ACS 2024 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
+  "source_title": "Census ACS 2025 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
   "source_url": "https://www.census.gov/programs-surveys/acs/data/summary-file.html"
  },
  "transfer_taxes": [

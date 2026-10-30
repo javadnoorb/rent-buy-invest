@@ -160,21 +160,21 @@
   "note": "Years without a metro series use the BLS regional large-metro (size A) rent index."
  },
  "acs": {
-  "year": 2024,
+  "year": 2025,
   "geo_id": "310M700US41860",
   "name": "San Francisco-Oakland-Fremont, CA Metro Area",
-  "median_tax": 8777.0,
-  "median_value": 1132900.0,
-  "eff_tax_pct": 0.775,
-  "median_gross_rent": 2435.0,
+  "median_tax": 9168.0,
+  "median_value": 1152400.0,
+  "eff_tax_pct": 0.796,
+  "median_gross_rent": 2480.0,
   "rent_ratio_by_bedrooms": {
-   "0": 0.726,
-   "1": 0.895,
-   "2": 1.099,
-   "3": 1.309,
-   "4": 1.438
+   "0": 0.756,
+   "1": 0.883,
+   "2": 1.115,
+   "3": 1.317,
+   "4": 1.412
   },
-  "source_title": "Census ACS 2024 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
+  "source_title": "Census ACS 2025 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
   "source_url": "https://www.census.gov/programs-surveys/acs/data/summary-file.html"
  },
  "transfer_taxes": [

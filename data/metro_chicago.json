@@ -160,21 +160,21 @@
   "note": "Years without a metro series use the BLS regional large-metro (size A) rent index."
  },
  "acs": {
-  "year": 2024,
+  "year": 2025,
   "geo_id": "310M700US16980",
   "name": "Chicago-Naperville-Elgin, IL-IN Metro Area",
-  "median_tax": 6461.0,
-  "median_value": 339700.0,
-  "eff_tax_pct": 1.902,
-  "median_gross_rent": 1469.0,
+  "median_tax": 6688.0,
+  "median_value": 347700.0,
+  "eff_tax_pct": 1.923,
+  "median_gross_rent": 1620.0,
   "rent_ratio_by_bedrooms": {
-   "0": 0.869,
-   "1": 0.892,
-   "2": 1.011,
-   "3": 1.161,
-   "4": 1.286
+   "0": 0.843,
+   "1": 0.888,
+   "2": 1.017,
+   "3": 1.157,
+   "4": 1.292
   },
-  "source_title": "Census ACS 2024 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
+  "source_title": "Census ACS 2025 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
   "source_url": "https://www.census.gov/programs-surveys/acs/data/summary-file.html"
  },
  "transfer_taxes": [

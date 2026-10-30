@@ -160,21 +160,21 @@
   "note": "Years without a metro series use the BLS regional large-metro (size A) rent index."
  },
  "acs": {
-  "year": 2024,
+  "year": 2025,
   "geo_id": "310M700US33100",
   "name": "Miami-Fort Lauderdale-West Palm Beach, FL Metro Area",
-  "median_tax": 4260.0,
-  "median_value": 510600.0,
-  "eff_tax_pct": 0.834,
-  "median_gross_rent": 2083.0,
+  "median_tax": 4517.0,
+  "median_value": 525700.0,
+  "eff_tax_pct": 0.859,
+  "median_gross_rent": 2151.0,
   "rent_ratio_by_bedrooms": {
-   "0": 0.802,
-   "1": 0.846,
-   "2": 1.032,
-   "3": 1.205,
-   "4": 1.41
+   "0": 0.849,
+   "1": 0.845,
+   "2": 1.028,
+   "3": 1.23,
+   "4": 1.304
   },
-  "source_title": "Census ACS 2024 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
+  "source_title": "Census ACS 2025 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
   "source_url": "https://www.census.gov/programs-surveys/acs/data/summary-file.html"
  },
  "transfer_taxes": [

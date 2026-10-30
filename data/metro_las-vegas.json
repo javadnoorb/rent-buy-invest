@@ -160,21 +160,21 @@
   "note": "Years without a metro series use the BLS regional large-metro (size A) rent index."
  },
  "acs": {
-  "year": 2024,
+  "year": 2025,
   "geo_id": "310M700US29820",
   "name": "Las Vegas-Henderson-North Las Vegas, NV Metro Area",
-  "median_tax": 2155.0,
-  "median_value": 451000.0,
+  "median_tax": 2169.0,
+  "median_value": 453500.0,
   "eff_tax_pct": 0.478,
-  "median_gross_rent": 1739.0,
+  "median_gross_rent": 1711.0,
   "rent_ratio_by_bedrooms": {
-   "0": 0.746,
-   "1": 0.797,
-   "2": 0.951,
-   "3": 1.217,
-   "4": 1.371
+   "0": 0.748,
+   "1": 0.812,
+   "2": 0.956,
+   "3": 1.238,
+   "4": 1.368
   },
-  "source_title": "Census ACS 2024 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
+  "source_title": "Census ACS 2025 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
   "source_url": "https://www.census.gov/programs-surveys/acs/data/summary-file.html"
  },
  "transfer_taxes": [

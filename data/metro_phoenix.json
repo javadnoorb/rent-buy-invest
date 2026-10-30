@@ -160,21 +160,21 @@
   "note": "Years without a metro series use the BLS regional large-metro (size A) rent index."
  },
  "acs": {
-  "year": 2024,
+  "year": 2025,
   "geo_id": "310M700US38060",
   "name": "Phoenix-Mesa-Chandler, AZ Metro Area",
-  "median_tax": 1883.0,
-  "median_value": 470600.0,
-  "eff_tax_pct": 0.4,
-  "median_gross_rent": 1819.0,
+  "median_tax": 1943.0,
+  "median_value": 464400.0,
+  "eff_tax_pct": 0.418,
+  "median_gross_rent": 1836.0,
   "rent_ratio_by_bedrooms": {
-   "0": 0.837,
-   "1": 0.861,
-   "2": 0.982,
-   "3": 1.192,
-   "4": 1.377
+   "0": 0.789,
+   "1": 0.853,
+   "2": 0.994,
+   "3": 1.196,
+   "4": 1.403
   },
-  "source_title": "Census ACS 2024 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
+  "source_title": "Census ACS 2025 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
   "source_url": "https://www.census.gov/programs-surveys/acs/data/summary-file.html"
  },
  "transfer_taxes": []

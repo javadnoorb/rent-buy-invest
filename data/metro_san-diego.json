@@ -160,21 +160,21 @@
   "note": "Years without a metro series use the BLS regional large-metro (size A) rent index."
  },
  "acs": {
-  "year": 2024,
+  "year": 2025,
   "geo_id": "310M700US41740",
   "name": "San Diego-Chula Vista-Carlsbad, CA Metro Area",
-  "median_tax": 5948.0,
-  "median_value": 914700.0,
-  "eff_tax_pct": 0.65,
-  "median_gross_rent": 2336.0,
+  "median_tax": 6270.0,
+  "median_value": 927700.0,
+  "eff_tax_pct": 0.676,
+  "median_gross_rent": 2416.0,
   "rent_ratio_by_bedrooms": {
-   "0": 0.802,
-   "1": 0.872,
-   "2": 1.018,
-   "3": 1.22,
-   "4": 1.499
+   "0": 0.769,
+   "1": 0.889,
+   "2": 1.028,
+   "3": 1.265,
+   "4": 1.449
   },
-  "source_title": "Census ACS 2024 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
+  "source_title": "Census ACS 2025 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
   "source_url": "https://www.census.gov/programs-surveys/acs/data/summary-file.html"
  },
  "transfer_taxes": [

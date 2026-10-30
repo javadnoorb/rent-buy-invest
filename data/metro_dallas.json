@@ -160,21 +160,21 @@
   "note": "Years without a metro series use the BLS regional large-metro (size A) rent index."
  },
  "acs": {
-  "year": 2024,
+  "year": 2025,
   "geo_id": "310M700US19100",
   "name": "Dallas-Fort Worth-Arlington, TX Metro Area",
-  "median_tax": 5616.0,
-  "median_value": 389500.0,
-  "eff_tax_pct": 1.442,
-  "median_gross_rent": 1718.0,
+  "median_tax": 5735.0,
+  "median_value": 392000.0,
+  "eff_tax_pct": 1.463,
+  "median_gross_rent": 1744.0,
   "rent_ratio_by_bedrooms": {
-   "0": 0.857,
-   "1": 0.857,
-   "2": 1.031,
-   "3": 1.212,
-   "4": 1.508
+   "0": 0.853,
+   "1": 0.854,
+   "2": 1.029,
+   "3": 1.259,
+   "4": 1.49
   },
-  "source_title": "Census ACS 2024 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
+  "source_title": "Census ACS 2025 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
   "source_url": "https://www.census.gov/programs-surveys/acs/data/summary-file.html"
  },
  "transfer_taxes": []

@@ -160,21 +160,21 @@
   "note": "Years without a metro series use the BLS regional large-metro (size A) rent index."
  },
  "acs": {
-  "year": 2024,
+  "year": 2025,
   "geo_id": "310M700US33460",
   "name": "Minneapolis-St. Paul-Bloomington, MN-WI Metro Area",
-  "median_tax": 4113.0,
-  "median_value": 384300.0,
-  "eff_tax_pct": 1.07,
-  "median_gross_rent": 1444.0,
+  "median_tax": 4364.0,
+  "median_value": 396700.0,
+  "eff_tax_pct": 1.1,
+  "median_gross_rent": 1504.0,
   "rent_ratio_by_bedrooms": {
-   "0": 0.814,
-   "1": 0.861,
-   "2": 1.082,
-   "3": 1.258,
-   "4": 1.344
+   "0": 0.772,
+   "1": 0.882,
+   "2": 1.094,
+   "3": 1.279,
+   "4": 1.43
   },
-  "source_title": "Census ACS 2024 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
+  "source_title": "Census ACS 2025 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
   "source_url": "https://www.census.gov/programs-surveys/acs/data/summary-file.html"
  },
  "transfer_taxes": [

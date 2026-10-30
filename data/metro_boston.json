@@ -160,21 +160,21 @@
   "note": "Years without a metro series use the BLS regional large-metro (size A) rent index."
  },
  "acs": {
-  "year": 2024,
+  "year": 2025,
   "geo_id": "310M700US14460",
   "name": "Boston-Cambridge-Newton, MA-NH Metro Area",
-  "median_tax": 6913.0,
-  "median_value": 681100.0,
-  "eff_tax_pct": 1.015,
-  "median_gross_rent": 2093.0,
+  "median_tax": 7167.0,
+  "median_value": 713900.0,
+  "eff_tax_pct": 1.004,
+  "median_gross_rent": 2221.0,
   "rent_ratio_by_bedrooms": {
-   "0": 0.875,
-   "1": 0.835,
-   "2": 1.061,
-   "3": 1.122,
-   "4": 1.316
+   "0": 0.87,
+   "1": 0.856,
+   "2": 1.067,
+   "3": 1.114,
+   "4": 1.232
   },
-  "source_title": "Census ACS 2024 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
+  "source_title": "Census ACS 2025 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
   "source_url": "https://www.census.gov/programs-surveys/acs/data/summary-file.html"
  },
  "transfer_taxes": [

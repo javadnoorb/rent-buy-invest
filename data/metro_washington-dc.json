@@ -160,21 +160,21 @@
   "note": "Years without a metro series use the BLS regional large-metro (size A) rent index."
  },
  "acs": {
-  "year": 2024,
+  "year": 2025,
   "geo_id": "310M700US47900",
   "name": "Washington-Arlington-Alexandria, DC-VA-MD-WV Metro Area",
-  "median_tax": 5430.0,
-  "median_value": 604800.0,
-  "eff_tax_pct": 0.898,
-  "median_gross_rent": 2037.0,
+  "median_tax": 5727.0,
+  "median_value": 612500.0,
+  "eff_tax_pct": 0.935,
+  "median_gross_rent": 2168.0,
   "rent_ratio_by_bedrooms": {
-   "0": 0.853,
-   "1": 0.898,
-   "2": 1.033,
-   "3": 1.214,
-   "4": 1.41
+   "0": 0.837,
+   "1": 0.909,
+   "2": 1.027,
+   "3": 1.182,
+   "4": 1.403
   },
-  "source_title": "Census ACS 2024 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
+  "source_title": "Census ACS 2025 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
   "source_url": "https://www.census.gov/programs-surveys/acs/data/summary-file.html"
  },
  "transfer_taxes": [

@@ -160,21 +160,21 @@
   "note": "Years without a metro series use the BLS regional large-metro (size A) rent index."
  },
  "acs": {
-  "year": 2024,
+  "year": 2025,
   "geo_id": "310M700US16740",
   "name": "Charlotte-Concord-Gastonia, NC-SC Metro Area",
-  "median_tax": 2552.0,
-  "median_value": 400400.0,
-  "eff_tax_pct": 0.637,
-  "median_gross_rent": 1594.0,
+  "median_tax": 2692.0,
+  "median_value": 415300.0,
+  "eff_tax_pct": 0.648,
+  "median_gross_rent": 1641.0,
   "rent_ratio_by_bedrooms": {
-   "0": 0.895,
-   "1": 0.91,
-   "2": 0.983,
-   "3": 1.1,
-   "4": 1.37
+   "0": 0.856,
+   "1": 0.904,
+   "2": 0.968,
+   "3": 1.224,
+   "4": 1.452
   },
-  "source_title": "Census ACS 2024 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
+  "source_title": "Census ACS 2025 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
   "source_url": "https://www.census.gov/programs-surveys/acs/data/summary-file.html"
  },
  "transfer_taxes": [

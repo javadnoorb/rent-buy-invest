@@ -1,9 +1,9 @@
 {
  "asOf": "2026-10-22",
- "rateDate": "Oct 22 2026",
+ "rateDate": "Oct 29 2026",
  "values": {
-  "rate30": 7.32,
-  "rate15": 6.68,
+  "rate30": 7.24,
+  "rate15": 6.6,
   "tsy10": 5.11,
   "tbill": 4.21,
   "zhvi": 366913,
@@ -17,19 +17,19 @@
  "items": [
   {
    "k": "30-yr mortgage",
-   "v": "7.32%",
-   "s": "Oct 22 2026",
+   "v": "7.24%",
+   "s": "Oct 29 2026",
    "src": "pmms",
    "field": "rate",
-   "val": 7.32
+   "val": 7.24
   },
   {
    "k": "15-yr mortgage",
-   "v": "6.68%",
-   "s": "Oct 22 2026",
+   "v": "6.60%",
+   "s": "Oct 29 2026",
    "src": "pmms",
    "field": "rate15",
-   "val": 6.68
+   "val": 6.6
   },
   {
    "k": "10-yr Treasury",
@@ -74,7 +74,7 @@
  ],
  "sources": {
   "pmms": {
-   "t": "Freddie Mac Primary Mortgage Market Survey, Oct 22 2026",
+   "t": "Freddie Mac Primary Mortgage Market Survey, Oct 29 2026",
    "u": "https://www.freddiemac.com/pmms"
   },
   "tsy": {

@@ -160,21 +160,21 @@
   "note": "Years without a metro series use the BLS regional large-metro (size A) rent index."
  },
  "acs": {
-  "year": 2024,
+  "year": 2025,
   "geo_id": "310M700US38900",
   "name": "Portland-Vancouver-Hillsboro, OR-WA Metro Area",
-  "median_tax": 4889.0,
-  "median_value": 584800.0,
-  "eff_tax_pct": 0.836,
-  "median_gross_rent": 1767.0,
+  "median_tax": 5103.0,
+  "median_value": 575500.0,
+  "eff_tax_pct": 0.887,
+  "median_gross_rent": 1799.0,
   "rent_ratio_by_bedrooms": {
-   "0": 0.764,
-   "1": 0.891,
-   "2": 1.019,
-   "3": 1.266,
-   "4": 1.573
+   "0": 0.75,
+   "1": 0.889,
+   "2": 1.028,
+   "3": 1.269,
+   "4": 1.517
   },
-  "source_title": "Census ACS 2024 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
+  "source_title": "Census ACS 2025 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
   "source_url": "https://www.census.gov/programs-surveys/acs/data/summary-file.html"
  },
  "transfer_taxes": []

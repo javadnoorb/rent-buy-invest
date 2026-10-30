@@ -160,21 +160,21 @@
   "note": "Years without a metro series use the BLS regional large-metro (size A) rent index."
  },
  "acs": {
-  "year": 2024,
+  "year": 2025,
   "geo_id": "310M700US39580",
   "name": "Raleigh-Cary, NC Metro Area",
-  "median_tax": 3082.0,
-  "median_value": 465800.0,
-  "eff_tax_pct": 0.662,
-  "median_gross_rent": 1674.0,
+  "median_tax": 3375.0,
+  "median_value": 465500.0,
+  "eff_tax_pct": 0.725,
+  "median_gross_rent": 1713.0,
   "rent_ratio_by_bedrooms": {
-   "0": 0.82,
-   "1": 0.879,
-   "2": 0.986,
-   "3": 1.093,
-   "4": 1.467
+   "0": 0.932,
+   "1": 0.861,
+   "2": 0.977,
+   "3": 1.176,
+   "4": 1.36
   },
-  "source_title": "Census ACS 2024 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
+  "source_title": "Census ACS 2025 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
   "source_url": "https://www.census.gov/programs-surveys/acs/data/summary-file.html"
  },
  "transfer_taxes": [

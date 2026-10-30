@@ -160,21 +160,21 @@
   "note": "Years without a metro series use the BLS regional large-metro (size A) rent index."
  },
  "acs": {
-  "year": 2024,
+  "year": 2025,
   "geo_id": "310M700US19820",
   "name": "Detroit-Warren-Dearborn, MI Metro Area",
-  "median_tax": 3489.0,
-  "median_value": 271600.0,
-  "eff_tax_pct": 1.285,
-  "median_gross_rent": 1248.0,
+  "median_tax": 3658.0,
+  "median_value": 284200.0,
+  "eff_tax_pct": 1.287,
+  "median_gross_rent": 1316.0,
   "rent_ratio_by_bedrooms": {
-   "0": 0.833,
-   "1": 0.816,
-   "2": 1.042,
-   "3": 1.171,
-   "4": 1.292
+   "0": 0.798,
+   "1": 0.793,
+   "2": 1.062,
+   "3": 1.197,
+   "4": 1.324
   },
-  "source_title": "Census ACS 2024 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
+  "source_title": "Census ACS 2025 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
   "source_url": "https://www.census.gov/programs-surveys/acs/data/summary-file.html"
  },
  "transfer_taxes": [

@@ -160,21 +160,21 @@
   "note": "Years without a metro series use the BLS regional large-metro (size A) rent index."
  },
  "acs": {
-  "year": 2024,
+  "year": 2025,
   "geo_id": "310M700US31080",
   "name": "Los Angeles-Long Beach-Anaheim, CA Metro Area",
-  "median_tax": 6011.0,
-  "median_value": 908500.0,
-  "eff_tax_pct": 0.662,
-  "median_gross_rent": 2114.0,
+  "median_tax": 6159.0,
+  "median_value": 925900.0,
+  "eff_tax_pct": 0.665,
+  "median_gross_rent": 2170.0,
   "rent_ratio_by_bedrooms": {
-   "0": 0.774,
-   "1": 0.862,
-   "2": 1.07,
-   "3": 1.269,
-   "4": 1.458
+   "0": 0.797,
+   "1": 0.866,
+   "2": 1.073,
+   "3": 1.284,
+   "4": 1.438
   },
-  "source_title": "Census ACS 2024 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
+  "source_title": "Census ACS 2025 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
   "source_url": "https://www.census.gov/programs-surveys/acs/data/summary-file.html"
  },
  "transfer_taxes": [

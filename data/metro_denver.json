@@ -160,21 +160,21 @@
   "note": "Years without a metro series use the BLS regional large-metro (size A) rent index."
  },
  "acs": {
-  "year": 2024,
+  "year": 2025,
   "geo_id": "310M700US19740",
   "name": "Denver-Aurora-Centennial, CO Metro Area",
-  "median_tax": 3387.0,
-  "median_value": 631000.0,
-  "eff_tax_pct": 0.537,
-  "median_gross_rent": 1943.0,
+  "median_tax": 3616.0,
+  "median_value": 626500.0,
+  "eff_tax_pct": 0.577,
+  "median_gross_rent": 1944.0,
   "rent_ratio_by_bedrooms": {
-   "0": 0.844,
+   "0": 0.842,
    "1": 0.882,
-   "2": 1.069,
-   "3": 1.286,
-   "4": 1.431
+   "2": 1.085,
+   "3": 1.339,
+   "4": 1.45
   },
-  "source_title": "Census ACS 2024 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
+  "source_title": "Census ACS 2025 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
   "source_url": "https://www.census.gov/programs-surveys/acs/data/summary-file.html"
  },
  "transfer_taxes": [

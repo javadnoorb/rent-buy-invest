@@ -160,21 +160,21 @@
   "note": "Years without a metro series use the BLS regional large-metro (size A) rent index."
  },
  "acs": {
-  "year": 2024,
+  "year": 2025,
   "geo_id": "310M700US37980",
   "name": "Philadelphia-Camden-Wilmington, PA-NJ-DE-MD Metro Area",
-  "median_tax": 5016.0,
-  "median_value": 375100.0,
-  "eff_tax_pct": 1.337,
-  "median_gross_rent": 1567.0,
+  "median_tax": 5083.0,
+  "median_value": 395900.0,
+  "eff_tax_pct": 1.284,
+  "median_gross_rent": 1638.0,
   "rent_ratio_by_bedrooms": {
-   "0": 0.825,
-   "1": 0.863,
-   "2": 1.07,
-   "3": 1.098,
-   "4": 1.19
+   "0": 0.818,
+   "1": 0.89,
+   "2": 1.052,
+   "3": 1.105,
+   "4": 1.35
   },
-  "source_title": "Census ACS 2024 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
+  "source_title": "Census ACS 2025 1-year: B25103 median real estate taxes, B25077 median value, B25031 median gross rent by bedrooms (public domain)",
   "source_url": "https://www.census.gov/programs-surveys/acs/data/summary-file.html"
  },
  "transfer_taxes": [
