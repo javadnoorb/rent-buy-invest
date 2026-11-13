@@ -59,11 +59,11 @@
  "ppi": {
   "series": "PCU5241265241262",
   "base_year_avg": 256.275,
-  "latest_month": "2026-09",
-  "latest": 290.872,
+  "latest_month": "2026-10",
+  "latest": 290.909,
   "source_url": "https://data.bls.gov/timeseries/PCU5241265241262"
  },
- "fetched_utc": "2026-10-23T20:47:52Z",
+ "fetched_utc": "2026-11-13T20:56:18Z",
  "ptax_movers": {
   "states": {
    "Alabama": {

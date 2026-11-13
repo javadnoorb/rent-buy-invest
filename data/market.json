@@ -1,9 +1,9 @@
 {
- "fetched_utc": "2026-11-06T20:28:26Z",
+ "fetched_utc": "2026-11-13T20:55:39Z",
  "treasury": {
-  "date": "2026-11-05",
-  "y10": 4.84,
-  "bill3m": 4.17,
+  "date": "2026-11-13",
+  "y10": 5.15,
+  "bill3m": 4.32,
   "source_title": "U.S. Treasury daily par yield curve rates",
   "source_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve"
  },
