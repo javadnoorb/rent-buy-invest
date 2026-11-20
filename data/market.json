@@ -1,112 +1,112 @@
 {
- "fetched_utc": "2026-11-13T20:55:39Z",
+ "fetched_utc": "2026-11-20T21:52:29Z",
  "treasury": {
-  "date": "2026-11-13",
-  "y10": 5.15,
+  "date": "2026-11-20",
+  "y10": 4.92,
   "bill3m": 4.32,
   "source_title": "U.S. Treasury daily par yield curve rates",
   "source_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve"
  },
  "zillow": {
-  "month": "2026-09",
+  "month": "2026-10",
   "us": {
-   "zhvi": 366157,
-   "zori": 1932,
-   "zhvi_yoy": 1.2,
-   "zori_yoy": 2.7
+   "zhvi": 364288,
+   "zori": 1913,
+   "zhvi_yoy": 1.1,
+   "zori_yoy": 2.9
   },
   "metros": {
    "atlanta": {
-    "zhvi": 375898,
-    "zori": 1843
+    "zhvi": 372927,
+    "zori": 1828
    },
    "austin": {
-    "zhvi": 414273,
-    "zori": 1603
+    "zhvi": 409032,
+    "zori": 1584
    },
    "boston": {
-    "zhvi": 725639,
-    "zori": 2987
+    "zhvi": 724414,
+    "zori": 2945
    },
    "charlotte": {
-    "zhvi": 381392,
-    "zori": 1735
+    "zhvi": 378467,
+    "zori": 1713
    },
    "chicago": {
-    "zhvi": 355650,
-    "zori": 2163
+    "zhvi": 355724,
+    "zori": 2123
    },
    "cleveland": {
-    "zhvi": 250001,
-    "zori": 1440
+    "zhvi": 249000,
+    "zori": 1417
    },
    "dallas": {
-    "zhvi": 358242,
-    "zori": 1659
+    "zhvi": 355153,
+    "zori": 1647
    },
    "denver": {
-    "zhvi": 555487,
-    "zori": 1900
+    "zhvi": 551484,
+    "zori": 1884
    },
    "detroit": {
-    "zhvi": 264316,
-    "zori": 1514
+    "zhvi": 261543,
+    "zori": 1497
    },
    "las-vegas": {
-    "zhvi": 422654,
-    "zori": 1732
+    "zhvi": 419365,
+    "zori": 1723
    },
    "los-angeles": {
-    "zhvi": 950020,
-    "zori": 2929
+    "zhvi": 948751,
+    "zori": 2913
    },
    "miami": {
-    "zhvi": 476815,
-    "zori": 2654
+    "zhvi": 478673,
+    "zori": 2652
    },
    "minneapolis": {
-    "zhvi": 387807,
-    "zori": 1736
+    "zhvi": 383170,
+    "zori": 1733
    },
    "new-york": {
-    "zhvi": 730949,
-    "zori": 3546
+    "zhvi": 730098,
+    "zori": 3450
    },
    "philadelphia": {
-    "zhvi": 386048,
-    "zori": 1903
+    "zhvi": 384753,
+    "zori": 1884
    },
    "phoenix": {
-    "zhvi": 441097,
-    "zori": 1720
+    "zhvi": 438867,
+    "zori": 1717
    },
    "portland": {
-    "zhvi": 539403,
-    "zori": 1803
+    "zhvi": 534997,
+    "zori": 1799
    },
    "raleigh": {
-    "zhvi": 428267,
-    "zori": 1669
+    "zhvi": 425747,
+    "zori": 1658
    },
    "san-diego": {
-    "zhvi": 926961,
-    "zori": 2967
+    "zhvi": 926859,
+    "zori": 2936
    },
    "san-francisco": {
-    "zhvi": 1120379,
-    "zori": 3445
+    "zhvi": 1125840,
+    "zori": 3438
    },
    "seattle": {
-    "zhvi": 720147,
-    "zori": 2250
+    "zhvi": 712034,
+    "zori": 2225
    },
    "tampa": {
-    "zhvi": 356843,
-    "zori": 1991
+    "zhvi": 356170,
+    "zori": 1975
    },
    "washington-dc": {
-    "zhvi": 569857,
-    "zori": 2407
+    "zhvi": 568080,
+    "zori": 2379
    }
   },
   "source_title": "Zillow Home Value Index (ZHVI, mid tier, smoothed, seasonally adjusted) and Zillow Observed Rent Index (ZORI, smoothed). Data: Zillow Group",
